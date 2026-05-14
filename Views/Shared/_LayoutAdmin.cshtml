@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Epycus</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/temas/tema-noche-epica.css" id="hoja-tema" asp-append-version="true" />
+</head>
+<body>
+    <div class="d-flex">
+        <aside class="ep-sidebar">
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <i class="bi bi-shield-lock fs-4"></i>
+                <span class="fw-semibold">Panel Admin</span>
+            </div>
+            <div class="ep-card mb-3 p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="ep-boton-icono"><i class="bi bi-lightning"></i></div>
+                    <div>
+                        <div class="small text-muted">Estado del sistema</div>
+                        <div class="fw-semibold">Operativo</div>
+                    </div>
+                </div>
+            </div>
+            <div class="ep-card mb-4 p-3">
+                <div class="small text-muted">Acciones rápidas</div>
+                <div class="d-flex gap-2 mt-2">
+                    <a asp-controller="Admin" asp-action="Usuarios" class="btn btn-ep-outline btn-sm flex-grow-1">Usuarios</a>
+                    <a asp-controller="Admin" asp-action="Frases" class="btn btn-ep btn-sm flex-grow-1">Frases</a>
+                </div>
+            </div>
+            <nav class="d-flex flex-column gap-2">
+                <a asp-controller="Admin" asp-action="Index" class="ep-nav-item"><i class="bi bi-speedometer2"></i>Dashboard</a>
+                <a asp-controller="Admin" asp-action="Usuarios" class="ep-nav-item"><i class="bi bi-people"></i>Usuarios</a>
+                <a asp-controller="Admin" asp-action="Frases" class="ep-nav-item"><i class="bi bi-chat-quote"></i>Frases</a>
+                <a asp-controller="Admin" asp-action="Index" class="ep-nav-item"><i class="bi bi-award"></i>Logros</a>
+                <a asp-controller="Admin" asp-action="Index" class="ep-nav-item"><i class="bi bi-gear"></i>Configuración</a>
+            </nav>
+            <form asp-controller="Admin" asp-action="Logout" method="post" class="mt-4">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn w-100 text-start ep-nav-item text-danger" style="background: transparent; border: none;">
+                    <i class="bi bi-box-arrow-right text-danger"></i> Cerrar sesión
+                </button>
+            </form>
+        </aside>
+        <main class="ep-contenido flex-grow-1">
+            <div class="container-fluid">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

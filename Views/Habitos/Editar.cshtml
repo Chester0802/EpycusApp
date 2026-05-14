@@ -1,0 +1,85 @@
+@model EPYCUS_WEB_v0._1.ViewModels.EditarHabitoViewModel
+
+@{
+    ViewData["Title"] = "Editar hábito";
+}
+
+<div class="mb-4">
+    <h1 class="ep-header-title d-flex align-items-center gap-2">Editar hábito <i class="bi bi-pencil-square text-primary"></i></h1>
+    <p class="ep-header-subtitle">Ajusta tu hábito para mantener la constancia.</p>
+</div>
+
+<form asp-action="Editar" method="post" class="ep-card">
+    <input asp-for="Id" type="hidden" />
+
+    <div class="mb-3">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control ep-input" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Descripcion" class="form-label"></label>
+        <textarea asp-for="Descripcion" class="form-control ep-input" rows="3"></textarea>
+        <span asp-validation-for="Descripcion" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CategoriaId" class="form-label">Categoría</label>
+        @{ var categorias = ViewBag.Categorias as List<EPYCUS_WEB_v0._1.Modelos.Entidades.Categoria> ?? new List<EPYCUS_WEB_v0._1.Modelos.Entidades.Categoria>(); }
+        <select asp-for="CategoriaId" class="form-select ep-input">
+            <option value="">-- Seleccione --</option>
+            @foreach(var c in categorias)
+            {
+                if (Model.CategoriaId == c.Id)
+                {
+                    <option value="@c.Id" selected>@c.Nombre</option>
+                }
+                else
+                {
+                    <option value="@c.Id">@c.Nombre</option>
+                }
+            }
+        </select>
+        <span asp-validation-for="CategoriaId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Frecuencia" class="form-label"></label>
+        <select asp-for="Frecuencia" class="form-select ep-input">
+            <option value="Diaria">Diaria</option>
+            <option value="Semanal">Semanal</option>
+            <option value="Personalizada">Personalizada</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Días de la semana (números separados por comas)</label>
+        <input name="DiasSemana" value="@string.Join(',', Model.DiasSemana ?? new List<int>())" class="form-control ep-input" />
+        <div class="form-text text-muted">Usa 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb, 0=Dom.</div>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="ConPomodoro" class="form-check-input" />
+        <label asp-for="ConPomodoro" class="form-check-label"></label>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="RecordatorioHora" class="form-label"></label>
+        <input asp-for="RecordatorioHora" type="time" class="form-control ep-input" />
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="EstaActivo" class="form-check-input" />
+        <label asp-for="EstaActivo" class="form-check-label"></label>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-ep">Guardar cambios</button>
+        <a asp-action="Index" class="btn btn-ep-outline">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

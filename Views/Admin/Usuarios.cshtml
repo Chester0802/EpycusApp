@@ -1,0 +1,91 @@
+@model IEnumerable<EPYCUS_WEB_v0._1.Modelos.Entidades.Usuario>
+
+@{
+    ViewData["Title"] = "Usuarios";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="mb-4">
+    <h1 class="ep-header-title d-flex align-items-center gap-2">Usuarios <i class="bi bi-people text-primary"></i></h1>
+    <p class="ep-header-subtitle">Gestiona estados y suscripciones.</p>
+</div>
+
+@if (TempData["Exito"] != null)
+{
+    <div class="ep-alerta mb-4">
+        <i class="bi bi-check-circle-fill ep-alerta-icono"></i>
+        <div>
+            <div class="ep-alerta-titulo">Acción completada</div>
+            <div class="text-muted">@TempData["Exito"]</div>
+        </div>
+    </div>
+}
+
+<div class="ep-card">
+    <div class="table-responsive">
+        <table class="ep-tabla">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Suscripción</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var usuario in Model)
+            {
+                var suscripcionActiva = usuario.Suscripciones.Any(s => s.EstaActiva);
+                <tr>
+                    <td>@usuario.Nombre</td>
+                    <td class="text-muted">@usuario.CorreoElectronico</td>
+                    <td>@usuario.Rol?.Nombre</td>
+                    <td>
+                        @if (usuario.EstaActivo)
+                        {
+                            <span class="badge bg-success">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactivo</span>
+                        }
+                    </td>
+                    <td>
+                        @if (suscripcionActiva)
+                        {
+                            <span class="badge bg-warning text-dark">Premium</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-light text-dark">Gratis</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="DetalleUsuario" asp-route-id="@usuario.Id" class="btn btn-ep-outline btn-sm">Ver</a>
+                            @if (suscripcionActiva)
+                            {
+                                <form asp-action="DesactivarSuscripcion" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="usuarioId" value="@usuario.Id" />
+                                    <button type="submit" class="btn btn-ep-outline btn-sm">Quitar</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="ActivarSuscripcion" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="usuarioId" value="@usuario.Id" />
+                                    <button type="submit" class="btn btn-ep btn-sm">Activar</button>
+                                </form>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

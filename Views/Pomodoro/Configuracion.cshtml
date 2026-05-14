@@ -1,0 +1,42 @@
+@model EPYCUS_WEB_v0._1.Modelos.Entidades.ConfiguracionPomodoro
+
+@{
+    ViewData["Title"] = "Configuración Pomodoro";
+}
+
+<div class="mb-4">
+    <h1 class="ep-header-title d-flex align-items-center gap-2">Configuración Pomodoro <i class="bi bi-sliders text-primary"></i></h1>
+    <p class="ep-header-subtitle">Personaliza tus ciclos para trabajar con mayor enfoque.</p>
+</div>
+
+<form asp-action="Configuracion" method="post" class="ep-card">
+    @Html.AntiForgeryToken()
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Tiempo de estudio (min)</label>
+            <input asp-for="TiempoEstudioMin" class="form-control ep-input" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Tiempo de descanso (min)</label>
+            <input asp-for="TiempoDescansoMin" class="form-control ep-input" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Tiempo de descanso largo (min)</label>
+            <input asp-for="TiempoDescansoLargoMin" class="form-control ep-input" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Ciclos antes descanso largo</label>
+            <input asp-for="CiclosAntesDescansoLargo" class="form-control ep-input" />
+        </div>
+    </div>
+
+    <div class="form-check mt-4 mb-4">
+        <input asp-for="SonidoActivo" class="form-check-input" />
+        <label asp-for="SonidoActivo" class="form-check-label"></label>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-ep">Guardar cambios</button>
+        <a asp-action="Index" class="btn btn-ep-outline">Volver</a>
+    </div>
+</form>

@@ -1,0 +1,84 @@
+@model IEnumerable<EPYCUS_WEB_v0._1.Modelos.Entidades.FraseMotivacional>
+
+@{
+    ViewData["Title"] = "Frases motivacionales";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="mb-4">
+    <h1 class="ep-header-title d-flex align-items-center gap-2">Frases motivacionales <i class="bi bi-chat-quote text-primary"></i></h1>
+    <p class="ep-header-subtitle">Gestiona las frases que se muestran en el sistema.</p>
+</div>
+
+@if (TempData["Exito"] != null)
+{
+    <div class="ep-alerta mb-4">
+        <i class="bi bi-check-circle-fill ep-alerta-icono"></i>
+        <div>
+            <div class="ep-alerta-titulo">Acción completada</div>
+            <div class="text-muted">@TempData["Exito"]</div>
+        </div>
+    </div>
+}
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="ep-card">
+            <h5 class="fw-bold mb-3">Nueva frase</h5>
+            <form asp-action="CrearFrase" method="post">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="form-label">Frase</label>
+                    <textarea name="frase" class="form-control ep-input" rows="3" placeholder="Escribe una frase inspiradora..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Autor</label>
+                    <input name="autor" class="form-control ep-input" placeholder="Nombre del autor" />
+                </div>
+                <button class="btn btn-ep w-100">Guardar frase</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="ep-card">
+            <div class="table-responsive">
+                <table class="ep-tabla">
+                    <thead>
+                        <tr>
+                            <th>Frase</th>
+                            <th>Autor</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var frase in Model)
+                    {
+                        <tr>
+                            <td>@frase.Frase</td>
+                            <td class="text-muted">@frase.Autor</td>
+                            <td>
+                                @if (frase.EstaActiva)
+                                {
+                                    <span class="badge bg-success">Activa</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactiva</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <form asp-action="EliminarFrase" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@frase.Id" />
+                                    <button type="submit" class="btn btn-ep-outline btn-sm">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,37 @@
+:root {
+    --ep-fondo: #070B14;
+    --ep-superficie: #0E1420;
+    --ep-superficie-2: #141B2D;
+    --ep-borde: #1E293B;
+    --ep-primario: #3B82F6;
+    --ep-primario-hover: #2563EB;
+    --ep-acento: #6366F1;
+    --ep-neon: #00D4FF;
+    --ep-neon-suave: rgba(0,212,255,0.12);
+    --ep-neon-borde: rgba(0,212,255,0.30);
+    --ep-texto: #F1F5F9;
+    --ep-texto-secundario: #94A3B8;
+    --ep-texto-apagado: #475569;
+    --ep-exito: #10B981;
+    --ep-advertencia: #F59E0B;
+    --ep-peligro: #EF4444;
+    --ep-info: #38BDF8;
+    --ep-xp: #FACC15;
+    --ep-xp-suave: rgba(250,204,21,0.15);
+    --ep-racha: #F97316;
+    --ep-racha-suave: rgba(249,115,22,0.15);
+    --ep-nivel: #A78BFA;
+    --ep-barra-xp-fondo: #1E293B;
+    --ep-barra-xp-relleno: linear-gradient(90deg,#3B82F6,#00D4FF);
+    --ep-nav-fondo: #0A0F1E;
+    --ep-nav-item-hover: rgba(59,130,246,0.15);
+    --ep-nav-item-activo: rgba(59,130,246,0.25);
+    --ep-nav-texto: #94A3B8;
+    --ep-nav-texto-activo: #00D4FF;
+    --ep-sombra: 0 4px 24px rgba(0,0,0,0.60);
+    --ep-sombra-neon: 0 0 20px rgba(0,212,255,0.20);
+    --ep-sombra-primario: 0 4px 15px rgba(59,130,246,0.30);
+    --ep-radio: 12px;
+    --ep-radio-sm: 8px;
+    --ep-radio-lg: 20px;
+}

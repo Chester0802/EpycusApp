@@ -1,0 +1,464 @@
+@model EPYCUS_WEB_v0._1.ViewModels.PomodoroIndexViewModel
+
+@{
+    ViewData["Title"] = "Pomodoro";
+}
+
+<div class="mb-4">
+    <h1 class="ep-header-title d-flex align-items-center gap-2">Pomodoro <i class="bi bi-clock-history text-primary"></i></h1>
+    <p class="ep-header-subtitle">Enfócate, mantén la concentración y conquista tus metas. <i class="bi bi-tree text-success"></i></p>
+</div>
+
+<div class="row">
+    <!-- Columna Izquierda: Temporizador Principal -->
+    <div class="col-lg-7 mb-4">
+        <div class="ep-card text-center" style="padding: 2.5rem 1.5rem;">
+            
+            <!-- Tabs de Modos -->
+            <div class="ep-pomodoro-tabs mb-4">
+                <div class="ep-pomodoro-tab active" data-mode="enfoque" onclick="setMode('enfoque')">
+                    <i class="bi bi-bullseye"></i> Enfoque
+                </div>
+                <div class="ep-pomodoro-tab" data-mode="corto" onclick="setMode('corto')">
+                    <i class="bi bi-cup-hot"></i> Descanso corto
+                </div>
+                <div class="ep-pomodoro-tab" data-mode="largo" onclick="setMode('largo')">
+                    <i class="bi bi-tree"></i> Descanso largo
+                </div>
+            </div>
+
+            <!-- Círculo del Temporizador -->
+            <div class="ep-pomodoro-timer-wrapper">
+                <div class="ep-pomodoro-ring" id="timerRing">
+                    <!-- Icono decorativo (como el tomate de la imagen) -->
+                    <div class="mb-2" style="font-size: 2rem;">🍅</div>
+                    <div class="ep-pomodoro-time" id="timerDisplay">25:00</div>
+                    <div class="ep-pomodoro-label" id="timerLabel">Tiempo de enfoque</div>
+                </div>
+            </div>
+
+            <!-- Controles -->
+            <div class="ep-pomodoro-controls mb-5">
+                <button class="ep-btn-play" id="btnPlayPause" onclick="toggleTimer()">
+                    <i class="bi bi-play-fill me-2" id="playIcon"></i> <span id="playText">Iniciar</span>
+                </button>
+                <button class="ep-btn-icon" id="btnReset" onclick="resetTimer()" title="Reiniciar">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+            </div>
+
+            <!-- Configuraciones rápidas inferiores -->
+            <div class="row text-start border-top border-secondary pt-4 mt-2">
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <label class="text-secondary small mb-1 d-block">Ciclos objetivo</label>
+                    <div class="d-flex align-items-center bg-transparent border border-secondary rounded p-1" style="width: fit-content;">
+                        <span class="px-3 fw-bold" id="ciclosDisplay">1</span>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-secondary rounded-circle" style="width:28px;height:28px;padding:0;" onclick="ajustarCiclos(-1)">-</button>
+                            <button class="btn btn-sm btn-outline-secondary rounded-circle" style="width:28px;height:28px;padding:0;" onclick="ajustarCiclos(1)">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <label class="text-secondary small mb-1 d-block">Sonido</label>
+                    <select class="form-select form-select-sm bg-transparent border-secondary text-white" id="configSonido">
+                        @if (Model?.Configuracion?.SonidoActivo == true)
+                        {
+                            <option value="true" selected>🎵 Campana suave</option>
+                            <option value="false">🔇 Sin sonido</option>
+                        }
+                        else
+                        {
+                            <option value="true">🎵 Campana suave</option>
+                            <option value="false" selected>🔇 Sin sonido</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="text-secondary small mb-1 d-block">Notificaciones</label>
+                    <select class="form-select form-select-sm bg-transparent border-secondary text-white" id="configNotificaciones">
+                        <option value="true">Activadas</option>
+                        <option value="false">Desactivadas</option>
+                    </select>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Panel de Información -->
+    <div class="col-lg-5">
+        
+        <!-- Resumen de Hoy -->
+        <div class="ep-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">Resumen de hoy</h6>
+            </div>
+            
+            <div class="row g-2">
+                <div class="col-6">
+                    <div class="border border-secondary rounded p-3 text-center" style="background: var(--ep-superficie-2);">
+                        <i class="bi bi-clock text-primary fs-4"></i>
+                        <h4 class="fw-bold mt-1 mb-0" id="statCiclos">@(Model?.EstadisticasHoy.CiclosCompletados ?? 0)</h4>
+                        <small class="text-secondary" style="font-size:0.7rem;">Ciclos completados</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="border border-secondary rounded p-3 text-center" style="background: var(--ep-superficie-2);">
+                        <i class="bi bi-fire text-warning fs-4"></i>
+                        <h4 class="fw-bold mt-1 mb-0" id="statMinutos">@(Model?.EstadisticasHoy.MinutosEnfocados ?? 0)</h4>
+                        <small class="text-secondary" style="font-size:0.7rem;">Minutos enfocados</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="border border-secondary rounded p-3 text-center" style="background: var(--ep-superficie-2);">
+                        <i class="bi bi-graph-up-arrow text-success fs-4"></i>
+                        <h4 class="fw-bold mt-1 mb-0" id="statXP">@(Model?.EstadisticasHoy.XpGanado ?? 0)</h4>
+                        <small class="text-secondary" style="font-size:0.7rem;">XP Ganado</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="border border-secondary rounded p-3 text-center" style="background: var(--ep-superficie-2);">
+                        <i class="bi bi-bullseye text-info fs-4"></i>
+                        <h4 class="fw-bold mt-1 mb-0" id="statMisiones">@(Model?.EstadisticasHoy.MisionesCompletadas ?? 0)</h4>
+                        <small class="text-secondary" style="font-size:0.7rem;">Misiones Completadas</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tareas de enfoque -->
+        <div class="ep-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">Tareas de enfoque</h6>
+                <span class="text-muted small">Selecciona una para enfocarte</span>
+            </div>
+            
+            <div id="taskList">
+                @if (Model != null && Model.TareasEnfoque != null && Model.TareasEnfoque.Any())
+                {
+                    foreach (var tarea in Model.TareasEnfoque)
+                    {
+                        string iconClass = tarea.Tipo == "Habito" ? "bi-journal-check" : "bi-bullseye";
+                        string colorClass = tarea.Tipo == "Habito" ? "text-primary" : "text-danger";
+                        
+                        <div class="ep-task-item cursor-pointer" onclick="seleccionarTarea(this, '@tarea.Id', '@tarea.Tipo')">
+                            <div class="ep-task-check"><i class="bi bi-check"></i></div>
+                            <div class="flex-grow-1" style="font-size: 0.9rem;">
+                                <i class="bi @iconClass @colorClass me-2"></i> @tarea.Nombre
+                                <span class="ep-task-tag">@tarea.CategoriaNombre</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info bg-transparent border-info text-info small">
+                        No tienes hábitos ni misiones marcados para usar Pomodoro. Puedes activarlos editándolos en sus respectivas pantallas.
+                    </div>
+                }
+            </div>
+            
+            <div class="mt-3 p-3 rounded" style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #F59E0B; font-size: 0.85rem;">
+                <i class="bi bi-lightbulb text-warning me-2"></i> Consejo: Una tarea por ciclo. Concéntrate al 100%. <i class="bi bi-tree text-success"></i>
+            </div>
+        </div>
+
+        <!-- Historial de hoy -->
+        <div class="ep-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">Historial de hoy</h6>
+            </div>
+            
+            <div class="border-start border-2 border-secondary ms-2 ps-3" id="historialList">
+                @if (Model != null && Model.HistorialHoy != null && Model.HistorialHoy.Any())
+                {
+                    foreach (var sesion in Model.HistorialHoy)
+                    {
+                        bool esEnfoque = sesion.XpOtorgado > 0;
+                        string tipo = esEnfoque ? "Enfoque" : "Descanso";
+                        string tiempoTxt = $"{(sesion.FechaFin.HasValue ? (sesion.FechaFin.Value - sesion.FechaInicio).Minutes : 0)} min";
+                        string iconClass = esEnfoque ? "bi-check-circle text-success" : "bi-cup-hot text-warning";
+                        string badgeClass = esEnfoque ? "bg-success" : "bg-warning text-dark";
+                        string badgeText = esEnfoque ? "Completado" : "Descanso";
+                        
+                        <div class="position-relative mb-3">
+                            <i class="bi @iconClass position-absolute" style="left: -1.35rem; top: 0px; background: var(--ep-superficie); padding-bottom: 5px;"></i>
+                            <div class="d-flex justify-content-between align-items-center" style="font-size: 0.85rem;">
+                                <div>
+                                    <span class="fw-bold">@tipo</span> <span class="text-secondary ms-2">@tiempoTxt</span>
+                                </div>
+                                <span class="badge @badgeClass bg-opacity-25 border border-@(esEnfoque ? "success" : "warning")">@badgeText</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-secondary small fst-italic no-sesiones-msg">Aún no hay sesiones registradas hoy.</div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Configuración Pomodoro obtenida de BD
+        const CONFIG = {
+            enfoque: @(Model?.Configuracion?.TiempoEstudioMin ?? 25) * 60,
+            corto: @(Model?.Configuracion?.TiempoDescansoMin ?? 5) * 60,
+            largo: @(Model?.Configuracion?.TiempoDescansoLargoMin ?? 15) * 60,
+            ciclosAntesLargo: @(Model?.Configuracion?.CiclosAntesDescansoLargo ?? 4)
+        };
+
+        // Estado Global
+        let timerState = {
+            mode: 'enfoque', // enfoque, corto, largo
+            timeLeft: CONFIG.enfoque,
+            isRunning: false,
+            intervalId: null,
+            sesionId: null,
+            tareaSeleccionadaId: null,
+            tareaSeleccionadaTipo: null,
+            ciclosCompletados: parseInt(document.getElementById('statCiclos').innerText) || 0,
+            minutosTotales: parseInt(document.getElementById('statMinutos').innerText) || 0,
+            xpTotal: parseInt(document.getElementById('statXP').innerText) || 0,
+            ciclosObjetivo: 1
+        };
+
+        // Elementos UI
+        const elTimerDisplay = document.getElementById('timerDisplay');
+        const elTimerLabel = document.getElementById('timerLabel');
+        const elTimerRing = document.getElementById('timerRing');
+        const elBtnPlayPause = document.getElementById('btnPlayPause');
+        const elPlayIcon = document.getElementById('playIcon');
+        const elPlayText = document.getElementById('playText');
+        const elCiclosDisplay = document.getElementById('ciclosDisplay');
+
+        // Formatear Segundos a MM:SS
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        // Actualizar UI del Temporizador
+        function updateTimerUI() {
+            elTimerDisplay.innerText = formatTime(timerState.timeLeft);
+        }
+
+        // Cambiar Modo (Enfoque, Descanso Corto, Descanso Largo)
+        function setMode(mode) {
+            if (timerState.isRunning) {
+                if(!confirm("Hay un temporizador en curso. ¿Deseas cambiar de modo y detenerlo?")) return;
+                stopTimer();
+            }
+
+            timerState.mode = mode;
+            timerState.timeLeft = CONFIG[mode];
+            updateTimerUI();
+
+            // Actualizar Tabs UI
+            document.querySelectorAll('.ep-pomodoro-tab').forEach(tab => {
+                tab.classList.remove('active', 'descanso');
+                if (tab.dataset.mode === mode) {
+                    tab.classList.add('active');
+                    if (mode !== 'enfoque') tab.classList.add('descanso');
+                }
+            });
+
+            // Actualizar Colores Anillo y Botón
+            if (mode === 'enfoque') {
+                elTimerRing.classList.remove('descanso');
+                elBtnPlayPause.classList.remove('descanso');
+                elTimerLabel.innerText = "Tiempo de enfoque";
+            } else {
+                elTimerRing.classList.add('descanso');
+                elBtnPlayPause.classList.add('descanso');
+                elTimerLabel.innerText = mode === 'corto' ? "Descanso corto" : "Descanso largo";
+            }
+        }
+
+        // Ajustar Ciclos en la UI inferior
+        function ajustarCiclos(val) {
+            let n = timerState.ciclosObjetivo + val;
+            if (n >= 1 && n <= 10) {
+                timerState.ciclosObjetivo = n;
+                elCiclosDisplay.innerText = n;
+            }
+        }
+
+        function seleccionarTarea(element, id, tipo) {
+            // Desmarcar todas
+            document.querySelectorAll('.ep-task-check').forEach(el => el.classList.remove('checked'));
+            document.querySelectorAll('.ep-task-item').forEach(el => el.style.borderColor = 'transparent');
+            
+            // Marcar seleccionada
+            element.querySelector('.ep-task-check').classList.add('checked');
+            element.style.borderColor = 'var(--ep-primario)';
+            element.style.borderWidth = '1px';
+            element.style.borderStyle = 'solid';
+            
+            timerState.tareaSeleccionadaId = id;
+            timerState.tareaSeleccionadaTipo = tipo;
+        }
+
+        // Iniciar / Pausar
+        async function toggleTimer() {
+            if (timerState.isRunning) {
+                pauseTimer();
+            } else {
+                await startTimer();
+            }
+        }
+
+        async function startTimer() {
+            // Llamada API Iniciar (solo si es enfoque y no hay sesión activa)
+            if (timerState.mode === 'enfoque' && !timerState.sesionId) {
+                let bodyParams = {};
+                if (timerState.tareaSeleccionadaId) {
+                    if (timerState.tareaSeleccionadaTipo === 'Habito') bodyParams.habitoId = timerState.tareaSeleccionadaId;
+                    else bodyParams.misionId = timerState.tareaSeleccionadaId;
+                }
+                try {
+                    const res = await fetch('/api/apipomodoro/iniciar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(bodyParams)
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        timerState.sesionId = data.datos.sesionId;
+                    }
+                } catch(e) { console.error("Error al iniciar sesión en API", e); }
+            }
+
+            timerState.isRunning = true;
+            elTimerRing.classList.add('active');
+            elPlayIcon.classList.replace('bi-play-fill', 'bi-pause-fill');
+            elPlayText.innerText = "Pausar";
+
+            timerState.intervalId = setInterval(() => {
+                timerState.timeLeft--;
+                updateTimerUI();
+
+                if (timerState.timeLeft <= 0) {
+                    onTimerComplete();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            timerState.isRunning = false;
+            clearInterval(timerState.intervalId);
+            elTimerRing.classList.remove('active');
+            elPlayIcon.classList.replace('bi-pause-fill', 'bi-play-fill');
+            elPlayText.innerText = "Continuar";
+        }
+
+        function stopTimer() {
+            timerState.isRunning = false;
+            clearInterval(timerState.intervalId);
+            elTimerRing.classList.remove('active');
+            elPlayIcon.classList.replace('bi-pause-fill', 'bi-play-fill');
+            elPlayText.innerText = "Iniciar";
+            
+            // Cancelar sesión en API
+            if (timerState.sesionId) {
+                fetch(`/api/apipomodoro/${timerState.sesionId}/cancelar`, { method: 'POST' });
+                timerState.sesionId = null;
+            }
+        }
+
+        function resetTimer() {
+            if (timerState.isRunning) pauseTimer();
+            setMode(timerState.mode); // Reinicia el tiempo al original del modo
+        }
+
+        // Completar el tiempo
+        async function onTimerComplete() {
+            pauseTimer();
+            
+            // Sonido de campana si está activado
+            const sonidoActivo = document.getElementById('configSonido').value === 'true';
+            if (sonidoActivo) {
+                console.log("¡Ding!");
+                // Aquí se podría reproducir un archivo de audio real
+            }
+
+            if (timerState.mode === 'enfoque') {
+                timerState.ciclosCompletados++;
+                timerState.minutosTotales += Math.floor(CONFIG.enfoque / 60);
+                
+                // Actualizar Estadísticas
+                document.getElementById('statCiclos').innerText = timerState.ciclosCompletados;
+                document.getElementById('statMinutos').innerText = timerState.minutosTotales;
+
+                agregarHistorial("Enfoque", formatTime(CONFIG.enfoque), true);
+
+                // Llamada API Ciclo Completado
+                if (timerState.sesionId) {
+                    try {
+                        const res = await fetch(`/api/apipomodoro/${timerState.sesionId}/ciclo-completado`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ciclosCompletados: timerState.ciclosCompletados })
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            timerState.xpTotal += 15; // 15 XP por ciclo
+                            document.getElementById('statXP').innerText = timerState.xpTotal;
+
+                            timerState.sesionId = null; // La sesión ya está completada
+                            
+                            // Alerta ODS 3 de Salud y Bienestar
+                            if (data.datos.sugerirDescanso) {
+                                alert("¡Alerta de Bienestar! Has completado varios ciclos seguidos. Te sugerimos tomar un Descanso Largo ahora.");
+                                setMode('largo');
+                                return;
+                            }
+                        }
+                    } catch(e) { console.error("Error API ciclo completado"); }
+                }
+
+                // Cambiar automáticamente a descanso corto
+                setMode('corto');
+
+            } else {
+                // Terminó un descanso
+                agregarHistorial(timerState.mode === 'corto' ? "Descanso corto" : "Descanso largo", formatTime(CONFIG[timerState.mode]), false);
+                setMode('enfoque');
+            }
+        }
+
+        // Historial
+        function agregarHistorial(tipo, tiempoTxt, esEnfoque) {
+            const histList = document.getElementById('historialList');
+            if (histList.querySelector('.no-sesiones-msg')) histList.innerHTML = '';
+
+            const iconClass = esEnfoque ? "bi-check-circle text-success" : "bi-cup-hot text-warning";
+            const badgeClass = esEnfoque ? "bg-success" : "bg-warning text-dark";
+            const badgeText = esEnfoque ? "Completado" : "Descanso";
+
+            const item = document.createElement('div');
+            item.className = "position-relative mb-3";
+            item.innerHTML = `
+                <i class="bi ${iconClass} position-absolute" style="left: -1.35rem; top: 0px; background: var(--ep-superficie); padding-bottom: 5px;"></i>
+                <div class="d-flex justify-content-between align-items-center" style="font-size: 0.85rem;">
+                    <div>
+                        <span class="fw-bold">${tipo}</span> <span class="text-secondary ms-2">${tiempoTxt}</span>
+                    </div>
+                    <span class="badge ${badgeClass} bg-opacity-25 border border-${esEnfoque?'success':'warning'}">${badgeText}</span>
+                </div>
+            `;
+            // Insertar al inicio
+            histList.insertBefore(item, histList.firstChild);
+        }
+
+        // Iniciar UI
+        updateTimerUI();
+
+    </script>
+}
