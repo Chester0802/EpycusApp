@@ -344,5 +344,13 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
             await _contexto.SaveChangesAsync();
         }
+
+        public async Task<List<EPYCUS_WEB_v0._1.Modelos.Entidades.Carrera>> ObtenerCarrerasActivas()
+        {
+            return await _contexto.Carreras
+                .Where(c => c.EstaActiva)
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
+        }
     }
 }

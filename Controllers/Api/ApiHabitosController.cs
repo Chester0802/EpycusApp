@@ -1,14 +1,9 @@
-using System;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using EPYCUS_WEB_v0._1.Ayudantes;
-using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.Modelos.Entidades;
+using EPYCUS_WEB_v0._1.DTOs;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace EPYCUS_WEB_v0._1.Controllers.Api
 {
@@ -18,12 +13,10 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
     public class ApiHabitosController : ControllerBase
     {
         private readonly IServicioHabitos _servicioHabitos;
-        private readonly ContextoAplicacion _contexto;
 
-        public ApiHabitosController(IServicioHabitos servicioHabitos, ContextoAplicacion contexto)
+        public ApiHabitosController(IServicioHabitos servicioHabitos)
         {
             _servicioHabitos = servicioHabitos;
-            _contexto = contexto;
         }
 
         private int? ObtenerUsuarioId()
@@ -41,22 +34,7 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
 
-            var hoy = DateOnly.FromDateTime(DateTime.Today);
-
-            var habitos = await _contexto.Habitos
-                .Include(h => h.Categoria)
-                .Include(h => h.Registros)
-                .Where(h => h.UsuarioId == usuarioId)
-                .ToListAsync();
-
-            var respuesta = habitos.Select(h => new
-            {
-                id = h.Id,
-                nombre = h.Nombre,
-                estado = h.Registros.FirstOrDefault(r => r.Fecha == hoy)?.Estado ?? "Pendiente",
-                rachaActual = h.RachaActual,
-                categoria = h.Categoria?.Nombre ?? string.Empty
-            });
+            var respuesta = await _servicioHabitos.ObtenerHabitosConEstadoHoy(usuarioId.Value);
 
             return Ok(RespuestaApi<object>.Exitosa(respuesta));
         }
@@ -70,20 +48,7 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
 
-            var hoy = DateOnly.FromDateTime(DateTime.Today);
-
-            var habitos = await _contexto.Habitos
-                .Include(h => h.Registros)
-                .Where(h => h.UsuarioId == usuarioId && h.EstaActivo)
-                .ToListAsync();
-
-            var respuesta = habitos.Select(h => new
-            {
-                id = h.Id,
-                nombre = h.Nombre,
-                estadoHoy = h.Registros.FirstOrDefault(r => r.Fecha == hoy)?.Estado ?? "Pendiente",
-                xpPotencial = Ayudantes.ConstantesGamificacion.XP_BASE_HABITO
-            });
+            var respuesta = await _servicioHabitos.ObtenerHabitosActivosConEstadoHoy(usuarioId.Value);
 
             return Ok(RespuestaApi<object>.Exitosa(respuesta));
         }
@@ -99,9 +64,10 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
 
             var resultado = await _servicioHabitos.CompletarHabito(id, usuarioId.Value);
             if (!resultado.Exito)
-                return BadRequest(RespuestaApi<object>.Fallida("No se pudo completar el hábito"));
+                return BadRequest(RespuestaApi<CompletarHabitoRespuestaDto>.Fallida("No se pudo completar el hábito"));
 
-            return Ok(RespuestaApi<object>.Exitosa(new { xpGanado = resultado.XpGanado }));
+            var respuesta = new CompletarHabitoRespuestaDto { XpGanado = resultado.XpGanado };
+            return Ok(RespuestaApi<CompletarHabitoRespuestaDto>.Exitosa(respuesta));
         }
 
         [HttpPost("{id}/fallar")]
@@ -117,10 +83,11 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
 
             if (!resultado.Exito)
             {
-                return BadRequest(RespuestaApi<object>.Fallida(resultado.Mensaje));
+                return BadRequest(RespuestaApi<FallarHabitoRespuestaDto>.Fallida(resultado.Mensaje));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { rachaRota = true }));
+            var respuesta = new FallarHabitoRespuestaDto { RachaRota = true };
+            return Ok(RespuestaApi<FallarHabitoRespuestaDto>.Exitosa(respuesta));
         }
 
         [HttpGet("{id}/semana")]
@@ -132,13 +99,7 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
 
-            var desde = DateOnly.FromDateTime(DateTime.Today.AddDays(-6));
-            var registros = await _contexto.RegistrosHabito
-                .Include(r => r.Habito)
-                .Where(r => r.HabitoId == id && r.Habito.UsuarioId == usuarioId.Value && r.Fecha >= desde)
-                .OrderBy(r => r.Fecha)
-                .Select(r => new { dia = r.Fecha.ToString("yyyy-MM-dd"), estado = r.Estado })
-                .ToListAsync();
+            var registros = await _servicioHabitos.ObtenerRegistrosSemana(id, usuarioId.Value);
 
             return Ok(RespuestaApi<object>.Exitosa(registros));
         }

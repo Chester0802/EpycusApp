@@ -1,3 +1,5 @@
+using EPYCUS_WEB_v0._1.Modelos.Entidades;
+
 namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
 {
     public interface IServicioBienestar
@@ -5,5 +7,6 @@ namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
         Task<List<AlertaBienestar>> ObtenerAlertasActivas(int usuarioId);
         Task<AlertaBienestar?> VerificarUsoExcesivoPomodoro(int usuarioId);
         Task<AlertaBienestar?> VerificarAnimoNegativoConsecutivo(int usuarioId);
+        Task<FraseMotivacional?> ObtenerFraseMotivacionalAleatoria();
     }
 }

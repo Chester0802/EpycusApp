@@ -4,20 +4,23 @@ using EPYCUS_WEB_v0._1.Models;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using EPYCUS_WEB_v0._1.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using EPYCUS_WEB_v0._1.Datos;
-using Microsoft.EntityFrameworkCore;
 
 namespace EPYCUS_WEB_v0._1.Controllers
 {
     public class HomeController : Controller
     {
         private readonly IServicioHabitos _servicioHabitos;
-        private readonly ContextoAplicacion _contexto;
+        private readonly IServicioPerfil _servicioPerfil;
+        private readonly IServicioBienestar _servicioBienestar;
 
-        public HomeController(IServicioHabitos servicioHabitos, ContextoAplicacion contexto)
+        public HomeController(
+            IServicioHabitos servicioHabitos,
+            IServicioPerfil servicioPerfil,
+            IServicioBienestar servicioBienestar)
         {
             _servicioHabitos = servicioHabitos;
-            _contexto = contexto;
+            _servicioPerfil = servicioPerfil;
+            _servicioBienestar = servicioBienestar;
         }
 
         public async Task<IActionResult> Index()
@@ -31,8 +34,8 @@ namespace EPYCUS_WEB_v0._1.Controllers
             {
                 usuarioId = parsed;
                 modelo.EstaAutenticado = true;
-                
-                var usuario = await _contexto.Usuarios.FindAsync(usuarioId);
+
+                var usuario = await _servicioPerfil.ObtenerPerfil(usuarioId);
                 if (usuario != null)
                 {
                     modelo.NombreUsuario = usuario.Nombre;
@@ -40,22 +43,19 @@ namespace EPYCUS_WEB_v0._1.Controllers
 
                 // Obtener datos del dashboard
                 modelo.Estadisticas = await _servicioHabitos.ObtenerDashboard(usuarioId);
-                
+
                 // Obtener hábitos de hoy
                 var todosLosHabitos = await _servicioHabitos.ObtenerHabitosViewModel(usuarioId);
                 var hoy = (int)DateTime.Today.DayOfWeek;
-                
+
                 modelo.HabitosHoy = todosLosHabitos
-                    .Where(h => h.EstaActivo && 
-                                (h.Frecuencia == "Diaria" || 
+                    .Where(h => h.EstaActivo &&
+                                (h.Frecuencia == "Diaria" ||
                                  (h.DiasSemana != null && h.DiasSemana.Contains(hoy))))
                     .ToList();
 
                 // Obtener frase motivacional
-                var frase = await _contexto.FrasesMotivacionales
-                    .Where(f => f.EstaActiva)
-                    .OrderBy(f => Guid.NewGuid())
-                    .FirstOrDefaultAsync();
+                var frase = await _servicioBienestar.ObtenerFraseMotivacionalAleatoria();
 
                 if (frase != null)
                 {

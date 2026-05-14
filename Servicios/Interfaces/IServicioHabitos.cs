@@ -1,3 +1,4 @@
+using EPYCUS_WEB_v0._1.DTOs;
 using EPYCUS_WEB_v0._1.Modelos.Entidades;
 using EPYCUS_WEB_v0._1.ViewModels;
 
@@ -16,5 +17,8 @@ namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
         Task<(bool Exito, int XpGanado)> CompletarHabito(int id, int usuarioId);
         Task<(bool Exito, string Mensaje)> FallarHabito(int id, int usuarioId);
         Task<EPYCUS_WEB_v0._1.ViewModels.HabitosDashboardViewModel> ObtenerDashboard(int usuarioId);
+        Task<List<HabitoRespuestaDto>> ObtenerHabitosConEstadoHoy(int usuarioId);
+        Task<List<HabitoHoyRespuestaDto>> ObtenerHabitosActivosConEstadoHoy(int usuarioId);
+        Task<List<RegistroSemanaDto>> ObtenerRegistrosSemana(int habitoId, int usuarioId);
     }
 }

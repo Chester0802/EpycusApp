@@ -1,4 +1,3 @@
-using System.Linq;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using EPYCUS_WEB_v0._1.ViewModels.Autenticacion;
 using Microsoft.AspNetCore.Authorization;
@@ -9,12 +8,10 @@ namespace EPYCUS_WEB_v0._1.Controllers
     public class AutenticacionController : Controller
     {
         private readonly IServicioAutenticacion _servicioAutenticacion;
-        private readonly Datos.ContextoAplicacion _contexto;
 
-        public AutenticacionController(IServicioAutenticacion servicioAutenticacion, Datos.ContextoAplicacion contexto)
+        public AutenticacionController(IServicioAutenticacion servicioAutenticacion)
         {
             _servicioAutenticacion = servicioAutenticacion;
-            _contexto = contexto;
         }
 
         private CookieOptions CrearOpcionesCookie(int expiracionDias = 7)
@@ -43,9 +40,9 @@ namespace EPYCUS_WEB_v0._1.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Registro()
+        public async Task<IActionResult> Registro()
         {
-            ViewBag.Carreras = _contexto.Carreras.Where(c => c.EstaActiva).ToList();
+            ViewBag.Carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
             return View(new EPYCUS_WEB_v0._1.ViewModels.RegistroViewModel());
         }
 
@@ -56,7 +53,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Carreras = _contexto.Carreras.Where(c => c.EstaActiva).ToList();
+                ViewBag.Carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
                 return View(modelo);
             }
 
@@ -64,7 +61,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
             if (!exito || string.IsNullOrWhiteSpace(token))
             {
                 ModelState.AddModelError(string.Empty, mensaje);
-                ViewBag.Carreras = _contexto.Carreras.Where(c => c.EstaActiva).ToList();
+                ViewBag.Carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
                 return View(modelo);
             }
 
