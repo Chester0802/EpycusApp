@@ -1,4 +1,5 @@
 using System;
+using EPYCUS_WEB_v0._1.DTOs;
 using EPYCUS_WEB_v0._1.Modelos.Entidades;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using EPYCUS_WEB_v0._1.ViewModels;
@@ -289,6 +290,64 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             await _context.SaveChangesAsync();
 
             return (true, "Hábito marcado como fallido");
+        }
+
+        public async Task<List<HabitoRespuestaDto>> ObtenerHabitosConEstadoHoy(int usuarioId)
+        {
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
+
+            var habitos = await _context.Habitos
+                .Include(h => h.Categoria)
+                .Include(h => h.Registros)
+                .Where(h => h.UsuarioId == usuarioId)
+                .ToListAsync();
+
+            return habitos.Select(h => new HabitoRespuestaDto
+            {
+                Id = h.Id,
+                Nombre = h.Nombre,
+                Estado = h.Registros.FirstOrDefault(r => r.Fecha == hoy)?.Estado ?? "Pendiente",
+                RachaActual = h.RachaActual,
+                Categoria = h.Categoria?.Nombre ?? string.Empty
+            }).ToList();
+        }
+
+        public async Task<List<HabitoHoyRespuestaDto>> ObtenerHabitosActivosConEstadoHoy(int usuarioId)
+        {
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
+
+            var habitos = await _context.Habitos
+                .Include(h => h.Registros)
+                .Where(h => h.UsuarioId == usuarioId && h.EstaActivo)
+                .ToListAsync();
+
+            return habitos.Select(h => new HabitoHoyRespuestaDto
+            {
+                Id = h.Id,
+                Nombre = h.Nombre,
+                EstadoHoy = h.Registros.FirstOrDefault(r => r.Fecha == hoy)?.Estado ?? "Pendiente",
+                XpPotencial = ConstantesGamificacion.XP_BASE_HABITO
+            }).ToList();
+        }
+
+        public async Task<List<RegistroSemanaDto>> ObtenerRegistrosSemana(int habitoId, int usuarioId)
+        {
+            var desde = DateOnly.FromDateTime(DateTime.Today.AddDays(-6));
+
+            var registros = await _context.RegistrosHabito
+                .Include(r => r.Habito)
+                .Where(r => r.HabitoId == habitoId &&
+                           r.Habito.UsuarioId == usuarioId &&
+                           r.Fecha >= desde)
+                .OrderBy(r => r.Fecha)
+                .Select(r => new RegistroSemanaDto
+                {
+                    Dia = r.Fecha.ToString("yyyy-MM-dd"),
+                    Estado = r.Estado
+                })
+                .ToListAsync();
+
+            return registros;
         }
     }
 }

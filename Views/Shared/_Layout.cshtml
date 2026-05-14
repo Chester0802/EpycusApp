@@ -9,18 +9,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/temas/tema-noche-epica.css" id="hoja-tema" asp-append-version="true" />
-    <script>
-        // Leer el tema antes de que la página renderice para evitar FOUC
-        (function() {
-            var savedTheme = localStorage.getItem('epycus_theme') || 'oscuro';
-            var themeLink = document.getElementById('hoja-tema');
-            if (savedTheme === 'claro') {
-                themeLink.href = '/css/temas/tema-sakura.css';
-            } else {
-                themeLink.href = '/css/temas/tema-noche-epica.css';
-            }
-        })();
-    </script>
+    <script src="~/js/theme-manager.js" asp-append-version="true"></script>
 </head>
 <body>
     <div class="d-flex">
@@ -71,44 +60,6 @@
     <script>
         // Exponer si el usuario está autenticado al cliente
         window.isAuthenticated = @(User.Identity != null && User.Identity.IsAuthenticated ? "true" : "false");
-
-        // Lógica del botón de cambio de tema
-        document.addEventListener('DOMContentLoaded', function() {
-            var themeSwitch = document.getElementById('switch-tema');
-            var btnTema = document.getElementById('btn-toggle-tema');
-            var themeLink = document.getElementById('hoja-tema');
-            
-            var savedTheme = localStorage.getItem('epycus_theme') || 'oscuro';
-            
-            // Sincronizar el UI inicial
-            if (savedTheme === 'oscuro') {
-                themeSwitch.checked = true;
-                btnTema.querySelector('span').innerHTML = '<i class="bi bi-moon-stars"></i> Modo Oscuro';
-            } else {
-                themeSwitch.checked = false;
-                btnTema.querySelector('span').innerHTML = '<i class="bi bi-sun"></i> Modo Claro';
-            }
-
-            themeSwitch.addEventListener('change', toggleTheme);
-            btnTema.addEventListener('click', function(e) {
-                if(e.target !== themeSwitch) {
-                    themeSwitch.checked = !themeSwitch.checked;
-                    toggleTheme();
-                }
-            });
-
-            function toggleTheme() {
-                if (themeSwitch.checked) {
-                    localStorage.setItem('epycus_theme', 'oscuro');
-                    themeLink.href = '/css/temas/tema-noche-epica.css';
-                    btnTema.querySelector('span').innerHTML = '<i class="bi bi-moon-stars"></i> Modo Oscuro';
-                } else {
-                    localStorage.setItem('epycus_theme', 'claro');
-                    themeLink.href = '/css/temas/tema-sakura.css';
-                    btnTema.querySelector('span').innerHTML = '<i class="bi bi-sun"></i> Modo Claro';
-                }
-            }
-        });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

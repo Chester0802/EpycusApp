@@ -79,9 +79,6 @@ builder.Services.AddScoped<IServicioCorreo, ServicioCorreo>();
 builder.Services.AddScoped<IServicioAdmin, ServicioAdmin>();
 builder.Services.AddScoped<IServicioBienestar, ServicioBienestar>();
 
-// AutoMapper — se activa cuando se creen los perfiles de mapeo
-//builder.Services.AddAutoMapper(typeof(Program));
-
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

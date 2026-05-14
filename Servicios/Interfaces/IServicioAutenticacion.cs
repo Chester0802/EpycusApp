@@ -1,3 +1,4 @@
+using EPYCUS_WEB_v0._1.Modelos.Entidades;
 using EPYCUS_WEB_v0._1.ViewModels;
 
 namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
@@ -11,5 +12,6 @@ namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
         Task<bool> EnviarCorreoRecuperacion(string correo);
         Task<bool> RestablecerContrasena(string token, string nuevaContrasena);
         Task CerrarSesion(int usuarioId);
+        Task<List<Carrera>> ObtenerCarrerasActivas();
     }
 }

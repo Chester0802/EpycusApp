@@ -1,4 +1,5 @@
 using EPYCUS_WEB_v0._1.Datos;
+using EPYCUS_WEB_v0._1.Modelos.Entidades;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -161,6 +162,21 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 6 => "Come algo ligero y toma agua. Tu cerebro necesita glucosa.",
                 _ => null
             };
+        }
+
+        public async Task<FraseMotivacional?> ObtenerFraseMotivacionalAleatoria()
+        {
+            var frasesActivas = await _contexto.FrasesMotivacionales
+                .Where(f => f.EstaActiva)
+                .ToListAsync();
+
+            if (!frasesActivas.Any())
+                return null;
+
+            // Seleccionar una frase aleatoria
+            var random = new Random();
+            var indiceAleatorio = random.Next(frasesActivas.Count);
+            return frasesActivas[indiceAleatorio];
         }
     }
 }
