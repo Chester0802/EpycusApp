@@ -1,0 +1,66 @@
+@model EPYCUS_WEB_v0._1.ViewModels.Autenticacion.LoginViewModel
+
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+    Layout = "_LayoutAuth";
+}
+
+<div class="ep-card ep-card-neon p-4 position-relative overflow-hidden">
+    <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 1rem; background: var(--ep-superficie-2); color: var(--ep-primario);">
+            <i class="bi bi-stars fs-2"></i>
+        </div>
+        <h2 class="fw-bold mb-1">Bienvenido a Epycus</h2>
+        <p class="text-muted small">Tu viaje hacia la excelencia profesional comienza aquí</p>
+    </div>
+
+    <form asp-action="Login" method="post" class="position-relative">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger shadow-sm rounded-3 py-2 px-3 mb-4 border-0 small" role="alert"></div>
+
+        <div class="mb-4">
+            <label asp-for="CorreoElectronico" class="form-label small fw-semibold text-muted mb-2"></label>
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0 text-muted ps-3">
+                    <i class="bi bi-envelope"></i>
+                </span>
+                <input asp-for="CorreoElectronico" class="form-control border-start-0 ps-0 bg-transparent ep-input" placeholder="tucorreo@ejemplo.com" />
+            </div>
+            <span asp-validation-for="CorreoElectronico" class="text-danger small mt-1 d-block"></span>
+        </div>
+
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label asp-for="Contrasena" class="form-label small fw-semibold text-muted mb-0"></label>
+                <a href="#" class="small text-decoration-none text-primary fw-medium">¿Olvidaste tu contraseña?</a>
+            </div>
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0 text-muted ps-3">
+                    <i class="bi bi-lock"></i>
+                </span>
+                <input asp-for="Contrasena" class="form-control border-start-0 ps-0 bg-transparent ep-input" placeholder="••••••••" />
+            </div>
+            <span asp-validation-for="Contrasena" class="text-danger small mt-1 d-block"></span>
+        </div>
+
+        <div class="mb-4 form-check">
+            <input asp-for="Recordarme" class="form-check-input shadow-sm" />
+            <label asp-for="Recordarme" class="form-check-label small text-muted">Mantener sesión iniciada</label>
+        </div>
+
+        <button type="submit" class="btn btn-ep w-100 py-3 mb-4 d-flex align-items-center justify-content-center gap-2">
+            Ingresar <i class="bi bi-arrow-right"></i>
+        </button>
+
+        <div class="text-center">
+            <p class="small text-muted mb-0">¿Aún no tienes una cuenta? <a asp-action="Registro" class="text-primary text-decoration-none fw-semibold">Regístrate ahora</a></p>
+        </div>
+
+        <div class="text-end mt-3">
+            <a asp-controller="Admin" asp-action="Login" class="btn btn-link p-0 small text-muted text-decoration-none">Acceso admin</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

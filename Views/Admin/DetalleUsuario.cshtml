@@ -1,0 +1,80 @@
+@model EPYCUS_WEB_v0._1.Modelos.Entidades.Usuario
+
+@{
+    ViewData["Title"] = "Detalle de usuario";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="mb-4">
+    <h1 class="ep-header-title d-flex align-items-center gap-2">Detalle de usuario <i class="bi bi-person-badge text-primary"></i></h1>
+    <p class="ep-header-subtitle">Información general y suscripción.</p>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="ep-card text-center">
+            <div class="ep-boton-icono mb-3"><i class="bi bi-person"></i></div>
+            <h5 class="mb-1">@Model.Nombre</h5>
+            <p class="text-muted mb-0">@Model.CorreoElectronico</p>
+            <div class="mt-3">
+                <span class="badge bg-secondary">@Model.Rol?.Nombre</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="ep-card">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="text-muted small">Carrera</div>
+                    <div class="fw-semibold">@Model.Carrera?.Nombre</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Estado</div>
+                    <div class="fw-semibold">@(Model.EstaActivo ? "Activo" : "Inactivo")</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Registro</div>
+                    <div class="fw-semibold">@Model.FechaRegistro.ToString("dd/MM/yyyy")</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Último acceso</div>
+                    <div class="fw-semibold">@(Model.UltimoAcceso?.ToString("dd/MM/yyyy") ?? "Sin registros")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ep-card mt-3">
+            <h6 class="fw-bold mb-3">Suscripción</h6>
+            @{
+                var suscripcionActiva = Model.Suscripciones.Any(s => s.EstaActiva);
+            }
+            @if (suscripcionActiva)
+            {
+                <span class="badge bg-warning text-dark">Premium activa</span>
+            }
+            else
+            {
+                <span class="badge bg-light text-dark">Gratis</span>
+            }
+            <div class="mt-3 d-flex gap-2">
+                @if (suscripcionActiva)
+                {
+                    <form asp-action="DesactivarSuscripcion" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="usuarioId" value="@Model.Id" />
+                        <button type="submit" class="btn btn-ep-outline">Quitar suscripción</button>
+                    </form>
+                }
+                else
+                {
+                    <form asp-action="ActivarSuscripcion" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="usuarioId" value="@Model.Id" />
+                        <button type="submit" class="btn btn-ep">Activar suscripción</button>
+                    </form>
+                }
+                <a asp-action="Usuarios" class="btn btn-ep-outline">Volver</a>
+            </div>
+        </div>
+    </div>
+</div>

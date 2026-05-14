@@ -1,0 +1,16 @@
+using EPYCUS_WEB_v0._1.Modelos.Entidades;
+using EPYCUS_WEB_v0._1.ViewModels;
+
+namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
+{
+    public interface IServicioMisiones
+    {
+        Task<List<Mision>> ObtenerMisionesDeUsuario(int usuarioId);
+        Task<Mision?> ObtenerPorId(int id);
+        Task CrearMision(CrearMisionViewModel modelo, int usuarioId);
+        Task EditarMision(EditarMisionViewModel modelo, int usuarioId);
+        Task EliminarMision(int id, int usuarioId);
+        Task<(bool Exito, int XpGanado)> CompletarMision(int id, int usuarioId);
+        Task CambiarEstado(int id, string estado, int usuarioId);
+    }
+}

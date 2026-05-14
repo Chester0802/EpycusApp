@@ -1,0 +1,125 @@
+@model EPYCUS_WEB_v0._1.ViewModels.ProgresoViewModel
+
+@{
+    ViewData["Title"] = "Mi Progreso";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold ep-texto-gradiente"><i class="bi bi-graph-up me-2"></i>Mi Progreso</h1>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <!-- Tarjeta de Personaje y Nivel -->
+        <div class="col-12 col-lg-4">
+            <div class="ep-card text-center h-100 position-relative overflow-hidden">
+                <div class="mb-4 mt-2">
+                    <img src="@Model.ImagenPersonajeUrl" alt="Personaje" class="img-fluid rounded-circle border border-3 border-primary shadow" style="width: 150px; height: 150px; object-fit: cover; background: var(--ep-superficie-2);" />
+                </div>
+                <h2 class="h4 fw-bold mb-1">@Model.Progreso.NivelActual.Titulo</h2>
+                <p class="text-muted mb-4">Nivel @Model.Progreso.NivelActual.Numero</p>
+
+                <div class="px-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="fs-6 fw-semibold">XP Actual: @Model.XpEnNivelActual</span>
+                        @if (Model.NivelSiguiente != null)
+                        {
+                            <span class="fs-6 text-muted">@Model.XpParaSiguienteNivel XP para Nivel @Model.NivelSiguiente.Numero</span>
+                        }
+                        else
+                        {
+                            <span class="fs-6 text-muted">Nivel Máximo</span>
+                        }
+                    </div>
+                    <div class="ep-barra-xp shadow-sm">
+                        <div class="ep-barra-xp-relleno" style="width: @Model.PorcentajeNivel%"></div>
+                    </div>
+                    <p class="mt-3 text-start small text-muted">XP Total Histórico: <span class="fw-bold">@Model.Progreso.XpTotal</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjetas de Estadísticas -->
+        <div class="col-12 col-lg-8">
+            <div class="row g-4 h-100">
+                <div class="col-12 col-md-6">
+                    <div class="ep-card ep-card-neon h-100 d-flex flex-column justify-content-center text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-fire text-warning display-4" style="filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.5));"></i>
+                        </div>
+                        <h3 class="h1 fw-bold mb-0">@Model.Progreso.RachaActual <span class="fs-4 text-muted fw-normal">Días</span></h3>
+                        <p class="text-muted mt-2 mb-0">Racha Actual</p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="ep-card h-100 d-flex flex-column justify-content-center text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-trophy text-primary display-4" style="filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));"></i>
+                        </div>
+                        <h3 class="h1 fw-bold mb-0">@Model.Progreso.RachaMaxima <span class="fs-4 text-muted fw-normal">Días</span></h3>
+                        <p class="text-muted mt-2 mb-0">Racha Máxima Histórica</p>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="ep-card d-flex align-items-center justify-content-between">
+                        <div>
+                            <h4 class="mb-1">¿Sabías qué?</h4>
+                            <p class="text-muted mb-0">Mantener tu racha diaria multiplica la cantidad de experiencia (XP) que ganas al completar tareas y hábitos.</p>
+                        </div>
+                        <i class="bi bi-lightbulb text-info fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Logros -->
+    <h3 class="h4 fw-bold mb-4"><i class="bi bi-award me-2 text-warning"></i>Mis Logros</h3>
+    
+    <div class="row g-4">
+        @if (Model.TodosLosLogros.Count == 0)
+        {
+            <div class="col-12">
+                <div class="ep-card text-center py-5">
+                    <i class="bi bi-stars text-muted display-4 mb-3 d-block"></i>
+                    <h5 class="text-muted">Aún no hay logros disponibles en el sistema</h5>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (var logro in Model.TodosLosLogros)
+            {
+                var desbloqueado = Model.LogrosDesbloqueadosIds.Contains(logro.Id);
+                
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="ep-card d-flex gap-3 h-100 @(desbloqueado ? "ep-card-neon" : "opacity-50")" style="transition: all 0.3s ease;">
+                        <div class="d-flex align-items-center justify-content-center rounded bg-dark" style="width: 64px; height: 64px; min-width: 64px;">
+                            @if (!string.IsNullOrEmpty(logro.IconoUrl))
+                            {
+                                <img src="@logro.IconoUrl" alt="@logro.Nombre" style="width: 40px; height: 40px; filter: @(desbloqueado ? "none" : "grayscale(100%)");" />
+                            }
+                            else
+                            {
+                                <i class="bi bi-star-fill fs-3 @(desbloqueado ? "text-warning" : "text-muted")"></i>
+                            }
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h5 class="mb-0 fw-bold @(desbloqueado ? "text-white" : "text-muted")">@logro.Nombre</h5>
+                                @if (desbloqueado)
+                                {
+                                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                }
+                            </div>
+                            <p class="small text-muted mb-2">@logro.Descripcion</p>
+                            <div class="ep-badge-xp d-inline-block px-2 py-1 small rounded">
+                                <i class="bi bi-arrow-up-circle me-1"></i>+@logro.XpRecompensa XP
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
