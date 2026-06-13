@@ -88,6 +88,63 @@ namespace EPYCUS_WEB_v0._1.Controllers
             return View();
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult RecuperarContrasena()
+        {
+            return View(new RecuperarContrasenaViewModel());
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecuperarContrasena(RecuperarContrasenaViewModel modelo)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(modelo);
+            }
+
+            await _servicioAutenticacion.EnviarCorreoRecuperacion(modelo.CorreoElectronico);
+            TempData["RecuperacionEnviada"] = true;
+            return RedirectToAction(nameof(RecuperarContrasena));
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult RestablecerContrasena(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            return View(new RestablecerContrasenaViewModel { Token = token });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RestablecerContrasena(RestablecerContrasenaViewModel modelo)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(modelo);
+            }
+
+            var exito = await _servicioAutenticacion.RestablecerContrasena(
+                modelo.Token,
+                modelo.NuevaContrasena);
+
+            if (!exito)
+            {
+                ModelState.AddModelError(string.Empty, "El enlace no es valido o ya expiro.");
+                return View(modelo);
+            }
+
+            return RedirectToAction(nameof(Login));
+        }
+
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]

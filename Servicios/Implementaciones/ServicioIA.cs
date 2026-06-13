@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using EPYCUS_WEB_v0._1.Datos;
 using EPYCUS_WEB_v0._1.Models.Entidades;
@@ -118,7 +117,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 GenerationConfig = new GeminiConfig { Temperature = 0.75, MaxOutputTokens = 900 }
             };
 
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_modelo}:generateContent";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_modelo}:generateContent?key={_apiKey}";
 
             try
             {
@@ -126,7 +125,6 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 {
                     Content = JsonContent.Create(request)
                 };
-                reqMsg.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
                 var httpResp = await _httpClient.SendAsync(reqMsg);
                 if (!httpResp.IsSuccessStatusCode)

@@ -1,11 +1,13 @@
-name: Deploy to VPS
+name: Build and Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:
 
 env:
-  DOTNET_VERSION: '10.0.x'
+  DOTNET_VERSION: '9.0.x'
+  BUILD_CONFIGURATION: Release
 
 jobs:
   build-and-deploy:
@@ -21,13 +23,13 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore "EpycusApp.csproj"
 
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build "EpycusApp.csproj" --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
 
     - name: Publish
-      run: dotnet publish --configuration Release --no-build --output ./publish
+      run: dotnet publish "EpycusApp.csproj" --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --output ./publish
 
     - name: Deploy to VPS via SSH
       uses: appleboy/scp-action@v0.1.7
@@ -48,4 +50,6 @@ jobs:
         key: ${{ secrets.VPS_SSH_KEY }}
         port: ${{ secrets.VPS_PORT || 22 }}
         script: |
+          sudo systemctl daemon-reload
           sudo systemctl restart epycus-web
+          sudo systemctl status epycus-web --no-pager

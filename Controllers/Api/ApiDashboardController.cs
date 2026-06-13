@@ -58,7 +58,7 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
                 .Select(f => new { frase = f.Frase, autor = f.Autor })
                 .FirstOrDefaultAsync();
 
-            return Ok(RespuestaApi<object>.Exitosa(frase));
+            return Ok(RespuestaApi<object?>.Exitosa(frase));
         }
     }
 }
