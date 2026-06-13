@@ -18,7 +18,7 @@ TimeoutStopSec=90
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=ASPNETCORE_URLS=http://localhost:5000
 Environment=ConnectionStrings__ConexionPrincipal=Server=localhost;Port=3306;Database=epicus_db;User=epicus_user;Password=epycusdb12:);
-Environment=MySql__ServerVersion=10.11.6-mariadb
+Environment=MySql__ServerVersion=11.8.6-mariadb
 Environment=Jwt__Clave=CHANGE_THIS_TO_A_RANDOM_SECRET_KEY_AT_LEAST_32_CHARACTERS_LONG
 Environment=Jwt__Emisor=EpycusWeb
 Environment=Jwt__Audiencia=EpycusUsuarios
