@@ -59,43 +59,6 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
                 await contexto.SaveChangesAsync();
             }
 
-            if (!contexto.Usuarios.Any())
-            {
-                var rolUsuarioId = contexto.Roles.Where(r => r.Nombre == "Usuario").Select(r => r.Id).FirstOrDefault();
-                var carreraId = contexto.Carreras.Select(c => c.Id).FirstOrDefault();
-                
-                var nuevoUsuario = new Usuario
-                {
-                    Id = 1,
-                    CodigoUnico = "USR-001",
-                    Nombre = "Usuario Prueba",
-                    CorreoElectronico = "prueba@test.com",
-                    ContrasenaHash = BCrypt.Net.BCrypt.HashPassword("123456", workFactor: 12),
-                    FechaNacimiento = new DateTime(2000, 1, 1),
-                    Genero = "Prefiero no decirlo",
-                    CorreoVerificado = true,
-                    AceptoTerminos = true,
-                    EstaActivo = true,
-                    FechaRegistro = DateTime.Now,
-                    RolId = rolUsuarioId == 0 ? 1 : rolUsuarioId,
-                    CarreraId = carreraId == 0 ? 1 : carreraId
-                };
-                
-                contexto.Usuarios.Add(nuevoUsuario);
-                await contexto.SaveChangesAsync();
-                
-                // Inicializar progreso del usuario
-                var nivelInicial = contexto.Niveles.Select(n => n.Id).FirstOrDefault();
-                contexto.ProgresosUsuario.Add(new ProgresoUsuario
-                {
-                    UsuarioId = nuevoUsuario.Id,
-                    NivelActualId = nivelInicial == 0 ? 1 : nivelInicial,
-                    XpTotal = 0,
-                    RachaActual = 0,
-                    RachaMaxima = 0
-                });
-                await contexto.SaveChangesAsync();
-            }
 
 
             if (!contexto.Categorias.Any())
