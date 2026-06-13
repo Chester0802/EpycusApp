@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Hábitos";
+    var dashboard = Model.Dashboard;
 }
 
 <div class="mb-4">
@@ -21,7 +22,7 @@
                 <i class="bi bi-check-circle"></i>
             </div>
             <div>
-                <p class="ep-summary-value">@Model.Dashboard.TotalHabitos</p>
+                <p class="ep-summary-value">@dashboard.TotalHabitos</p>
                 <p class="ep-summary-label">Total hábitos</p>
             </div>
         </div>
@@ -32,7 +33,7 @@
                 <i class="bi bi-check2-circle"></i>
             </div>
             <div>
-                <p class="ep-summary-value">@Model.Dashboard.TotalCompletadosHoy</p>
+                <p class="ep-summary-value">@dashboard.TotalCompletadosHoy</p>
                 <p class="ep-summary-label">Completados hoy</p>
             </div>
         </div>
@@ -43,7 +44,7 @@
                 <i class="bi bi-fire"></i>
             </div>
             <div>
-                <p class="ep-summary-value">@Model.Dashboard.RachaActualMaxima</p>
+                <p class="ep-summary-value">@dashboard.RachaActualMaxima</p>
                 <p class="ep-summary-label text-warning">Racha actual <br><small>¡Sigue así!</small></p>
             </div>
         </div>
@@ -55,8 +56,8 @@
             </div>
             <div>
                 @{
-                    int totalSemana = Model.Dashboard.CompletadosSemana + Model.Dashboard.ParcialesSemana + Model.Dashboard.OmitidosSemana;
-                    int porcExito = totalSemana == 0 ? 0 : (int)Math.Round((double)Model.Dashboard.CompletadosSemana / totalSemana * 100);
+                    int totalSemana = dashboard.CompletadosSemana + dashboard.ParcialesSemana + dashboard.OmitidosSemana;
+                    int porcExito = totalSemana == 0 ? 0 : (int)Math.Round((double)dashboard.CompletadosSemana / totalSemana * 100);
                 }
                 <p class="ep-summary-value">@porcExito%</p>
                 <p class="ep-summary-label">Tasa de éxito <br><small>Últimos 7 días</small></p>
@@ -197,18 +198,18 @@
                     <ul class="list-unstyled mb-0" style="font-size: 0.9rem;">
                         <li class="d-flex justify-content-between mb-2">
                             <span><i class="bi bi-circle-fill text-success me-2" style="font-size: 0.5rem;"></i> Completados</span>
-                            <span class="fw-bold">@Model.Dashboard.CompletadosSemana</span>
+                            <span class="fw-bold">@dashboard.CompletadosSemana</span>
                         </li>
                         <li class="d-flex justify-content-between mb-2">
                             <span><i class="bi bi-circle-fill text-warning me-2" style="font-size: 0.5rem;"></i> Parciales</span>
-                            <span class="fw-bold">@Model.Dashboard.ParcialesSemana</span>
+                            <span class="fw-bold">@dashboard.ParcialesSemana</span>
                         </li>
                         <li class="d-flex justify-content-between mb-3">
                             <span><i class="bi bi-circle-fill text-danger me-2" style="font-size: 0.5rem;"></i> Omitidos</span>
-                            <span class="fw-bold">@Model.Dashboard.OmitidosSemana</span>
+                            <span class="fw-bold">@dashboard.OmitidosSemana</span>
                         </li>
                         <li class="border-top border-secondary pt-2 text-secondary">
-                            Total hábitos: @Model.Dashboard.TotalHabitos
+                            Total hábitos: @dashboard.TotalHabitos
                         </li>
                     </ul>
                 </div>
@@ -219,7 +220,7 @@
         <div class="ep-card mb-4">
             <h5 class="mb-3 fw-bold">Mejores rachas</h5>
             <ul class="list-unstyled mb-3">
-                @foreach (var r in Model.Dashboard.MejoresRachas)
+                @foreach (var r in dashboard.MejoresRachas)
                 {
                     <li class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary" style="font-size: 0.95rem;">
                         <span><i class="bi bi-journal text-info me-2"></i> @r.Nombre</span>
@@ -241,7 +242,7 @@
                 </div>
                 <div class="col-7">
                     <ul class="list-unstyled mb-0" style="font-size: 0.85rem;">
-                        @foreach (var kv in Model.Dashboard.DistribucionPorCategoria)
+                        @foreach (var kv in dashboard.DistribucionPorCategoria)
                         {
                             <li class="d-flex justify-content-between mb-2">
                                 <span><i class="bi bi-circle-fill text-primary me-2" style="font-size: 0.5rem;"></i> @kv.Key</span>
@@ -252,7 +253,7 @@
                 </div>
             </div>
             <div class="mt-3 text-secondary" style="font-size: 0.85rem;">
-                @Model.Dashboard.TotalHabitos hábitos en total
+                @dashboard.TotalHabitos hábitos en total
             </div>
         </div>
     </div>

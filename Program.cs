@@ -12,7 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ContextoAplicacion>(options =>
 {
     var cadenaConexion = builder.Configuration.GetConnectionString("ConexionPrincipal");
-    options.UseMySql(cadenaConexion, ServerVersion.AutoDetect(cadenaConexion));
+    var versionServidor = builder.Configuration["MySql:ServerVersion"];
+    var serverVersion = string.IsNullOrWhiteSpace(versionServidor)
+        ? ServerVersion.AutoDetect(cadenaConexion)
+        : ServerVersion.Parse(versionServidor);
+
+    options.UseMySql(cadenaConexion, serverVersion);
 });
 
 // Validación temprana de configuración crítica
@@ -74,6 +79,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<IServicioAutenticacion, ServicioAutenticacion>();
 builder.Services.AddScoped<IServicioGamificacion, ServicioGamificacion>();
@@ -85,6 +91,7 @@ builder.Services.AddScoped<IServicioPerfil, ServicioPerfil>();
 builder.Services.AddScoped<IServicioCorreo, ServicioCorreo>();
 builder.Services.AddScoped<IServicioAdmin, ServicioAdmin>();
 builder.Services.AddScoped<IServicioBienestar, ServicioBienestar>();
+builder.Services.AddScoped<IServicioIA, ServicioIA>();
 
 var app = builder.Build();
 
@@ -111,11 +118,8 @@ using (var scope = app.Services.CreateScope())
     // Aplicar migraciones pendientes
     await contexto.Database.MigrateAsync();
 
-    // Inicializar datos semilla sólo en Development
-    if (app.Environment.IsDevelopment())
-    {
-        await DatosSemilla.InicializarAsync(contexto);
-    }
+    // Datos semilla base (roles, niveles, categorías) — requeridos en todos los entornos
+    await DatosSemilla.InicializarAsync(contexto);
 }
 
 app.Run();
