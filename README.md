@@ -52,7 +52,7 @@ Copia `appsettings.Example.json` a `appsettings.json` y configura:
 | Clave | Descripción |
 |---|---|
 | `ConnectionStrings:ConexionPrincipal` | Cadena de conexión a MariaDB |
-| `MySql:ServerVersion` | Versión del servidor (ej: `10.11.6-mariadb`) |
+| `MySql:ServerVersion` | Versión del servidor (ej: `11.8.6-mariadb`) |
 | `Jwt:Clave` | Clave secreta para JWT (mínimo 32 caracteres) |
 | `Google:ClientId` / `ClientSecret` | Credenciales OAuth de Google |
 | `Correo:*` | Configuración SMTP para envío de correos |
@@ -115,7 +115,7 @@ Configuración de MariaDB para producción:
 ```
 Base de datos: epicus_db
 Usuario: epicus_user
-ServerVersion: 10.11.6-mariadb
+ServerVersion: 11.8.6-mariadb
 ```
 
 En `appsettings.json` o variables de entorno:
