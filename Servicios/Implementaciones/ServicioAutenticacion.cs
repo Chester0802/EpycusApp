@@ -14,11 +14,16 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
     {
         private readonly ContextoAplicacion _contexto;
         private readonly IConfiguration _config;
+        private readonly IServicioCorreo _servicioCorreo;
 
-        public ServicioAutenticacion(ContextoAplicacion contexto, IConfiguration config)
+        public ServicioAutenticacion(
+            ContextoAplicacion contexto,
+            IConfiguration config,
+            IServicioCorreo servicioCorreo)
         {
             _contexto = contexto;
             _config = config;
+            _servicioCorreo = servicioCorreo;
         }
 
         public Task<(bool Exito, string Mensaje, string? Token, string? RefreshToken)> RegistrarUsuario(RegistroViewModel modelo)

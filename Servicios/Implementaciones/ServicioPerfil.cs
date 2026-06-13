@@ -89,9 +89,27 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             throw new NotImplementedException();
         }
 
-        public Task<string> ObtenerImagenPersonajeActual(int usuarioId)
+        public async Task<string> ObtenerImagenPersonajeActual(int usuarioId)
         {
-            throw new NotImplementedException();
+            var personajeActivo = await _contexto.PersonajesUsuario
+                .Where(pu => pu.UsuarioId == usuarioId && pu.EstaSeleccionado)
+                .FirstOrDefaultAsync();
+
+            if (personajeActivo == null)
+                return "https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=200";
+
+            var progreso = await _contexto.ProgresosUsuario
+                .Include(p => p.NivelActual)
+                .FirstOrDefaultAsync(p => p.UsuarioId == usuarioId);
+
+            var nivelNumero = progreso?.NivelActual?.Numero ?? 0;
+
+            var imagen = await _contexto.ImagenesNivelPersonaje
+                .Where(i => i.PersonajeId == personajeActivo.PersonajeId && i.NivelNumero <= nivelNumero)
+                .OrderByDescending(i => i.NivelNumero)
+                .FirstOrDefaultAsync();
+
+            return imagen?.ImagenUrl ?? "https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=200";
         }
 
         public async Task<RespuestaOperacion> CambiarTemaAsync(int usuarioId, int temaId)

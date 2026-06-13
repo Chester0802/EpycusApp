@@ -1,0 +1,39 @@
+[Unit]
+Description=Epycus Web Application
+After=network.target mariadb.service
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/epycus-web
+ExecStart=/usr/bin/dotnet /var/www/epycus-web/EpycusApp.dll
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=epycus-web
+TimeoutStopSec=90
+
+# Variables de entorno para producción
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://localhost:5000
+Environment=ConnectionStrings__ConexionPrincipal=Server=localhost;Port=3306;Database=epicus_db;User=epicus_user;Password=epycusdb12:);
+Environment=MySql__ServerVersion=10.11.6-mariadb
+Environment=Jwt__Clave=CHANGE_THIS_TO_A_RANDOM_SECRET_KEY_AT_LEAST_32_CHARACTERS_LONG
+Environment=Jwt__Emisor=EpycusWeb
+Environment=Jwt__Audiencia=EpycusUsuarios
+Environment=Jwt__ExpiracionMinutos=60
+Environment=Jwt__ExpiracionRefreshDias=7
+Environment=Google__ClientId=YOUR_GOOGLE_CLIENT_ID
+Environment=Google__ClientSecret=YOUR_GOOGLE_CLIENT_SECRET
+Environment=Correo__Servidor=smtp.gmail.com
+Environment=Correo__Puerto=587
+Environment=Correo__Usuario=your-email@gmail.com
+Environment=Correo__Contrasena=YOUR_GMAIL_APP_PASSWORD
+Environment=Correo__NombreRemitente=Epycus App
+Environment=App__UrlBase=https://your-domain.com
+Environment=Gemini__ApiKey=YOUR_GEMINI_API_KEY
+Environment=Gemini__Modelo=gemini-2.5-flash-lite
+
+[Install]
+WantedBy=multi-user.target
