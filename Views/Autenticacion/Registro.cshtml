@@ -65,7 +65,7 @@
             <label asp-for="CarreraId" class="form-label">Carrera</label>
             <select asp-for="CarreraId" class="form-select ep-input">
                 <option value="">Seleccione</option>
-                @foreach (var carrera in (ViewBag.Carreras as List<EPYCUS_WEB_v0._1.Modelos.Entidades.Carrera> ?? new List<EPYCUS_WEB_v0._1.Modelos.Entidades.Carrera>()))
+                @foreach (var carrera in (ViewBag.Carreras as List<EPYCUS_WEB_v0._1.Models.Entidades.Carrera> ?? new List<EPYCUS_WEB_v0._1.Models.Entidades.Carrera>()))
                 {
                     <option value="@carrera.Id">@carrera.Nombre</option>
                 }

@@ -1,5 +1,5 @@
 using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.Modelos.Entidades;
+using EPYCUS_WEB_v0._1.Models.Entidades;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -177,6 +177,40 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             var random = new Random();
             var indiceAleatorio = random.Next(frasesActivas.Count);
             return frasesActivas[indiceAleatorio];
+        }
+
+        // Devuelve el estado de ánimo del usuario para hoy (si existe)
+        public async Task<EstadoAnimo?> ObtenerEstadoHoy(int usuarioId)
+        {
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
+            return await _contexto.EstadosAnimo
+                .Where(e => e.UsuarioId == usuarioId && e.Fecha >= hoy)
+                .OrderByDescending(e => e.Fecha)
+                .FirstOrDefaultAsync();
+        }
+
+        // Devuelve el historial de estados de ánimo de los últimos `dias` días
+        public async Task<List<EstadoAnimo>> ObtenerHistorialAnimo(int usuarioId, int dias)
+        {
+            var inicio = DateOnly.FromDateTime(DateTime.Today.AddDays(-dias + 1));
+            return await _contexto.EstadosAnimo
+                .Where(e => e.UsuarioId == usuarioId && e.Fecha >= inicio)
+                .OrderByDescending(e => e.Fecha)
+                .ToListAsync();
+        }
+
+        // Registra un estado de ánimo para el usuario
+        public async Task RegistrarEstadoAnimo(int usuarioId, string estado, string? nota)
+        {
+            _contexto.EstadosAnimo.Add(new EstadoAnimo
+            {
+                UsuarioId = usuarioId,
+                Estado = estado,
+                Nota = nota,
+                Fecha = DateOnly.FromDateTime(DateTime.Today)
+            });
+
+            await _contexto.SaveChangesAsync();
         }
     }
 }

@@ -1,5 +1,5 @@
 using EPYCUS_WEB_v0._1.DTOs;
-using EPYCUS_WEB_v0._1.Modelos.Entidades;
+using EPYCUS_WEB_v0._1.Models.Entidades;
 using EPYCUS_WEB_v0._1.ViewModels;
 
 namespace EPYCUS_WEB_v0._1.Servicios.Interfaces

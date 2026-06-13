@@ -1,0 +1,125 @@
+/**
+ * Estilos del sistema de notificaciones toast
+ * Compatible con tema claro y oscuro
+ */
+
+.ep-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+}
+
+.ep-toast {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-size: 0.95rem;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    backdrop-filter: blur(10px);
+    max-width: 400px;
+    word-wrap: break-word;
+}
+
+.ep-toast-show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.ep-toast i {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.ep-toast span {
+    flex: 1;
+    margin-right: 8px;
+}
+
+.ep-toast-close {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+}
+
+.ep-toast-close:hover {
+    opacity: 1;
+}
+
+.ep-toast-close i {
+    font-size: 1.1rem;
+}
+
+/* Variantes de tipo */
+.ep-toast-exito {
+    background: rgba(16, 185, 129, 0.95);
+    color: white;
+    border-left: 4px solid #059669;
+}
+
+.ep-toast-error {
+    background: rgba(239, 68, 68, 0.95);
+    color: white;
+    border-left: 4px solid #dc2626;
+}
+
+.ep-toast-info {
+    background: rgba(59, 130, 246, 0.95);
+    color: white;
+    border-left: 4px solid #2563eb;
+}
+
+.ep-toast-advertencia {
+    background: rgba(245, 158, 11, 0.95);
+    color: white;
+    border-left: 4px solid #d97706;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .ep-toast-container {
+        right: 10px;
+        left: 10px;
+        top: 10px;
+        max-width: none;
+    }
+
+    .ep-toast {
+        max-width: none;
+        font-size: 0.9rem;
+    }
+}
+
+/* Tema claro - ajustes opcionales */
+body:not([data-theme="oscuro"]) .ep-toast {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Animación de entrada alternativa para múltiples toasts */
+.ep-toast:nth-child(2) {
+    transition-delay: 0.05s;
+}
+
+.ep-toast:nth-child(3) {
+    transition-delay: 0.1s;
+}
+
+.ep-toast:nth-child(4) {
+    transition-delay: 0.15s;
+}

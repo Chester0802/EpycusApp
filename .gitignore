@@ -400,6 +400,7 @@ FodyWeavers.xsd
 
 # User secrets (sensitive configuration)
 appsettings.Development.json
+appsettings.json
 secrets.json
 
 # Temporary files
@@ -419,3 +420,15 @@ run_output.txt
 .env
 .env.local
 .env.production
+
+# Claude AI
+.claude/
+
+# VS cache files
+*.lscache
+
+# GitHub auto-generated
+.github/modernize/
+
+# Old image files
+wwwroot/login-hero.png

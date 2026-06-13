@@ -1,4 +1,4 @@
-using EPYCUS_WEB_v0._1.Modelos.Entidades;
+using EPYCUS_WEB_v0._1.Models.Entidades;
 
 namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
 {

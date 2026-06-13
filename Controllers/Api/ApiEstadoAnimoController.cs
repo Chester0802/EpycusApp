@@ -1,6 +1,6 @@
 using EPYCUS_WEB_v0._1.Ayudantes;
 using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.Modelos.Entidades;
+using EPYCUS_WEB_v0._1.Models.Entidades;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,0 +1,403 @@
+/* ============================================================
+   Perfil de Usuario · EPYCUS
+   ============================================================ */
+
+/* ── Alertas ─────────────────────────────────────────────── */
+.perfil-alerta {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+.perfil-alerta-exito {
+    background: var(--success-bg, rgba(34,197,94,0.12));
+    color: var(--success, #22c55e);
+    border: 1px solid rgba(34,197,94,0.25);
+}
+.perfil-alerta-error {
+    background: var(--error-bg, rgba(239,68,68,0.12));
+    color: var(--error, #ef4444);
+    border: 1px solid rgba(239,68,68,0.25);
+}
+
+/* ── Tarjeta de identidad ────────────────────────────────── */
+.perfil-id-card { padding: 1.75rem 1.5rem; }
+
+.perfil-avatar-wrap {
+    position: relative;
+    display: inline-block;
+    margin: 0 auto;
+}
+
+.perfil-avatar-img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center top;   /* Muestra la cabeza del personaje, no la cintura */
+    background: var(--bg-elevated);
+    border: 3px solid var(--accent-primary, #8b5cf6);
+    box-shadow: 0 6px 24px rgba(139, 92, 246, 0.3);
+}
+
+.perfil-google-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+.perfil-nombre {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.perfil-correo {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.perfil-codigo {
+    font-size: 0.78rem;
+    color: var(--accent-primary, #8b5cf6);
+    background: var(--accent-primary-light, rgba(139,92,246,0.1));
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+    display: inline-block;
+}
+
+.perfil-info-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+}
+
+.perfil-nivel-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent-primary, #8b5cf6);
+    background: var(--accent-primary-light, rgba(139,92,246,0.1));
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(139,92,246,0.25);
+}
+
+.perfil-stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 0.5rem;
+}
+
+.perfil-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.perfil-stat-val {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.perfil-stat-lbl {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+}
+
+/* ── Formularios ─────────────────────────────────────────── */
+.perfil-seccion-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.perfil-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+}
+
+.perfil-input {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-family: inherit;
+    transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+    outline: none;
+}
+
+.perfil-input:focus {
+    border-color: var(--accent-primary, #8b5cf6);
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.12);
+}
+
+.perfil-input option { background: var(--surface); color: var(--text-primary); }
+
+.perfil-pass-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.perfil-pass-wrap .perfil-input { padding-right: 2.5rem; }
+
+.perfil-pass-toggle {
+    position: absolute;
+    right: 0.65rem;
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 0.85rem;
+    transition: color var(--transition-normal);
+}
+.perfil-pass-toggle:hover { color: var(--accent-primary, #8b5cf6); }
+
+.perfil-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: var(--accent-primary, #8b5cf6);
+    color: #fff;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+.perfil-btn-primary:hover {
+    background: var(--accent-primary-hover, #a78bfa);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139,92,246,0.35);
+}
+
+.perfil-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--accent-primary, #8b5cf6);
+    border: 1.5px solid var(--accent-primary, #8b5cf6);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+.perfil-btn-secondary:hover {
+    background: var(--accent-primary-light, rgba(139,92,246,0.1));
+    transform: translateY(-1px);
+}
+
+/* ── Galería de personajes ───────────────────────────────── */
+.perfil-personajes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.perfil-personaje-form { display: contents; }
+
+.perfil-personaje-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.85rem 0.5rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    text-align: center;
+}
+
+.perfil-personaje-card:hover {
+    border-color: var(--accent-primary, #8b5cf6);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(139,92,246,0.2);
+}
+
+.perfil-personaje-card.seleccionado {
+    border-color: var(--accent-primary, #8b5cf6);
+    background: var(--accent-primary-light, rgba(139,92,246,0.08));
+    box-shadow: 0 4px 14px rgba(139,92,246,0.25);
+}
+
+.perfil-personaje-img-wrap {
+    position: relative;
+    width: 84px;
+    height: 118px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.perfil-personaje-img {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-md);
+    object-fit: contain;   /* Cuerpo completo: las imágenes son PNG sin fondo */
+    padding: 0.25rem;
+    background: var(--bg-hover);
+}
+
+.perfil-personaje-check {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent-primary, #8b5cf6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    border: 2px solid var(--surface);
+}
+
+.perfil-personaje-nombre {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.perfil-personaje-genero {
+    font-size: 0.68rem;
+    color: var(--text-tertiary);
+}
+
+/* ── Logros ──────────────────────────────────────────────── */
+.perfil-logros-count {
+    margin-left: auto;
+    background: var(--accent-primary-light, rgba(139,92,246,0.12));
+    color: var(--accent-primary, #8b5cf6);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-full);
+}
+
+.perfil-logros-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.perfil-logro-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 1rem 0.75rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    transition: transform var(--transition-normal);
+}
+
+.perfil-logro-card:hover { transform: translateY(-2px); }
+
+.perfil-logro-icono {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(99,102,241,0.15));
+    border: 2px solid rgba(139,92,246,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--accent-primary, #8b5cf6);
+    overflow: hidden;
+}
+
+.perfil-logro-icono img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.perfil-logro-nombre {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+
+.perfil-logro-xp {
+    font-size: 0.72rem;
+    color: var(--warning, #f59e0b);
+    font-weight: 500;
+}
+
+.perfil-logro-fecha {
+    font-size: 0.68rem;
+    color: var(--text-tertiary);
+}
+
+/* ── Light theme overrides ───────────────────────────────── */
+[data-theme="light"] .perfil-personaje-card,
+[data-theme="light"] .perfil-logro-card {
+    background: var(--bg-elevated, #fff0f9);
+    border-color: var(--surface-border, #ffd9f0);
+}
+
+[data-theme="light"] .perfil-input {
+    background: #fff;
+    border-color: var(--surface-border, #ffd9f0);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 576px) {
+    .perfil-personajes-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+    .perfil-logros-grid     { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+    .perfil-stats-row       { gap: 1rem; }
+}
