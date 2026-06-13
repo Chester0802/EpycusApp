@@ -1,4 +1,4 @@
-using EPYCUS_WEB_v0._1.Modelos.Entidades;
+using EPYCUS_WEB_v0._1.Models.Entidades;
 using Microsoft.EntityFrameworkCore;
 
 namespace EPYCUS_WEB_v0._1.Datos
@@ -36,6 +36,7 @@ namespace EPYCUS_WEB_v0._1.Datos
         public DbSet<VerificacionCorreo> VerificacionesCorreo { get; set; } = null!;
         public DbSet<RecuperacionContrasena> RecuperacionesContrasena { get; set; } = null!;
         public DbSet<Log> Logs { get; set; } = null!;
+        public DbSet<MensajeIA> MensajesIA { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

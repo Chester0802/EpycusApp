@@ -1,0 +1,416 @@
+/* ============================================================
+   EDY — Chat IA · EPYCUS
+   Diseño que convive con el layout ep-app-container / ep-main-content
+   ============================================================ */
+
+/* ── Página del chat ─────────────────────────────────────── */
+.edy-chat-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 3rem);     /* restamos padding del contenedor */
+    max-height: calc(100vh - 3rem);
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.edy-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface);
+    flex-shrink: 0;
+    gap: 1rem;
+}
+
+.edy-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.edy-avatar-lg {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+    animation: edy-pulse 3s ease-in-out infinite;
+}
+
+@keyframes edy-pulse {
+    0%, 100% { box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4); }
+    50%       { box-shadow: 0 4px 22px rgba(139, 92, 246, 0.7); }
+}
+
+.edy-header-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.edy-badge-ia {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: #fff;
+    vertical-align: middle;
+}
+
+.edy-header-subtitle {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-top: 0.1rem;
+}
+
+.edy-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+}
+
+.edy-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: edy-blink 2s ease-in-out infinite;
+}
+
+@keyframes edy-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+}
+
+.edy-status-text {
+    font-size: 0.78rem;
+    color: var(--success);
+    font-weight: 500;
+}
+
+.edy-btn-nueva {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: var(--radius-md);
+    background: transparent;
+    border: 1.5px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    text-decoration: none;
+}
+
+.edy-btn-nueva:hover {
+    background: var(--accent-primary-light, rgba(139,92,246,0.1));
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+/* ── Área de mensajes ────────────────────────────────────── */
+.edy-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    scroll-behavior: smooth;
+}
+
+.edy-messages::-webkit-scrollbar       { width: 5px; }
+.edy-messages::-webkit-scrollbar-track { background: transparent; }
+.edy-messages::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--radius-full);
+}
+
+/* ── Pantalla de bienvenida ──────────────────────────────── */
+.edy-welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2.5rem 1rem;
+    gap: 1rem;
+    margin: auto 0;
+}
+
+.edy-welcome-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.9rem;
+    box-shadow: 0 8px 28px rgba(139, 92, 246, 0.4);
+    animation: edy-pulse 3s ease-in-out infinite;
+}
+
+.edy-welcome-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.edy-welcome-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    max-width: 400px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.edy-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.edy-suggestion {
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-full);
+    background: var(--accent-primary-light, rgba(139,92,246,0.1));
+    border: 1.5px solid var(--accent-primary, #8b5cf6);
+    color: var(--accent-primary, #8b5cf6);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.edy-suggestion:hover {
+    background: var(--accent-primary, #8b5cf6);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* ── Burbujas de mensaje ─────────────────────────────────── */
+.edy-msg {
+    display: flex;
+    gap: 0.65rem;
+    max-width: 80%;
+    animation: edy-msg-in 0.25s ease;
+}
+
+@keyframes edy-msg-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.edy-msg-edy  { align-self: flex-start; align-items: flex-start; }
+.edy-msg-user { align-self: flex-end;   flex-direction: row-reverse; }
+
+.edy-avatar-sm {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.edy-msg-bubble {
+    padding: 0.7rem 1rem;
+    border-radius: var(--radius-lg);
+    font-size: 0.9rem;
+    line-height: 1.55;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+/* EDY bubble — usa la superficie */
+.edy-msg-bubble-edy {
+    background: var(--bg-elevated, #161b26);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-top-left-radius: 4px;
+}
+
+/* User bubble — gradiente del accent */
+.edy-msg-bubble-user {
+    background: linear-gradient(135deg, var(--accent-primary, #8b5cf6), var(--accent-secondary, #6366f1));
+    color: #fff;
+    border-top-right-radius: 4px;
+}
+
+[data-theme="light"] .edy-msg-bubble-edy {
+    background: var(--bg-elevated, #f0e8fb);
+    border-color: var(--surface-border, #ffd9f0);
+}
+
+.edy-msg-meta {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    margin-top: 0.3rem;
+    padding: 0 0.25rem;
+}
+
+/* ── Indicador "escribiendo" ─────────────────────────────── */
+.edy-typing-bubble {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.65rem 1rem;
+    min-width: 56px;
+}
+
+.edy-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    animation: edy-bounce 1.2s ease-in-out infinite;
+}
+.edy-dot:nth-child(2) { animation-delay: 0.2s; }
+.edy-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes edy-bounce {
+    0%, 100% { transform: translateY(0);    opacity: 0.5; }
+    50%       { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ── Área de input ───────────────────────────────────────── */
+.edy-input-area {
+    padding: 1rem 1.5rem 1.2rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--surface);
+    flex-shrink: 0;
+}
+
+.edy-input-wrapper {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.7rem;
+    background: var(--bg-elevated, #161b26);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 0.6rem 0.6rem 0.6rem 1rem;
+    transition: border-color var(--transition-normal);
+}
+
+.edy-input-wrapper:focus-within {
+    border-color: var(--accent-primary, #8b5cf6);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
+[data-theme="light"] .edy-input-wrapper {
+    background: #fff;
+    border-color: var(--surface-border, #ffd9f0);
+}
+
+.edy-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    resize: none;
+    max-height: 120px;
+    min-height: 24px;
+    font-family: inherit;
+}
+
+.edy-input::placeholder { color: var(--text-tertiary); }
+
+.edy-send-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-primary, #8b5cf6), var(--accent-secondary, #6366f1));
+    border: none;
+    color: #fff;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transition-normal);
+}
+
+.edy-send-btn:hover:not(:disabled) {
+    transform: scale(1.08);
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.45);
+}
+
+.edy-send-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.edy-input-hint {
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    margin-top: 0.55rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.edy-input-hint kbd {
+    display: inline-block;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    background: var(--bg-hover, rgba(255,255,255,0.06));
+    border: 1px solid var(--border-color);
+    font-size: 0.68rem;
+    font-family: monospace;
+    color: var(--text-secondary);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .edy-chat-page {
+        height: calc(100vh - 1.5rem);
+        max-height: calc(100vh - 1.5rem);
+        border-radius: var(--radius-md);
+    }
+
+    .edy-msg { max-width: 92%; }
+
+    .edy-header { padding: 0.75rem 1rem; }
+
+    .edy-btn-nueva span { display: none; }
+
+    .edy-input-area { padding: 0.75rem 1rem 0.9rem; }
+
+    .edy-messages { padding: 1rem; }
+
+    .edy-input-hint { display: none; }
+}

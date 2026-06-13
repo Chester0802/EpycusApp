@@ -86,7 +86,7 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
         }
 
         [HttpPut("configuracion")]
-        public async Task<IActionResult> ActualizarConfiguracion([FromBody] EPYCUS_WEB_v0._1.Modelos.Entidades.ConfiguracionPomodoro config)
+        public async Task<IActionResult> ActualizarConfiguracion([FromBody] EPYCUS_WEB_v0._1.Models.Entidades.ConfiguracionPomodoro config)
         {
             int usuarioId = ObtenerUsuarioIdActual();
             if (usuarioId == 0)

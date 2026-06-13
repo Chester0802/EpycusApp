@@ -15,6 +15,13 @@ builder.Services.AddDbContext<ContextoAplicacion>(options =>
     options.UseMySql(cadenaConexion, ServerVersion.AutoDetect(cadenaConexion));
 });
 
+// Validación temprana de configuración crítica
+var jwtClave = builder.Configuration["Jwt:Clave"];
+if (string.IsNullOrEmpty(jwtClave) || jwtClave.Length < 32)
+{
+    throw new InvalidOperationException("La clave JWT (Jwt:Clave) no está configurada o es muy corta. Define una clave segura de al menos 32 caracteres en variables de entorno o en secretos.");
+}
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -104,8 +111,11 @@ using (var scope = app.Services.CreateScope())
     // Aplicar migraciones pendientes
     await contexto.Database.MigrateAsync();
 
-    // Inicializar datos semilla
-    await DatosSemilla.InicializarAsync(contexto);
+    // Inicializar datos semilla sólo en Development
+    if (app.Environment.IsDevelopment())
+    {
+        await DatosSemilla.InicializarAsync(contexto);
+    }
 }
 
 app.Run();

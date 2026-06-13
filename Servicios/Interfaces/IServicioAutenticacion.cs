@@ -1,4 +1,4 @@
-using EPYCUS_WEB_v0._1.Modelos.Entidades;
+using EPYCUS_WEB_v0._1.Models.Entidades;
 using EPYCUS_WEB_v0._1.ViewModels;
 
 namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
@@ -13,5 +13,8 @@ namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
         Task<bool> RestablecerContrasena(string token, string nuevaContrasena);
         Task CerrarSesion(int usuarioId);
         Task<List<Carrera>> ObtenerCarrerasActivas();
+        
+        // Cambiar contraseña: correo + actual + nueva
+        Task<(bool EsExitoso, string? Mensaje)> CambiarContrasenaAsync(string correo, string contrasenaActual, string nuevaContrasena);
     }
 }

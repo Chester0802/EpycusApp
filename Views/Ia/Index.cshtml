@@ -1,0 +1,281 @@
+@model EPYCUS_WEB_v0._1.ViewModels.Ia.IaChatViewModel
+
+@{
+    ViewData["Title"] = "EDY — Asistente IA";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/ia.css" asp-append-version="true" />
+}
+
+<div class="edy-chat-page" id="edy-chat-page">
+
+    <!-- ── Header ──────────────────────────────────────────── -->
+    <div class="edy-header">
+        <div class="edy-header-left">
+            <div class="edy-avatar-lg" aria-hidden="true">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div>
+                <div class="edy-header-name">
+                    EDY <span class="edy-badge-ia">IA</span>
+                </div>
+                <div class="edy-header-subtitle">Tu coach académico personal · EPYCUS</div>
+            </div>
+        </div>
+        <div class="edy-header-actions">
+            <span class="edy-status-dot" aria-hidden="true"></span>
+            <span class="edy-status-text">En línea</span>
+            <form asp-action="Nueva" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="edy-btn-nueva" title="Iniciar nueva conversación">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
+                    <span>Nueva conversación</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Mensajes ─────────────────────────────────────────── -->
+    <div class="edy-messages" id="edy-messages" role="log" aria-live="polite" aria-label="Conversación con EDY">
+
+        @if (!Model.Mensajes.Any())
+        {
+            <!-- Pantalla de bienvenida -->
+            <div class="edy-welcome" id="edy-welcome">
+                <div class="edy-welcome-avatar" aria-hidden="true">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <p class="edy-welcome-title">¡Hola! Soy EDY 👋</p>
+                <p class="edy-welcome-desc">
+                    Soy tu coach académico de EPYCUS. Conozco tus hábitos, misiones y estado de ánimo,
+                    así que puedo darte consejos personalizados. ¿En qué te ayudo hoy?
+                </p>
+                <div class="edy-suggestions" role="group" aria-label="Preguntas sugeridas">
+                    <button type="button" class="edy-suggestion" onclick="usarSugerencia(this)">¿Cómo van mis hábitos?</button>
+                    <button type="button" class="edy-suggestion" onclick="usarSugerencia(this)">Tengo misiones urgentes</button>
+                    <button type="button" class="edy-suggestion" onclick="usarSugerencia(this)">Me siento desmotivado</button>
+                    <button type="button" class="edy-suggestion" onclick="usarSugerencia(this)">¿Cómo mejoro mi racha?</button>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (var msg in Model.Mensajes)
+            {
+                var horaLocal = msg.FechaHora.ToLocalTime().ToString("HH:mm");
+                if (msg.Rol == "user")
+                {
+                    <div class="edy-msg edy-msg-user" role="article">
+                        <div class="edy-msg-bubble edy-msg-bubble-user">@msg.Contenido</div>
+                        <div class="edy-msg-meta" aria-label="Enviado a las @horaLocal">@horaLocal</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="edy-msg edy-msg-edy" role="article">
+                        <div class="edy-avatar-sm" aria-hidden="true"><i class="fas fa-robot"></i></div>
+                        <div>
+                            <div class="edy-msg-bubble edy-msg-bubble-edy">@Html.Raw(FormatearMensaje(msg.Contenido))</div>
+                            <div class="edy-msg-meta" aria-label="Recibido a las @horaLocal">@horaLocal</div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+
+        <!-- Indicador "escribiendo" -->
+        <div class="edy-msg edy-msg-edy" id="edy-typing" style="display:none;" aria-label="EDY está escribiendo" role="status">
+            <div class="edy-avatar-sm" aria-hidden="true"><i class="fas fa-robot"></i></div>
+            <div class="edy-msg-bubble edy-msg-bubble-edy edy-typing-bubble" aria-hidden="true">
+                <span class="edy-dot"></span>
+                <span class="edy-dot"></span>
+                <span class="edy-dot"></span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Input ─────────────────────────────────────────────── -->
+    <div class="edy-input-area">
+        <div class="edy-input-wrapper">
+            <textarea
+                id="edy-input"
+                class="edy-input"
+                placeholder="Escríbele a EDY..."
+                rows="1"
+                maxlength="2000"
+                aria-label="Escribe tu mensaje para EDY"></textarea>
+            <button id="edy-send" class="edy-send-btn" aria-label="Enviar mensaje">
+                <i class="fas fa-paper-plane" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="edy-input-hint">
+            <i class="fas fa-circle-info" aria-hidden="true"></i>
+            Presiona <kbd>Enter</kbd> para enviar · <kbd>Shift+Enter</kbd> para nueva línea
+        </div>
+    </div>
+
+</div>
+
+<!-- ID de conversación (no visible) -->
+<input type="hidden" id="conv-id" value="@Model.ConversacionId" />
+
+@functions {
+    static string FormatearMensaje(string texto)
+    {
+        if (string.IsNullOrEmpty(texto)) return string.Empty;
+        // Negrita **texto**
+        texto = System.Text.RegularExpressions.Regex.Replace(
+            texto, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
+        // Cursiva *texto*
+        texto = System.Text.RegularExpressions.Regex.Replace(
+            texto, @"\*(.+?)\*", "<em>$1</em>");
+        // Saltos de línea
+        texto = texto.Replace("\n", "<br>");
+        return texto;
+    }
+}
+
+@section Scripts {
+<script>
+(function () {
+    'use strict';
+
+    const convId      = document.getElementById('conv-id').value;
+    const messages    = document.getElementById('edy-messages');
+    const input       = document.getElementById('edy-input');
+    const sendBtn     = document.getElementById('edy-send');
+    const typingEl    = document.getElementById('edy-typing');
+
+    // ── Scroll al fondo ─────────────────────────────────────
+    function scrollToBottom() {
+        messages.scrollTop = messages.scrollHeight;
+    }
+    scrollToBottom();
+
+    // ── Auto-altura del textarea ─────────────────────────────
+    input.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    // ── Enter → enviar / Shift+Enter → nueva línea ──────────
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            enviarMensaje();
+        }
+    });
+
+    sendBtn.addEventListener('click', enviarMensaje);
+
+    // ── Sugerencias de bienvenida ────────────────────────────
+    window.usarSugerencia = function (btn) {
+        input.value = btn.textContent.trim();
+        input.dispatchEvent(new Event('input'));
+        enviarMensaje();
+    };
+
+    // ── Agregar burbuja al DOM ───────────────────────────────
+    function agregarMensaje(rol, texto) {
+        // Quitar pantalla de bienvenida si existe
+        var welcome = document.getElementById('edy-welcome');
+        if (welcome) welcome.remove();
+
+        var hora = new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+        var div  = document.createElement('div');
+        div.className = 'edy-msg edy-msg-' + rol;
+        div.setAttribute('role', 'article');
+
+        if (rol === 'user') {
+            div.innerHTML =
+                '<div class="edy-msg-bubble edy-msg-bubble-user">' + escaparHtml(texto) + '</div>' +
+                '<div class="edy-msg-meta">' + hora + '</div>';
+        } else {
+            div.innerHTML =
+                '<div class="edy-avatar-sm" aria-hidden="true"><i class="fas fa-robot"></i></div>' +
+                '<div>' +
+                  '<div class="edy-msg-bubble edy-msg-bubble-edy">' + formatearTexto(texto) + '</div>' +
+                  '<div class="edy-msg-meta">' + hora + '</div>' +
+                '</div>';
+        }
+
+        messages.insertBefore(div, typingEl);
+        scrollToBottom();
+    }
+
+    function escaparHtml(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\n/g, '<br>');
+    }
+
+    function formatearTexto(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>');
+    }
+
+    // ── Enviar mensaje ───────────────────────────────────────
+    async function enviarMensaje() {
+        var msg = input.value.trim();
+        if (!msg || sendBtn.disabled) return;
+
+        // Limpiar y deshabilitar
+        input.value = '';
+        input.style.height = 'auto';
+        sendBtn.disabled = true;
+        input.disabled   = true;
+
+        agregarMensaje('user', msg);
+
+        // Mostrar indicador de escritura
+        typingEl.style.display = 'flex';
+        scrollToBottom();
+
+        try {
+            var res  = await fetch('/api/ia/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mensaje: msg, conversacionId: convId })
+            });
+            var data = await res.json();
+
+            typingEl.style.display = 'none';
+
+            if (data.exito) {
+                agregarMensaje('edy', data.respuesta);
+            } else {
+                agregarMensaje('edy', data.error || 'Ocurrió un error al procesar tu mensaje. Intenta de nuevo. 🔄');
+            }
+        } catch (_) {
+            typingEl.style.display = 'none';
+            agregarMensaje('edy', 'No pude conectarme. Verifica tu conexión e intenta de nuevo. 🔄');
+        }
+
+        sendBtn.disabled = false;
+        input.disabled   = false;
+        input.focus();
+    }
+
+    // ── Ajustar altura al window resize ─────────────────────
+    function ajustarAltura() {
+        var page = document.getElementById('edy-chat-page');
+        var top  = page.getBoundingClientRect().top + window.scrollY;
+        page.style.height = (window.innerHeight - top - 16) + 'px';
+        page.style.maxHeight = (window.innerHeight - top - 16) + 'px';
+    }
+    ajustarAltura();
+    window.addEventListener('resize', ajustarAltura);
+
+})();
+</script>
+}

@@ -1,0 +1,751 @@
+/**
+ * Epycus - Dashboard Inicio
+ * Dark: Estilo Solo Leveling (épico, oscuro, púrpura)
+ * Light: Estilo Kawaii (suave, pastel, rosa)
+ */
+
+/* ================================================================
+   HERO BANNER
+   ================================================================ */
+.dash-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    padding: 2.5rem 2.25rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #fff0f9 0%, #fce4f3 45%, #f0e4fc 100%);
+    border: 1px solid rgba(255, 107, 157, 0.22);
+    box-shadow: 0 4px 24px rgba(255, 107, 157, 0.1), inset 0 0 40px rgba(255, 107, 157, 0.04);
+}
+
+[data-theme="dark"] .dash-hero {
+    background: linear-gradient(135deg, #0d1117 0%, #14102e 45%, #0d1523 100%);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    box-shadow: 0 4px 32px rgba(139, 92, 246, 0.18), inset 0 0 60px rgba(139, 92, 246, 0.04);
+}
+
+.dash-hero-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+/* Hero con personaje al centro: texto | personaje | frase */
+.dash-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1.5rem 2rem;
+}
+
+.dash-hero-quote-col {
+    justify-self: end;
+    text-align: right;
+    max-width: 320px;
+}
+
+.dash-hero-quote-col .dash-hero-quote {
+    text-align: right;
+}
+
+/* ================================================================
+   PERSONAJE EN EL HERO
+   ================================================================ */
+.dash-hero-personaje {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 220px;
+    height: 240px;
+    justify-self: center;
+}
+
+.dash-personaje-img {
+    position: relative;
+    z-index: 2;
+    max-height: 215px;
+    max-width: 200px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 22px rgba(255, 107, 157, 0.35));
+    animation: dash-personaje-float 4s ease-in-out infinite;
+}
+
+[data-theme="dark"] .dash-personaje-img {
+    filter: drop-shadow(0 10px 26px rgba(139, 92, 246, 0.45));
+}
+
+/* Aura circular detrás del personaje */
+.dash-personaje-aura {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -52%);
+    width: 230px;
+    height: 230px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 107, 157, 0.3) 0%, rgba(199, 125, 255, 0.16) 45%, transparent 70%);
+    z-index: 1;
+    pointer-events: none;
+    animation: dash-aura-pulse 4s ease-in-out infinite;
+}
+
+[data-theme="dark"] .dash-personaje-aura {
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.38) 0%, rgba(59, 130, 246, 0.18) 45%, transparent 70%);
+}
+
+/* Sombra elíptica bajo los pies */
+.dash-personaje-sombra {
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(204, 52, 112, 0.28) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+    animation: dash-sombra-pulse 4s ease-in-out infinite;
+}
+
+[data-theme="dark"] .dash-personaje-sombra {
+    background: radial-gradient(ellipse, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+}
+
+@keyframes dash-personaje-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-9px); }
+}
+
+@keyframes dash-aura-pulse {
+    0%, 100% { opacity: 0.85; transform: translate(-50%, -52%) scale(1); }
+    50%      { opacity: 1;    transform: translate(-50%, -52%) scale(1.06); }
+}
+
+@keyframes dash-sombra-pulse {
+    0%, 100% { opacity: 1;   width: 130px; }
+    50%      { opacity: 0.6; width: 110px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dash-personaje-img,
+    .dash-personaje-aura,
+    .dash-personaje-sombra {
+        animation: none;
+    }
+}
+
+/* Orbe decorativo */
+.dash-hero-glow-orb {
+    position: absolute;
+    right: -80px;
+    top: -80px;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 107, 157, 0.22) 0%, transparent 68%);
+    pointer-events: none;
+    z-index: 0;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .dash-hero-glow-orb {
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.28) 0%, transparent 68%);
+}
+
+.dash-date-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 107, 157, 0.12);
+    color: #e0357a;
+    border: 1px solid rgba(255, 107, 157, 0.28);
+    border-radius: var(--radius-full);
+    padding: 0.28rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.75rem;
+}
+
+[data-theme="dark"] .dash-date-badge {
+    background: rgba(139, 92, 246, 0.14);
+    color: #c4b5fd;
+    border-color: rgba(139, 92, 246, 0.32);
+}
+
+.dash-hero-title {
+    font-size: clamp(1.45rem, 2.8vw, 2.2rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin-bottom: 0.8rem;
+    letter-spacing: -0.03em;
+}
+
+.dash-name-accent {
+    background: linear-gradient(90deg, #ff6b9d 0%, #c77dff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+[data-theme="dark"] .dash-name-accent {
+    background: linear-gradient(90deg, #a78bfa 0%, #60a5fa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.dash-hero-quote {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.92rem;
+    max-width: 600px;
+    line-height: 1.65;
+    margin: 0;
+}
+
+.dash-quote-author {
+    display: block;
+    margin-top: 0.35rem;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+}
+
+/* ================================================================
+   ICON TITLE DECORATIVO
+   ================================================================ */
+.dash-title-icon {
+    color: var(--accent-primary);
+    filter: drop-shadow(0 0 5px var(--accent-primary));
+}
+
+/* ================================================================
+   BARRA DE PROGRESO DE HÁBITOS
+   ================================================================ */
+.dash-habits-card .ep-card-header {
+    align-items: flex-start;
+}
+
+.dash-progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.dash-progress-bar {
+    width: 180px;
+    height: 6px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.dash-progress-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    background: linear-gradient(90deg, #ff6b9d 0%, #c77dff 100%);
+    transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] .dash-progress-fill {
+    background: linear-gradient(90deg, #8b5cf6 0%, #3b82f6 100%);
+}
+
+.dash-progress-label {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+/* ================================================================
+   LISTA DE HÁBITOS
+   ================================================================ */
+.dash-habits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.dash-habit-item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem 1rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.dash-habit-item:hover {
+    border-color: rgba(255, 107, 157, 0.45);
+    box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.07), 0 4px 14px rgba(255, 107, 157, 0.1);
+    transform: translateX(3px);
+}
+
+[data-theme="dark"] .dash-habit-item:hover {
+    border-color: rgba(139, 92, 246, 0.45);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.07), 0 4px 18px rgba(139, 92, 246, 0.14);
+}
+
+.dash-habit-item.completado {
+    opacity: 0.6;
+}
+
+.dash-habit-item.completado .dash-habit-name {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+}
+
+/* Icono de categoría */
+.dash-habit-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+    background: rgba(255, 107, 157, 0.12);
+    color: #ff6b9d;
+}
+
+[data-theme="dark"] .dash-habit-icon {
+    background: rgba(139, 92, 246, 0.14);
+    color: #a78bfa;
+}
+
+/* Variantes de color por categoría */
+.dash-habit-icon.icon-blue   { background: rgba(59,  130, 246, 0.12); color: #3b82f6; }
+.dash-habit-icon.icon-green  { background: rgba(16,  185, 129, 0.12); color: #10b981; }
+.dash-habit-icon.icon-orange { background: rgba(249, 115,  22, 0.12); color: #f97316; }
+.dash-habit-icon.icon-purple { background: rgba(139,  92, 246, 0.12); color: #8b5cf6; }
+.dash-habit-icon.icon-red    { background: rgba(239,  68,  68, 0.12); color: #ef4444; }
+.dash-habit-icon.icon-indigo { background: rgba(99,  102, 241, 0.12); color: #6366f1; }
+.dash-habit-icon.icon-pink   { background: rgba(255, 107, 157, 0.12); color: #ff6b9d; }
+
+/* Info del hábito */
+.dash-habit-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.dash-habit-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    margin-bottom: 0.28rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-habit-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+}
+
+.dash-cat-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.12rem 0.55rem;
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: rgba(255, 107, 157, 0.1);
+    color: #cc3470;
+}
+
+[data-theme="dark"] .dash-cat-badge {
+    background: rgba(139, 92, 246, 0.14);
+    color: #c4b5fd;
+}
+
+.dash-streak-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.12rem 0.55rem;
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+}
+
+[data-theme="dark"] .dash-streak-badge {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.12);
+}
+
+/* Botón completar */
+.dash-habit-action {
+    flex-shrink: 0;
+}
+
+.dash-complete-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 107, 157, 0.38);
+    background: transparent;
+    color: #ff6b9d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.dash-complete-btn:hover:not(:disabled) {
+    background: #ff6b9d;
+    border-color: #ff6b9d;
+    color: #fff;
+    box-shadow: 0 0 14px rgba(255, 107, 157, 0.5);
+    transform: scale(1.12);
+}
+
+[data-theme="dark"] .dash-complete-btn {
+    border-color: rgba(139, 92, 246, 0.38);
+    color: #a78bfa;
+}
+
+[data-theme="dark"] .dash-complete-btn:hover:not(:disabled) {
+    background: #8b5cf6;
+    border-color: #8b5cf6;
+    color: #fff;
+    box-shadow: 0 0 18px rgba(139, 92, 246, 0.55);
+}
+
+.dash-complete-btn:disabled {
+    border-color: var(--success);
+    background: var(--success);
+    color: #fff;
+    cursor: not-allowed;
+    transform: scale(1);
+    box-shadow: none;
+    opacity: 0.85;
+}
+
+/* Botón agregar hábito */
+.dash-add-habit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: var(--radius-lg);
+    border: 2px dashed rgba(255, 107, 157, 0.28);
+    color: var(--text-tertiary);
+    text-decoration: none;
+    font-size: 0.855rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    background: transparent;
+}
+
+.dash-add-habit-btn:hover {
+    border-color: #ff6b9d;
+    color: #ff6b9d;
+    background: rgba(255, 107, 157, 0.05);
+}
+
+[data-theme="dark"] .dash-add-habit-btn {
+    border-color: rgba(139, 92, 246, 0.28);
+}
+
+[data-theme="dark"] .dash-add-habit-btn:hover {
+    border-color: #8b5cf6;
+    color: #a78bfa;
+    background: rgba(139, 92, 246, 0.05);
+}
+
+/* ================================================================
+   EMPTY STATES
+   ================================================================ */
+.dash-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+}
+
+.dash-empty-icon {
+    font-size: 2.75rem;
+    margin-bottom: 0.85rem;
+    color: var(--text-tertiary);
+    display: block;
+}
+
+.dash-empty-text {
+    font-size: 0.88rem;
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+/* ================================================================
+   CHART NOTE
+   ================================================================ */
+.dash-chart-note {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    font-style: italic;
+    margin: 0;
+}
+
+/* ================================================================
+   RACHAS
+   ================================================================ */
+.dash-streaks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.dash-streak-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.dash-streak-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    width: 150px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-streak-bar-wrap {
+    flex: 1;
+    height: 7px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.dash-streak-bar {
+    height: 100%;
+    border-radius: var(--radius-full);
+    background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+    transition: width 0.7s ease;
+    min-width: 8px;
+}
+
+.dash-streak-days {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #f59e0b;
+    width: 64px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* ================================================================
+   LANDING (usuario no autenticado)
+   ================================================================ */
+.dash-landing {
+    min-height: 68vh;
+    display: flex;
+    align-items: center;
+}
+
+.dash-landing-card {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-xl);
+    padding: 3.5rem 2.75rem;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.dash-landing-card::before {
+    content: '';
+    position: absolute;
+    top: -60%;
+    right: -8%;
+    width: 450px;
+    height: 450px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 107, 157, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+[data-theme="dark"] .dash-landing-card::before {
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.14) 0%, transparent 70%);
+}
+
+.dash-landing-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 107, 157, 0.1);
+    color: #cc3470;
+    border: 1px solid rgba(255, 107, 157, 0.25);
+    border-radius: var(--radius-full);
+    padding: 0.32rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+[data-theme="dark"] .dash-landing-badge {
+    background: rgba(139, 92, 246, 0.1);
+    color: #c4b5fd;
+    border-color: rgba(139, 92, 246, 0.28);
+}
+
+.dash-landing-title {
+    font-size: clamp(1.75rem, 4vw, 2.8rem);
+    font-weight: 900;
+    color: var(--text-primary);
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    letter-spacing: -0.035em;
+}
+
+.dash-landing-sub {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    max-width: 460px;
+}
+
+.dash-cta-btn {
+    padding: 0.72rem 1.75rem;
+    font-size: 0.93rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+}
+
+.dash-features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.dash-feature-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+    text-decoration: none;
+}
+
+.dash-feature-item:hover {
+    border-color: rgba(255, 107, 157, 0.45);
+    color: var(--text-primary);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(255, 107, 157, 0.1);
+}
+
+[data-theme="dark"] .dash-feature-item:hover {
+    border-color: rgba(139, 92, 246, 0.45);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.12);
+}
+
+.dash-feature-icon {
+    font-size: 1.75rem;
+    color: var(--accent-primary);
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width: 991.98px) {
+    .dash-hero-grid {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+        gap: 1.25rem;
+    }
+
+    .dash-hero-personaje {
+        order: -1;
+    }
+
+    .dash-hero-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .dash-hero-quote-col {
+        justify-self: center;
+        text-align: center;
+        max-width: 480px;
+    }
+
+    .dash-hero-quote-col .dash-hero-quote {
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .dash-hero {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .dash-hero-personaje {
+        width: 180px;
+        height: 200px;
+    }
+
+    .dash-personaje-img {
+        max-height: 180px;
+        max-width: 165px;
+    }
+
+    .dash-personaje-aura {
+        width: 190px;
+        height: 190px;
+    }
+
+    .dash-hero-glow-orb {
+        display: none;
+    }
+
+    .dash-progress-bar {
+        width: 120px;
+    }
+
+    .dash-streak-name {
+        width: 100px;
+    }
+
+    .dash-landing-card {
+        padding: 2rem 1.25rem;
+    }
+
+    .dash-features-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}

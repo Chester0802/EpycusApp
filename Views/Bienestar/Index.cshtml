@@ -1,0 +1,268 @@
+@model EPYCUS_WEB_v0._1.ViewModels.BienestarViewModel
+
+@{
+    ViewData["Title"] = "Bienestar";
+
+    // Mapeo visual de estados
+    var estadoConfig = new Dictionary<string, (string Emoji, string Color, string BgColor, string Label)>
+    {
+        ["Genial"]    = ("😄", "#22c55e", "rgba(34,197,94,0.12)",    "Genial"),
+        ["Bien"]      = ("🙂", "#3b82f6", "rgba(59,130,246,0.12)",   "Bien"),
+        ["Normal"]    = ("😐", "#eab308", "rgba(234,179,8,0.12)",    "Normal"),
+        ["Cansado"]   = ("😴", "#f97316", "rgba(249,115,22,0.12)",   "Cansado"),
+        ["Estresado"] = ("😰", "#ef4444", "rgba(239,68,68,0.12)",    "Estresado")
+    };
+
+    string EstadoColor(string e) => estadoConfig.TryGetValue(e, out var c) ? c.Color : "var(--ep-texto-secundario)";
+    string EstadoBg(string e)    => estadoConfig.TryGetValue(e, out var c) ? c.BgColor : "transparent";
+    string EstadoEmoji(string e) => estadoConfig.TryGetValue(e, out var c) ? c.Emoji : "•";
+}
+
+<!-- Header -->
+<div class="ep-header">
+    <h1 class="ep-header-title">
+        <i class="fas fa-heart-pulse" style="color: var(--accent-primary);"></i>
+        Bienestar
+    </h1>
+    <p class="ep-header-subtitle">Cuida tu energía, tu ánimo y tu equilibrio diario.</p>
+</div>
+
+@if (TempData["AnimoRegistrado"] != null)
+{
+    var estado = TempData["AnimoRegistrado"]!.ToString()!;
+    <div class="alert border-0 rounded-3 py-2 px-3 mb-4 small d-flex align-items-center gap-2"
+         style="background: @EstadoBg(estado); color: @EstadoColor(estado);" role="alert">
+        <span class="fs-5">@EstadoEmoji(estado)</span>
+        Estado de ánimo registrado: <strong>@estado</strong>
+    </div>
+}
+
+<div class="row g-4">
+
+    <!-- Col izquierda: Ánimo hoy + Frase -->
+    <div class="col-lg-5">
+
+        <!-- Tarjeta: Cómo te sientes hoy -->
+        <div class="ep-card mb-4">
+            <h5 class="fw-semibold mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-emoji-smile" style="color: var(--accent-primary);"></i>
+                ¿Cómo te sientes hoy?
+            </h5>
+            <p class="text-muted small mb-4">
+                @if (Model.EstadoHoy != null)
+                {
+                    <span>Ya registraste: </span>
+                    <strong style="color: @EstadoColor(Model.EstadoHoy.Estado);">
+                        @EstadoEmoji(Model.EstadoHoy.Estado) @Model.EstadoHoy.Estado
+                    </strong>
+                    <span class="ms-2 text-muted">(puedes cambiarlo)</span>
+                }
+                else
+                {
+                    <span>Selecciona tu estado para que Epycus pueda ayudarte mejor.</span>
+                }
+            </p>
+
+            <form asp-action="RegistrarAnimo" method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- Picker de estados -->
+                <div class="d-flex flex-wrap gap-2 mb-4" id="animoPicker">
+                    @foreach (var kv in estadoConfig)
+                    {
+                        var esActual = Model.EstadoHoy?.Estado == kv.Key;
+                        <button type="button"
+                                class="ep-animo-btn @(esActual ? "activo" : "")"
+                                data-estado="@kv.Key"
+                                style="--animo-color: @kv.Value.Color; --animo-bg: @kv.Value.BgColor;"
+                                onclick="seleccionarAnimo('@kv.Key', this)">
+                            <span class="fs-4">@kv.Value.Emoji</span>
+                            <span class="small fw-medium">@kv.Value.Label</span>
+                        </button>
+                    }
+                </div>
+
+                <input type="hidden" name="estado" id="estadoSeleccionado" value="@(Model.EstadoHoy?.Estado ?? "")" />
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-muted">Nota opcional</label>
+                    <textarea name="nota" class="form-control ep-input" rows="2"
+                              placeholder="¿Qué está influyendo en tu día?"
+                              style="resize: none;">@(Model.EstadoHoy?.Nota ?? "")</textarea>
+                </div>
+
+                <button type="submit" id="btnRegistrar" class="btn btn-ep w-100 d-flex align-items-center justify-content-center gap-2"
+                        @(Model.EstadoHoy == null ? "disabled" : "")>
+                    <i class="bi bi-check-lg"></i>
+                    @(Model.EstadoHoy != null ? "Actualizar estado" : "Registrar estado")
+                </button>
+            </form>
+        </div>
+
+        <!-- Frase motivacional -->
+        @if (Model.FraseMotivacional != null)
+        {
+            <div class="ep-card" style="background: linear-gradient(135deg, rgba(var(--ep-primario-rgb, 99,102,241),0.08), rgba(var(--ep-primario-rgb, 99,102,241),0.03)); border-color: rgba(var(--ep-primario-rgb, 99,102,241),0.2);">
+                <i class="bi bi-quote fs-2 mb-2" style="color: var(--accent-primary); opacity: 0.5;"></i>
+                <p class="fst-italic mb-2" style="color: var(--ep-texto-primario); line-height: 1.6;">
+                    "@Model.FraseMotivacional.Frase"
+                </p>
+                <p class="small text-muted mb-0">— @Model.FraseMotivacional.Autor</p>
+            </div>
+        }
+
+    </div>
+
+    <!-- Col derecha: Alertas + Historial -->
+    <div class="col-lg-7">
+
+        <!-- Alertas de bienestar -->
+        @if (Model.Alertas.Any())
+        {
+            <div class="mb-4">
+                <h5 class="fw-semibold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-bell" style="color: var(--accent-primary);"></i>
+                    Alertas activas
+                    <span class="badge rounded-pill ms-1" style="background: rgba(239,68,68,0.15); color: #ef4444; font-size: 0.7rem;">@Model.Alertas.Count</span>
+                </h5>
+                @foreach (var alerta in Model.Alertas)
+                {
+                    var colorAlerta = alerta.EsCritica ? "#ef4444" : "#f97316";
+                    var bgAlerta = alerta.EsCritica ? "rgba(239,68,68,0.08)" : "rgba(249,115,22,0.08)";
+                    <div class="ep-card mb-3 d-flex gap-3 align-items-start"
+                         style="background: @bgAlerta; border-color: @colorAlerta; border-left: 3px solid @colorAlerta;">
+                        <i class="bi @alerta.Icono fs-4 flex-shrink-0 mt-1" style="color: @colorAlerta;"></i>
+                        <div>
+                            <div class="small fw-semibold mb-1" style="color: @colorAlerta;">@alerta.Tipo</div>
+                            <div class="small text-muted">@alerta.Mensaje</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="ep-card mb-4 d-flex align-items-center gap-3"
+                 style="background: rgba(34,197,94,0.07); border-color: rgba(34,197,94,0.25);">
+                <i class="bi bi-shield-check fs-3 flex-shrink-0" style="color: #22c55e;"></i>
+                <div>
+                    <div class="fw-semibold small" style="color: #22c55e;">Todo en orden</div>
+                    <div class="small text-muted">No hay alertas de bienestar activas. ¡Sigue así!</div>
+                </div>
+            </div>
+        }
+
+        <!-- Historial de ánimo -->
+        <div class="ep-card">
+            <h5 class="fw-semibold mb-4 d-flex align-items-center gap-2">
+                <i class="bi bi-calendar3" style="color: var(--accent-primary);"></i>
+                Historial de ánimo (14 días)
+            </h5>
+
+            @if (!Model.HistorialAnimo.Any())
+            {
+                <div class="text-center py-4 text-muted small">
+                    <i class="bi bi-calendar-x fs-2 d-block mb-2 opacity-50"></i>
+                    Aún no has registrado ningún estado de ánimo.
+                </div>
+            }
+            else
+            {
+                <!-- Mini gráfico de puntos -->
+                <div class="d-flex gap-2 flex-wrap mb-4">
+                    @{
+                        var hoy = DateOnly.FromDateTime(DateTime.Today);
+                        var historialDict = Model.HistorialAnimo.ToDictionary(e => e.Fecha);
+                    }
+                    @for (int i = 13; i >= 0; i--)
+                    {
+                        var fecha = hoy.AddDays(-i);
+                        var tieneRegistro = historialDict.TryGetValue(fecha, out var reg);
+                        var color = tieneRegistro ? EstadoColor(reg!.Estado) : "var(--ep-borde)";
+                        var emoji = tieneRegistro ? EstadoEmoji(reg!.Estado) : "·";
+                        var esDomingo = fecha.DayOfWeek == DayOfWeek.Sunday;
+                        <div class="text-center" style="min-width: 36px;">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-1"
+                                 style="width: 32px; height: 32px; background: @(tieneRegistro ? EstadoBg(reg!.Estado) : "var(--ep-superficie-2)"); border: 1px solid @color;"
+                                 title="@fecha.ToString("dd/MM")@(tieneRegistro ? ": " + reg!.Estado : "")">
+                                @if (tieneRegistro)
+                                {
+                                    <span style="font-size: 0.9rem;">@emoji</span>
+                                }
+                                else
+                                {
+                                    <span style="font-size: 0.5rem; color: var(--ep-texto-secundario);">—</span>
+                                }
+                            </div>
+                            <div class="small" style="font-size: 0.6rem; color: var(--ep-texto-secundario);">
+                                @fecha.ToString("dd")
+                            </div>
+                        </div>
+                        @if (esDomingo && i > 0)
+                        {
+                            <div style="width: 1px; height: 32px; background: var(--ep-borde); margin: 0 2px;"></div>
+                        }
+                    }
+                </div>
+
+                <!-- Lista de registros -->
+                <div class="d-flex flex-column gap-2" style="max-height: 280px; overflow-y: auto;">
+                    @foreach (var entry in Model.HistorialAnimo)
+                    {
+                        <div class="d-flex align-items-center gap-3 py-2 px-3 rounded-3"
+                             style="background: @EstadoBg(entry.Estado);">
+                            <span class="fs-5 flex-shrink-0">@EstadoEmoji(entry.Estado)</span>
+                            <div class="flex-grow-1">
+                                <div class="small fw-semibold" style="color: @EstadoColor(entry.Estado);">@entry.Estado</div>
+                                @if (!string.IsNullOrWhiteSpace(entry.Nota))
+                                {
+                                    <div class="small text-muted">@entry.Nota</div>
+                                }
+                            </div>
+                            <div class="small text-muted flex-shrink-0">@entry.Fecha.ToString("dd MMM")</div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .ep-animo-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 0.6rem 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--ep-borde);
+        background: var(--ep-superficie-2);
+        color: var(--ep-texto-primario);
+        cursor: pointer;
+        transition: all 0.2s;
+        min-width: 72px;
+    }
+    .ep-animo-btn:hover {
+        border-color: var(--animo-color);
+        background: var(--animo-bg);
+        transform: translateY(-2px);
+    }
+    .ep-animo-btn.activo {
+        border-color: var(--animo-color);
+        background: var(--animo-bg);
+        color: var(--animo-color);
+        box-shadow: 0 0 0 2px var(--animo-bg);
+    }
+</style>
+
+<script>
+    function seleccionarAnimo(estado, btn) {
+        document.querySelectorAll('.ep-animo-btn').forEach(b => b.classList.remove('activo'));
+        btn.classList.add('activo');
+        document.getElementById('estadoSeleccionado').value = estado;
+        const btnRegistrar = document.getElementById('btnRegistrar');
+        btnRegistrar.disabled = false;
+    }
+</script>

@@ -1,0 +1,98 @@
+@model EPYCUS_WEB_v0._1.ViewModels.Autenticacion.RestablecerContrasenaViewModel
+
+@{
+    ViewData["Title"] = "Nueva contraseña";
+    Layout = "_LayoutAuth";
+}
+
+<div class="auth-card">
+    <!-- Header -->
+    <div class="auth-card-header">
+        <div class="auth-card-icon">
+            <i class="fas fa-shield-halved"></i>
+        </div>
+        <h2 class="auth-card-title">Nueva contraseña</h2>
+        <p class="auth-card-subtitle">Elige una contraseña segura para tu cuenta.</p>
+    </div>
+
+    <form asp-action="RestablecerContrasena" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Token" />
+
+        <div asp-validation-summary="ModelOnly" class="auth-validation-summary"></div>
+
+        <!-- Nueva Contraseña -->
+        <div class="auth-form-group">
+            <label asp-for="NuevaContrasena" class="auth-form-label">Nueva Contraseña</label>
+            <div class="auth-input-wrapper">
+                <i class="fas fa-lock auth-input-icon"></i>
+                <input asp-for="NuevaContrasena" id="nuevaContrasena" class="auth-input" placeholder="••••••••" autocomplete="new-password" />
+                <button type="button" class="auth-toggle-password" onclick="togglePass('nuevaContrasena', this)" aria-label="Mostrar contraseña">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <!-- Password strength bar -->
+            <div style="height: 4px; border-radius: 2px; background: var(--border-color); overflow: hidden; margin-top: 0.5rem;">
+                <div id="fortalezaRelleno" style="height: 100%; width: 0%; transition: width 0.3s, background 0.3s;"></div>
+            </div>
+            <span asp-validation-for="NuevaContrasena" class="auth-validation-error"></span>
+        </div>
+
+        <!-- Confirmar Contraseña -->
+        <div class="auth-form-group">
+            <label asp-for="ConfirmarContrasena" class="auth-form-label">Confirmar Contraseña</label>
+            <div class="auth-input-wrapper">
+                <i class="fas fa-lock auth-input-icon"></i>
+                <input asp-for="ConfirmarContrasena" id="confirmarContrasena" class="auth-input" placeholder="••••••••" autocomplete="new-password" />
+                <button type="button" class="auth-toggle-password" onclick="togglePass('confirmarContrasena', this)" aria-label="Mostrar contraseña">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <span asp-validation-for="ConfirmarContrasena" class="auth-validation-error"></span>
+        </div>
+
+        <button type="submit" class="auth-btn-primary">
+            <span>Guardar contraseña</span>
+            <i class="fas fa-check"></i>
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function togglePass(id, btn) {
+            var input = document.getElementById(id);
+            var icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        var passInput = document.getElementById('nuevaContrasena');
+        if (passInput) {
+            passInput.addEventListener('input', function () {
+                var val = this.value;
+                var fortaleza = 0;
+                if (val.length >= 8) fortaleza++;
+                if (/[A-Z]/.test(val)) fortaleza++;
+                if (/[0-9]/.test(val)) fortaleza++;
+                if (/[^A-Za-z0-9]/.test(val)) fortaleza++;
+
+                var colores = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
+                var anchos = ['25%', '50%', '75%', '100%'];
+                var relleno = document.getElementById('fortalezaRelleno');
+                if (val.length === 0) {
+                    relleno.style.width = '0%';
+                } else {
+                    relleno.style.width = anchos[fortaleza - 1] || '25%';
+                    relleno.style.background = colores[fortaleza - 1] || '#ef4444';
+                }
+            });
+        }
+    </script>
+}

@@ -1,6 +1,6 @@
 using System;
 using EPYCUS_WEB_v0._1.DTOs;
-using EPYCUS_WEB_v0._1.Modelos.Entidades;
+using EPYCUS_WEB_v0._1.Models.Entidades;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using EPYCUS_WEB_v0._1.ViewModels;
 using EPYCUS_WEB_v0._1.Datos;
@@ -168,7 +168,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<EPYCUS_WEB_v0._1.Modelos.Entidades.Categoria>> ObtenerCategoriasActivas()
+        public async Task<List<EPYCUS_WEB_v0._1.Models.Entidades.Categoria>> ObtenerCategoriasActivas()
         {
             return await _context.Categorias.Where(c => c.EstaActiva).ToListAsync();
         }

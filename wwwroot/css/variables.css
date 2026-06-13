@@ -1,0 +1,318 @@
+/**
+ * Sistema de Diseño Epycus - Variables CSS
+ * Modo Claro: Estilo Kawaii/Cute - Colores Pasteles
+ * Modo Oscuro: Estilo Solo Leveling - Épico y Masculino
+ */
+
+:root {
+    /* === TEMA CLARO - KAWAII/CUTE (Pasteles para Mujer) === */
+
+    /* Backgrounds - Tonos pasteles suaves */
+    --bg-primary: #fef5ff;
+    --bg-secondary: #fff0f9;
+    --bg-elevated: #ffe8f5;
+    --bg-hover: #ffd9f0;
+    --bg-active: #ffc7ea;
+
+    /* Surface (Cards, Panels) - Pasteles suaves */
+    --surface: #ffffff;
+    --surface-border: #ffd9f0;
+    --surface-shadow: rgba(255, 182, 225, 0.15);
+    --surface-shadow-lg: rgba(255, 182, 225, 0.25);
+
+    /* Text - Suaves pero legibles */
+    --text-primary: #4a2545;
+    --text-secondary: #7d5f7a;
+    --text-tertiary: #b094ad;
+    --text-inverse: #ffffff;
+
+    /* Accent Colors - Rosa y pasteles */
+    --accent-primary: #ff6b9d;
+    --accent-primary-hover: #ff4d85;
+    --accent-primary-light: #ffe5f0;
+    --accent-secondary: #c77dff;
+    --accent-secondary-hover: #b565ff;
+
+    /* Colores Kawaii adicionales */
+    --kawaii-pink: #ffb3d9;
+    --kawaii-lavender: #e0c3fc;
+    --kawaii-mint: #b4f8c8;
+    --kawaii-peach: #ffd5cd;
+    --kawaii-sky: #a8daff;
+    --kawaii-lemon: #fff6b7;
+
+    /* Status Colors - Versiones pasteles */
+    --success: #7ed957;
+    --success-hover: #6bc745;
+    --success-light: #e8f8e0;
+    --success-bg: rgba(126, 217, 87, 0.15);
+
+    --warning: #ffa94d;
+    --warning-hover: #ff9533;
+    --warning-light: #fff4e6;
+    --warning-bg: rgba(255, 169, 77, 0.15);
+
+    --error: #ff6b9d;
+    --error-hover: #ff4d85;
+    --error-light: #ffe5f0;
+    --error-bg: rgba(255, 107, 157, 0.15);
+
+    --info: #70a5ff;
+    --info-hover: #5693ff;
+    --info-light: #e5f0ff;
+    --info-bg: rgba(112, 165, 255, 0.15);
+
+    /* Sidebar - Kawaii limpio, rosa/melocotón SIN morado */
+    --sidebar-bg: linear-gradient(170deg, #fff5f8 0%, #fde8f0 60%, #fcd5e5 100%);
+    --sidebar-text: rgba(120, 45, 75, 0.78);
+    --sidebar-text-hover: #7c2d4a;
+    --sidebar-item-hover: rgba(255, 107, 157, 0.13);
+    --sidebar-item-active: rgba(255, 107, 157, 0.22);
+    --sidebar-border: rgba(255, 107, 157, 0.22);
+    /* Variables de sidebar con soporte para tema claro */
+    --sidebar-text-strong: #7c2d4a;
+    --sidebar-line-accent: #ff6b9d;
+    --sidebar-icon-bg: rgba(255, 107, 157, 0.14);
+    --sidebar-icon-color: #e91e76;
+    --sidebar-char-border: rgba(255, 107, 157, 0.3);
+    --sidebar-char-bg: rgba(255, 107, 157, 0.05);
+    --sidebar-toggle-bg: rgba(255, 107, 157, 0.12);
+    --sidebar-toggle-hover: rgba(255, 107, 157, 0.22);
+
+    /* Borders - Suaves */
+    --border-color: #ffd9f0;
+    --border-color-light: #ffe8f5;
+
+    /* Shadows - Suaves y difusas */
+    --shadow-sm: 0 2px 4px 0 rgba(255, 107, 157, 0.08);
+    --shadow-md: 0 4px 8px -1px rgba(255, 107, 157, 0.12), 0 2px 6px -1px rgba(255, 107, 157, 0.08);
+    --shadow-lg: 0 10px 20px -3px rgba(255, 107, 157, 0.15), 0 4px 8px -2px rgba(255, 107, 157, 0.1);
+    --shadow-xl: 0 20px 30px -5px rgba(255, 107, 157, 0.2), 0 10px 15px -5px rgba(255, 107, 157, 0.15);
+
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+
+    /* Border Radius - Más redondeados para look kawaii */
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-full: 9999px;
+
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* Z-Index Scale */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+}
+
+/* === TEMA OSCURO - SOLO LEVELING (Épico y Masculino) === */
+[data-theme="dark"],
+body[data-theme="dark"] {
+    /* Backgrounds - Oscuros profundos estilo Solo Leveling */
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #0f1419;
+    --bg-elevated: #161b26;
+    --bg-hover: #1d2433;
+    --bg-active: #242d40;
+
+    /* Surface - Oscuro con borde púrpura */
+    --surface: #0f1419;
+    --surface-border: #2d1b4e;
+    --surface-shadow: rgba(109, 40, 217, 0.2);
+    --surface-shadow-lg: rgba(109, 40, 217, 0.35);
+
+    /* Text - Brillante sobre oscuro */
+    --text-primary: #e8eaed;
+    --text-secondary: #a8b3cf;
+    --text-tertiary: #6b7a99;
+    --text-inverse: #0a0e1a;
+
+    /* Accent Colors - Púrpura intenso Solo Leveling */
+    --accent-primary: #8b5cf6;
+    --accent-primary-hover: #a78bfa;
+    --accent-primary-light: #2d1b4e;
+    --accent-secondary: #6366f1;
+    --accent-secondary-hover: #818cf8;
+
+    /* Colores Solo Leveling adicionales */
+    --sl-purple: #8b5cf6;
+    --sl-deep-purple: #6d28d9;
+    --sl-electric-blue: #3b82f6;
+    --sl-shadow: #1e1b4b;
+    --sl-glow: #c084fc;
+    --sl-dark: #0a0e1a;
+
+    /* Status Colors - Intensos y brillantes */
+    --success: #22c55e;
+    --success-hover: #4ade80;
+    --success-light: #14532d;
+    --success-bg: rgba(34, 197, 94, 0.15);
+
+    --warning: #f59e0b;
+    --warning-hover: #fbbf24;
+    --warning-light: #78350f;
+    --warning-bg: rgba(245, 158, 11, 0.15);
+
+    --error: #ef4444;
+    --error-hover: #f87171;
+    --error-light: #7f1d1d;
+    --error-bg: rgba(239, 68, 68, 0.15);
+
+    --info: #3b82f6;
+    --info-hover: #60a5fa;
+    --info-light: #1e3a8a;
+    --info-bg: rgba(59, 130, 246, 0.15);
+
+    /* Sidebar - Gradiente oscuro púrpura Solo Leveling */
+    --sidebar-bg: linear-gradient(135deg, #0a0e1a 0%, #1e1b4b 50%, #312e81 100%);
+    --sidebar-text: rgba(232, 234, 237, 0.85);
+    --sidebar-text-hover: #e8eaed;
+    --sidebar-item-hover: rgba(139, 92, 246, 0.15);
+    --sidebar-item-active: rgba(139, 92, 246, 0.25);
+    --sidebar-border: rgba(139, 92, 246, 0.2);
+    /* Variables de sidebar para modo oscuro */
+    --sidebar-text-strong: #ffffff;
+    --sidebar-line-accent: rgba(255, 255, 255, 0.85);
+    --sidebar-icon-bg: rgba(255, 255, 255, 0.15);
+    --sidebar-icon-color: #ffffff;
+    --sidebar-char-border: rgba(255, 255, 255, 0.2);
+    --sidebar-char-bg: rgba(255, 255, 255, 0.05);
+    --sidebar-toggle-bg: rgba(255, 255, 255, 0.12);
+    --sidebar-toggle-hover: rgba(255, 255, 255, 0.22);
+
+    /* Borders - Púrpura oscuro */
+    --border-color: #2d1b4e;
+    --border-color-light: #1e1b4b;
+
+    /* Shadows - Con brillo púrpura */
+    --shadow-sm: 0 2px 4px 0 rgba(139, 92, 246, 0.1);
+    --shadow-md: 0 4px 8px -1px rgba(139, 92, 246, 0.2), 0 2px 6px -1px rgba(139, 92, 246, 0.15);
+    --shadow-lg: 0 10px 20px -3px rgba(139, 92, 246, 0.3), 0 4px 8px -2px rgba(139, 92, 246, 0.2);
+    --shadow-xl: 0 20px 30px -5px rgba(139, 92, 246, 0.4), 0 10px 15px -5px rgba(139, 92, 246, 0.3);
+    --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
+
+    /* Border Radius - Más angular para look épico */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.625rem;
+    --radius-xl: 0.75rem;
+    --radius-full: 9999px;
+}
+
+/* Fuentes */
+:root {
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-display: 'Orbitron', 'Inter', sans-serif; /* Para modo oscuro */
+    --font-cute: 'Nunito', 'Inter', sans-serif; /* Para modo claro */
+    --font-mono: 'Fira Code', 'Courier New', monospace;
+
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-black: 900;
+}
+
+/* Efectos especiales Solo Leveling */
+[data-theme="dark"] {
+    --glow-effect: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6));
+    --glow-text: 0 0 10px rgba(139, 92, 246, 0.8);
+}
+
+/* Efectos kawaii */
+:root {
+    --sparkle-effect: drop-shadow(0 0 4px rgba(255, 107, 157, 0.4));
+}
+
+/* === COMPATIBILIDAD CON VARIABLES ANTIGUAS === */
+:root {
+    /* Mapeo de variables antiguas --ep-* a nuevas */
+    --ep-fondo: var(--bg-primary);
+    --ep-texto: var(--text-primary);
+    --ep-superficie: var(--surface);
+    --ep-superficie-2: var(--bg-elevated);
+    --ep-borde: var(--border-color);
+    --ep-texto-apagado: var(--text-secondary);
+    --ep-primario: var(--accent-primary);
+    --ep-primario-hover: var(--accent-primary-hover);
+    --ep-neon: var(--accent-primary);
+    --ep-neon-borde: var(--accent-primary);
+    --ep-neon-suave: var(--accent-primary-light);
+    --ep-sombra-neon: var(--shadow-lg);
+    --ep-radio: var(--radius-lg);
+    --ep-radio-sm: var(--radius-sm);
+    --ep-sombra: var(--shadow-sm);
+    --ep-sombra-primario: var(--shadow-md);
+    --ep-nivel: var(--accent-secondary);
+    --ep-xp: var(--info);
+    --ep-xp-suave: var(--info-light);
+    --ep-racha: var(--warning);
+    --ep-racha-suave: var(--warning-light);
+    --ep-barra-xp-fondo: var(--bg-elevated);
+    --ep-barra-xp-relleno: var(--accent-primary);
+    /* Variables faltantes en el mapeo compat */
+    --ep-acento: var(--accent-secondary);
+    --ep-texto-secundario: var(--text-secondary);
+    --ep-texto-primario: var(--text-primary);
+    --ep-exito: var(--success);
+    --ep-advertencia: var(--warning);
+    --ep-peligro: var(--error);
+}
+
+[data-theme="dark"] {
+    /* Mantener mapeo en tema oscuro */
+    --ep-fondo: var(--bg-primary);
+    --ep-texto: var(--text-primary);
+    --ep-superficie: var(--surface);
+    --ep-superficie-2: var(--bg-elevated);
+    --ep-borde: var(--border-color);
+    --ep-texto-apagado: var(--text-secondary);
+    --ep-primario: var(--accent-primary);
+    --ep-primario-hover: var(--accent-primary-hover);
+    --ep-neon: var(--accent-primary);
+    --ep-neon-borde: var(--accent-primary);
+    --ep-neon-suave: var(--accent-primary-light);
+    --ep-sombra-neon: var(--shadow-glow);
+    --ep-radio: var(--radius-lg);
+    --ep-radio-sm: var(--radius-sm);
+    --ep-sombra: var(--shadow-sm);
+    --ep-sombra-primario: var(--shadow-md);
+    --ep-nivel: var(--accent-secondary);
+    --ep-xp: var(--info);
+    --ep-xp-suave: var(--info-light);
+    --ep-racha: var(--warning);
+    --ep-racha-suave: var(--warning-light);
+    --ep-barra-xp-fondo: var(--bg-elevated);
+    --ep-barra-xp-relleno: var(--accent-primary);
+    /* Variables compat faltantes - tema oscuro */
+    --ep-acento: var(--accent-secondary);
+    --ep-texto-secundario: var(--text-secondary);
+    --ep-texto-primario: var(--text-primary);
+    --ep-exito: var(--success);
+    --ep-advertencia: var(--warning);
+    --ep-peligro: var(--error);
+}

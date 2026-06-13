@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 {
@@ -53,7 +55,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
             var hash = BCrypt.Net.BCrypt.HashPassword(modelo.Contrasena, workFactor: 12);
 
-            var usuario = new Modelos.Entidades.Usuario
+            var usuario = new Models.Entidades.Usuario
             {
                 CodigoUnico = codigoUnico,
                 Nombre = modelo.Nombre,
@@ -75,7 +77,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             var nivelInicial = await _contexto.Niveles.FirstOrDefaultAsync(n => n.Numero == 0);
             if (nivelInicial != null)
             {
-                _contexto.ProgresosUsuario.Add(new Modelos.Entidades.ProgresoUsuario
+                _contexto.ProgresosUsuario.Add(new Models.Entidades.ProgresoUsuario
                 {
                     UsuarioId = usuario.Id,
                     NivelActualId = nivelInicial.Id,
@@ -85,7 +87,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 });
             }
 
-            _contexto.ConfiguracionesPomodoro.Add(new Modelos.Entidades.ConfiguracionPomodoro
+            _contexto.ConfiguracionesPomodoro.Add(new Models.Entidades.ConfiguracionPomodoro
             {
                 UsuarioId = usuario.Id,
                 TiempoEstudioMin = 25,
@@ -100,17 +102,18 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
             var token = GenerarToken(usuario);
             var refreshToken = GenerarRefreshToken();
+                        var refreshTokenHash = HashToken(refreshToken);
 
-            _contexto.TokensRefresh.Add(new Modelos.Entidades.TokenRefresh
-            {
-                UsuarioId = usuario.Id,
-                Token = refreshToken,
-                ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
-            });
+                        _contexto.TokensRefresh.Add(new Models.Entidades.TokenRefresh
+                        {
+                            UsuarioId = usuario.Id,
+                            Token = refreshTokenHash,
+                            ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
+                        });
 
-            await _contexto.SaveChangesAsync();
+                        await _contexto.SaveChangesAsync();
 
-            return (true, "Registro exitoso", token, refreshToken);
+                        return (true, "Registro exitoso", token, refreshToken);
         }
 
         private async Task<(bool Exito, string Mensaje, string? Token, string? RefreshToken)> RenovarTokenInterno(string refreshToken)
@@ -120,38 +123,44 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 return (false, "Token inválido", null, null);
             }
 
-            var tokenGuardado = await _contexto.TokensRefresh
-                .FirstOrDefaultAsync(t => t.Token == refreshToken && !t.Revocado);
+                    var refreshHash = HashToken(refreshToken);
 
-            if (tokenGuardado == null || tokenGuardado.ExpiraEn < DateTime.UtcNow)
-            {
-                return (false, "Token expirado", null, null);
-            }
+                    var tokenGuardado = await _contexto.TokensRefresh
+                        .FirstOrDefaultAsync(t => t.Token == refreshHash && !t.Revocado);
 
-            var usuario = await _contexto.Usuarios
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.Id == tokenGuardado.UsuarioId);
+                    if (tokenGuardado == null || tokenGuardado.ExpiraEn < DateTime.UtcNow)
+                    {
+                        return (false, "Token expirado", null, null);
+                    }
 
-            if (usuario == null || !usuario.EstaActivo)
-            {
-                return (false, "Usuario inválido", null, null);
-            }
+                    var usuario = await _contexto.Usuarios
+                        .Include(u => u.Rol)
+                        .FirstOrDefaultAsync(u => u.Id == tokenGuardado.UsuarioId);
 
-            tokenGuardado.Revocado = true;
+                    if (usuario == null || !usuario.EstaActivo)
+                    {
+                        return (false, "Usuario inválido", null, null);
+                    }
 
-            var nuevoRefresh = GenerarRefreshToken();
-            _contexto.TokensRefresh.Add(new Modelos.Entidades.TokenRefresh
-            {
-                UsuarioId = usuario.Id,
-                Token = nuevoRefresh,
-                ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
-            });
+                    // Marcar revocado inmediatamente y guardar para reducir la ventana de race condition
+                    tokenGuardado.Revocado = true;
+                    await _contexto.SaveChangesAsync();
 
-            var token = GenerarToken(usuario);
-            await _contexto.SaveChangesAsync();
+                    var nuevoRefresh = GenerarRefreshToken();
+                    var nuevoRefreshHash = HashToken(nuevoRefresh);
 
-            return (true, "Token renovado", token, nuevoRefresh);
-        }
+                    _contexto.TokensRefresh.Add(new Models.Entidades.TokenRefresh
+                    {
+                        UsuarioId = usuario.Id,
+                        Token = nuevoRefreshHash,
+                        ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
+                    });
+
+                    var token = GenerarToken(usuario);
+                    await _contexto.SaveChangesAsync();
+
+                    return (true, "Token renovado", token, nuevoRefresh);
+                }
 
         public async Task<(bool Exito, string Mensaje, string? Token, string? RefreshToken)> Login(string correo, string contrasena)
         {
@@ -184,31 +193,65 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
             usuario.UltimoAcceso = DateTime.UtcNow;
 
-            _contexto.TokensRefresh.Add(new Modelos.Entidades.TokenRefresh
-            {
-                UsuarioId = usuario.Id,
-                Token = refreshToken,
-                ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
-            });
+                        var refreshTokenHash = HashToken(refreshToken);
+                        _contexto.TokensRefresh.Add(new Models.Entidades.TokenRefresh
+                        {
+                            UsuarioId = usuario.Id,
+                            Token = refreshTokenHash,
+                            ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
+                        });
 
-            await _contexto.SaveChangesAsync();
+                        await _contexto.SaveChangesAsync();
 
-            return (true, "Login exitoso", token, refreshToken);
+                        return (true, "Login exitoso", token, refreshToken);
         }
 
-        private int ObtenerExpiracionRefreshDias()
+        public async Task<(bool EsExitoso, string? Mensaje)> CambiarContrasenaAsync(string correo, string contrasenaActual, string nuevaContrasena)
         {
-            var expiracion = _config["Jwt:ExpiracionRefreshDias"];
-            return int.TryParse(expiracion, out var dias) ? dias : 7;
-        }
+                    var usuario = await _contexto.Usuarios.FirstOrDefaultAsync(u => u.CorreoElectronico == correo);
+                    if (usuario == null)
+                        return (false, "Usuario no encontrado");
+
+                    if (string.IsNullOrWhiteSpace(usuario.ContrasenaHash))
+                        return (false, "La cuenta no permite cambio de contraseña (inicia sesión con Google)");
+
+                    if (!BCrypt.Net.BCrypt.Verify(contrasenaActual, usuario.ContrasenaHash))
+                        return (false, "Contraseña actual incorrecta");
+
+                    usuario.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(nuevaContrasena, workFactor: 12);
+                    await _contexto.SaveChangesAsync();
+                    return (true, null);
+                }
+
+                private int ObtenerExpiracionRefreshDias()
+                {
+                    var expiracion = _config["Jwt:ExpiracionRefreshDias"];
+                    return int.TryParse(expiracion, out var dias) ? dias : 7;
+                }
 
         private string GenerarRefreshToken()
         {
-            return Guid.NewGuid().ToString("N");
-        }
+                    // Genera un token criptográficamente seguro y URL-safe
+                    var bytes = new byte[32];
+                    using (var rng = RandomNumberGenerator.Create())
+                    {
+                        rng.GetBytes(bytes);
+                    }
+                    var token = Convert.ToBase64String(bytes).TrimEnd('=')
+                        .Replace('+', '-')
+                        .Replace('/', '_');
+                    return token;
+                }
 
-        private string GenerarToken(Modelos.Entidades.Usuario usuario)
-        {
+                private static string HashToken(string token)
+                {
+                    using var sha = SHA256.Create();
+                    var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(token));
+                    return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+                }
+
+                private string GenerarToken(Models.Entidades.Usuario usuario)
+                {
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
@@ -283,7 +326,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
             var token = Guid.NewGuid().ToString("N");
 
-            _contexto.RecuperacionesContrasena.Add(new Modelos.Entidades.RecuperacionContrasena
+            _contexto.RecuperacionesContrasena.Add(new Models.Entidades.RecuperacionContrasena
             {
                 UsuarioId = usuario.Id,
                 Token = token,
@@ -345,7 +388,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             await _contexto.SaveChangesAsync();
         }
 
-        public async Task<List<EPYCUS_WEB_v0._1.Modelos.Entidades.Carrera>> ObtenerCarrerasActivas()
+        public async Task<List<EPYCUS_WEB_v0._1.Models.Entidades.Carrera>> ObtenerCarrerasActivas()
         {
             return await _contexto.Carreras
                 .Where(c => c.EstaActiva)

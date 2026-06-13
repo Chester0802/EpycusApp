@@ -1,0 +1,54 @@
+@model EPYCUS_WEB_v0._1.ViewModels.Autenticacion.RecuperarContrasenaViewModel
+
+@{
+    ViewData["Title"] = "Recuperar contraseña";
+    Layout = "_LayoutAuth";
+}
+
+<div class="auth-card">
+    <!-- Header -->
+    <div class="auth-card-header">
+        <div class="auth-card-icon">
+            <i class="fas fa-envelope-open-text"></i>
+        </div>
+        <h2 class="auth-card-title">Recuperar contraseña</h2>
+        <p class="auth-card-subtitle">Ingresa tu correo y te enviaremos un enlace para restablecerla.</p>
+    </div>
+
+    @if (TempData["RecuperacionEnviada"] != null)
+    {
+        <div class="auth-alert auth-alert-success" role="alert">
+            <i class="fas fa-check-circle"></i>
+            <div>
+                <strong>¡Correo enviado!</strong> Si ese correo está registrado recibirás un enlace en breve. Revisa también tu carpeta de spam.
+            </div>
+        </div>
+    }
+
+    <form asp-action="RecuperarContrasena" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="auth-validation-summary"></div>
+
+        <div class="auth-form-group">
+            <label asp-for="CorreoElectronico" class="auth-form-label">Correo Electrónico</label>
+            <div class="auth-input-wrapper">
+                <i class="fas fa-envelope auth-input-icon"></i>
+                <input asp-for="CorreoElectronico" class="auth-input" placeholder="tucorreo@ejemplo.com" autocomplete="email" />
+            </div>
+            <span asp-validation-for="CorreoElectronico" class="auth-validation-error"></span>
+        </div>
+
+        <button type="submit" class="auth-btn-primary" style="margin-bottom: 1.5rem;">
+            <span>Enviar enlace</span>
+            <i class="fas fa-paper-plane"></i>
+        </button>
+
+        <div class="auth-bottom-link">
+            <a asp-action="Login"><i class="fas fa-arrow-left" style="margin-right: 0.25rem;"></i> Volver al inicio de sesión</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

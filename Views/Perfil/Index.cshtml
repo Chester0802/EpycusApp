@@ -1,0 +1,367 @@
+@model EPYCUS_WEB_v0._1.ViewModels.PerfilViewModel
+@using EPYCUS_WEB_v0._1.Models.Entidades
+
+@{
+    ViewData["Title"] = "Mi Perfil";
+    var logros   = (List<LogroUsuario>)(ViewBag.Logros ?? new List<LogroUsuario>());
+    var carreras = (List<Carrera>)(ViewBag.Carreras ?? new List<Carrera>());
+    var imagenPersonaje = ViewData["ImagenPersonaje"]?.ToString()
+                       ?? "/img/personajes/generico/masculino/placeholder.png";
+    var xpEnNivel = Model.XpTotal % 1000;     // XP dentro del nivel actual (aproximado)
+    var pctNivel  = Math.Min((int)Math.Round(xpEnNivel / 10.0), 100);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/perfil.css" asp-append-version="true" />
+}
+
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<div class="ep-header mb-4">
+    <h1 class="ep-header-title">
+        <i class="fas fa-user-circle" style="color: var(--accent-primary);"></i>
+        Mi Perfil
+    </h1>
+    <p class="ep-header-subtitle">Gestiona tu información, personaje y logros</p>
+</div>
+
+<!-- ── Alertas globales ───────────────────────────────────────────────────── -->
+@if (TempData["ExitoPerfil"] != null)
+{
+    <div class="perfil-alerta perfil-alerta-exito mb-4">
+        <i class="fas fa-circle-check"></i> @TempData["ExitoPerfil"]
+    </div>
+}
+@if (TempData["ErrorPerfil"] != null)
+{
+    <div class="perfil-alerta perfil-alerta-error mb-4">
+        <i class="fas fa-triangle-exclamation"></i> @TempData["ErrorPerfil"]
+    </div>
+}
+@if (TempData["ExitoContrasena"] != null)
+{
+    <div class="perfil-alerta perfil-alerta-exito mb-4">
+        <i class="fas fa-circle-check"></i> @TempData["ExitoContrasena"]
+    </div>
+}
+@if (TempData["ErrorContrasena"] != null)
+{
+    <div class="perfil-alerta perfil-alerta-error mb-4">
+        <i class="fas fa-triangle-exclamation"></i> @TempData["ErrorContrasena"]
+    </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════════
+     FILA 1: Tarjeta de identidad  +  Formularios
+     ══════════════════════════════════════════════════════════════ -->
+<div class="row g-4 mb-4">
+
+    <!-- ── Tarjeta de identidad ─────────────────────────────── -->
+    <div class="col-12 col-lg-4">
+        <div class="ep-card h-100 text-center perfil-id-card">
+
+            <!-- Avatar / foto -->
+            <div class="perfil-avatar-wrap">
+                @if (!string.IsNullOrEmpty(Model.FotoGoogleUrl))
+                {
+                    <img src="@Model.FotoGoogleUrl" alt="Foto de perfil" class="perfil-avatar-img" />
+                }
+                else
+                {
+                    <img src="@imagenPersonaje" alt="Personaje" class="perfil-avatar-img" />
+                }
+                @if (Model.UsaGoogle)
+                {
+                    <span class="perfil-google-badge" title="Cuenta de Google">
+                        <svg width="14" height="14" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                    </span>
+                }
+            </div>
+
+            <!-- Nombre y código -->
+            <h2 class="perfil-nombre mt-3 mb-0">@Model.Nombre</h2>
+            <p class="perfil-correo mb-2">@Model.CorreoElectronico</p>
+            <code class="perfil-codigo mb-3 d-block">@Model.CodigoUnico</code>
+
+            <!-- Carrera -->
+            <div class="perfil-info-badge mb-3">
+                <i class="fas fa-graduation-cap"></i>
+                <span>@Model.CarreraNombre</span>
+            </div>
+
+            <!-- Nivel badge -->
+            <div class="perfil-nivel-badge mb-3">
+                <i class="fas fa-star"></i>
+                Nivel @Model.NivelActual
+            </div>
+
+            <!-- Barra de XP -->
+            <div class="px-3 mb-3">
+                <div class="d-flex justify-content-between small mb-1" style="color: var(--text-secondary);">
+                    <span>Progreso al siguiente nivel</span>
+                    <span>@pctNivel%</span>
+                </div>
+                <div class="ep-barra-xp">
+                    <div class="ep-barra-xp-relleno" style="width: @pctNivel%;"></div>
+                </div>
+                <div class="small mt-1" style="color: var(--text-tertiary);">@Model.XpTotal.ToString("N0") XP totales</div>
+            </div>
+
+            <!-- Stats rápidas -->
+            <div class="perfil-stats-row">
+                <div class="perfil-stat">
+                    <i class="fas fa-fire" style="color: var(--warning);"></i>
+                    <span class="perfil-stat-val">@Model.RachaActual</span>
+                    <span class="perfil-stat-lbl">Racha actual</span>
+                </div>
+                <div class="perfil-stat">
+                    <i class="fas fa-trophy" style="color: var(--accent-primary);"></i>
+                    <span class="perfil-stat-val">@Model.RachaMaxima</span>
+                    <span class="perfil-stat-lbl">Racha máxima</span>
+                </div>
+                <div class="perfil-stat">
+                    <i class="fas fa-medal" style="color: var(--info);"></i>
+                    <span class="perfil-stat-val">@logros.Count</span>
+                    <span class="perfil-stat-lbl">Logros</span>
+                </div>
+            </div>
+
+            <!-- Fecha de registro -->
+            <p class="mt-3 small" style="color: var(--text-tertiary);">
+                <i class="fas fa-calendar-plus me-1"></i>
+                Miembro desde @Model.FechaRegistro.ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-ES"))
+            </p>
+        </div>
+    </div>
+
+    <!-- ── Formularios ──────────────────────────────────────── -->
+    <div class="col-12 col-lg-8">
+        <div class="d-flex flex-column gap-4">
+
+            <!-- Editar datos personales -->
+            <div class="ep-card">
+                <h5 class="perfil-seccion-titulo">
+                    <i class="fas fa-pen-to-square"></i> Datos personales
+                </h5>
+                <form asp-action="ActualizarPerfil" method="post" id="form-datos">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6">
+                            <label class="perfil-label" for="nombre">Nombre completo</label>
+                            <input type="text" id="nombre" name="Nombre"
+                                   value="@Model.Nombre" class="perfil-input"
+                                   maxlength="150" required />
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="perfil-label" for="fechaNac">Fecha de nacimiento</label>
+                            <input type="date" id="fechaNac" name="FechaNacimiento"
+                                   value="@(Model.FechaNacimiento.HasValue ? Model.FechaNacimiento.Value.ToString("yyyy-MM-dd") : String.Empty)"
+                                   class="perfil-input" required />
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="perfil-label" for="genero">Género</label>
+                            <select id="genero" name="Genero" class="perfil-input" required>
+                                <option value="">-- Seleccionar --</option>
+                                <option value="Masculino" selected="@(Model.Genero == "Masculino" ? "selected" : null)">Masculino</option>
+                                <option value="Femenino" selected="@(Model.Genero == "Femenino" ? "selected" : null)">Femenino</option>
+                                <option value="Otro" selected="@(Model.Genero == "Otro" ? "selected" : null)">Prefiero no decirlo</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="perfil-label" for="carrera">Carrera</label>
+                            <select id="carrera" name="CarreraId" class="perfil-input" required>
+                                @foreach (var c in carreras)
+                                {
+                                    <option value="@c.Id" selected="@(c.Id == Model.CarreraId ? "selected" : null)">@c.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 d-flex justify-content-end">
+                            <button type="submit" class="perfil-btn-primary">
+                                <i class="fas fa-floppy-disk"></i> Guardar cambios
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Cambiar contraseña (solo si NO usa Google) -->
+            @if (!Model.UsaGoogle)
+            {
+                <div class="ep-card">
+                    <h5 class="perfil-seccion-titulo">
+                        <i class="fas fa-lock"></i> Cambiar contraseña
+                    </h5>
+                    <form asp-action="CambiarContrasena" method="post" id="form-contrasena">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="perfil-label" for="passActual">Contraseña actual</label>
+                                <div class="perfil-pass-wrap">
+                                    <input type="password" id="passActual" name="ContrasenaActual"
+                                           class="perfil-input" autocomplete="current-password"
+                                           placeholder="••••••••" required />
+                                    <button type="button" class="perfil-pass-toggle" onclick="togglePass('passActual', this)" aria-label="Mostrar contraseña">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="perfil-label" for="passNueva">Nueva contraseña</label>
+                                <div class="perfil-pass-wrap">
+                                    <input type="password" id="passNueva" name="NuevaContrasena"
+                                           class="perfil-input" autocomplete="new-password"
+                                           placeholder="Mínimo 6 caracteres" minlength="6" required />
+                                    <button type="button" class="perfil-pass-toggle" onclick="togglePass('passNueva', this)" aria-label="Mostrar contraseña">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="perfil-label" for="passConfirm">Confirmar contraseña</label>
+                                <div class="perfil-pass-wrap">
+                                    <input type="password" id="passConfirm" name="ConfirmarContrasena"
+                                           class="perfil-input" autocomplete="new-password"
+                                           placeholder="Repite la nueva contraseña" minlength="6" required />
+                                    <button type="button" class="perfil-pass-toggle" onclick="togglePass('passConfirm', this)" aria-label="Mostrar contraseña">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-12 d-flex justify-content-end">
+                                <button type="submit" class="perfil-btn-secondary">
+                                    <i class="fas fa-key"></i> Actualizar contraseña
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="ep-card d-flex align-items-center gap-3" style="border-style: dashed; opacity: 0.7;">
+                    <i class="fas fa-circle-info fs-4" style="color: var(--info); flex-shrink:0;"></i>
+                    <p class="mb-0 small" style="color: var(--text-secondary);">
+                        Iniciaste sesión con Google. El cambio de contraseña se gestiona desde tu cuenta de Google.
+                    </p>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FILA 2: Galería de personajes
+     ══════════════════════════════════════════════════════════════ -->
+<div class="ep-card mb-4">
+    <h5 class="perfil-seccion-titulo mb-4">
+        <i class="fas fa-wand-magic-sparkles"></i> Elige tu personaje
+    </h5>
+
+    @if (!Model.PersonajesDisponibles.Any())
+    {
+        <p class="text-center" style="color: var(--text-secondary); padding: 2rem 0;">
+            <i class="fas fa-ghost mb-2 d-block fs-1 opacity-30"></i>
+            Aún no hay personajes disponibles para tu carrera.
+        </p>
+    }
+    else
+    {
+        <div class="perfil-personajes-grid">
+            @foreach (var pj in Model.PersonajesDisponibles)
+            {
+                <form asp-action="CambiarPersonaje" method="post" class="perfil-personaje-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="personajeId" value="@pj.Id" />
+                    <button type="submit"
+                            class="perfil-personaje-card @(pj.EsSeleccionado ? "seleccionado" : "")"
+                            title="@(pj.EsSeleccionado ? "Personaje actual" : "Seleccionar " + pj.Nombre)">
+                        <div class="perfil-personaje-img-wrap">
+                            <img src="@pj.ImagenPreviewUrl"
+                                 alt="@pj.Nombre"
+                                 class="perfil-personaje-img"
+                                 onerror="this.src='/img/personajes/generico/masculino/placeholder.png'" />
+                            @if (pj.EsSeleccionado)
+                            {
+                                <div class="perfil-personaje-check" aria-label="Seleccionado">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                            }
+                        </div>
+                        <span class="perfil-personaje-nombre">@pj.Nombre</span>
+                        <span class="perfil-personaje-genero">@pj.Genero</span>
+                    </button>
+                </form>
+            }
+        </div>
+    }
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FILA 3: Logros desbloqueados
+     ══════════════════════════════════════════════════════════════ -->
+<div class="ep-card">
+    <h5 class="perfil-seccion-titulo mb-4">
+        <i class="fas fa-medal"></i> Logros desbloqueados
+        <span class="perfil-logros-count">@logros.Count</span>
+    </h5>
+
+    @if (!logros.Any())
+    {
+        <div class="text-center py-4">
+            <i class="fas fa-lock mb-3 d-block fs-1 opacity-20"></i>
+            <p style="color: var(--text-secondary);">Aún no tienes logros desbloqueados.</p>
+            <p class="small" style="color: var(--text-tertiary);">
+                Completa hábitos, misiones y mantén tu racha para ganarlos.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="perfil-logros-grid">
+            @foreach (var lu in logros)
+            {
+                <div class="perfil-logro-card" title="@lu.Logro.Descripcion">
+                    <div class="perfil-logro-icono">
+                        @if (!string.IsNullOrEmpty(lu.Logro.IconoUrl))
+                        {
+                            <img src="@lu.Logro.IconoUrl" alt="@lu.Logro.Nombre" />
+                        }
+                        else
+                        {
+                            <i class="fas fa-star"></i>
+                        }
+                    </div>
+                    <div class="perfil-logro-nombre">@lu.Logro.Nombre</div>
+                    <div class="perfil-logro-xp">
+                        <i class="fas fa-bolt"></i> @lu.Logro.XpRecompensa XP
+                    </div>
+                    <div class="perfil-logro-fecha">
+                        @lu.FechaObtenido.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("es-ES"))
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    function togglePass(inputId, btn) {
+        var input = document.getElementById(inputId);
+        var icon  = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'fas fa-eye';
+        }
+    }
+</script>
+}
