@@ -12,5 +12,6 @@ namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
         Task EliminarMision(int id, int usuarioId);
         Task<(bool Exito, int XpGanado)> CompletarMision(int id, int usuarioId);
         Task CambiarEstado(int id, string estado, int usuarioId);
+        Task<List<Categoria>> ObtenerCategoriasMisionAsync();
     }
 }

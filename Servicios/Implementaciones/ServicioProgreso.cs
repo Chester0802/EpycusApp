@@ -64,6 +64,11 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             return await _contexto.Logros.Where(l => l.EstaActivo).ToListAsync();
         }
 
+        public async Task<Nivel?> ObtenerNivelInicialAsync()
+        {
+            return await _contexto.Niveles.OrderBy(n => n.Numero).FirstOrDefaultAsync();
+        }
+
         public async Task<string> ObtenerImagenPersonaje(int usuarioId, int nivelActual)
         {
             var personajeActivo = await _contexto.PersonajesUsuario

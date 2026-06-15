@@ -124,5 +124,12 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 await _contexto.SaveChangesAsync();
             }
         }
+
+        public async Task<List<Categoria>> ObtenerCategoriasMisionAsync()
+        {
+            return await _contexto.Categorias
+                .Where(c => c.Tipo == "Mision" || c.Tipo == "Ambos")
+                .ToListAsync();
+        }
     }
 }

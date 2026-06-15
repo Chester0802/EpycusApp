@@ -313,6 +313,8 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             verificacion.Usado = true;
             await _contexto.SaveChangesAsync();
 
+            await _servicioCorreo.EnviarRecuperacion(usuario.CorreoElectronico, usuario.Nombre, token);
+
             return true;
         }
 

@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using EPYCUS_WEB_v0._1.Datos;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using EPYCUS_WEB_v0._1.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -12,12 +11,10 @@ namespace EPYCUS_WEB_v0._1.Controllers
     public class MisionesController : Controller
     {
         private readonly IServicioMisiones _servicioMisiones;
-        private readonly ContextoAplicacion _contexto;
 
-        public MisionesController(IServicioMisiones servicioMisiones, ContextoAplicacion contexto)
+        public MisionesController(IServicioMisiones servicioMisiones)
         {
             _servicioMisiones = servicioMisiones;
-            _contexto = contexto;
         }
 
         public async Task<IActionResult> Index()
@@ -26,9 +23,9 @@ namespace EPYCUS_WEB_v0._1.Controllers
             return View(misiones);
         }
 
-        public IActionResult Crear()
+        public async Task<IActionResult> Crear()
         {
-            CargarCategorias();
+            await CargarCategorias();
             return View(new CrearMisionViewModel { FechaLimite = DateTime.Today.AddDays(1) });
         }
 
@@ -42,7 +39,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            CargarCategorias();
+            await CargarCategorias();
             return View(modelo);
         }
 
@@ -70,7 +67,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
                 CategoriaId = mision.CategoriaId
             };
 
-            CargarCategorias();
+            await CargarCategorias();
             return View(modelo);
         }
 
@@ -91,7 +88,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
                 }
             }
 
-            CargarCategorias();
+            await CargarCategorias();
             return View(modelo);
         }
 
@@ -131,11 +128,10 @@ namespace EPYCUS_WEB_v0._1.Controllers
         private int ObtenerUsuarioId()
             => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        private void CargarCategorias()
+        private async Task CargarCategorias()
         {
-            ViewBag.Categorias = new SelectList(
-                _contexto.Categorias.Where(c => c.Tipo == "Mision" || c.Tipo == "Ambos"),
-                "Id", "Nombre");
+            var categorias = await _servicioMisiones.ObtenerCategoriasMisionAsync();
+            ViewBag.Categorias = new SelectList(categorias, "Id", "Nombre");
         }
     }
 }

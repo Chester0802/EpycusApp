@@ -2,6 +2,7 @@ using EPYCUS_WEB_v0._1.Datos;
 using EPYCUS_WEB_v0._1.DTOs;
 using EPYCUS_WEB_v0._1.Models.Entidades;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+using EPYCUS_WEB_v0._1.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
@@ -143,6 +144,56 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
         public async Task<SesionPomodoro?> ObtenerSesion(int sesionId)
         {
             return await _context.SesionesPomodoro.FirstOrDefaultAsync(s => s.Id == sesionId);
+        }
+
+        public async Task<List<SesionPomodoro>> ObtenerSesionesHoyAsync(int usuarioId)
+        {
+            var hoy = DateTime.Today;
+            return await _context.SesionesPomodoro
+                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= hoy)
+                .OrderByDescending(s => s.FechaInicio)
+                .ToListAsync();
+        }
+
+        public async Task<int> ObtenerMisionesCompletadasHoyAsync(int usuarioId)
+        {
+            var hoy = DateTime.Today;
+            return await _context.Misiones
+                .Where(m => m.UsuarioId == usuarioId
+                    && m.Estado == "Completado"
+                    && m.FechaCompletado != null
+                    && m.FechaCompletado.Value.Date == hoy)
+                .CountAsync();
+        }
+
+        public async Task<List<TareaPomodoro>> ObtenerTareasEnfoqueAsync(int usuarioId)
+        {
+            var habitos = await _context.Habitos
+                .Include(h => h.Categoria)
+                .Where(h => h.UsuarioId == usuarioId && h.EstaActivo && h.ConPomodoro)
+                .Select(h => new TareaPomodoro
+                {
+                    Id = h.Id,
+                    Nombre = h.Nombre,
+                    CategoriaNombre = h.Categoria != null ? h.Categoria.Nombre : "Sin categoría",
+                    Tipo = "Habito"
+                }).ToListAsync();
+
+            var misiones = await _context.Misiones
+                .Include(m => m.Categoria)
+                .Where(m => m.UsuarioId == usuarioId && m.Estado != "Completado" && m.ConPomodoro)
+                .Select(m => new TareaPomodoro
+                {
+                    Id = m.Id,
+                    Nombre = m.Nombre,
+                    CategoriaNombre = m.Categoria != null ? m.Categoria.Nombre : "Sin categoría",
+                    Tipo = "Mision"
+                }).ToListAsync();
+
+            var tareas = new List<TareaPomodoro>();
+            tareas.AddRange(habitos);
+            tareas.AddRange(misiones);
+            return tareas;
         }
     }
 }

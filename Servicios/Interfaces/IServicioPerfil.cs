@@ -14,5 +14,6 @@ namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
         Task CambiarPersonaje(int personajeId, int usuarioId);
         Task<string> ObtenerImagenPersonajeActual(int usuarioId);
         Task<RespuestaOperacion> CambiarTemaAsync(int usuarioId, int temaId);
+        Task<List<LogroUsuario>> ObtenerLogrosUsuarioConLogroAsync(int usuarioId);
     }
 }
