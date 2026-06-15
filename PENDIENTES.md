@@ -43,13 +43,13 @@
 |----|-----------|---------|----------|--------|--------|----------|
 | MEJ-001 | Baja | `EpycusApp.csproj` | Namespace `EPYCUS_WEB_v0._1` no coincide con nombre del proyecto | **Bajo** | ✅ Corregido | Renombrado a `EpycusApp` (100+ archivos). |
 | MEJ-002 | Baja | Varios | `DateTime.Now` usado en lugar de `DateTime.UtcNow` en entidades | **Bajo** | ✅ Corregido | Normalizado a UTC en entidades y servicios. |
-| MEJ-003 | Baja | `Servicios/Implementaciones/ServicioIA.cs` | `GeminiResponse` no maneja `promptFeedback` (bloqueo por safety) | **Bajo** | ⚠️ Pendiente | Leer `promptFeedback.blockReason` para mejor UX. |
-| MEJ-004 | Baja | Controladores | `ObtenerUsuarioId()` duplicado en varios controllers | **Bajo** | ⚠️ Pendiente | Crear clase base `BaseController`. |
+| MEJ-003 | Baja | `Servicios/Implementaciones/ServicioIA.cs` | `GeminiResponse` no maneja `promptFeedback` (bloqueo por safety) | **Bajo** | ✅ Corregido | Agregado DTO `PromptFeedback` + log de `blockReason` y `finishReason`. |
+| MEJ-004 | Baja | Controladores | `ObtenerUsuarioId()` duplicado en varios controllers | **Bajo** | ✅ Corregido | Creados `BaseController` y `BaseApiController`. Refactorizados 17 controllers. |
 | MEJ-005 | Baja | `Models/Entidades/MensajeIA.cs:17` | `FechaHora` usa `DateTime.UtcNow` (bien) pero inconsistente con otras entidades | **Bajo** | ✅ Corregido | Todas las entidades ahora usan `DateTime.UtcNow`. |
 | MEJ-006 | Media | `Middleware/CargarPersonajeFilter.cs` | Silencia excepciones al cargar personaje | **Bajo** | ✅ Corregido | Logging mínimo agregado con ILogger. |
 | MEJ-007 | Baja | `Ayudantes/ConstantesGamificacion.cs` | XP de misiones por prioridad no definido como constante | **Bajo** | ⚠️ Pendiente | Agregar XP_MISION_ALTA/MEDIA/BAJA. |
-| MEJ-008 | Media | `wwwroot/img/personajes/` | Faltan imágenes para carreras diferentes a Ing. Sistemas y Medicina | **Medio** | ⚠️ Pendiente | Generar imágenes placeholder para todas las carreras. |
-| MEJ-009 | Baja | `appsettings.json` | Versión de servidor MySQL no especificada | **Bajo** | ⚠️ Pendiente | Agregar `MySql:ServerVersion` para evitar auto-detección lenta. |
+| MEJ-008 | Media | `wwwroot/img/personajes/` | Faltan imágenes para carreras diferentes a Ing. Sistemas y Medicina | **Medio** | ✅ Corregido | Seed data crea entradas para 12 carreras. Directorios creados. Solo falta colocar los PNG. |
+| MEJ-009 | Baja | `appsettings.Example.json` | Versión de servidor MySQL no especificada | **Bajo** | ✅ Corregido | `MySql:ServerVersion` ya configurado como `11.8.6-mariadb`. |
 | MEJ-010 | Media | `Views/` | Sin Logging de rendimiento (tiempo de carga de vistas) | **Bajo** | ⚠️ Pendiente | Agregar middleware de telemetría básica. |
 
 ---
@@ -70,7 +70,7 @@
 | SEC-010 | ✅ | Contraseñas hasheadas con BCrypt (workFactor=12) |
 | SEC-011 | ✅ | Refresh tokens hash almacenados (SHA256), no en texto plano |
 | SEC-012 | ✅ | Dependabot configurado (NuGet + GitHub Actions, semanal) |
-| SEC-013 | ⚠️ | Sin escaneo de secretos en CI/CD pre-commit — configurar trufflehog |
+| SEC-013 | ✅ | Gitleaks configurado en CI/CD — escanea secretos en cada push a main/master |
 | SEC-014 | ✅ | Timeout y retry agregados a Gemini API |
 
 ---
@@ -82,7 +82,7 @@
 | BD-001 | ✅ | Nombre de BD estandarizado: `epycus_db` |
 | BD-002 | ✅ | Índices agregados en FK de `Log`, `MensajeIA`, `EstadoAnimo`, `TokenRefresh`, `RecuperacionContrasena`, `SesionPomodoro`, `LogroUsuario`, `VerificacionCorreo` |
 | BD-003 | ✅ | Migraciones consolidadas en una sola `Initial` (requiere reset de BD local). |
-| BD-004 | ⚠️ | `DiasSemana` almacenado como JSON string en `Habito` — no normalizado |
+| BD-004 | ✅ | `DiasSemana` normalizado a tabla `DiasSemanaHabito` (relación 1:N con `Habito`). |
 | BD-005 | ✅ | Relaciones y foreign keys correctamente definidas en `OnModelCreating` |
 | BD-006 | ✅ | Índice en `ConversacionId` y `UsuarioId` agregado en `MensajeIA` |
 
@@ -108,7 +108,7 @@
 | VPS-002 | ✅ | Service `.example` template actualizado (uso de `CHANGE_ME` en lugar de valores reales) |
 | VPS-003 | ✅ | Nginx config con reverse proxy, SSL, security headers |
 | VPS-004 | ✅ | Dependabot configurado para NuGet y GitHub Actions |
-| VPS-005 | ⚠️ | Agregar monitoreo (health checks, logs centralizados) |
+| VPS-005 | ✅ | Health checks endpoint (`/health`) implementado con checks de BD, Gemini y disco. |
 
 ---
 
