@@ -432,3 +432,10 @@ run_output.txt
 
 # Old image files
 wwwroot/login-hero.png
+
+# Deploy files with secrets — usar los .example en su lugar
+deploy/epycus-web.service
+deploy/setup-vps.sh
+
+# Node.js (no usado en este proyecto)
+package-lock.json

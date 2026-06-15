@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using System.Threading.Tasks;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using EPYCUS_WEB_v0._1.Ayudantes;
+using EPYCUS_WEB_v0._1.DTOs;
+using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -86,14 +86,20 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
         }
 
         [HttpPut("configuracion")]
-        public async Task<IActionResult> ActualizarConfiguracion([FromBody] EPYCUS_WEB_v0._1.Models.Entidades.ConfiguracionPomodoro config)
+        public async Task<IActionResult> ActualizarConfiguracion([FromBody] ActualizarConfiguracionPomodoroDto dto)
         {
             int usuarioId = ObtenerUsuarioIdActual();
             if (usuarioId == 0)
             {
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
-            await _servicioPomodoro.ActualizarConfiguracion(usuarioId, config);
+
+            if (dto == null)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida("Datos inválidos."));
+            }
+
+            await _servicioPomodoro.ActualizarConfiguracion(usuarioId, dto);
             return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
         }
 

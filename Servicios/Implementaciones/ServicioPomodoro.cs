@@ -1,10 +1,8 @@
+using EPYCUS_WEB_v0._1.Datos;
+using EPYCUS_WEB_v0._1.DTOs;
 using EPYCUS_WEB_v0._1.Models.Entidades;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.Datos;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
 
 namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 {
@@ -25,7 +23,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
         {
             var sesion = new SesionPomodoro
             {
-                FechaInicio = DateTime.Now,
+                FechaInicio = DateTime.UtcNow,
                 UsuarioId = usuarioId,
                 HabitoId = habitoId,
                 MisionId = misionId,
@@ -47,11 +45,9 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
             sesion.CiclosCompletados = ciclosCompletados;
 
-            // Calcular XP según la especificación: 15 XP por ciclo
             int xpGanado = ciclosCompletados * 15;
             sesion.XpOtorgado = xpGanado;
 
-            // Obtener configuración del usuario para sugerir descanso largo
             var config = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == sesion.UsuarioId);
             if (config is null)
             {
@@ -61,7 +57,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             bool sugerir = config.CiclosAntesDescansoLargo > 0 && (ciclosCompletados % config.CiclosAntesDescansoLargo == 0);
             var pausa = sugerir ? "larga" : "corta";
 
-            var pausaActiva = _servicioBienestar is Servicios.Implementaciones.ServicioBienestar bienestar
+            var pausaActiva = _servicioBienestar is ServicioBienestar bienestar
                 ? bienestar.RecomendacionPausaActiva(ciclosCompletados)
                 : null;
 
@@ -79,7 +75,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             if (sesion is null) return;
 
             sesion.CiclosCompletados = ciclosCompletados;
-            sesion.FechaFin = DateTime.Now;
+            sesion.FechaFin = DateTime.UtcNow;
             sesion.FueCompletada = true;
 
             _context.SesionesPomodoro.Update(sesion);
@@ -91,7 +87,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             var sesion = await _context.SesionesPomodoro.FirstOrDefaultAsync(s => s.Id == sesionId);
             if (sesion is null) return;
 
-            sesion.FechaFin = DateTime.Now;
+            sesion.FechaFin = DateTime.UtcNow;
             sesion.FueCompletada = false;
 
             _context.SesionesPomodoro.Update(sesion);
@@ -110,23 +106,30 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             return cfg;
         }
 
-        public async Task ActualizarConfiguracion(int usuarioId, ConfiguracionPomodoro config)
+        public async Task ActualizarConfiguracion(int usuarioId, ActualizarConfiguracionPomodoroDto dto)
         {
             var existente = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
             if (existente is null)
             {
-                config.UsuarioId = usuarioId;
-                _context.ConfiguracionesPomodoro.Add(config);
+                _context.ConfiguracionesPomodoro.Add(new ConfiguracionPomodoro
+                {
+                    UsuarioId = usuarioId,
+                    TiempoEstudioMin = dto.TiempoEstudioMin,
+                    TiempoDescansoMin = dto.TiempoDescansoMin,
+                    TiempoDescansoLargoMin = dto.TiempoDescansoLargoMin,
+                    CiclosAntesDescansoLargo = dto.CiclosAntesDescansoLargo,
+                    SonidoActivo = dto.SonidoActivo,
+                    FechaActualizacion = DateTime.UtcNow
+                });
             }
             else
             {
-                existente.TiempoEstudioMin = config.TiempoEstudioMin;
-                existente.TiempoDescansoMin = config.TiempoDescansoMin;
-                existente.TiempoDescansoLargoMin = config.TiempoDescansoLargoMin;
-                existente.CiclosAntesDescansoLargo = config.CiclosAntesDescansoLargo;
-                existente.SonidoActivo = config.SonidoActivo;
-                existente.FechaActualizacion = DateTime.Now;
-                _context.ConfiguracionesPomodoro.Update(existente);
+                existente.TiempoEstudioMin = dto.TiempoEstudioMin;
+                existente.TiempoDescansoMin = dto.TiempoDescansoMin;
+                existente.TiempoDescansoLargoMin = dto.TiempoDescansoLargoMin;
+                existente.CiclosAntesDescansoLargo = dto.CiclosAntesDescansoLargo;
+                existente.SonidoActivo = dto.SonidoActivo;
+                existente.FechaActualizacion = DateTime.UtcNow;
             }
             await _context.SaveChangesAsync();
         }

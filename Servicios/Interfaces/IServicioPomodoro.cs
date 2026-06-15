@@ -1,3 +1,4 @@
+using EPYCUS_WEB_v0._1.DTOs;
 using EPYCUS_WEB_v0._1.Models.Entidades;
 
 namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
@@ -9,7 +10,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
         Task FinalizarSesion(int sesionId, int ciclosCompletados);
         Task CancelarSesion(int sesionId);
         Task<ConfiguracionPomodoro> ObtenerConfiguracion(int usuarioId);
-        Task ActualizarConfiguracion(int usuarioId, ConfiguracionPomodoro config);
+        Task ActualizarConfiguracion(int usuarioId, ActualizarConfiguracionPomodoroDto dto);
         Task<string> ObtenerTipAleatorio();
         Task<SesionPomodoro?> ObtenerSesion(int sesionId);
     }
