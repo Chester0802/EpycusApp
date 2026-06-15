@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EpycusApp.Controllers
 {
-    public class AdminController : Controller
+    public class AdminController : BaseController
     {
         private readonly IServicioAdmin _servicioAdmin;
         private readonly IServicioAutenticacion _servicioAutenticacion;
@@ -118,7 +118,7 @@ namespace EpycusApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActivarSuscripcion(int usuarioId)
         {
-            var adminId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var adminId = ObtenerUsuarioId();
             await _servicioAdmin.ActivarSuscripcion(usuarioId, adminId);
             TempData["Exito"] = "SuscripciÃ³n activada correctamente.";
             return RedirectToAction(nameof(Usuarios));

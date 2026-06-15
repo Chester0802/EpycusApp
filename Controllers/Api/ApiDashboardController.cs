@@ -8,7 +8,7 @@ namespace EpycusApp.Controllers.Api
     [ApiController]
     [Route("api/dashboard")]
     [Authorize]
-    public class ApiDashboardController : ControllerBase
+    public class ApiDashboardController : BaseApiController
     {
         private readonly IServicioBienestar _servicioBienestar;
 
@@ -20,7 +20,7 @@ namespace EpycusApp.Controllers.Api
         [HttpGet("resumen")]
         public async Task<IActionResult> Resumen()
         {
-            var usuarioId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var usuarioId = ObtenerUsuarioId()!.Value;
 
             var habitosPendientes = await _servicioBienestar.ObtenerHabitosPendientesAsync(usuarioId);
             var misionesPendientes = await _servicioBienestar.ObtenerMisionesPendientesAsync(usuarioId);

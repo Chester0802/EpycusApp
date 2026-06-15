@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Security.Claims;
 using EpycusApp.Models;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
@@ -7,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EpycusApp.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         private readonly IServicioHabitos _servicioHabitos;
         private readonly IServicioPerfil _servicioPerfil;
@@ -27,12 +26,9 @@ namespace EpycusApp.Controllers
         {
             var modelo = new HomeDashboardViewModel();
 
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int usuarioId = 0;
-            
-            if (User.Identity != null && User.Identity.IsAuthenticated && int.TryParse(claim, out var parsed) && parsed != 0)
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId != 0)
             {
-                usuarioId = parsed;
                 modelo.EstaAutenticado = true;
 
                 var usuario = await _servicioPerfil.ObtenerPerfil(usuarioId);
@@ -51,7 +47,7 @@ namespace EpycusApp.Controllers
                 modelo.HabitosHoy = todosLosHabitos
                     .Where(h => h.EstaActivo &&
                                 (h.Frecuencia == "Diaria" ||
-                                 (h.DiasSemana != null && h.DiasSemana.Contains(hoy))))
+                                 (h.DiasSemana?.Contains(hoy) == true)))
                     .ToList();
 
                 // Obtener frase motivacional

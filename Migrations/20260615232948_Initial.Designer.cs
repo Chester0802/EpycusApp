@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EpycusApp.Migrations
 {
     [DbContext(typeof(ContextoAplicacion))]
-    [Migration("20260615230444_Initial")]
+    [Migration("20260615232948_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -118,6 +118,27 @@ namespace EpycusApp.Migrations
                     b.ToTable("ConfiguracionesPomodoro");
                 });
 
+            modelBuilder.Entity("EpycusApp.Models.Entidades.DiasSemanaHabito", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DiaSemana")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HabitoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HabitoId");
+
+                    b.ToTable("DiasSemanaHabito");
+                });
+
             modelBuilder.Entity("EpycusApp.Models.Entidades.EstadoAnimo", b =>
                 {
                     b.Property<int>("Id")
@@ -188,9 +209,6 @@ namespace EpycusApp.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Descripcion")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("DiasSemana")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("EstaActivo")
@@ -284,7 +302,7 @@ namespace EpycusApp.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Logs");
+                    b.ToTable("Log");
                 });
 
             modelBuilder.Entity("EpycusApp.Models.Entidades.Logro", b =>
@@ -365,7 +383,7 @@ namespace EpycusApp.Migrations
 
                     b.Property<string>("ConversacionId")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime>("FechaHora")
                         .HasColumnType("datetime(6)");
@@ -378,6 +396,8 @@ namespace EpycusApp.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ConversacionId");
 
                     b.HasIndex("UsuarioId");
 
@@ -838,12 +858,14 @@ namespace EpycusApp.Migrations
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Token");
 
                     b.HasIndex("UsuarioId");
 
@@ -970,6 +992,17 @@ namespace EpycusApp.Migrations
                         .IsRequired();
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("EpycusApp.Models.Entidades.DiasSemanaHabito", b =>
+                {
+                    b.HasOne("EpycusApp.Models.Entidades.Habito", "Habito")
+                        .WithMany("DiasSemana")
+                        .HasForeignKey("HabitoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Habito");
                 });
 
             modelBuilder.Entity("EpycusApp.Models.Entidades.EstadoAnimo", b =>
@@ -1263,6 +1296,8 @@ namespace EpycusApp.Migrations
 
             modelBuilder.Entity("EpycusApp.Models.Entidades.Habito", b =>
                 {
+                    b.Navigation("DiasSemana");
+
                     b.Navigation("Registros");
 
                     b.Navigation("SesionesPomodoro");

@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using EpycusApp.Ayudantes;
+﻿using EpycusApp.Ayudantes;
 using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -10,19 +9,13 @@ namespace EpycusApp.Controllers.Api
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class ApiHabitosController : ControllerBase
+    public class ApiHabitosController : BaseApiController
     {
         private readonly IServicioHabitos _servicioHabitos;
 
         public ApiHabitosController(IServicioHabitos servicioHabitos)
         {
             _servicioHabitos = servicioHabitos;
-        }
-
-        private int? ObtenerUsuarioId()
-        {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.TryParse(claim, out var usuarioId) ? usuarioId : null;
         }
 
         [HttpGet]

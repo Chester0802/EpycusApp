@@ -4,13 +4,12 @@ using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace EpycusApp.Controllers
 {
     [Authorize]
-    public class ProgresoController : Controller
+    public class ProgresoController : BaseController
     {
         private readonly IServicioProgreso _servicioProgreso;
 
@@ -22,8 +21,8 @@ namespace EpycusApp.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(claim) || !int.TryParse(claim, out var usuarioId))
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == 0)
             {
                 // Usuario anÃ³nimo o sin sesiÃ³n
                 var nivelInicial = await _servicioProgreso.ObtenerNivelInicialAsync();

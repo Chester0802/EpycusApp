@@ -6,7 +6,7 @@
         public string Nombre { get; set; } = string.Empty;
         public string? Descripcion { get; set; }
         public string Frecuencia { get; set; } = string.Empty;
-        public string? DiasSemana { get; set; }
+        public List<DiasSemanaHabito> DiasSemana { get; set; } = new();
         public bool ConPomodoro { get; set; } = false;
         public TimeSpan? RecordatorioHora { get; set; }
         public int RachaActual { get; set; } = 0;

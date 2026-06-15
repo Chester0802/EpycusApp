@@ -1,0 +1,9 @@
+title = "EpycusApp Gitleaks Config"
+
+[allowlist]
+description = "Allowlist for EpycusApp"
+paths = [
+    # Placeholder credentials in example config files
+    "appsettings.Example.json",
+    "deploy/epycus-web.service.example",
+]

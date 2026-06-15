@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using EpycusApp.Servicios.Interfaces;
+﻿using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EpycusApp.Controllers
 {
     [Authorize]
-    public class HabitosController : Controller
+    public class HabitosController : BaseController
     {
         private readonly IServicioHabitos _servicioHabitos;
         private readonly ILogger<HabitosController> _logger;
@@ -166,9 +165,6 @@ namespace EpycusApp.Controllers
             await _servicioHabitos.EliminarHabito(id, ObtenerUsuarioId());
             return RedirectToAction(nameof(Index));
         }
-
-        private int ObtenerUsuarioId()
-            => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         private bool EsAjax()
             => Request.Headers["X-Requested-With"] == "XMLHttpRequest"

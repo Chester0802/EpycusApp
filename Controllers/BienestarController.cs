@@ -2,12 +2,11 @@
 using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace EpycusApp.Controllers
 {
     [Authorize]
-    public class BienestarController : Controller
+    public class BienestarController : BaseController
     {
         private readonly IServicioBienestar _servicioBienestar;
 
@@ -15,9 +14,6 @@ namespace EpycusApp.Controllers
         {
             _servicioBienestar = servicioBienestar;
         }
-
-        private int ObtenerUsuarioId() =>
-            int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         public async Task<IActionResult> Index()
         {

@@ -183,8 +183,8 @@ namespace EpycusApp.Servicios.Implementaciones
             return habito.Frecuencia switch
             {
                 "Diaria" => true,
-                "Semanal" => habito.DiasSemana != null && habito.DiasSemana.Contains(((int)hoy.DayOfWeek).ToString()),
-                "Personalizada" => habito.DiasSemana != null && habito.DiasSemana.Contains(((int)hoy.DayOfWeek).ToString()),
+                "Semanal" => habito.DiasSemana.Any(d => d.DiaSemana == (int)hoy.DayOfWeek),
+                "Personalizada" => habito.DiasSemana.Any(d => d.DiaSemana == (int)hoy.DayOfWeek),
                 _ => false
             };
         }

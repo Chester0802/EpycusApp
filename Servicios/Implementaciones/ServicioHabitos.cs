@@ -6,7 +6,6 @@ using EpycusApp.ViewModels;
 using EpycusApp.Datos;
 using EpycusApp.Ayudantes;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -84,6 +83,7 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var habitos = await _context.Habitos
                 .Include(h => h.Categoria)
+                .Include(h => h.DiasSemana)
                 .Where(h => h.UsuarioId == usuarioId)
                 .ToListAsync();
 
@@ -93,7 +93,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 Nombre = h.Nombre,
                 Descripcion = h.Descripcion,
                 Frecuencia = h.Frecuencia,
-                DiasSemana = string.IsNullOrEmpty(h.DiasSemana) ? null : System.Text.Json.JsonSerializer.Deserialize<List<int>>(h.DiasSemana),
+                DiasSemana = h.DiasSemana.Select(d => d.DiaSemana).ToList(),
                 ConPomodoro = h.ConPomodoro,
                 RecordatorioHora = h.RecordatorioHora,
                 RachaActual = h.RachaActual,
@@ -117,6 +117,7 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var h = await _context.Habitos
                 .Include(x => x.Categoria)
+                .Include(x => x.DiasSemana)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (h is null)
@@ -128,7 +129,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 Nombre = h.Nombre,
                 Descripcion = h.Descripcion,
                 Frecuencia = h.Frecuencia,
-                DiasSemana = string.IsNullOrEmpty(h.DiasSemana) ? null : System.Text.Json.JsonSerializer.Deserialize<List<int>>(h.DiasSemana),
+                DiasSemana = h.DiasSemana.Select(d => d.DiaSemana).ToList(),
                 ConPomodoro = h.ConPomodoro,
                 RecordatorioHora = h.RecordatorioHora,
                 RachaActual = h.RachaActual,
@@ -159,7 +160,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 Descripcion = modelo.Descripcion,
                 CategoriaId = modelo.CategoriaId,
                 Frecuencia = modelo.Frecuencia,
-                DiasSemana = modelo.DiasSemana is null ? null : JsonSerializer.Serialize(modelo.DiasSemana),
+                DiasSemana = modelo.DiasSemana?.Select(d => new DiasSemanaHabito { DiaSemana = d }).ToList() ?? new(),
                 ConPomodoro = modelo.ConPomodoro,
                 RecordatorioHora = modelo.RecordatorioHora,
                 EstaActivo = modelo.EstaActivo,
@@ -177,7 +178,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task EditarHabito(EditarHabitoViewModel modelo, int usuarioId)
         {
-            var habito = await _context.Habitos.FirstOrDefaultAsync(h => h.Id == modelo.Id && h.UsuarioId == usuarioId);
+            var habito = await _context.Habitos.Include(h => h.DiasSemana).FirstOrDefaultAsync(h => h.Id == modelo.Id && h.UsuarioId == usuarioId);
             if (habito is null)
                 return;
 
@@ -185,7 +186,12 @@ namespace EpycusApp.Servicios.Implementaciones
             habito.Descripcion = modelo.Descripcion;
             habito.CategoriaId = modelo.CategoriaId;
             habito.Frecuencia = modelo.Frecuencia;
-            habito.DiasSemana = modelo.DiasSemana is null ? null : JsonSerializer.Serialize(modelo.DiasSemana);
+            habito.DiasSemana.Clear();
+            if (modelo.DiasSemana != null)
+            {
+                foreach (var d in modelo.DiasSemana)
+                    habito.DiasSemana.Add(new DiasSemanaHabito { DiaSemana = d });
+            }
             habito.ConPomodoro = modelo.ConPomodoro;
             habito.RecordatorioHora = modelo.RecordatorioHora;
             habito.EstaActivo = modelo.EstaActivo;

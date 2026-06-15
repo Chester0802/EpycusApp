@@ -7,7 +7,7 @@ namespace EpycusApp.Controllers.Api
 {
     [ApiController]
     [Route("api/auth")]
-    public class ApiAuthController : ControllerBase
+    public class ApiAuthController : BaseApiController
     {
         private readonly IServicioAutenticacion _servicioAutenticacion;
 
@@ -46,7 +46,7 @@ namespace EpycusApp.Controllers.Api
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            var usuarioId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var usuarioId = ObtenerUsuarioId()!.Value;
             await _servicioAutenticacion.CerrarSesion(usuarioId);
             return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
         }
