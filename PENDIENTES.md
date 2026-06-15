@@ -28,7 +28,7 @@
 | IMP-005 | Media | `Program.cs` | Sin Rate Limiting | **Medio** | ✅ Corregido | Agregado con políticas Api (100/min) y Gemini (20/min). |
 | IMP-006 | Alta | `Datos/Semilla/DatosSemilla.cs` | Sin log de errores en operaciones de semilla | **Medio** | ✅ Corregido | Agregado try-catch con logging. |
 | IMP-007 | Alta | Varios servicios | Ausencia de ILogger en `ServicioGamificacion`, `ServicioAdmin`, `ServicioBienestar`, `ServicioHabitos`, `ServicioMisiones`, `ServicioPerfil`, `ServicioProgreso` | **Medio** | ✅ Corregido | ILogger inyectado en todos los servicios. |
-| IMP-008 | Media | `Ayudantes/CalculadorXP.cs` vs `Ayudantes/ConstantesGamificacion.cs` | Constantes XP duplicadas y parcialmente inconsistentes | **Bajo** | ⚠️ Mitigado | Servicios corregidos para usar constantes. Unificar archivos como deuda técnica. |
+| IMP-008 | Media | `Ayudantes/CalculadorXP.cs` vs `Ayudantes/ConstantesGamificacion.cs` | Constantes XP duplicadas y parcialmente inconsistentes | **Bajo** | ✅ Corregido | Unificadas en `ConstantesGamificacion.cs`. `CalculadorXP.cs` referencia ese archivo. |
 | IMP-009 | Media | `README.md` | Referencia a repositorio antiguo `Capstone_Epycus_Web` | **Bajo** | ✅ Corregido | README actualizado con URLs, instrucciones de deploy y CI/CD. |
 | IMP-010 | Alta | `Servicios/Implementaciones/ServicioAutenticacion.cs:150-168` | Race condition en renovación de token refresh | **Medio** | ✅ Corregido | Envuelto en transacción de BD con rollback automático. |
 | IMP-011 | Alta | Migraciones múltiples | Dos migraciones iniciales (`InitialMerge` e `InitialMigration`) | **Medio** | ✅ Corregido | Consolidado en una sola migración `Initial` (requiere reset de BD local). |
@@ -47,10 +47,10 @@
 | MEJ-004 | Baja | Controladores | `ObtenerUsuarioId()` duplicado en varios controllers | **Bajo** | ✅ Corregido | Creados `BaseController` y `BaseApiController`. Refactorizados 17 controllers. |
 | MEJ-005 | Baja | `Models/Entidades/MensajeIA.cs:17` | `FechaHora` usa `DateTime.UtcNow` (bien) pero inconsistente con otras entidades | **Bajo** | ✅ Corregido | Todas las entidades ahora usan `DateTime.UtcNow`. |
 | MEJ-006 | Media | `Middleware/CargarPersonajeFilter.cs` | Silencia excepciones al cargar personaje | **Bajo** | ✅ Corregido | Logging mínimo agregado con ILogger. |
-| MEJ-007 | Baja | `Ayudantes/ConstantesGamificacion.cs` | XP de misiones por prioridad no definido como constante | **Bajo** | ⚠️ Pendiente | Agregar XP_MISION_ALTA/MEDIA/BAJA. |
+| MEJ-007 | Baja | `Ayudantes/ConstantesGamificacion.cs` | XP de misiones por prioridad no definido como constante | **Bajo** | ✅ Corregido | Agregadas `XP_MISION_ALTA`, `XP_MISION_MEDIA`, `XP_MISION_BAJA`. |
 | MEJ-008 | Media | `wwwroot/img/personajes/` | Faltan imágenes para carreras diferentes a Ing. Sistemas y Medicina | **Medio** | ✅ Corregido | Seed data crea entradas para 12 carreras. Directorios creados. Solo falta colocar los PNG. |
 | MEJ-009 | Baja | `appsettings.Example.json` | Versión de servidor MySQL no especificada | **Bajo** | ✅ Corregido | `MySql:ServerVersion` ya configurado como `11.8.6-mariadb`. |
-| MEJ-010 | Media | `Views/` | Sin Logging de rendimiento (tiempo de carga de vistas) | **Bajo** | ⚠️ Pendiente | Agregar middleware de telemetría básica. |
+| MEJ-010 | Media | `Views/` | Sin Logging de rendimiento (tiempo de carga de vistas) | **Bajo** | ✅ Corregido | Agregado `TelemetriaMiddleware` — logea requests lentos (>1s) y errores 500. |
 
 ---
 
@@ -95,7 +95,7 @@
 | CI-001 | ✅ | Pipeline CI/CD creado con build, calidad, deploy y seguridad |
 | CI-002 | ✅ | Backup automático antes del deploy (últimos 5 backups) |
 | CI-003 | ✅ | Verificación de estado del servicio post-deploy |
-| CI-004 | ⚠️ | Sin tests unitarios — agregar proyecto de test |
+| CI-004 | ❌ No planificado | Tests unitarios — el usuario decidió no implementarlos |
 | CI-005 | ✅ | Warnings como errores en compilación |
 
 ---
@@ -114,16 +114,16 @@
 
 ## 📋 DEUDA TÉCNICA
 
-| ID | Descripción | Esfuerzo |
-|----|-------------|----------|
-| DEV-001 | Renombrar namespace `EPYCUS_WEB_v0._1` → `EpycusApp` | 2-3 días |
-| DEV-002 | Unificar constantes XP en un solo archivo | 1 hora |
-| DEV-003 | Agregar proyecto de tests unitarios | 2-3 días |
-| DEV-004 | Agregar logging con ILogger en servicios | 1 día |
-| DEV-005 | Implementar health checks endpoint | 4 horas |
-| DEV-006 | Dockerizar la aplicación | 1 día |
-| DEV-007 | Agregar OpenAPI/Swagger para API endpoints | 4 horas |
-| DEV-008 | Migrar a `DateOnly` consistente en toda la BD | 1 día |
+| ID | Descripción | Esfuerzo | Estado |
+|----|-------------|----------|--------|
+| DEV-001 | Renombrar namespace `EPYCUS_WEB_v0._1` → `EpycusApp` | 2-3 días | ✅ |
+| DEV-002 | Unificar constantes XP en un solo archivo | 1 hora | ✅ |
+| DEV-003 | Agregar proyecto de tests unitarios | 2-3 días | ❌ No planificado |
+| DEV-004 | Agregar logging con ILogger en servicios | 1 día | ✅ |
+| DEV-005 | Implementar health checks endpoint | 4 horas | ✅ |
+| DEV-006 | Dockerizar la aplicación | 1 día | ❌ No necesario (deploy directo a VPS) |
+| DEV-007 | Agregar OpenAPI/Swagger para API endpoints | 4 horas | ✅ |
+| DEV-008 | Migrar a `DateOnly` consistente en toda la BD | 1 día | ✅ (parcial: `FechaNacimiento` + entidades existentes) |
 
 ---
 
