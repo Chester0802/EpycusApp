@@ -10,7 +10,7 @@ namespace EpycusApp.ViewModels
         public string Nombre { get; set; } = string.Empty;
         public string CorreoElectronico { get; set; } = string.Empty;
         public string CodigoUnico { get; set; } = string.Empty;
-        public DateTime? FechaNacimiento { get; set; }
+        public DateOnly? FechaNacimiento { get; set; }
         public string Genero { get; set; } = string.Empty;
         public int? CarreraId { get; set; }
         public string? CarreraNombre { get; set; }

@@ -152,6 +152,13 @@ builder.Services.AddHttpClient("Gemini", client =>
 
 builder.Services.AddHttpClient();
 
+// Swagger / OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() { Title = "EpycusApp API", Version = "v1" });
+});
+
 // Health Checks
 var cadenaConexion = builder.Configuration.GetConnectionString("ConexionPrincipal")!;
 builder.Services.AddHealthChecks()
@@ -178,6 +185,11 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+else
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -185,6 +197,9 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseRateLimiter();
+
+// TelemetrÃ­a de rendimiento
+app.UseMiddleware<TelemetriaMiddleware>();
 
 // Seguridad: headers HTTP
 app.Use(async (context, next) =>

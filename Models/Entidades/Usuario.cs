@@ -7,7 +7,7 @@
         public string Nombre { get; set; } = string.Empty;
         public string CorreoElectronico { get; set; } = string.Empty;
         public string? ContrasenaHash { get; set; }
-        public DateTime FechaNacimiento { get; set; }
+        public DateOnly FechaNacimiento { get; set; }
         public string Genero { get; set; } = string.Empty;
         public bool CorreoVerificado { get; set; } = false;
         public bool AceptoTerminos { get; set; } = false;

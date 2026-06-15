@@ -212,7 +212,7 @@ namespace EpycusApp.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ContrasenaHash = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    FechaNacimiento = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    FechaNacimiento = table.Column<DateOnly>(type: "date", nullable: false),
                     Genero = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CorreoVerificado = table.Column<bool>(type: "tinyint(1)", nullable: false),

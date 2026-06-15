@@ -900,8 +900,8 @@ namespace EpycusApp.Migrations
                     b.Property<bool>("EstaActivo")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<DateTime>("FechaNacimiento")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateOnly>("FechaNacimiento")
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("datetime(6)");

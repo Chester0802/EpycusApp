@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EpycusApp.Migrations
 {
     [DbContext(typeof(ContextoAplicacion))]
-    [Migration("20260615232948_Initial")]
+    [Migration("20260615234414_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -903,8 +903,8 @@ namespace EpycusApp.Migrations
                     b.Property<bool>("EstaActivo")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<DateTime>("FechaNacimiento")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateOnly>("FechaNacimiento")
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("datetime(6)");

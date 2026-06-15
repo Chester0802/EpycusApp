@@ -2,17 +2,6 @@
 {
     public static class CalculadorXP
     {
-        public const int XP_LOGIN_DIARIO = 10;
-        public const int XP_HABITO_COMPLETADO = 20;
-        public const int XP_BONUS_RACHA_7_DIAS = 10;
-        public const int XP_MISION_BAJA = 30;
-        public const int XP_MISION_MEDIA = 50;
-        public const int XP_MISION_ALTA = 80;
-        public const int XP_POMODORO_POR_CICLO = 15;
-        public const int XP_BONUS_RACHA_GLOBAL_7 = 50;
-        public const int XP_BONUS_RACHA_GLOBAL_30 = 200;
-        public const int NIVEL_MAXIMO = 20;
-
         public static int XpParaSiguienteNivel(int nivelActual)
         {
             return 100 + (nivelActual * 50);
@@ -37,7 +26,7 @@
 
         public static int NivelParaXp(int xpTotal)
         {
-            for (var nivel = 1; nivel < NIVEL_MAXIMO; nivel++)
+            for (var nivel = 1; nivel < ConstantesGamificacion.NIVEL_MAXIMO; nivel++)
             {
                 var xpSiguiente = XpTotalParaNivel(nivel + 1);
 
@@ -47,7 +36,7 @@
                 }
             }
 
-            return NIVEL_MAXIMO;
+            return ConstantesGamificacion.NIVEL_MAXIMO;
         }
 
         public static int XpDentroDelNivelActual(int xpTotal, int nivelActual)
@@ -84,10 +73,10 @@
         {
             return prioridad switch
             {
-                "Alta" => XP_MISION_ALTA,
-                "Media" => XP_MISION_MEDIA,
-                "Baja" => XP_MISION_BAJA,
-                _ => XP_MISION_MEDIA
+                "Alta" => ConstantesGamificacion.XP_MISION_ALTA,
+                "Media" => ConstantesGamificacion.XP_MISION_MEDIA,
+                "Baja" => ConstantesGamificacion.XP_MISION_BAJA,
+                _ => ConstantesGamificacion.XP_MISION_MEDIA
             };
         }
     }
