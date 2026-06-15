@@ -1,7 +1,7 @@
-@model EPYCUS_WEB_v0._1.ViewModels.Autenticacion.RecuperarContrasenaViewModel
+﻿@model EpycusApp.ViewModels.Autenticacion.RecuperarContrasenaViewModel
 
 @{
-    ViewData["Title"] = "Recuperar contraseña";
+    ViewData["Title"] = "Recuperar contraseÃ±a";
     Layout = "_LayoutAuth";
 }
 
@@ -11,7 +11,7 @@
         <div class="auth-card-icon">
             <i class="fas fa-envelope-open-text"></i>
         </div>
-        <h2 class="auth-card-title">Recuperar contraseña</h2>
+        <h2 class="auth-card-title">Recuperar contraseÃ±a</h2>
         <p class="auth-card-subtitle">Ingresa tu correo y te enviaremos un enlace para restablecerla.</p>
     </div>
 
@@ -20,7 +20,7 @@
         <div class="auth-alert auth-alert-success" role="alert">
             <i class="fas fa-check-circle"></i>
             <div>
-                <strong>¡Correo enviado!</strong> Si ese correo está registrado recibirás un enlace en breve. Revisa también tu carpeta de spam.
+                <strong>Â¡Correo enviado!</strong> Si ese correo estÃ¡ registrado recibirÃ¡s un enlace en breve. Revisa tambiÃ©n tu carpeta de spam.
             </div>
         </div>
     }
@@ -30,7 +30,7 @@
         <div asp-validation-summary="ModelOnly" class="auth-validation-summary"></div>
 
         <div class="auth-form-group">
-            <label asp-for="CorreoElectronico" class="auth-form-label">Correo Electrónico</label>
+            <label asp-for="CorreoElectronico" class="auth-form-label">Correo ElectrÃ³nico</label>
             <div class="auth-input-wrapper">
                 <i class="fas fa-envelope auth-input-icon"></i>
                 <input asp-for="CorreoElectronico" class="auth-input" placeholder="tucorreo@ejemplo.com" autocomplete="email" />
@@ -44,7 +44,7 @@
         </button>
 
         <div class="auth-bottom-link">
-            <a asp-action="Login"><i class="fas fa-arrow-left" style="margin-right: 0.25rem;"></i> Volver al inicio de sesión</a>
+            <a asp-action="Login"><i class="fas fa-arrow-left" style="margin-right: 0.25rem;"></i> Volver al inicio de sesiÃ³n</a>
         </div>
     </form>
 </div>

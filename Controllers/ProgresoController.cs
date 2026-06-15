@@ -1,13 +1,13 @@
-using EPYCUS_WEB_v0._1.Models.Entidades;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels;
+﻿using EpycusApp.Models.Entidades;
+using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace EPYCUS_WEB_v0._1.Controllers
+namespace EpycusApp.Controllers
 {
     [Authorize]
     public class ProgresoController : Controller
@@ -25,7 +25,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
             var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(claim) || !int.TryParse(claim, out var usuarioId))
             {
-                // Usuario anónimo o sin sesión
+                // Usuario anÃ³nimo o sin sesiÃ³n
                 var nivelInicial = await _servicioProgreso.ObtenerNivelInicialAsync();
                 var progresoDefecto = new ProgresoUsuario
                 {

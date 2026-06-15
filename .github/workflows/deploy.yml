@@ -1,28 +1,32 @@
-name: Build and Deploy
+name: Deploy Manual
 
 on:
-  push:
-    branches: [ main, master ]
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escriba "deploy" para confirmar'
+        required: true
+        default: ''
 
 env:
   DOTNET_VERSION: '9.0.x'
   BUILD_CONFIGURATION: Release
 
 jobs:
-  build-and-deploy:
+  deploy:
+    name: Deploy to VPS
+    if: github.event.inputs.confirm == 'deploy'
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Restore dependencies
+    - name: Restore
       run: dotnet restore "EpycusApp.csproj"
 
     - name: Build
@@ -31,7 +35,25 @@ jobs:
     - name: Publish
       run: dotnet publish "EpycusApp.csproj" --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --output ./publish
 
-    - name: Deploy to VPS via SSH
+    - name: Backup on VPS
+      uses: appleboy/ssh-action@v1.0.3
+      continue-on-error: true
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: ${{ secrets.VPS_PORT || 22 }}
+        script: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          mkdir -p /var/backups/epycus-web
+          if [ -d "${{ secrets.VPS_APP_PATH }}" ]; then
+            tar -czf "/var/backups/epycus-web/backup_${TIMESTAMP}.tar.gz" -C "${{ secrets.VPS_APP_PATH }}" .
+            ls -t /var/backups/epycus-web/*.tar.gz | tail -n +6 | xargs -r rm
+          else
+            mkdir -p ${{ secrets.VPS_APP_PATH }}
+          fi
+
+    - name: Deploy to VPS
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.VPS_HOST }}
@@ -42,7 +64,7 @@ jobs:
         target: ${{ secrets.VPS_APP_PATH }}
         strip_components: 1
 
-    - name: Restart application on VPS
+    - name: Restart service
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.VPS_HOST }}
@@ -50,6 +72,8 @@ jobs:
         key: ${{ secrets.VPS_SSH_KEY }}
         port: ${{ secrets.VPS_PORT || 22 }}
         script: |
+          chown -R www-data:www-data ${{ secrets.VPS_APP_PATH }}
           sudo systemctl daemon-reload
           sudo systemctl restart epycus-web
-          sudo systemctl status epycus-web --no-pager
+          sleep 5
+          sudo systemctl is-active epycus-web --quiet && echo "✅ OK" || (echo "❌ Fallo"; exit 1)

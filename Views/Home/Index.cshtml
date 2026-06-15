@@ -1,4 +1,4 @@
-@model EPYCUS_WEB_v0._1.ViewModels.HomeDashboardViewModel
+﻿@model EpycusApp.ViewModels.HomeDashboardViewModel
 
 @{
     ViewData["Title"] = "Inicio";
@@ -8,7 +8,7 @@
 {
     <div class="mb-4">
         <h1 class="ep-header-title d-flex align-items-center gap-2">
-            ¡Hola, @Model.NombreUsuario! <i class="bi bi-stars text-warning"></i>
+            Â¡Hola, @Model.NombreUsuario! <i class="bi bi-stars text-warning"></i>
         </h1>
         @if (!string.IsNullOrEmpty(Model.FraseMotivacional))
         {
@@ -27,7 +27,7 @@
                 </div>
                 <div>
                     <p class="ep-summary-value">@Model.Estadisticas.TotalHabitos</p>
-                    <p class="ep-summary-label">Hábitos activos</p>
+                    <p class="ep-summary-label">HÃ¡bitos activos</p>
                 </div>
             </div>
         </div>
@@ -56,18 +56,18 @@
     </div>
 
     <div class="row">
-        <!-- Columna Izquierda: Hábitos de Hoy -->
+        <!-- Columna Izquierda: HÃ¡bitos de Hoy -->
         <div class="col-lg-7">
             <div class="ep-card mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="mb-0 fw-bold">Tus hábitos para hoy</h5>
+                    <h5 class="mb-0 fw-bold">Tus hÃ¡bitos para hoy</h5>
                     <a asp-controller="Habitos" asp-action="Index" class="btn btn-sm btn-ep-outline">Ver todos</a>
                 </div>
 
                 @if (Model.HabitosHoy == null || !Model.HabitosHoy.Any())
                 {
                     <div class="alert alert-info bg-transparent border-info text-info">
-                        No tienes hábitos programados para hoy. ¡Disfruta tu día!
+                        No tienes hÃ¡bitos programados para hoy. Â¡Disfruta tu dÃ­a!
                     </div>
                 }
                 else
@@ -83,7 +83,7 @@
                                 <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">@h.CategoriaNombre</span>
                             </div>
                             <div class="me-4 text-secondary d-none d-sm-block" style="font-size: 0.85rem;">
-                                <div class="text-warning racha-cell"><i class="bi bi-fire me-1"></i>@h.RachaActual días</div>
+                                <div class="text-warning racha-cell"><i class="bi bi-fire me-1"></i>@h.RachaActual dÃ­as</div>
                             </div>
                             <div class="ms-2">
                                 <button class="btn btn-sm btn-primary rounded-pill px-3 btn-completar" onclick="completarHabitoDashboard(@h.Id, this)">100%</button>
@@ -94,10 +94,10 @@
             </div>
         </div>
 
-        <!-- Columna Derecha: Tabla Gráfica -->
+        <!-- Columna Derecha: Tabla GrÃ¡fica -->
         <div class="col-lg-5">
             <div class="ep-card h-100">
-                <h5 class="mb-3 fw-bold">Distribución por categoría</h5>
+                <h5 class="mb-3 fw-bold">DistribuciÃ³n por categorÃ­a</h5>
                 <div class="text-center" style="height: 300px; position: relative;">
                     <canvas id="graficoCategorias"
                             data-categorias='@Html.Raw(Json.Serialize(Model.Estadisticas.DistribucionPorCategoria.Keys))'
@@ -105,7 +105,7 @@
                     </canvas>
                 </div>
                 <div class="mt-4 text-center text-muted small">
-                    Mantén un equilibrio en tus hábitos para un mejor estilo de vida.
+                    MantÃ©n un equilibrio en tus hÃ¡bitos para un mejor estilo de vida.
                 </div>
             </div>
         </div>
@@ -122,9 +122,9 @@ else
         <div class="row align-items-center g-4">
             <div class="col-lg-7">
                 <h1 class="ep-header-title mb-3">Bienvenido a Epycus</h1>
-                <p class="ep-header-subtitle">Organiza tus hábitos, misiones y sesiones Pomodoro con un sistema visual diseñado para motivarte cada día.</p>
+                <p class="ep-header-subtitle">Organiza tus hÃ¡bitos, misiones y sesiones Pomodoro con un sistema visual diseÃ±ado para motivarte cada dÃ­a.</p>
                 <div class="d-flex flex-wrap gap-2 mt-4">
-                    <a asp-controller="Autenticacion" asp-action="Login" class="btn btn-ep"><i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión</a>
+                    <a asp-controller="Autenticacion" asp-action="Login" class="btn btn-ep"><i class="bi bi-box-arrow-in-right me-2"></i>Iniciar SesiÃ³n</a>
                     <a asp-controller="Autenticacion" asp-action="Registro" class="btn btn-ep-outline"><i class="bi bi-person-plus me-2"></i>Crear Cuenta</a>
                 </div>
             </div>

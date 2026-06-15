@@ -1,19 +1,21 @@
-using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.Models.DTOs;
-using EPYCUS_WEB_v0._1.Models.Entidades;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels;
+﻿using EpycusApp.Datos;
+using EpycusApp.Models.DTOs;
+using EpycusApp.Models.Entidades;
+using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
-namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
+namespace EpycusApp.Servicios.Implementaciones
 {
     public class ServicioPerfil : IServicioPerfil
     {
         private readonly ContextoAplicacion _contexto;
+        private readonly ILogger<ServicioPerfil> _logger;
 
-        public ServicioPerfil(ContextoAplicacion contexto)
+        public ServicioPerfil(ContextoAplicacion contexto, ILogger<ServicioPerfil> logger)
         {
             _contexto = contexto;
+            _logger = logger;
         }
 
         public Task<Usuario?> ObtenerPerfil(int usuarioId)

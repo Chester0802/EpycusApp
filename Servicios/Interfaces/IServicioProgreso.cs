@@ -1,6 +1,6 @@
-using EPYCUS_WEB_v0._1.Models.Entidades;
+﻿using EpycusApp.Models.Entidades;
 
-namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
+namespace EpycusApp.Servicios.Interfaces
 {
     public interface IServicioProgreso
     {

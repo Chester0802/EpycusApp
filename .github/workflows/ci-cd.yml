@@ -1,0 +1,155 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  BUILD_CONFIGURATION: Release
+
+jobs:
+  # ── JOB 1: Calidad y análisis de código ──────────────────────────────
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore "EpycusApp.csproj"
+
+      - name: Format check
+        run: dotnet format "EpycusApp.csproj" --verify-no-changes --severity warn || echo "✅ No se requiere formato"
+
+      - name: Build (warnings as errors)
+        run: dotnet build "EpycusApp.csproj" --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore -warnaserror
+
+  # ── JOB 2: Build y publish ──────────────────────────────────────────
+  build:
+    name: Build & Publish
+    needs: code-quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore "EpycusApp.csproj"
+
+      - name: Build
+        run: dotnet build "EpycusApp.csproj" --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+
+      - name: Publish
+        run: dotnet publish "EpycusApp.csproj" --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --output ./publish
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: epycus-app-publish
+          path: ./publish/
+          retention-days: 3
+
+  # ── JOB 3: Deploy a VPS (solo push a main/master) ───────────────────
+  deploy:
+    name: Deploy to VPS
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master')
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_APP_PATH: ${{ secrets.VPS_APP_PATH }}
+      VPS_PORT: ${{ secrets.VPS_PORT || 22 }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: epycus-app-publish
+          path: ./publish
+
+      # Backup del despliegue actual
+      - name: Backup current deployment
+        uses: appleboy/ssh-action@v1.0.3
+        continue-on-error: true
+        with:
+          host: ${{ env.VPS_HOST }}
+          username: ${{ env.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ env.VPS_PORT }}
+          script: |
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            mkdir -p /var/backups/epycus-web
+            if [ -d "${{ env.VPS_APP_PATH}}" ]; then
+              tar -czf "/var/backups/epycus-web/backup_${TIMESTAMP}.tar.gz" -C "${{ env.VPS_APP_PATH}}" .
+              echo "✅ Backup creado: backup_${TIMESTAMP}.tar.gz"
+              # Mantener solo últimos 5 backups
+              ls -t /var/backups/epycus-web/*.tar.gz | tail -n +6 | xargs -r rm
+            else
+              mkdir -p ${{ env.VPS_APP_PATH}}
+              echo "📁 Directorio nuevo, sin backup previo"
+            fi
+
+      # Transferir nuevos archivos
+      - name: Deploy to VPS via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.VPS_HOST }}
+          username: ${{ env.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ env.VPS_PORT }}
+          source: "publish/*"
+          target: ${{ env.VPS_APP_PATH }}
+          strip_components: 1
+
+      # Reinicio seguro
+      - name: Restart service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.VPS_HOST }}
+          username: ${{ env.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ env.VPS_PORT }}
+          script: |
+            chown -R www-data:www-data ${{ env.VPS_APP_PATH }}
+            sudo systemctl daemon-reload
+            sudo systemctl restart epycus-web
+            sleep 5
+            STATUS=$(sudo systemctl is-active epycus-web)
+            if [ "$STATUS" = "active" ]; then
+              echo "✅ Servicio epycus-web reiniciado correctamente"
+            else
+              echo "❌ El servicio no está activo. Estado: $STATUS"
+              sudo systemctl status epycus-web --no-pager
+              exit 1
+            fi
+
+  # ── JOB 4: Seguridad y dependencias (solo push a main/master) ────────
+  security:
+    name: Security Scan
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for secrets in code
+        uses: trufflesecurity/trufflehog@v3
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}

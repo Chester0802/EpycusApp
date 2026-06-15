@@ -1,11 +1,13 @@
-using EPYCUS_WEB_v0._1.Models.Entidades;
+﻿using EpycusApp.Models.Entidades;
 
-namespace EPYCUS_WEB_v0._1.Datos.Semilla
+namespace EpycusApp.Datos.Semilla
 {
     public static class DatosSemilla
     {
         public static async Task InicializarAsync(ContextoAplicacion contexto)
         {
+            try
+            {
             if (!contexto.Roles.Any())
             {
                 contexto.Roles.AddRange(
@@ -17,16 +19,16 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
             if (!contexto.Carreras.Any())
             {
                 contexto.Carreras.AddRange(
-                    new Carrera { Nombre = "Ingeniería de Sistemas", Area = "Ingeniería", Codigo = "ing-sistemas", EstaActiva = true },
-                    new Carrera { Nombre = "Ingeniería Civil", Area = "Ingeniería", Codigo = "ing-civil", EstaActiva = true },
-                    new Carrera { Nombre = "Ingeniería Industrial", Area = "Ingeniería", Codigo = "ing-industrial", EstaActiva = true },
-                    new Carrera { Nombre = "Administración de Empresas", Area = "Administración", Codigo = "administracion", EstaActiva = true },
+                    new Carrera { Nombre = "IngenierÃ­a de Sistemas", Area = "IngenierÃ­a", Codigo = "ing-sistemas", EstaActiva = true },
+                    new Carrera { Nombre = "IngenierÃ­a Civil", Area = "IngenierÃ­a", Codigo = "ing-civil", EstaActiva = true },
+                    new Carrera { Nombre = "IngenierÃ­a Industrial", Area = "IngenierÃ­a", Codigo = "ing-industrial", EstaActiva = true },
+                    new Carrera { Nombre = "AdministraciÃ³n de Empresas", Area = "AdministraciÃ³n", Codigo = "administracion", EstaActiva = true },
                     new Carrera { Nombre = "Contabilidad", Area = "Negocios", Codigo = "contabilidad", EstaActiva = true },
                     new Carrera { Nombre = "Derecho", Area = "Legal", Codigo = "derecho", EstaActiva = true },
                     new Carrera { Nombre = "Medicina Humana", Area = "Salud", Codigo = "medicina", EstaActiva = true },
-                    new Carrera { Nombre = "Enfermería", Area = "Salud", Codigo = "enfermeria", EstaActiva = true },
-                    new Carrera { Nombre = "Psicología", Area = "Salud", Codigo = "psicologia", EstaActiva = true },
-                    new Carrera { Nombre = "Educación", Area = "Educación", Codigo = "educacion", EstaActiva = true },
+                    new Carrera { Nombre = "EnfermerÃ­a", Area = "Salud", Codigo = "enfermeria", EstaActiva = true },
+                    new Carrera { Nombre = "PsicologÃ­a", Area = "Salud", Codigo = "psicologia", EstaActiva = true },
+                    new Carrera { Nombre = "EducaciÃ³n", Area = "EducaciÃ³n", Codigo = "educacion", EstaActiva = true },
                     new Carrera { Nombre = "Arquitectura", Area = "Arquitectura", Codigo = "arquitectura", EstaActiva = true },
                     new Carrera { Nombre = "Comunicaciones", Area = "Comunicaciones", Codigo = "comunicaciones", EstaActiva = true });
                 await contexto.SaveChangesAsync();
@@ -35,27 +37,27 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
             if (!contexto.Niveles.Any())
             {
                 contexto.Niveles.AddRange(
-                    new Nivel { Numero = 0, Titulo = "Novato", XpRequerido = 0, Descripcion = "Aún no llevas el título, pero el camino comienza hoy. Bienvenido." },
+                    new Nivel { Numero = 0, Titulo = "Novato", XpRequerido = 0, Descripcion = "AÃºn no llevas el tÃ­tulo, pero el camino comienza hoy. Bienvenido." },
                     new Nivel { Numero = 1, Titulo = "Curioso", XpRequerido = 100, Descripcion = "La curiosidad es el primer paso de todo gran profesional." },
-                    new Nivel { Numero = 2, Titulo = "Aprendiz", XpRequerido = 250, Descripcion = "Estás absorbiendo conocimiento. Cada hábito cuenta." },
-                    new Nivel { Numero = 3, Titulo = "Estudiante Comprometido", XpRequerido = 450, Descripcion = "Tu constancia ya te diferencia de la mayoría." },
+                    new Nivel { Numero = 2, Titulo = "Aprendiz", XpRequerido = 250, Descripcion = "EstÃ¡s absorbiendo conocimiento. Cada hÃ¡bito cuenta." },
+                    new Nivel { Numero = 3, Titulo = "Estudiante Comprometido", XpRequerido = 450, Descripcion = "Tu constancia ya te diferencia de la mayorÃ­a." },
                     new Nivel { Numero = 4, Titulo = "Practicante", XpRequerido = 700, Descripcion = "Empiezas a aplicar lo que aprendes. El mundo te espera." },
                     new Nivel { Numero = 5, Titulo = "Asistente", XpRequerido = 1000, Descripcion = "Ya formas parte del campo profesional. Sigue creciendo." },
-                    new Nivel { Numero = 6, Titulo = "Junior", XpRequerido = 1350, Descripcion = "Tienes base sólida. Los desafíos reales ya no te asustan." },
+                    new Nivel { Numero = 6, Titulo = "Junior", XpRequerido = 1350, Descripcion = "Tienes base sÃ³lida. Los desafÃ­os reales ya no te asustan." },
                     new Nivel { Numero = 7, Titulo = "Semi-Senior", XpRequerido = 1750, Descripcion = "Tu experiencia empieza a hablar por ti." },
                     new Nivel { Numero = 8, Titulo = "Profesional", XpRequerido = 2200, Descripcion = "Dominas los fundamentos y resuelves problemas con soltura." },
-                    new Nivel { Numero = 9, Titulo = "Especialista", XpRequerido = 2700, Descripcion = "Tienes un área en la que pocos te superan." },
-                    new Nivel { Numero = 10, Titulo = "Senior", XpRequerido = 3250, Descripcion = "Mitad del camino. Tu criterio vale más que el de muchos." },
+                    new Nivel { Numero = 9, Titulo = "Especialista", XpRequerido = 2700, Descripcion = "Tienes un Ã¡rea en la que pocos te superan." },
+                    new Nivel { Numero = 10, Titulo = "Senior", XpRequerido = 3250, Descripcion = "Mitad del camino. Tu criterio vale mÃ¡s que el de muchos." },
                     new Nivel { Numero = 11, Titulo = "Senior Avanzado", XpRequerido = 3850, Descripcion = "Lideras con el ejemplo. Otros aprenden de ti." },
                     new Nivel { Numero = 12, Titulo = "Experto", XpRequerido = 4500, Descripcion = "Tu nivel de profundidad es notable. Eres referente." },
-                    new Nivel { Numero = 13, Titulo = "Consultor", XpRequerido = 5200, Descripcion = "Te buscan cuando el problema es difícil. Eso es poder." },
-                    new Nivel { Numero = 14, Titulo = "Líder", XpRequerido = 5950, Descripcion = "No solo resuelves: diriges, inspiras y construyes equipos." },
-                    new Nivel { Numero = 15, Titulo = "Maestro", XpRequerido = 6750, Descripcion = "Tu conocimiento trasciende lo técnico. Ya es sabiduría." },
-                    new Nivel { Numero = 16, Titulo = "Arquitecto", XpRequerido = 7600, Descripcion = "Diseñas sistemas, estrategias y futuros completos." },
-                    new Nivel { Numero = 17, Titulo = "Eminencia", XpRequerido = 8500, Descripcion = "Tu nombre es sinónimo de excelencia en tu campo." },
-                    new Nivel { Numero = 18, Titulo = "Gran Maestro", XpRequerido = 9450, Descripcion = "Has forjado a otros profesionales con tu guía." },
-                    new Nivel { Numero = 19, Titulo = "Leyenda en Ascenso", XpRequerido = 10450, Descripcion = "El umbral del máximo poder está justo frente a ti." },
-                    new Nivel { Numero = 20, Titulo = "Leyenda Viviente", XpRequerido = 11500, Descripcion = "Has llegado a la cima. Eres la definición de tu profesión." });
+                    new Nivel { Numero = 13, Titulo = "Consultor", XpRequerido = 5200, Descripcion = "Te buscan cuando el problema es difÃ­cil. Eso es poder." },
+                    new Nivel { Numero = 14, Titulo = "LÃ­der", XpRequerido = 5950, Descripcion = "No solo resuelves: diriges, inspiras y construyes equipos." },
+                    new Nivel { Numero = 15, Titulo = "Maestro", XpRequerido = 6750, Descripcion = "Tu conocimiento trasciende lo tÃ©cnico. Ya es sabidurÃ­a." },
+                    new Nivel { Numero = 16, Titulo = "Arquitecto", XpRequerido = 7600, Descripcion = "DiseÃ±as sistemas, estrategias y futuros completos." },
+                    new Nivel { Numero = 17, Titulo = "Eminencia", XpRequerido = 8500, Descripcion = "Tu nombre es sinÃ³nimo de excelencia en tu campo." },
+                    new Nivel { Numero = 18, Titulo = "Gran Maestro", XpRequerido = 9450, Descripcion = "Has forjado a otros profesionales con tu guÃ­a." },
+                    new Nivel { Numero = 19, Titulo = "Leyenda en Ascenso", XpRequerido = 10450, Descripcion = "El umbral del mÃ¡ximo poder estÃ¡ justo frente a ti." },
+                    new Nivel { Numero = 20, Titulo = "Leyenda Viviente", XpRequerido = 11500, Descripcion = "Has llegado a la cima. Eres la definiciÃ³n de tu profesiÃ³n." });
                 await contexto.SaveChangesAsync();
             }
 
@@ -67,14 +69,14 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
                     new Categoria { Nombre = "Salud y Bienestar", Icono = "bi-heart-pulse", Tipo = "Ambos", EstaActiva = true },
                     new Categoria { Nombre = "Estudio", Icono = "bi-book", Tipo = "Ambos", EstaActiva = true },
                     new Categoria { Nombre = "Ejercicio", Icono = "bi-activity", Tipo = "Habito", EstaActiva = true },
-                    new Categoria { Nombre = "Sueño", Icono = "bi-moon-stars", Tipo = "Habito", EstaActiva = true },
-                    new Categoria { Nombre = "Hidratación", Icono = "bi-droplet", Tipo = "Habito", EstaActiva = true },
-                    new Categoria { Nombre = "Nutrición", Icono = "bi-egg-fried", Tipo = "Habito", EstaActiva = true },
-                    new Categoria { Nombre = "Meditación", Icono = "bi-peace", Tipo = "Habito", EstaActiva = true },
-                    new Categoria { Nombre = "Tarea Académica", Icono = "bi-file-earmark-text", Tipo = "Mision", EstaActiva = true },
+                    new Categoria { Nombre = "SueÃ±o", Icono = "bi-moon-stars", Tipo = "Habito", EstaActiva = true },
+                    new Categoria { Nombre = "HidrataciÃ³n", Icono = "bi-droplet", Tipo = "Habito", EstaActiva = true },
+                    new Categoria { Nombre = "NutriciÃ³n", Icono = "bi-egg-fried", Tipo = "Habito", EstaActiva = true },
+                    new Categoria { Nombre = "MeditaciÃ³n", Icono = "bi-peace", Tipo = "Habito", EstaActiva = true },
+                    new Categoria { Nombre = "Tarea AcadÃ©mica", Icono = "bi-file-earmark-text", Tipo = "Mision", EstaActiva = true },
                     new Categoria { Nombre = "Proyecto", Icono = "bi-kanban", Tipo = "Mision", EstaActiva = true },
                     new Categoria { Nombre = "Lectura", Icono = "bi-book-half", Tipo = "Ambos", EstaActiva = true },
-                    new Categoria { Nombre = "Hábito Personal", Icono = "bi-star", Tipo = "Habito", EstaActiva = true });
+                    new Categoria { Nombre = "HÃ¡bito Personal", Icono = "bi-star", Tipo = "Habito", EstaActiva = true });
                 await contexto.SaveChangesAsync();
             }
 
@@ -83,7 +85,7 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
                 contexto.Temas.AddRange(
                     new Tema
                     {
-                        Nombre = "Noche Épica",
+                        Nombre = "Noche Ã‰pica",
                         Modo = "Oscuro",
                         ArchivoCss = "tema-noche-epica.css",
                         EsPremium = false,
@@ -129,14 +131,14 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
                     {
                         PersonajeId = kaiId,
                         NivelNumero = 0,
-                        ImagenUrl = "/img/personajes/ing-sistemas/masculino/nivel_0.png",
+                        ImagenUrl = "/img/personajes/ing-sistemas/masculino/IngSis_mas_nivel1.png",
                         EsPlaceholder = false
                     },
                     new ImagenNivelPersonaje
                     {
                         PersonajeId = lunaId,
                         NivelNumero = 0,
-                        ImagenUrl = "/img/personajes/ing-sistemas/femenino/nivel_0.png",
+                        ImagenUrl = "/img/personajes/ing-sistemas/femenino/IngSis_fem_nivel1.png",
                         EsPlaceholder = false
                     },
                     new ImagenNivelPersonaje
@@ -162,7 +164,7 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
                     new Logro
                     {
                         Nombre = "Primer Paso",
-                        Descripcion = "Completa tu primer hábito.",
+                        Descripcion = "Completa tu primer hÃ¡bito.",
                         IconoUrl = "/img/logros/primer_paso.png",
                         CondicionTipo = "HabitosCompletados",
                         CondicionValor = 1,
@@ -172,7 +174,7 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
                     new Logro
                     {
                         Nombre = "Semana Perfecta",
-                        Descripcion = "Mantén una racha de 7 días.",
+                        Descripcion = "MantÃ©n una racha de 7 dÃ­as.",
                         IconoUrl = "/img/logros/semana_perfecta.png",
                         CondicionTipo = "RachaDias",
                         CondicionValor = 7,
@@ -182,7 +184,7 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
                     new Logro
                     {
                         Nombre = "Mes Imparable",
-                        Descripcion = "Mantén una racha de 30 días.",
+                        Descripcion = "MantÃ©n una racha de 30 dÃ­as.",
                         IconoUrl = "/img/logros/mes_imparable.png",
                         CondicionTipo = "RachaDias",
                         CondicionValor = 30,
@@ -191,8 +193,8 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
                     },
                     new Logro
                     {
-                        Nombre = "Primera Misión",
-                        Descripcion = "Completa tu primera misión.",
+                        Nombre = "Primera MisiÃ³n",
+                        Descripcion = "Completa tu primera misiÃ³n.",
                         IconoUrl = "/img/logros/primera_mision.png",
                         CondicionTipo = "MisionesCompletadas",
                         CondicionValor = 1,
@@ -252,7 +254,7 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
                     new Logro
                     {
                         Nombre = "Leyenda Viviente",
-                        Descripcion = "Alcanza el nivel máximo: nivel 20.",
+                        Descripcion = "Alcanza el nivel mÃ¡ximo: nivel 20.",
                         IconoUrl = "/img/logros/leyenda.png",
                         CondicionTipo = "NivelAlcanzado",
                         CondicionValor = 20,
@@ -266,15 +268,15 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
             {
                 contexto.FrasesMotivacionales.AddRange(
                     new FraseMotivacional { Frase = "El secreto para avanzar es comenzar.", Autor = "Mark Twain", EstaActiva = true },
-                    new FraseMotivacional { Frase = "No cuentes los días, haz que los días cuenten.", Autor = "Muhammad Ali", EstaActiva = true },
-                    new FraseMotivacional { Frase = "Sé el cambio que quieres ver en el mundo.", Autor = "Mahatma Gandhi", EstaActiva = true },
-                    new FraseMotivacional { Frase = "El éxito es la suma de pequeños esfuerzos repetidos día tras día.", Autor = "Robert Collier", EstaActiva = true },
+                    new FraseMotivacional { Frase = "No cuentes los dÃ­as, haz que los dÃ­as cuenten.", Autor = "Muhammad Ali", EstaActiva = true },
+                    new FraseMotivacional { Frase = "SÃ© el cambio que quieres ver en el mundo.", Autor = "Mahatma Gandhi", EstaActiva = true },
+                    new FraseMotivacional { Frase = "El Ã©xito es la suma de pequeÃ±os esfuerzos repetidos dÃ­a tras dÃ­a.", Autor = "Robert Collier", EstaActiva = true },
                     new FraseMotivacional { Frase = "No importa lo lento que vayas, siempre y cuando no te detengas.", Autor = "Confucio", EstaActiva = true },
                     new FraseMotivacional { Frase = "La disciplina es el puente entre metas y logros.", Autor = "Jim Rohn", EstaActiva = true },
-                    new FraseMotivacional { Frase = "Cree que puedes y ya estarás a mitad de camino.", Autor = "Theodore Roosevelt", EstaActiva = true },
-                    new FraseMotivacional { Frase = "Cada día es una nueva oportunidad para mejorar.", Autor = "Anónimo", EstaActiva = true },
-                    new FraseMotivacional { Frase = "La constancia es la madre del éxito.", Autor = "Anónimo", EstaActiva = true },
-                    new FraseMotivacional { Frase = "Haz de cada día tu obra maestra.", Autor = "John Wooden", EstaActiva = true });
+                    new FraseMotivacional { Frase = "Cree que puedes y ya estarÃ¡s a mitad de camino.", Autor = "Theodore Roosevelt", EstaActiva = true },
+                    new FraseMotivacional { Frase = "Cada dÃ­a es una nueva oportunidad para mejorar.", Autor = "AnÃ³nimo", EstaActiva = true },
+                    new FraseMotivacional { Frase = "La constancia es la madre del Ã©xito.", Autor = "AnÃ³nimo", EstaActiva = true },
+                    new FraseMotivacional { Frase = "Haz de cada dÃ­a tu obra maestra.", Autor = "John Wooden", EstaActiva = true });
                 await contexto.SaveChangesAsync();
             }
 
@@ -283,30 +285,36 @@ namespace EPYCUS_WEB_v0._1.Datos.Semilla
                 contexto.TipsPomodoro.AddRange(
                     new TipPomodoro
                     {
-                        Tip = "Pon tu teléfono en modo avión durante el tiempo de estudio. Cada notificación interrumpida son 23 minutos de concentración perdida.",
+                        Tip = "Pon tu telÃ©fono en modo aviÃ³n durante el tiempo de estudio. Cada notificaciÃ³n interrumpida son 23 minutos de concentraciÃ³n perdida.",
                         EstaActivo = true
                     },
                     new TipPomodoro
                     {
-                        Tip = "Prepara todo antes de empezar: agua, apuntes y la tarea específica. No busques materiales mientras el temporizador corre.",
+                        Tip = "Prepara todo antes de empezar: agua, apuntes y la tarea especÃ­fica. No busques materiales mientras el temporizador corre.",
                         EstaActivo = true
                     },
                     new TipPomodoro
                     {
-                        Tip = "En el descanso, aléjate de la pantalla. Estira las manos, camina un poco o mira por la ventana. Tu cerebro lo necesita.",
+                        Tip = "En el descanso, alÃ©jate de la pantalla. Estira las manos, camina un poco o mira por la ventana. Tu cerebro lo necesita.",
                         EstaActivo = true
                     },
                     new TipPomodoro
                     {
-                        Tip = "Si una idea te distrae, anótala rápido en un papel y regresa al foco. La anotarás después, no la perderás.",
+                        Tip = "Si una idea te distrae, anÃ³tala rÃ¡pido en un papel y regresa al foco. La anotarÃ¡s despuÃ©s, no la perderÃ¡s.",
                         EstaActivo = true
                     },
                     new TipPomodoro
                     {
-                        Tip = "Después de 4 ciclos completos, tómate 20-30 minutos de descanso largo. Comer algo ligero y caminar ayuda a resetear tu energía.",
+                        Tip = "DespuÃ©s de 4 ciclos completos, tÃ³mate 20-30 minutos de descanso largo. Comer algo ligero y caminar ayuda a resetear tu energÃ­a.",
                         EstaActivo = true
                     });
                 await contexto.SaveChangesAsync();
+            }
+        }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DatosSemilla] Error: {ex.Message}");
+                throw;
             }
         }
     }

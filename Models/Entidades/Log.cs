@@ -1,4 +1,4 @@
-﻿namespace EPYCUS_WEB_v0._1.Models.Entidades
+﻿namespace EpycusApp.Models.Entidades
 {
     public class Log
     {
@@ -6,7 +6,7 @@
         public string Accion { get; set; } = string.Empty;
         public string? Detalle { get; set; }
         public string? DireccionIp { get; set; }
-        public DateTime FechaRegistro { get; set; } = DateTime.Now;
+        public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
         public int? UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
     }

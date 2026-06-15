@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels;
+using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using System.Security.Claims;
 
-namespace EPYCUS_WEB_v0._1.Controllers;
+namespace EpycusApp.Controllers;
 
 [Authorize]
 public class AjustesController : Controller
@@ -79,11 +79,11 @@ public class AjustesController : Controller
 
         if (resultado.EsExitoso)
         {
-            TempData["Mensaje"] = "Contraseña cambiada correctamente.";
+            TempData["Mensaje"] = "ContraseÃ±a cambiada correctamente.";
         }
         else
         {
-            TempData["Error"] = resultado.Mensaje ?? "No se pudo cambiar la contraseña.";
+            TempData["Error"] = resultado.Mensaje ?? "No se pudo cambiar la contraseÃ±a.";
         }
 
         return RedirectToAction(nameof(Index));

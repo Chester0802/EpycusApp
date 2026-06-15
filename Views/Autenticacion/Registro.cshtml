@@ -1,4 +1,4 @@
-@model EPYCUS_WEB_v0._1.ViewModels.RegistroViewModel
+﻿@model EpycusApp.ViewModels.RegistroViewModel
 
 @{
     ViewData["Title"] = "Crear cuenta";
@@ -33,12 +33,12 @@
         <div class="row g-3">
             <div class="col-md-6">
                 <label asp-for="Contrasena" class="form-label"></label>
-                <input asp-for="Contrasena" class="form-control ep-input" placeholder="••••••••" />
+                <input asp-for="Contrasena" class="form-control ep-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
                 <span asp-validation-for="Contrasena" class="text-danger small"></span>
             </div>
             <div class="col-md-6">
                 <label asp-for="ConfirmarContrasena" class="form-label"></label>
-                <input asp-for="ConfirmarContrasena" class="form-control ep-input" placeholder="••••••••" />
+                <input asp-for="ConfirmarContrasena" class="form-control ep-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
                 <span asp-validation-for="ConfirmarContrasena" class="text-danger small"></span>
             </div>
         </div>
@@ -65,7 +65,7 @@
             <label asp-for="CarreraId" class="form-label">Carrera</label>
             <select asp-for="CarreraId" class="form-select ep-input">
                 <option value="">Seleccione</option>
-                @foreach (var carrera in (ViewBag.Carreras as List<EPYCUS_WEB_v0._1.Models.Entidades.Carrera> ?? new List<EPYCUS_WEB_v0._1.Models.Entidades.Carrera>()))
+                @foreach (var carrera in (ViewBag.Carreras as List<EpycusApp.Models.Entidades.Carrera> ?? new List<EpycusApp.Models.Entidades.Carrera>()))
                 {
                     <option value="@carrera.Id">@carrera.Nombre</option>
                 }
@@ -75,7 +75,7 @@
 
         <div class="form-check mb-3">
             <input asp-for="AceptoTerminos" class="form-check-input" />
-            <label asp-for="AceptoTerminos" class="form-check-label">Acepto los términos y condiciones</label>
+            <label asp-for="AceptoTerminos" class="form-check-label">Acepto los tÃ©rminos y condiciones</label>
             <span asp-validation-for="AceptoTerminos" class="text-danger small"></span>
         </div>
 

@@ -1,7 +1,7 @@
-namespace EPYCUS_WEB_v0._1.DTOs
+﻿namespace EpycusApp.DTOs
 {
     /// <summary>
-    /// DTO para la respuesta al fallar un hábito
+    /// DTO para la respuesta al fallar un hÃ¡bito
     /// </summary>
     public class FallarHabitoRespuestaDto
     {

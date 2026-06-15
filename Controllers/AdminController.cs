@@ -1,9 +1,9 @@
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels.Admin;
+﻿using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EPYCUS_WEB_v0._1.Controllers
+namespace EpycusApp.Controllers
 {
     public class AdminController : Controller
     {
@@ -120,7 +120,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
         {
             var adminId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
             await _servicioAdmin.ActivarSuscripcion(usuarioId, adminId);
-            TempData["Exito"] = "Suscripción activada correctamente.";
+            TempData["Exito"] = "SuscripciÃ³n activada correctamente.";
             return RedirectToAction(nameof(Usuarios));
         }
 
@@ -130,7 +130,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
         public async Task<IActionResult> DesactivarSuscripcion(int usuarioId)
         {
             await _servicioAdmin.DesactivarSuscripcion(usuarioId);
-            TempData["Exito"] = "Suscripción desactivada correctamente.";
+            TempData["Exito"] = "SuscripciÃ³n desactivada correctamente.";
             return RedirectToAction(nameof(Usuarios));
         }
 

@@ -1,23 +1,26 @@
-using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.Models.Entidades;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels;
+﻿using EpycusApp.Ayudantes;
+using EpycusApp.Datos;
+using EpycusApp.Models.Entidades;
+using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
-// Servicio de Misiones: implementación de la lógica de negocio para CRUD y cambios de estado
-// Todas las variables, métodos y comentarios en español según convenciones del proyecto
+// Servicio de Misiones: implementaciÃ³n de la lÃ³gica de negocio para CRUD y cambios de estado
+// Todas las variables, mÃ©todos y comentarios en espaÃ±ol segÃºn convenciones del proyecto
 
-namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
+namespace EpycusApp.Servicios.Implementaciones
 {
     public class ServicioMisiones : IServicioMisiones
     {
         private readonly ContextoAplicacion _contexto;
         private readonly IServicioGamificacion _servicioGamificacion;
+        private readonly ILogger<ServicioMisiones> _logger;
 
-        public ServicioMisiones(ContextoAplicacion contexto, IServicioGamificacion servicioGamificacion)
+        public ServicioMisiones(ContextoAplicacion contexto, IServicioGamificacion servicioGamificacion, ILogger<ServicioMisiones> logger)
         {
             _contexto = contexto;
             _servicioGamificacion = servicioGamificacion;
+            _logger = logger;
         }
 
         public async Task<List<Mision>> ObtenerMisionesDeUsuario(int usuarioId)
@@ -50,7 +53,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 ConPomodoro = modelo.ConPomodoro,
                 UsuarioId = usuarioId,
                 CategoriaId = modelo.CategoriaId,
-                FechaCreacion = DateTime.Now
+                FechaCreacion = DateTime.UtcNow
             };
 
             _contexto.Misiones.Add(mision);
@@ -60,10 +63,10 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
         public async Task EditarMision(EditarMisionViewModel modelo, int usuarioId)
         {
             var mision = await _contexto.Misiones.FirstOrDefaultAsync(m => m.Id == modelo.Id && m.UsuarioId == usuarioId);
-            if (mision == null) throw new Exception("Misión no encontrada o no autorizada.");
+            if (mision == null) throw new Exception("MisiÃ³n no encontrada o no autorizada.");
 
             if (mision.Estado == "Completado" || mision.Estado == "Fallido")
-                throw new Exception("No se puede editar una misión que ya está completada o fallida.");
+                throw new Exception("No se puede editar una misiÃ³n que ya estÃ¡ completada o fallida.");
 
             mision.Nombre = modelo.Nombre;
             mision.Descripcion = modelo.Descripcion;
@@ -94,16 +97,10 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             if (mision.Estado != "Pendiente" && mision.Estado != "EnProgreso")
                 return (false, 0);
 
-            int xp = mision.Prioridad switch
-            {
-                "Alta" => 80,
-                "Media" => 50,
-                "Baja" => 30,
-                _ => 50
-            };
+            int xp = CalculadorXP.XpPorMision(mision.Prioridad);
 
             mision.Estado = "Completado";
-            mision.FechaCompletado = DateTime.Now;
+            mision.FechaCompletado = DateTime.UtcNow;
             mision.XpOtorgado = xp;
 
             await _contexto.SaveChangesAsync();

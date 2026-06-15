@@ -1,6 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace EPYCUS_WEB_v0._1.ViewModels
+namespace EpycusApp.ViewModels
 {
     public class HabitosIndexViewModel
     {

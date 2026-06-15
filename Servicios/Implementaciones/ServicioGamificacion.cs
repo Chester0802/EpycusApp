@@ -1,17 +1,19 @@
-using EPYCUS_WEB_v0._1.Ayudantes;
-using EPYCUS_WEB_v0._1.Models.Entidades;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+﻿using EpycusApp.Ayudantes;
+using EpycusApp.Models.Entidades;
+using EpycusApp.Servicios.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
+namespace EpycusApp.Servicios.Implementaciones
 {
     public class ServicioGamificacion : IServicioGamificacion
     {
-        private readonly EPYCUS_WEB_v0._1.Datos.ContextoAplicacion _contexto;
+        private readonly EpycusApp.Datos.ContextoAplicacion _contexto;
+        private readonly ILogger<ServicioGamificacion> _logger;
 
-        public ServicioGamificacion(EPYCUS_WEB_v0._1.Datos.ContextoAplicacion contexto)
+        public ServicioGamificacion(EpycusApp.Datos.ContextoAplicacion contexto, ILogger<ServicioGamificacion> logger)
         {
             _contexto = contexto;
+            _logger = logger;
         }
 
         public async Task<(int XpGanado, bool SubioDeNivel, int NivelNuevo)> SumarXP(int usuarioId, int xp)

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -31,7 +31,7 @@
             </div>
             <nav class="d-flex flex-column gap-2 mb-auto">
                 <a asp-controller="Home" asp-action="Index" class="ep-nav-item@(currentController == "Home" ? " activo" : "")"><i class="bi bi-house"></i>Inicio</a>
-                <a asp-controller="Habitos" asp-action="Index" class="ep-nav-item@(currentController == "Habitos" ? " activo" : "")"><i class="bi bi-list-check"></i>Hábitos</a>
+                <a asp-controller="Habitos" asp-action="Index" class="ep-nav-item@(currentController == "Habitos" ? " activo" : "")"><i class="bi bi-list-check"></i>HÃ¡bitos</a>
                 <a asp-controller="Misiones" asp-action="Index" class="ep-nav-item@(currentController == "Misiones" ? " activo" : "")"><i class="bi bi-clipboard-check"></i>Misiones</a>
                 <a asp-controller="Pomodoro" asp-action="Index" class="ep-nav-item@(currentController == "Pomodoro" ? " activo" : "")"><i class="bi bi-alarm"></i>Pomodoro</a>
                 <a asp-controller="Progreso" asp-action="Index" class="ep-nav-item@(currentController == "Progreso" ? " activo" : "")"><i class="bi bi-graph-up"></i>Progreso</a>
@@ -49,7 +49,7 @@
                 {
                     <form asp-controller="Autenticacion" asp-action="Logout" method="post" class="mt-2">
                         <button type="submit" class="btn w-100 text-start ep-nav-item text-danger" style="background: transparent; border: none;">
-                            <i class="bi bi-box-arrow-right text-danger"></i>Cerrar Sesión
+                            <i class="bi bi-box-arrow-right text-danger"></i>Cerrar SesiÃ³n
                         </button>
                     </form>
                 }
@@ -65,7 +65,7 @@
     <script src="~/lib/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
-        // Exponer si el usuario está autenticado al cliente
+        // Exponer si el usuario estÃ¡ autenticado al cliente
         window.isAuthenticated = @(User.Identity != null && User.Identity.IsAuthenticated ? "true" : "false");
     </script>
     @await RenderSectionAsync("Scripts", required: false)

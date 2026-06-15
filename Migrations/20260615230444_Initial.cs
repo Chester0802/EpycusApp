@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace EPYCUS_WEB_v0._1.Migrations
+namespace EpycusApp.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMerge : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -424,6 +424,33 @@ namespace EPYCUS_WEB_v0._1.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "MensajesIA",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ConversacionId = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    Rol = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Contenido = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FechaHora = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MensajesIA", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MensajesIA_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Misiones",
                 columns: table => new
                 {
@@ -771,6 +798,11 @@ namespace EPYCUS_WEB_v0._1.Migrations
                 column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_MensajesIA_UsuarioId",
+                table: "MensajesIA",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Misiones_CategoriaId",
                 table: "Misiones",
                 column: "CategoriaId");
@@ -915,6 +947,9 @@ namespace EPYCUS_WEB_v0._1.Migrations
 
             migrationBuilder.DropTable(
                 name: "Logs");
+
+            migrationBuilder.DropTable(
+                name: "MensajesIA");
 
             migrationBuilder.DropTable(
                 name: "PersonajesUsuario");

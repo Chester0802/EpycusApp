@@ -1,4 +1,4 @@
-﻿namespace EPYCUS_WEB_v0._1.Models.Entidades
+﻿namespace EpycusApp.Models.Entidades
 {
     public class Habito
     {
@@ -12,7 +12,7 @@
         public int RachaActual { get; set; } = 0;
         public int RachaMaxima { get; set; } = 0;
         public bool EstaActivo { get; set; } = true;
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
+        public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
         public int UsuarioId { get; set; }
         public int CategoriaId { get; set; }
         public Usuario Usuario { get; set; } = null!;

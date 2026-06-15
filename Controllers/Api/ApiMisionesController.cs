@@ -1,9 +1,9 @@
-using EPYCUS_WEB_v0._1.Ayudantes;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+﻿using EpycusApp.Ayudantes;
+using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EPYCUS_WEB_v0._1.Controllers.Api
+namespace EpycusApp.Controllers.Api
 {
     [ApiController]
     [Route("api/misiones")]
@@ -25,7 +25,7 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
 
             if (!resultado.Exito)
             {
-                return BadRequest(RespuestaApi<object>.Fallida("No se pudo completar la misión"));
+                return BadRequest(RespuestaApi<object>.Fallida("No se pudo completar la misiÃ³n"));
             }
 
             return Ok(RespuestaApi<object>.Exitosa(new { xpGanado = resultado.XpGanado }));

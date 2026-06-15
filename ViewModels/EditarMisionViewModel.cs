@@ -1,20 +1,20 @@
-namespace EPYCUS_WEB_v0._1.ViewModels
+ï»¿namespace EpycusApp.ViewModels
 {
     public class EditarMisionViewModel
     {
         public int Id { get; set; }
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El nombre de la misión es obligatorio.")]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El nombre de la misiÃ³n es obligatorio.")]
         [System.ComponentModel.DataAnnotations.MaxLength(200, ErrorMessage = "El nombre no puede exceder 200 caracteres.")]
         public string Nombre { get; set; } = string.Empty;
 
-        [System.ComponentModel.DataAnnotations.MaxLength(500, ErrorMessage = "La descripción no puede exceder 500 caracteres.")]
+        [System.ComponentModel.DataAnnotations.MaxLength(500, ErrorMessage = "La descripciÃ³n no puede exceder 500 caracteres.")]
         public string? Descripcion { get; set; }
 
         [System.ComponentModel.DataAnnotations.MaxLength(150, ErrorMessage = "El nombre del curso no puede exceder 150 caracteres.")]
         public string? NombreCurso { get; set; }
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Fecha límite es obligatoria.")]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Fecha lÃ­mite es obligatoria.")]
         [System.ComponentModel.DataAnnotations.DataType(System.ComponentModel.DataAnnotations.DataType.Date)]
         public System.DateTime FechaLimite { get; set; }
 
@@ -23,7 +23,7 @@ namespace EPYCUS_WEB_v0._1.ViewModels
 
         public bool ConPomodoro { get; set; } = false;
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Selecciona una categoría.")]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Selecciona una categorÃ­a.")]
         public int CategoriaId { get; set; }
     }
 }

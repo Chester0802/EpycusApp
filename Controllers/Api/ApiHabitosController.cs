@@ -1,11 +1,11 @@
-using System.Security.Claims;
-using EPYCUS_WEB_v0._1.Ayudantes;
-using EPYCUS_WEB_v0._1.DTOs;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+﻿using System.Security.Claims;
+using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
+using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EPYCUS_WEB_v0._1.Controllers.Api
+namespace EpycusApp.Controllers.Api
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -64,7 +64,7 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
 
             var resultado = await _servicioHabitos.CompletarHabito(id, usuarioId.Value);
             if (!resultado.Exito)
-                return BadRequest(RespuestaApi<CompletarHabitoRespuestaDto>.Fallida("No se pudo completar el hábito"));
+                return BadRequest(RespuestaApi<CompletarHabitoRespuestaDto>.Fallida("No se pudo completar el hÃ¡bito"));
 
             var respuesta = new CompletarHabitoRespuestaDto { XpGanado = resultado.XpGanado };
             return Ok(RespuestaApi<CompletarHabitoRespuestaDto>.Exitosa(respuesta));

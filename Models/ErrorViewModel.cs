@@ -1,4 +1,4 @@
-namespace EPYCUS_WEB_v0._1.Models
+﻿namespace EpycusApp.Models
 {
     public class ErrorViewModel
     {

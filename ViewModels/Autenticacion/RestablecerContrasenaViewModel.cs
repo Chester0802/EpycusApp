@@ -1,20 +1,20 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace EPYCUS_WEB_v0._1.ViewModels.Autenticacion
+namespace EpycusApp.ViewModels.Autenticacion
 {
     public class RestablecerContrasenaViewModel
     {
         [Required]
         public string Token { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "La nueva contraseña es obligatoria")]
-        [MinLength(6, ErrorMessage = "Mínimo 6 caracteres")]
-        [Display(Name = "Nueva contraseña")]
+        [Required(ErrorMessage = "La nueva contraseÃ±a es obligatoria")]
+        [MinLength(6, ErrorMessage = "MÃ­nimo 6 caracteres")]
+        [Display(Name = "Nueva contraseÃ±a")]
         public string NuevaContrasena { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Confirma tu contraseña")]
-        [Compare(nameof(NuevaContrasena), ErrorMessage = "Las contraseñas no coinciden")]
-        [Display(Name = "Confirmar contraseña")]
+        [Required(ErrorMessage = "Confirma tu contraseÃ±a")]
+        [Compare(nameof(NuevaContrasena), ErrorMessage = "Las contraseÃ±as no coinciden")]
+        [Display(Name = "Confirmar contraseÃ±a")]
         public string ConfirmarContrasena { get; set; } = string.Empty;
     }
 }

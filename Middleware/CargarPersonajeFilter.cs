@@ -1,9 +1,9 @@
-using System.Security.Claims;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+﻿using System.Security.Claims;
+using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace EPYCUS_WEB_v0._1.Middleware
+namespace EpycusApp.Middleware
 {
     /// <summary>
     /// Action filter that loads the current user's character image into ViewBag
@@ -12,10 +12,12 @@ namespace EPYCUS_WEB_v0._1.Middleware
     public class CargarPersonajeFilter : IAsyncActionFilter
     {
         private readonly IServicioPerfil _servicioPerfil;
+        private readonly ILogger<CargarPersonajeFilter> _logger;
 
-        public CargarPersonajeFilter(IServicioPerfil servicioPerfil)
+        public CargarPersonajeFilter(IServicioPerfil servicioPerfil, ILogger<CargarPersonajeFilter> logger)
         {
             _servicioPerfil = servicioPerfil;
+            _logger = logger;
         }
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -36,9 +38,9 @@ namespace EPYCUS_WEB_v0._1.Middleware
                             var imagen = await _servicioPerfil.ObtenerImagenPersonajeActual(usuarioId);
                             viewResult.ViewData["ImagenPersonaje"] = imagen;
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // Silently ignore - placeholder will be used
+                            _logger.LogWarning(ex, "Error al cargar imagen de personaje para usuario {UsuarioId}", usuarioId);
                         }
                     }
                 }

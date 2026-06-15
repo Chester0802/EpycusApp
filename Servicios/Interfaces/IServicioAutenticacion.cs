@@ -1,7 +1,7 @@
-using EPYCUS_WEB_v0._1.Models.Entidades;
-using EPYCUS_WEB_v0._1.ViewModels;
+﻿using EpycusApp.Models.Entidades;
+using EpycusApp.ViewModels;
 
-namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
+namespace EpycusApp.Servicios.Interfaces
 {
     public interface IServicioAutenticacion
     {
@@ -14,7 +14,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
         Task CerrarSesion(int usuarioId);
         Task<List<Carrera>> ObtenerCarrerasActivas();
         
-        // Cambiar contraseña: correo + actual + nueva
+        // Cambiar contraseÃ±a: correo + actual + nueva
         Task<(bool EsExitoso, string? Mensaje)> CambiarContrasenaAsync(string correo, string contrasenaActual, string nuevaContrasena);
     }
 }

@@ -1,11 +1,11 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
-namespace EPYCUS_WEB_v0._1.Ayudantes;
+namespace EpycusApp.Ayudantes;
 
 /// <summary>
-/// Valida que un checkbox booleano esté marcado como true.
-/// Reemplaza [Range(typeof(bool), "true", "true")] que falla en validación
+/// Valida que un checkbox booleano estÃ© marcado como true.
+/// Reemplaza [Range(typeof(bool), "true", "true")] que falla en validaciÃ³n
 /// cliente por incompatibilidad entre "True" (.NET) y "true" (HTML/JS).
 /// </summary>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
@@ -13,7 +13,7 @@ public class DebeSerVerdaderoAttribute : ValidationAttribute, IClientModelValida
 {
     public DebeSerVerdaderoAttribute()
     {
-        ErrorMessage = "Debe aceptar los términos";
+        ErrorMessage = "Debe aceptar los tÃ©rminos";
     }
 
     public override bool IsValid(object? value)

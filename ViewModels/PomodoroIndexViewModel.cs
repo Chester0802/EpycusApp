@@ -1,7 +1,7 @@
-using System.Collections.Generic;
-using EPYCUS_WEB_v0._1.Models.Entidades;
+﻿using System.Collections.Generic;
+using EpycusApp.Models.Entidades;
 
-namespace EPYCUS_WEB_v0._1.ViewModels
+namespace EpycusApp.ViewModels
 {
     public class PomodoroIndexViewModel
     {

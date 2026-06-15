@@ -1,12 +1,8 @@
-# 🎮 Epycus Web
+# EpycusApp
 
 Sistema multiplataforma de gamificación de hábitos inspirado en Solo Leveling, enfocado en universitarios peruanos.
 
-## 📋 Descripción
-
-Epycus es un sistema de gamificación de hábitos donde los usuarios eligen su carrera profesional, se les asigna un personaje, y avanzan de nivel completando hábitos, misiones y sesiones Pomodoro.
-
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 - **Backend:** ASP.NET MVC (.NET 9)
 - **Base de datos:** MariaDB
@@ -16,18 +12,18 @@ Epycus es un sistema de gamificación de hábitos donde los usuarios eligen su c
 - **Frontend:** Razor Views + Bootstrap 5 + Chart.js
 - **Deploy:** VPS Hostinger (Ubuntu + Nginx)
 
-## 📦 Requisitos
+## Requisitos
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download)
 - MariaDB 10.x+
 - Visual Studio 2026 / VS Code
 
-## 🚀 Instalación Local
+## Instalación Local
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/Chester0802/Capstone_Epycus_Web.git
-cd Capstone_Epycus_Web
+git clone <repo-url>
+cd EpycusApp
 
 # 2. Configurar appsettings
 cp appsettings.Example.json appsettings.json
@@ -45,7 +41,7 @@ dotnet run
 
 La aplicación estará disponible en: `http://localhost:5053`
 
-## ⚙️ Configuración
+## Configuración
 
 Copia `appsettings.Example.json` a `appsettings.json` y configura:
 
@@ -58,7 +54,7 @@ Copia `appsettings.Example.json` a `appsettings.json` y configura:
 | `Correo:*` | Configuración SMTP para envío de correos |
 | `Gemini:ApiKey` | API Key de Google Gemini |
 
-## 🚢 Deploy en VPS
+## Deploy en VPS
 
 ### Requisitos del servidor:
 - Ubuntu 22.04+
@@ -73,9 +69,11 @@ El deploy se ejecuta automáticamente via GitHub Actions al hacer push a `main`.
 
 ```bash
 # 1. En el VPS, configurar la base de datos y servicios
+export DB_PASSWORD='tu_contraseña_segura'
 sudo bash deploy/setup-vps.sh
 
 # 2. Editar variables de entorno del servicio
+sudo cp deploy/epycus-web.service.example /etc/systemd/system/epycus-web.service
 sudo nano /etc/systemd/system/epycus-web.service
 
 # 3. Publicar la aplicación (desde tu máquina local)
@@ -104,28 +102,20 @@ sudo systemctl status epycus-web
 
 | Archivo | Descripción |
 |---|---|
-| `deploy/epycus-web.service` | Servicio systemd para la app |
+| `deploy/epycus-web.service.example` | Servicio systemd (template con placeholders) |
 | `deploy/nginx-epycus.conf` | Configuración de Nginx (reverse proxy + SSL) |
 | `deploy/setup-vps.sh` | Script de configuración inicial del VPS |
 
-## 🗄️ Base de datos
+## Base de datos
 
 Configuración de MariaDB para producción:
 
 ```
-Base de datos: epicus_db
-Usuario: epicus_user
+Base de datos: epycus_db
+Usuario: epycus_user
 ServerVersion: 11.8.6-mariadb
 ```
 
-En `appsettings.json` o variables de entorno:
-
-```json
-"MySql": {
-  "ServerVersion": "10.11.6-mariadb"
-}
-```
-
-## 📄 Licencia
+## Licencia
 
 Epycus App © 2025 — Todos los derechos reservados.

@@ -4,7 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>EPYCUS_WEB_v0._1</RootNamespace>
+    <RootNamespace>EpycusApp</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

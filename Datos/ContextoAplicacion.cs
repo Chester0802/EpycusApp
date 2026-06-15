@@ -1,7 +1,7 @@
-using EPYCUS_WEB_v0._1.Models.Entidades;
+﻿using EpycusApp.Models.Entidades;
 using Microsoft.EntityFrameworkCore;
 
-namespace EPYCUS_WEB_v0._1.Datos
+namespace EpycusApp.Datos
 {
     public class ContextoAplicacion : DbContext
     {
@@ -162,6 +162,37 @@ namespace EPYCUS_WEB_v0._1.Datos
                 .HasForeignKey(s => s.ActivadaPorAdminId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .IsRequired(false);
+
+            // ── Índices para rendimiento ────────────────────────────────
+            modelBuilder.Entity<MensajeIA>()
+                .HasIndex(m => m.ConversacionId);
+
+            modelBuilder.Entity<MensajeIA>()
+                .HasIndex(m => m.UsuarioId);
+
+            modelBuilder.Entity<Log>()
+                .HasIndex(l => l.UsuarioId);
+
+            modelBuilder.Entity<EstadoAnimo>()
+                .HasIndex(e => e.UsuarioId);
+
+            modelBuilder.Entity<TokenRefresh>()
+                .HasIndex(t => t.UsuarioId);
+
+            modelBuilder.Entity<TokenRefresh>()
+                .HasIndex(t => t.Token);
+
+            modelBuilder.Entity<RecuperacionContrasena>()
+                .HasIndex(r => r.UsuarioId);
+
+            modelBuilder.Entity<SesionPomodoro>()
+                .HasIndex(s => s.UsuarioId);
+
+            modelBuilder.Entity<LogroUsuario>()
+                .HasIndex(l => l.UsuarioId);
+
+            modelBuilder.Entity<VerificacionCorreo>()
+                .HasIndex(v => v.UsuarioId);
         }
     }
 }
