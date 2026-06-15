@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace EpycusApp.Controllers;
 
 [Authorize]
-public class AjustesController : Controller
+public class AjustesController : BaseController
 {
     private readonly IServicioPerfil _servicioPerfil;
     private readonly IServicioAutenticacion _servicioAutenticacion;
@@ -20,7 +20,7 @@ public class AjustesController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var usuarioId = ObtenerUsuarioId();
         var perfil = await _servicioPerfil.ObtenerPerfilCompletoAsync(usuarioId);
 
         if (perfil == null)
@@ -44,7 +44,7 @@ public class AjustesController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var usuarioId = ObtenerUsuarioId();
         var resultado = await _servicioPerfil.ActualizarPerfilAsync(usuarioId, modelo);
 
         if (resultado.EsExitoso)
@@ -68,7 +68,7 @@ public class AjustesController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var usuarioId = ObtenerUsuarioId();
         var correo = User.FindFirstValue(ClaimTypes.Email);
 
         var resultado = await _servicioAutenticacion.CambiarContrasenaAsync(
@@ -92,7 +92,7 @@ public class AjustesController : Controller
     [HttpPost]
     public async Task<IActionResult> CambiarPersonaje(int personajeId)
     {
-        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var usuarioId = ObtenerUsuarioId();
         await _servicioPerfil.CambiarPersonaje(personajeId, usuarioId);
         var nuevaImagen = await _servicioPerfil.ObtenerImagenPersonajeActual(usuarioId);
         return Json(new { exito = true, imagenUrl = nuevaImagen });
@@ -101,7 +101,7 @@ public class AjustesController : Controller
     [HttpPost]
     public async Task<IActionResult> CambiarTema(int temaId)
     {
-        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var usuarioId = ObtenerUsuarioId();
         var resultado = await _servicioPerfil.CambiarTemaAsync(usuarioId, temaId);
 
         if (resultado.EsExitoso)

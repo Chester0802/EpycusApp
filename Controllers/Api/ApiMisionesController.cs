@@ -8,7 +8,7 @@ namespace EpycusApp.Controllers.Api
     [ApiController]
     [Route("api/misiones")]
     [Authorize]
-    public class ApiMisionesController : ControllerBase
+    public class ApiMisionesController : BaseApiController
     {
         private readonly IServicioMisiones _servicioMisiones;
 
@@ -20,7 +20,7 @@ namespace EpycusApp.Controllers.Api
         [HttpPost("{id}/completar")]
         public async Task<IActionResult> Completar(int id)
         {
-            var usuarioId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var usuarioId = ObtenerUsuarioId()!.Value;
             var resultado = await _servicioMisiones.CompletarMision(id, usuarioId);
 
             if (!resultado.Exito)
@@ -34,7 +34,7 @@ namespace EpycusApp.Controllers.Api
         [HttpPost("{id}/estado")]
         public async Task<IActionResult> CambiarEstado(int id, [FromBody] EstadoDto dto)
         {
-            var usuarioId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var usuarioId = ObtenerUsuarioId()!.Value;
             await _servicioMisiones.CambiarEstado(id, dto.Estado, usuarioId);
             return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
         }

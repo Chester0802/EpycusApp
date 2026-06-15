@@ -2,13 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using EpycusApp.ViewModels;
 using EpycusApp.Servicios.Interfaces;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace EpycusApp.Controllers
 {
     [Authorize]
-    public class PomodoroController : Controller
+    public class PomodoroController : BaseController
     {
         private readonly IServicioPomodoro _servicioPomodoro;
 
@@ -24,8 +23,8 @@ namespace EpycusApp.Controllers
         {
             var modelo = new PomodoroIndexViewModel();
 
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (User.Identity != null && User.Identity.IsAuthenticated && int.TryParse(claim, out var usuarioId) && usuarioId != 0)
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId != 0)
             {
                 // ConfiguraciÃ³n
                 modelo.Configuracion = await _servicioPomodoro.ObtenerConfiguracion(usuarioId);

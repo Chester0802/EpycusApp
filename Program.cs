@@ -152,6 +152,13 @@ builder.Services.AddHttpClient("Gemini", client =>
 
 builder.Services.AddHttpClient();
 
+// Health Checks
+var cadenaConexion = builder.Configuration.GetConnectionString("ConexionPrincipal")!;
+builder.Services.AddHealthChecks()
+    .AddMySql(cadenaConexion, name: "Base de Datos", tags: ["db"])
+    .AddCheck<GeminiHealthCheck>("Gemini API", tags: ["api"])
+    .AddCheck<DiskHealthCheck>("Disco", tags: ["system"]);
+
 builder.Services.AddScoped<IServicioAutenticacion, ServicioAutenticacion>();
 builder.Services.AddScoped<IServicioGamificacion, ServicioGamificacion>();
 builder.Services.AddScoped<IServicioHabitos, ServicioHabitos>();
@@ -203,6 +210,27 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapDefaultControllerRoute();
+
+app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var json = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            status = report.Status.ToString(),
+            duration = report.TotalDuration,
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description,
+                data = e.Value.Data?.ToDictionary(kv => kv.Key, kv => kv.Value)
+            })
+        });
+        await context.Response.WriteAsync(json);
+    }
+});
 
 using (var scope = app.Services.CreateScope())
 {

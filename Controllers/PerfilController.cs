@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EpycusApp.Controllers
 {
     [Authorize]
-    public class PerfilController : Controller
+    public class PerfilController : BaseController
     {
         private const string ClaveExitoPerfil     = "ExitoPerfil";
         private const string ClaveErrorPerfil     = "ErrorPerfil";
@@ -106,9 +106,6 @@ namespace EpycusApp.Controllers
             return Ok(new { exito = resultado.EsExitoso, mensaje = resultado.Mensaje });
         }
 
-        // â”€â”€ Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        private int ObtenerUsuarioId()
-            => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     }
 
     public sealed class CambiarTemaDto

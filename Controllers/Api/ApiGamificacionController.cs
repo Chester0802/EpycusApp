@@ -8,7 +8,7 @@ namespace EpycusApp.Controllers.Api
     [ApiController]
     [Route("api/gamificacion")]
     [Authorize]
-    public class ApiGamificacionController : ControllerBase
+    public class ApiGamificacionController : BaseApiController
     {
         private readonly IServicioGamificacion _servicioGamificacion;
         private readonly IServicioProgreso _servicioProgreso;
@@ -22,7 +22,7 @@ namespace EpycusApp.Controllers.Api
         [HttpGet("mi-progreso")]
         public async Task<IActionResult> ObtenerProgreso()
         {
-            var usuarioId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var usuarioId = ObtenerUsuarioId()!.Value;
             var progreso = await _servicioProgreso.ObtenerProgreso(usuarioId);
             var nivelActual = progreso.NivelActual;
             var porcentaje = CalculadorXP.PorcentajeProgreso(progreso.XpTotal, nivelActual.Numero);
@@ -46,7 +46,7 @@ namespace EpycusApp.Controllers.Api
         [HttpGet("logros")]
         public async Task<IActionResult> ObtenerLogros()
         {
-            var usuarioId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var usuarioId = ObtenerUsuarioId()!.Value;
             var logros = await _servicioProgreso.ObtenerTodosLosLogros();
             var desbloqueados = await _servicioProgreso.ObtenerLogrosUsuario(usuarioId);
 

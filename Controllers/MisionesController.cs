@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using EpycusApp.Servicios.Interfaces;
+﻿using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace EpycusApp.Controllers
 {
     [Authorize]
-    public class MisionesController : Controller
+    public class MisionesController : BaseController
     {
         private readonly IServicioMisiones _servicioMisiones;
 
@@ -124,9 +123,6 @@ namespace EpycusApp.Controllers
             await _servicioMisiones.EliminarMision(id, ObtenerUsuarioId());
             return RedirectToAction(nameof(Index));
         }
-
-        private int ObtenerUsuarioId()
-            => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         private async Task CargarCategorias()
         {

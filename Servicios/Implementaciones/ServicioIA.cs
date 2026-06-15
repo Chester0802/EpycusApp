@@ -145,7 +145,21 @@ namespace EpycusApp.Servicios.Implementaciones
                     }
 
                     var geminiResp = await httpResp.Content.ReadFromJsonAsync<GeminiResponse>(cancellationToken: cts.Token);
-                    var texto = geminiResp?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
+
+                    if (geminiResp?.PromptFeedback?.BlockReason != null)
+                    {
+                        _logger.LogWarning("Gemini bloqueó la respuesta: {BlockReason}", geminiResp.PromptFeedback.BlockReason);
+                        return "No puedo responder a eso. Intenta reformular tu pregunta de otra manera.";
+                    }
+
+                    var candidate = geminiResp?.Candidates?.FirstOrDefault();
+                    if (candidate?.FinishReason == "SAFETY" || candidate?.FinishReason == "BLOCKLIST")
+                    {
+                        _logger.LogWarning("Gemini candidate bloqueado: {FinishReason}", candidate.FinishReason);
+                        return "No puedo responder a eso. Intenta reformular tu pregunta de otra manera.";
+                    }
+
+                    var texto = candidate?.Content?.Parts?.FirstOrDefault()?.Text;
 
                     return string.IsNullOrWhiteSpace(texto)
                         ? "No recibÃ­ respuesta de la IA. Intenta reformular tu pregunta. ðŸ”„"
@@ -413,11 +427,23 @@ namespace EpycusApp.Servicios.Implementaciones
     {
         [JsonPropertyName("candidates")]
         public List<GeminiCandidate>? Candidates { get; set; }
+
+        [JsonPropertyName("promptFeedback")]
+        public GeminiPromptFeedback? PromptFeedback { get; set; }
     }
 
     internal sealed class GeminiCandidate
     {
         [JsonPropertyName("content")]
         public GeminiContent? Content { get; set; }
+
+        [JsonPropertyName("finishReason")]
+        public string? FinishReason { get; set; }
+    }
+
+    internal sealed class GeminiPromptFeedback
+    {
+        [JsonPropertyName("blockReason")]
+        public string? BlockReason { get; set; }
     }
 }

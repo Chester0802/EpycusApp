@@ -8,7 +8,7 @@ namespace EpycusApp.Controllers.Api
     [ApiController]
     [Route("api/progreso")]
     [Authorize]
-    public class ApiProgresoController : ControllerBase
+    public class ApiProgresoController : BaseApiController
     {
         private readonly IServicioProgreso _servicioProgreso;
 
@@ -20,7 +20,7 @@ namespace EpycusApp.Controllers.Api
         [HttpGet]
         public async Task<IActionResult> Obtener()
         {
-            var usuarioId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var usuarioId = ObtenerUsuarioId()!.Value;
             var progreso = await _servicioProgreso.ObtenerProgreso(usuarioId);
             var nivelSiguiente = await _servicioProgreso.ObtenerNivelSiguiente(progreso.NivelActual.Numero);
             var xpParaSiguiente = CalculadorXP.XpParaSiguienteNivel(progreso.NivelActual.Numero);
@@ -38,7 +38,7 @@ namespace EpycusApp.Controllers.Api
         [HttpGet("logros")]
         public async Task<IActionResult> Logros()
         {
-            var usuarioId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var usuarioId = ObtenerUsuarioId()!.Value;
             var logros = await _servicioProgreso.ObtenerLogrosUsuario(usuarioId);
             return Ok(RespuestaApi<object>.Exitosa(logros));
         }
@@ -46,7 +46,7 @@ namespace EpycusApp.Controllers.Api
         [HttpGet("historial-animo")]
         public async Task<IActionResult> HistorialAnimo()
         {
-            var usuarioId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var usuarioId = ObtenerUsuarioId()!.Value;
             var historial = await _servicioProgreso.ObtenerHistorialAnimo(usuarioId);
             return Ok(RespuestaApi<object>.Exitosa(historial));
         }

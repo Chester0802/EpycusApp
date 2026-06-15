@@ -340,8 +340,6 @@ namespace EpycusApp.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Frecuencia = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    DiasSemana = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     ConPomodoro = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     RecordatorioHora = table.Column<TimeSpan>(type: "time(6)", nullable: true),
                     RachaActual = table.Column<int>(type: "int", nullable: false),
@@ -366,6 +364,32 @@ namespace EpycusApp.Migrations
                         principalTable: "Usuarios",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Log",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Accion = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Detalle = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DireccionIp = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FechaRegistro = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UsuarioId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Log", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Log_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -398,38 +422,12 @@ namespace EpycusApp.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Logs",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Accion = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Detalle = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DireccionIp = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    FechaRegistro = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UsuarioId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Logs", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Logs_Usuarios_UsuarioId",
-                        column: x => x.UsuarioId,
-                        principalTable: "Usuarios",
-                        principalColumn: "Id");
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "MensajesIA",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    ConversacionId = table.Column<string>(type: "longtext", nullable: false)
+                    ConversacionId = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     UsuarioId = table.Column<int>(type: "int", nullable: false),
                     Rol = table.Column<string>(type: "longtext", nullable: false)
@@ -648,7 +646,7 @@ namespace EpycusApp.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Token = table.Column<string>(type: "longtext", nullable: false)
+                    Token = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ExpiraEn = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     Revocado = table.Column<bool>(type: "tinyint(1)", nullable: false),
@@ -687,6 +685,27 @@ namespace EpycusApp.Migrations
                         name: "FK_VerificacionesCorreo_Usuarios_UsuarioId",
                         column: x => x.UsuarioId,
                         principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "DiasSemanaHabito",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    HabitoId = table.Column<int>(type: "int", nullable: false),
+                    DiaSemana = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DiasSemanaHabito", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DiasSemanaHabito_Habitos_HabitoId",
+                        column: x => x.HabitoId,
+                        principalTable: "Habitos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -763,6 +782,11 @@ namespace EpycusApp.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_DiasSemanaHabito_HabitoId",
+                table: "DiasSemanaHabito",
+                column: "HabitoId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_EstadosAnimo_UsuarioId",
                 table: "EstadosAnimo",
                 column: "UsuarioId");
@@ -783,6 +807,11 @@ namespace EpycusApp.Migrations
                 column: "PersonajeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Log_UsuarioId",
+                table: "Log",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LogrosUsuario_LogroId",
                 table: "LogrosUsuario",
                 column: "LogroId");
@@ -793,9 +822,9 @@ namespace EpycusApp.Migrations
                 column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Logs_UsuarioId",
-                table: "Logs",
-                column: "UsuarioId");
+                name: "IX_MensajesIA_ConversacionId",
+                table: "MensajesIA",
+                column: "ConversacionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MensajesIA_UsuarioId",
@@ -884,6 +913,11 @@ namespace EpycusApp.Migrations
                 column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TokensRefresh_Token",
+                table: "TokensRefresh",
+                column: "Token");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TokensRefresh_UsuarioId",
                 table: "TokensRefresh",
                 column: "UsuarioId");
@@ -934,6 +968,9 @@ namespace EpycusApp.Migrations
                 name: "ConfiguracionesPomodoro");
 
             migrationBuilder.DropTable(
+                name: "DiasSemanaHabito");
+
+            migrationBuilder.DropTable(
                 name: "EstadosAnimo");
 
             migrationBuilder.DropTable(
@@ -943,10 +980,10 @@ namespace EpycusApp.Migrations
                 name: "ImagenesNivelPersonaje");
 
             migrationBuilder.DropTable(
-                name: "LogrosUsuario");
+                name: "Log");
 
             migrationBuilder.DropTable(
-                name: "Logs");
+                name: "LogrosUsuario");
 
             migrationBuilder.DropTable(
                 name: "MensajesIA");

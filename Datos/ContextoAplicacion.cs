@@ -35,7 +35,8 @@ namespace EpycusApp.Datos
         public DbSet<TokenRefresh> TokensRefresh { get; set; } = null!;
         public DbSet<VerificacionCorreo> VerificacionesCorreo { get; set; } = null!;
         public DbSet<RecuperacionContrasena> RecuperacionesContrasena { get; set; } = null!;
-        public DbSet<Log> Logs { get; set; } = null!;
+        public DbSet<DiasSemanaHabito> DiasSemanaHabito { get; set; }
+ = null!;
         public DbSet<MensajeIA> MensajesIA { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -98,6 +99,12 @@ namespace EpycusApp.Datos
                 .WithMany(c => c.Habitos)
                 .HasForeignKey(h => h.CategoriaId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Habito>()
+                .HasMany(h => h.DiasSemana)
+                .WithOne(d => d.Habito)
+                .HasForeignKey(d => d.HabitoId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<RegistroHabito>()
                 .HasOne(r => r.Habito)

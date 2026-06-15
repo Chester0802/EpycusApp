@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using EpycusApp.Servicios.Interfaces;
+﻿using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels.Ia;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EpycusApp.Controllers
 {
     [Authorize]
-    public class IaController : Controller
+    public class IaController : BaseController
     {
         private readonly IServicioIA _servicioIA;
         private readonly ILogger<IaController> _logger;
@@ -80,9 +79,6 @@ namespace EpycusApp.Controllers
             }
         }
 
-        // â”€â”€ Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        private int ObtenerUsuarioId()
-            => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     }
 
     public sealed class ChatMensajeDto

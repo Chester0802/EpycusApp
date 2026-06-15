@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using EpycusApp.Ayudantes;
+﻿using EpycusApp.Ayudantes;
 using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +9,7 @@ namespace EpycusApp.Controllers.Api
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class ApiPomodoroController : ControllerBase
+    public class ApiPomodoroController : BaseApiController
     {
         private readonly IServicioPomodoro _servicioPomodoro;
 
@@ -19,25 +18,17 @@ namespace EpycusApp.Controllers.Api
             _servicioPomodoro = servicioPomodoro;
         }
 
-        private int ObtenerUsuarioIdActual()
-        {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(claim, out var usuarioId) && usuarioId > 0)
-                return usuarioId;
-            return 0;
-        }
-
         public class IniciarRequest { public int? HabitoId { get; set; } public int? MisionId { get; set; } }
 
         [HttpPost("iniciar")]
         public async Task<IActionResult> Iniciar([FromBody] IniciarRequest req)
         {
-            int usuarioId = ObtenerUsuarioIdActual();
-            if (usuarioId == 0)
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null)
             {
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
-            var sesion = await _servicioPomodoro.IniciarSesion(usuarioId, req?.HabitoId, req?.MisionId);
+            var sesion = await _servicioPomodoro.IniciarSesion(usuarioId.Value, req?.HabitoId, req?.MisionId);
             return Ok(RespuestaApi<object>.Exitosa(new { sesionId = sesion.Id, fechaInicio = sesion.FechaInicio }));
         }
 
@@ -70,12 +61,12 @@ namespace EpycusApp.Controllers.Api
         [HttpGet("configuracion")]
         public async Task<IActionResult> ObtenerConfiguracion()
         {
-            int usuarioId = ObtenerUsuarioIdActual();
-            if (usuarioId == 0)
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null)
             {
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
-            var config = await _servicioPomodoro.ObtenerConfiguracion(usuarioId);
+            var config = await _servicioPomodoro.ObtenerConfiguracion(usuarioId.Value);
             return Ok(RespuestaApi<object>.Exitosa(new {
                 tiempoEstudio = config.TiempoEstudioMin,
                 tiempoDescanso = config.TiempoDescansoMin,
@@ -88,8 +79,8 @@ namespace EpycusApp.Controllers.Api
         [HttpPut("configuracion")]
         public async Task<IActionResult> ActualizarConfiguracion([FromBody] ActualizarConfiguracionPomodoroDto dto)
         {
-            int usuarioId = ObtenerUsuarioIdActual();
-            if (usuarioId == 0)
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null)
             {
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
@@ -99,7 +90,7 @@ namespace EpycusApp.Controllers.Api
                 return BadRequest(RespuestaApi<object>.Fallida("Datos invÃ¡lidos."));
             }
 
-            await _servicioPomodoro.ActualizarConfiguracion(usuarioId, dto);
+            await _servicioPomodoro.ActualizarConfiguracion(usuarioId.Value, dto);
             return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
         }
 
