@@ -26,13 +26,13 @@
 | IMP-003 | Alta | `Program.cs` | Sin headers de seguridad (CSP, X-Frame-Options, etc.) | **Medio** | ✅ Corregido | Agregado middleware de security headers. |
 | IMP-004 | Alta | `Program.cs` | Sin configuración CORS | **Medio** | ✅ Corregido | Agregado CORS con orígenes configurables. |
 | IMP-005 | Media | `Program.cs` | Sin Rate Limiting | **Medio** | ✅ Corregido | Agregado con políticas Api (100/min) y Gemini (20/min). |
-| IMP-006 | Alta | `Datos/Semilla/DatosSemilla.cs` | Sin log de errores en operaciones de semilla | **Medio** | ⚠️ Pendiente | Agregar try-catch con logging. |
-| IMP-007 | Alta | Varios servicios | Ausencia de ILogger en `ServicioGamificacion`, `ServicioAdmin`, `ServicioBienestar`, `ServicioHabitos`, `ServicioMisiones`, `ServicioPerfil`, `ServicioProgreso` | **Medio** | ⚠️ Pendiente | Inyectar ILogger en cada servicio. |
+| IMP-006 | Alta | `Datos/Semilla/DatosSemilla.cs` | Sin log de errores en operaciones de semilla | **Medio** | ✅ Corregido | Agregado try-catch con logging. |
+| IMP-007 | Alta | Varios servicios | Ausencia de ILogger en `ServicioGamificacion`, `ServicioAdmin`, `ServicioBienestar`, `ServicioHabitos`, `ServicioMisiones`, `ServicioPerfil`, `ServicioProgreso` | **Medio** | ✅ Corregido | ILogger inyectado en todos los servicios. |
 | IMP-008 | Media | `Ayudantes/CalculadorXP.cs` vs `Ayudantes/ConstantesGamificacion.cs` | Constantes XP duplicadas y parcialmente inconsistentes | **Bajo** | ⚠️ Mitigado | Servicios corregidos para usar constantes. Unificar archivos como deuda técnica. |
-| IMP-009 | Media | `README.md` | Referencia a repositorio antiguo `Capstone_Epycus_Web` | **Bajo** | ⚠️ Pendiente | Actualizar URLs del README. |
-| IMP-010 | Alta | `Servicios/Implementaciones/ServicioAutenticacion.cs:150-168` | Race condition en renovación de token refresh | **Medio** | ⚠️ Pendiente | Usar transacción serializable o bloqueo optimista. |
-| IMP-011 | Alta | Migraciones múltiples | Dos migraciones iniciales (`InitialMerge` e `InitialMigration`) | **Medio** | ⚠️ Pendiente | Consolidar en una sola migración inicial. |
-| IMP-012 | Media | `deploy/nginx-epycus.conf` | SSL configurado pero sin HSTS ni CSP | **Medio** | ⚠️ Pendiente | Agregar `add_header Strict-Transport-Security` y CSP. |
+| IMP-009 | Media | `README.md` | Referencia a repositorio antiguo `Capstone_Epycus_Web` | **Bajo** | ✅ Corregido | README actualizado con URLs, instrucciones de deploy y CI/CD. |
+| IMP-010 | Alta | `Servicios/Implementaciones/ServicioAutenticacion.cs:150-168` | Race condition en renovación de token refresh | **Medio** | ✅ Corregido | Envuelto en transacción de BD con rollback automático. |
+| IMP-011 | Alta | Migraciones múltiples | Dos migraciones iniciales (`InitialMerge` e `InitialMigration`) | **Medio** | ✅ Corregido | Consolidado en una sola migración `Initial` (requiere reset de BD local). |
+| IMP-012 | Media | `deploy/nginx-epycus.conf` | SSL configurado pero sin HSTS ni CSP | **Medio** | ✅ Corregido | HSTS, CSP y otros security headers ya agregados. |
 | IMP-013 | Alta | `appsettings.Example.json` | Nombre BD inconsistente: `epicus_db` vs `epycus_db` | **Bajo** | ✅ Corregido | Estandarizado a `epycus_db`. |
 
 ---
@@ -41,12 +41,12 @@
 
 | ID | Prioridad | Archivo | Problema | Riesgo | Estado | Solución |
 |----|-----------|---------|----------|--------|--------|----------|
-| MEJ-001 | Baja | `EpycusApp.csproj` | Namespace `EPYCUS_WEB_v0._1` no coincide con nombre del proyecto | **Bajo** | ⚠️ Pendiente | Renombrar a `EpycusApp` (afecta 100+ archivos). Programar para sprints futuros. |
-| MEJ-002 | Baja | Varios | `DateTime.Now` usado en lugar de `DateTime.UtcNow` en entidades | **Bajo** | ⚠️ Pendiente | Cambiar a UTC para consistencia multi-zona horaria. |
+| MEJ-001 | Baja | `EpycusApp.csproj` | Namespace `EPYCUS_WEB_v0._1` no coincide con nombre del proyecto | **Bajo** | ✅ Corregido | Renombrado a `EpycusApp` (100+ archivos). |
+| MEJ-002 | Baja | Varios | `DateTime.Now` usado en lugar de `DateTime.UtcNow` en entidades | **Bajo** | ✅ Corregido | Normalizado a UTC en entidades y servicios. |
 | MEJ-003 | Baja | `Servicios/Implementaciones/ServicioIA.cs` | `GeminiResponse` no maneja `promptFeedback` (bloqueo por safety) | **Bajo** | ⚠️ Pendiente | Leer `promptFeedback.blockReason` para mejor UX. |
 | MEJ-004 | Baja | Controladores | `ObtenerUsuarioId()` duplicado en varios controllers | **Bajo** | ⚠️ Pendiente | Crear clase base `BaseController`. |
-| MEJ-005 | Baja | `Models/Entidades/MensajeIA.cs:17` | `FechaHora` usa `DateTime.UtcNow` (bien) pero inconsistente con otras entidades | **Bajo** | ⚠️ Pendiente | Unificar todas las entidades a UTC. |
-| MEJ-006 | Media | `Middleware/CargarPersonajeFilter.cs` | Silencia excepciones al cargar personaje | **Bajo** | ⚠️ Pendiente | Agregar logging mínimo. |
+| MEJ-005 | Baja | `Models/Entidades/MensajeIA.cs:17` | `FechaHora` usa `DateTime.UtcNow` (bien) pero inconsistente con otras entidades | **Bajo** | ✅ Corregido | Todas las entidades ahora usan `DateTime.UtcNow`. |
+| MEJ-006 | Media | `Middleware/CargarPersonajeFilter.cs` | Silencia excepciones al cargar personaje | **Bajo** | ✅ Corregido | Logging mínimo agregado con ILogger. |
 | MEJ-007 | Baja | `Ayudantes/ConstantesGamificacion.cs` | XP de misiones por prioridad no definido como constante | **Bajo** | ⚠️ Pendiente | Agregar XP_MISION_ALTA/MEDIA/BAJA. |
 | MEJ-008 | Media | `wwwroot/img/personajes/` | Faltan imágenes para carreras diferentes a Ing. Sistemas y Medicina | **Medio** | ⚠️ Pendiente | Generar imágenes placeholder para todas las carreras. |
 | MEJ-009 | Baja | `appsettings.json` | Versión de servidor MySQL no especificada | **Bajo** | ⚠️ Pendiente | Agregar `MySql:ServerVersion` para evitar auto-detección lenta. |
@@ -69,7 +69,7 @@
 | SEC-009 | ✅ | CORS configurado con lista blanca de orígenes |
 | SEC-010 | ✅ | Contraseñas hasheadas con BCrypt (workFactor=12) |
 | SEC-011 | ✅ | Refresh tokens hash almacenados (SHA256), no en texto plano |
-| SEC-012 | ⚠️ | Sin Dependabot configurado — agregar en settings de GitHub |
+| SEC-012 | ✅ | Dependabot configurado (NuGet + GitHub Actions, semanal) |
 | SEC-013 | ⚠️ | Sin escaneo de secretos en CI/CD pre-commit — configurar trufflehog |
 | SEC-014 | ✅ | Timeout y retry agregados a Gemini API |
 
@@ -80,11 +80,11 @@
 | ID | Estado | Descripción |
 |----|--------|-------------|
 | BD-001 | ✅ | Nombre de BD estandarizado: `epycus_db` |
-| BD-002 | ⚠️ | Sin índices explícitos en FK de `Log`, `MensajeIA`, `EstadoAnimo`, `TokenRefresh` |
-| BD-003 | ⚠️ | Dos migraciones iniciales (`InitialMerge` + `InitialMigration`) — consolidar |
+| BD-002 | ✅ | Índices agregados en FK de `Log`, `MensajeIA`, `EstadoAnimo`, `TokenRefresh`, `RecuperacionContrasena`, `SesionPomodoro`, `LogroUsuario`, `VerificacionCorreo` |
+| BD-003 | ✅ | Migraciones consolidadas en una sola `Initial` (requiere reset de BD local). |
 | BD-004 | ⚠️ | `DiasSemana` almacenado como JSON string en `Habito` — no normalizado |
 | BD-005 | ✅ | Relaciones y foreign keys correctamente definidas en `OnModelCreating` |
-| BD-006 | ⚠️ | Migración `AgregaMensajesIA` sin índice en `ConversacionId` |
+| BD-006 | ✅ | Índice en `ConversacionId` y `UsuarioId` agregado en `MensajeIA` |
 
 ---
 
@@ -107,7 +107,7 @@
 | VPS-001 | ✅ | Script `setup-vps.sh` sin contraseñas hardcodeadas |
 | VPS-002 | ✅ | Service `.example` template actualizado (uso de `CHANGE_ME` en lugar de valores reales) |
 | VPS-003 | ✅ | Nginx config con reverse proxy, SSL, security headers |
-| VPS-004 | ⚠️ | Configurar Dependabot para npm/NuGet |
+| VPS-004 | ✅ | Dependabot configurado para NuGet y GitHub Actions |
 | VPS-005 | ⚠️ | Agregar monitoreo (health checks, logs centralizados) |
 
 ---
