@@ -1,8 +1,9 @@
-namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
+﻿namespace EpycusApp.Servicios.Interfaces
 {
     public interface IServicioCorreo
-    {
-        Task EnviarVerificacion(string correo, string nombre, string token);
-        Task EnviarRecuperacion(string correo, string nombre, string token);
-    }
+{
+    Task EnviarVerificacion(string correo, string nombre, string token);
+    Task EnviarRecuperacion(string correo, string nombre, string token);
+    Task EnviarBienvenida(string correo, string nombre);
+}
 }

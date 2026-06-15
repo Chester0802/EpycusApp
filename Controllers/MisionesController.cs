@@ -1,11 +1,11 @@
-using System.Security.Claims;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels;
+﻿using System.Security.Claims;
+using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace EPYCUS_WEB_v0._1.Controllers
+namespace EpycusApp.Controllers
 {
     [Authorize]
     public class MisionesController : Controller

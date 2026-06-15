@@ -1,9 +1,9 @@
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels.Autenticacion;
+﻿using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels.Autenticacion;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EPYCUS_WEB_v0._1.Controllers
+namespace EpycusApp.Controllers
 {
     public class AutenticacionController : Controller
     {
@@ -43,13 +43,13 @@ namespace EPYCUS_WEB_v0._1.Controllers
         public async Task<IActionResult> Registro()
         {
             ViewBag.Carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
-            return View(new EPYCUS_WEB_v0._1.ViewModels.RegistroViewModel());
+            return View(new EpycusApp.ViewModels.RegistroViewModel());
         }
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Registro(EPYCUS_WEB_v0._1.ViewModels.RegistroViewModel modelo)
+        public async Task<IActionResult> Registro(EpycusApp.ViewModels.RegistroViewModel modelo)
         {
             if (!ModelState.IsValid)
             {

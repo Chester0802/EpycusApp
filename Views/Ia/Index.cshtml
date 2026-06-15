@@ -1,7 +1,7 @@
-@model EPYCUS_WEB_v0._1.ViewModels.Ia.IaChatViewModel
+﻿@model EpycusApp.ViewModels.Ia.IaChatViewModel
 
 @{
-    ViewData["Title"] = "EDY — Asistente IA";
+    ViewData["Title"] = "EDY â€” Asistente IA";
     Layout = "_Layout";
 }
 
@@ -11,7 +11,7 @@
 
 <div class="edy-chat-page" id="edy-chat-page">
 
-    <!-- ── Header ──────────────────────────────────────────── -->
+    <!-- â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="edy-header">
         <div class="edy-header-left">
             <div class="edy-avatar-lg" aria-hidden="true">
@@ -21,24 +21,24 @@
                 <div class="edy-header-name">
                     EDY <span class="edy-badge-ia">IA</span>
                 </div>
-                <div class="edy-header-subtitle">Tu coach académico personal · EPYCUS</div>
+                <div class="edy-header-subtitle">Tu coach acadÃ©mico personal Â· EPYCUS</div>
             </div>
         </div>
         <div class="edy-header-actions">
             <span class="edy-status-dot" aria-hidden="true"></span>
-            <span class="edy-status-text">En línea</span>
+            <span class="edy-status-text">En lÃ­nea</span>
             <form asp-action="Nueva" method="post" class="d-inline">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="edy-btn-nueva" title="Iniciar nueva conversación">
+                <button type="submit" class="edy-btn-nueva" title="Iniciar nueva conversaciÃ³n">
                     <i class="fas fa-plus" aria-hidden="true"></i>
-                    <span>Nueva conversación</span>
+                    <span>Nueva conversaciÃ³n</span>
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- ── Mensajes ─────────────────────────────────────────── -->
-    <div class="edy-messages" id="edy-messages" role="log" aria-live="polite" aria-label="Conversación con EDY">
+    <!-- â”€â”€ Mensajes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <div class="edy-messages" id="edy-messages" role="log" aria-live="polite" aria-label="ConversaciÃ³n con EDY">
 
         @if (!Model.Mensajes.Any())
         {
@@ -47,16 +47,16 @@
                 <div class="edy-welcome-avatar" aria-hidden="true">
                     <i class="fas fa-robot"></i>
                 </div>
-                <p class="edy-welcome-title">¡Hola! Soy EDY 👋</p>
+                <p class="edy-welcome-title">Â¡Hola! Soy EDY ðŸ‘‹</p>
                 <p class="edy-welcome-desc">
-                    Soy tu coach académico de EPYCUS. Conozco tus hábitos, misiones y estado de ánimo,
-                    así que puedo darte consejos personalizados. ¿En qué te ayudo hoy?
+                    Soy tu coach acadÃ©mico de EPYCUS. Conozco tus hÃ¡bitos, misiones y estado de Ã¡nimo,
+                    asÃ­ que puedo darte consejos personalizados. Â¿En quÃ© te ayudo hoy?
                 </p>
                 <div class="edy-suggestions" role="group" aria-label="Preguntas sugeridas">
-                    <button type="button" class="edy-suggestion" onclick="usarSugerencia(this)">¿Cómo van mis hábitos?</button>
+                    <button type="button" class="edy-suggestion" onclick="usarSugerencia(this)">Â¿CÃ³mo van mis hÃ¡bitos?</button>
                     <button type="button" class="edy-suggestion" onclick="usarSugerencia(this)">Tengo misiones urgentes</button>
                     <button type="button" class="edy-suggestion" onclick="usarSugerencia(this)">Me siento desmotivado</button>
-                    <button type="button" class="edy-suggestion" onclick="usarSugerencia(this)">¿Cómo mejoro mi racha?</button>
+                    <button type="button" class="edy-suggestion" onclick="usarSugerencia(this)">Â¿CÃ³mo mejoro mi racha?</button>
                 </div>
             </div>
         }
@@ -86,7 +86,7 @@
         }
 
         <!-- Indicador "escribiendo" -->
-        <div class="edy-msg edy-msg-edy" id="edy-typing" style="display:none;" aria-label="EDY está escribiendo" role="status">
+        <div class="edy-msg edy-msg-edy" id="edy-typing" style="display:none;" aria-label="EDY estÃ¡ escribiendo" role="status">
             <div class="edy-avatar-sm" aria-hidden="true"><i class="fas fa-robot"></i></div>
             <div class="edy-msg-bubble edy-msg-bubble-edy edy-typing-bubble" aria-hidden="true">
                 <span class="edy-dot"></span>
@@ -97,13 +97,13 @@
 
     </div>
 
-    <!-- ── Input ─────────────────────────────────────────────── -->
+    <!-- â”€â”€ Input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="edy-input-area">
         <div class="edy-input-wrapper">
             <textarea
                 id="edy-input"
                 class="edy-input"
-                placeholder="Escríbele a EDY..."
+                placeholder="EscrÃ­bele a EDY..."
                 rows="1"
                 maxlength="2000"
                 aria-label="Escribe tu mensaje para EDY"></textarea>
@@ -113,13 +113,13 @@
         </div>
         <div class="edy-input-hint">
             <i class="fas fa-circle-info" aria-hidden="true"></i>
-            Presiona <kbd>Enter</kbd> para enviar · <kbd>Shift+Enter</kbd> para nueva línea
+            Presiona <kbd>Enter</kbd> para enviar Â· <kbd>Shift+Enter</kbd> para nueva lÃ­nea
         </div>
     </div>
 
 </div>
 
-<!-- ID de conversación (no visible) -->
+<!-- ID de conversaciÃ³n (no visible) -->
 <input type="hidden" id="conv-id" value="@Model.ConversacionId" />
 
 @functions {
@@ -132,7 +132,7 @@
         // Cursiva *texto*
         texto = System.Text.RegularExpressions.Regex.Replace(
             texto, @"\*(.+?)\*", "<em>$1</em>");
-        // Saltos de línea
+        // Saltos de lÃ­nea
         texto = texto.Replace("\n", "<br>");
         return texto;
     }
@@ -149,19 +149,19 @@
     const sendBtn     = document.getElementById('edy-send');
     const typingEl    = document.getElementById('edy-typing');
 
-    // ── Scroll al fondo ─────────────────────────────────────
+    // â”€â”€ Scroll al fondo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function scrollToBottom() {
         messages.scrollTop = messages.scrollHeight;
     }
     scrollToBottom();
 
-    // ── Auto-altura del textarea ─────────────────────────────
+    // â”€â”€ Auto-altura del textarea â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     input.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
 
-    // ── Enter → enviar / Shift+Enter → nueva línea ──────────
+    // â”€â”€ Enter â†’ enviar / Shift+Enter â†’ nueva lÃ­nea â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     input.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -171,14 +171,14 @@
 
     sendBtn.addEventListener('click', enviarMensaje);
 
-    // ── Sugerencias de bienvenida ────────────────────────────
+    // â”€â”€ Sugerencias de bienvenida â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.usarSugerencia = function (btn) {
         input.value = btn.textContent.trim();
         input.dispatchEvent(new Event('input'));
         enviarMensaje();
     };
 
-    // ── Agregar burbuja al DOM ───────────────────────────────
+    // â”€â”€ Agregar burbuja al DOM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function agregarMensaje(rol, texto) {
         // Quitar pantalla de bienvenida si existe
         var welcome = document.getElementById('edy-welcome');
@@ -224,7 +224,7 @@
             .replace(/\n/g, '<br>');
     }
 
-    // ── Enviar mensaje ───────────────────────────────────────
+    // â”€â”€ Enviar mensaje â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function enviarMensaje() {
         var msg = input.value.trim();
         if (!msg || sendBtn.disabled) return;
@@ -254,11 +254,11 @@
             if (data.exito) {
                 agregarMensaje('edy', data.respuesta);
             } else {
-                agregarMensaje('edy', data.error || 'Ocurrió un error al procesar tu mensaje. Intenta de nuevo. 🔄');
+                agregarMensaje('edy', data.error || 'OcurriÃ³ un error al procesar tu mensaje. Intenta de nuevo. ðŸ”„');
             }
         } catch (_) {
             typingEl.style.display = 'none';
-            agregarMensaje('edy', 'No pude conectarme. Verifica tu conexión e intenta de nuevo. 🔄');
+            agregarMensaje('edy', 'No pude conectarme. Verifica tu conexiÃ³n e intenta de nuevo. ðŸ”„');
         }
 
         sendBtn.disabled = false;
@@ -266,7 +266,7 @@
         input.focus();
     }
 
-    // ── Ajustar altura al window resize ─────────────────────
+    // â”€â”€ Ajustar altura al window resize â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function ajustarAltura() {
         var page = document.getElementById('edy-chat-page');
         var top  = page.getBoundingClientRect().top + window.scrollY;

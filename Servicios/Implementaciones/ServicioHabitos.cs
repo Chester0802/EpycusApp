@@ -1,38 +1,40 @@
-using System;
-using EPYCUS_WEB_v0._1.DTOs;
-using EPYCUS_WEB_v0._1.Models.Entidades;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels;
-using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.Ayudantes;
+﻿using System;
+using EpycusApp.DTOs;
+using EpycusApp.Models.Entidades;
+using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
+using EpycusApp.Datos;
+using EpycusApp.Ayudantes;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
+namespace EpycusApp.Servicios.Implementaciones
 {
     public class ServicioHabitos : IServicioHabitos
     {
         private readonly ContextoAplicacion _context;
-        private readonly EPYCUS_WEB_v0._1.Servicios.Interfaces.IServicioGamificacion _servicioGamificacion;
+        private readonly EpycusApp.Servicios.Interfaces.IServicioGamificacion _servicioGamificacion;
+        private readonly ILogger<ServicioHabitos> _logger;
 
-        public ServicioHabitos(ContextoAplicacion context, EPYCUS_WEB_v0._1.Servicios.Interfaces.IServicioGamificacion servicioGamificacion)
+        public ServicioHabitos(ContextoAplicacion context, EpycusApp.Servicios.Interfaces.IServicioGamificacion servicioGamificacion, ILogger<ServicioHabitos> logger)
         {
             _context = context;
             _servicioGamificacion = servicioGamificacion;
+            _logger = logger;
         }
 
-        public async Task<EPYCUS_WEB_v0._1.ViewModels.HabitosDashboardViewModel> ObtenerDashboard(int usuarioId)
+        public async Task<EpycusApp.ViewModels.HabitosDashboardViewModel> ObtenerDashboard(int usuarioId)
         {
-            var vm = new EPYCUS_WEB_v0._1.ViewModels.HabitosDashboardViewModel();
+            var vm = new EpycusApp.ViewModels.HabitosDashboardViewModel();
 
             var habitos = await _context.Habitos.Where(h => h.UsuarioId == usuarioId).ToListAsync();
             vm.TotalHabitos = habitos.Count;
 
-            // Conteo registros últimos 7 días
-            var desde = DateOnly.FromDateTime(DateTime.Now.AddDays(-6));
+            // Conteo registros Ãºltimos 7 dÃ­as
+            var desde = DateOnly.FromDateTime(DateTime.Today.AddDays(-6));
             var registrosSemana = await (from r in _context.RegistrosHabito
                                          join h in _context.Habitos on r.HabitoId equals h.Id
                                          where r.Fecha >= desde && h.UsuarioId == usuarioId
@@ -58,8 +60,8 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                     (g, c) => new { c.Nombre, g.Count })
                 .ToDictionary(x => x.Nombre, x => x.Count);
 
-            // Totales hoy y racha máxima actual entre hábitos
-            var hoy = DateOnly.FromDateTime(DateTime.Now);
+            // Totales hoy y racha mÃ¡xima actual entre hÃ¡bitos
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
             vm.TotalCompletadosHoy = await (from r in _context.RegistrosHabito
                                             join h in _context.Habitos on r.HabitoId equals h.Id
                                             where r.Fecha == hoy && h.UsuarioId == usuarioId && r.Estado == "Completado"
@@ -78,14 +80,14 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 .ToListAsync();
         }
 
-        public async Task<List<EPYCUS_WEB_v0._1.ViewModels.HabitoViewModel>> ObtenerHabitosViewModel(int usuarioId)
+        public async Task<List<EpycusApp.ViewModels.HabitoViewModel>> ObtenerHabitosViewModel(int usuarioId)
         {
             var habitos = await _context.Habitos
                 .Include(h => h.Categoria)
                 .Where(h => h.UsuarioId == usuarioId)
                 .ToListAsync();
 
-            return habitos.Select(h => new EPYCUS_WEB_v0._1.ViewModels.HabitoViewModel
+            return habitos.Select(h => new EpycusApp.ViewModels.HabitoViewModel
             {
                 Id = h.Id,
                 Nombre = h.Nombre,
@@ -111,7 +113,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 .FirstOrDefaultAsync(h => h.Id == id);
         }
 
-        public async Task<EPYCUS_WEB_v0._1.ViewModels.HabitoViewModel?> ObtenerPorIdViewModel(int id)
+        public async Task<EpycusApp.ViewModels.HabitoViewModel?> ObtenerPorIdViewModel(int id)
         {
             var h = await _context.Habitos
                 .Include(x => x.Categoria)
@@ -120,7 +122,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             if (h is null)
                 return null;
 
-            return new EPYCUS_WEB_v0._1.ViewModels.HabitoViewModel
+            return new EpycusApp.ViewModels.HabitoViewModel
             {
                 Id = h.Id,
                 Nombre = h.Nombre,
@@ -140,16 +142,16 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
         public async Task CrearHabito(CrearHabitoViewModel modelo, int usuarioId)
         {
-            // Validar categoría
+            // Validar categorÃ­a
             var categoria = await _context.Categorias.FirstOrDefaultAsync(c => c.Id == modelo.CategoriaId && c.EstaActiva);
             if (categoria is null)
-                throw new ArgumentException("Categoría no válida");
+                throw new ArgumentException("CategorÃ­a no vÃ¡lida");
 
             // Normalizar DiasSemana: si viene en formato de texto separado por comas en el formulario
             if (modelo.DiasSemana == null)
             {
                 // intentar leer de Request form si existe (cuando el input es string)
-                // Notar: aquí no se puede acceder a HttpContext, por lo que esperaremos que el controlador convierta correctamente.
+                // Notar: aquÃ­ no se puede acceder a HttpContext, por lo que esperaremos que el controlador convierta correctamente.
             }
             var habito = new Habito
             {
@@ -168,7 +170,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<EPYCUS_WEB_v0._1.Models.Entidades.Categoria>> ObtenerCategoriasActivas()
+        public async Task<List<EpycusApp.Models.Entidades.Categoria>> ObtenerCategoriasActivas()
         {
             return await _context.Categorias.Where(c => c.EstaActiva).ToListAsync();
         }
@@ -208,8 +210,8 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             if (habito is null)
                 return (false, 0);
 
-            // Evitar completar dos veces el mismo día
-            var hoy = DateOnly.FromDateTime(DateTime.Now);
+            // Evitar completar dos veces el mismo dÃ­a
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
             if (habito.Registros.Any(r => r.Fecha == hoy && r.Estado == "Completado"))
                 return (false, 0);
 
@@ -232,7 +234,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 Fecha = hoy,
                 Estado = "Completado",
                 XpOtorgado = xpGanado,
-                FechaRegistro = DateTime.Now
+                FechaRegistro = DateTime.UtcNow
             };
 
             _context.RegistrosHabito.Add(registro);
@@ -241,16 +243,14 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             _context.Habitos.Update(habito);
             await _context.SaveChangesAsync();
 
-            // Llamar al servicio de gamificación: sumar XP calculado (xpGanado)
+            // Llamar al servicio de gamificaciÃ³n: sumar XP calculado (xpGanado)
             try
             {
                 await _servicioGamificacion.SumarXP(usuarioId, xpGanado);
             }
             catch (Exception ex)
             {
-                // Log el error pero no interrumpir el flujo principal
-                // TODO: Implementar logging apropiado (ILogger)
-                System.Diagnostics.Debug.WriteLine($"Error al sumar XP para usuario {usuarioId}: {ex.Message}");
+                _logger.LogError(ex, "Error al sumar XP para usuario {UsuarioId}", usuarioId);
             }
 
             return (true, xpGanado);
@@ -264,13 +264,13 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
             if (habito == null)
             {
-                return (false, "Hábito no encontrado");
+                return (false, "HÃ¡bito no encontrado");
             }
 
             var hoy = DateOnly.FromDateTime(DateTime.Today);
             if (habito.Registros.Any(r => r.Fecha == hoy))
             {
-                return (false, "Ya se registró el estado de hoy");
+                return (false, "Ya se registrÃ³ el estado de hoy");
             }
 
             // Romper racha
@@ -289,7 +289,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             _context.Habitos.Update(habito);
             await _context.SaveChangesAsync();
 
-            return (true, "Hábito marcado como fallido");
+            return (true, "HÃ¡bito marcado como fallido");
         }
 
         public async Task<List<HabitoRespuestaDto>> ObtenerHabitosConEstadoHoy(int usuarioId)

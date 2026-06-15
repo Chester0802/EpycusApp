@@ -1,6 +1,6 @@
-using System.Text;
+﻿using System.Text;
 
-namespace EPYCUS_WEB_v0._1.Ayudantes
+namespace EpycusApp.Ayudantes
 {
     public static class GeneradorCodigo
     {

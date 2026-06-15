@@ -1,4 +1,4 @@
-﻿namespace EPYCUS_WEB_v0._1.Models.Enums
+﻿namespace EpycusApp.Models.Enums
 {
     public enum PrioridadMision
     {

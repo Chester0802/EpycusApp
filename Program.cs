@@ -1,11 +1,14 @@
-using System.Text;
-using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.Datos.Semilla;
-using EPYCUS_WEB_v0._1.Servicios.Implementaciones;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+﻿using System.Text;
+using EpycusApp.Datos;
+using EpycusApp.Datos.Semilla;
+using EpycusApp.Middleware;
+using EpycusApp.Servicios.Implementaciones;
+using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,11 +23,11 @@ builder.Services.AddDbContext<ContextoAplicacion>(options =>
     options.UseMySql(cadenaConexion, serverVersion);
 });
 
-// Validación temprana de configuración crítica
+// ValidaciÃ³n temprana de configuraciÃ³n crÃ­tica
 var jwtClave = builder.Configuration["Jwt:Clave"];
 if (string.IsNullOrEmpty(jwtClave) || jwtClave.Length < 32)
 {
-    throw new InvalidOperationException("La clave JWT (Jwt:Clave) no está configurada o es muy corta. Define una clave segura de al menos 32 caracteres en variables de entorno o en secretos.");
+    throw new InvalidOperationException("La clave JWT (Jwt:Clave) no estÃ¡ configurada o es muy corta. Define una clave segura de al menos 32 caracteres en variables de entorno o en secretos.");
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -78,7 +81,75 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddControllersWithViews();
+
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<CargarPersonajeFilter>();
+});
+
+// Rate Limiting â€” proteger contra abuso de API
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddFixedWindowLimiter("Api", opt =>
+    {
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 5;
+    });
+
+    options.AddFixedWindowLimiter("Gemini", opt =>
+    {
+        opt.PermitLimit = 20;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
+    });
+
+    // PolÃ­tica global: cualquier request no cubierto por polÃ­ticas especÃ­ficas
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.User.Identity?.IsAuthenticated == true
+                ? context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "anon"
+                : "anon",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 200,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
+
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+});
+
+// CORS â€” permitir solo orÃ­genes conocidos (ajustar en producciÃ³n)
+var origenesPermitidos = builder.Configuration.GetSection("Cors:OrigenesPermitidos").Get<string[]>();
+if (origenesPermitidos is { Length: > 0 })
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("ApiPolicy", policy =>
+        {
+            policy.WithOrigins(origenesPermitidos)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        });
+    });
+}
+
+builder.Services.AddHttpClient("Gemini", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<IServicioAutenticacion, ServicioAutenticacion>();
@@ -106,6 +177,28 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseRateLimiter();
+
+// Seguridad: headers HTTP
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
+    context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+    if (!app.Environment.IsDevelopment())
+    {
+        context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://ui-avatars.com; font-src 'self' data:; connect-src 'self'";
+    }
+    await next();
+});
+
+if (origenesPermitidos is { Length: > 0 })
+{
+    app.UseCors("ApiPolicy");
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -118,7 +211,7 @@ using (var scope = app.Services.CreateScope())
     // Aplicar migraciones pendientes
     await contexto.Database.MigrateAsync();
 
-    // Datos semilla base (roles, niveles, categorías) — requeridos en todos los entornos
+    // Datos semilla base (roles, niveles, categorÃ­as) â€” requeridos en todos los entornos
     await DatosSemilla.InicializarAsync(contexto);
 }
 

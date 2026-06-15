@@ -1,4 +1,4 @@
-﻿namespace EPYCUS_WEB_v0._1.Models.Entidades
+﻿namespace EpycusApp.Models.Entidades
 {
     public class RegistroHabito
     {
@@ -6,7 +6,7 @@
         public DateOnly Fecha { get; set; }
         public string Estado { get; set; } = "Pendiente";
         public int XpOtorgado { get; set; } = 0;
-        public DateTime FechaRegistro { get; set; } = DateTime.Now;
+        public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
         public int HabitoId { get; set; }
         public Habito Habito { get; set; } = null!;
     }

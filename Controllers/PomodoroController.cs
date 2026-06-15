@@ -1,11 +1,11 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using EPYCUS_WEB_v0._1.ViewModels;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+using EpycusApp.ViewModels;
+using EpycusApp.Servicios.Interfaces;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace EPYCUS_WEB_v0._1.Controllers
+namespace EpycusApp.Controllers
 {
     [Authorize]
     public class PomodoroController : Controller
@@ -27,10 +27,10 @@ namespace EPYCUS_WEB_v0._1.Controllers
             var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (User.Identity != null && User.Identity.IsAuthenticated && int.TryParse(claim, out var usuarioId) && usuarioId != 0)
             {
-                // Configuración
+                // ConfiguraciÃ³n
                 modelo.Configuracion = await _servicioPomodoro.ObtenerConfiguracion(usuarioId);
 
-                // Estadísticas e Historial de Hoy
+                // EstadÃ­sticas e Historial de Hoy
                 var sesionesHoy = await _servicioPomodoro.ObtenerSesionesHoyAsync(usuarioId);
                 modelo.HistorialHoy = sesionesHoy;
 

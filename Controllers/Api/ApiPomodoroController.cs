@@ -1,11 +1,11 @@
-using System.Security.Claims;
-using EPYCUS_WEB_v0._1.Ayudantes;
-using EPYCUS_WEB_v0._1.DTOs;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+﻿using System.Security.Claims;
+using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
+using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EPYCUS_WEB_v0._1.Controllers.Api
+namespace EpycusApp.Controllers.Api
 {
     [Authorize]
     [ApiController]
@@ -55,7 +55,7 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
         {
             await _servicioPomodoro.FinalizarSesion(sesionId, req?.CiclosCompletados ?? 0);
             
-            // Recalcular xpTotal de la sesión para devolverlo (o leerlo de base de datos)
+            // Recalcular xpTotal de la sesiÃ³n para devolverlo (o leerlo de base de datos)
             var sesion = await _servicioPomodoro.ObtenerSesion(sesionId);
             return Ok(RespuestaApi<object>.Exitosa(new { xpTotal = sesion?.XpOtorgado ?? 0, sesionGuardada = true }));
         }
@@ -96,7 +96,7 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
 
             if (dto == null)
             {
-                return BadRequest(RespuestaApi<object>.Fallida("Datos inválidos."));
+                return BadRequest(RespuestaApi<object>.Fallida("Datos invÃ¡lidos."));
             }
 
             await _servicioPomodoro.ActualizarConfiguracion(usuarioId, dto);

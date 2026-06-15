@@ -1,8 +1,8 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Mail;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+using EpycusApp.Servicios.Interfaces;
 
-namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
+namespace EpycusApp.Servicios.Implementaciones
 {
     public class ServicioCorreo : IServicioCorreo
     {
@@ -43,6 +43,22 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 """;
 
             return EnviarAsync(correo, "Restablece tu contrasena de Epycus", cuerpo);
+        }
+
+        public Task EnviarBienvenida(string correo, string nombre)
+        {
+            var cuerpo = $"""
+                Hola {WebUtility.HtmlEncode(nombre)},
+
+                Â¡Bienvenido a Epycus! Tu correo ha sido verificado exitosamente.
+
+                Ahora puedes empezar a crear hÃ¡bitos, completar misiones y subir de nivel.
+                Â¡Cada dÃ­a es una nueva oportunidad para mejorar!
+
+                â€” El equipo de Epycus
+                """;
+
+            return EnviarAsync(correo, "Â¡Bienvenido a Epycus!", cuerpo);
         }
 
         private async Task EnviarAsync(string destinatario, string asunto, string cuerpo)

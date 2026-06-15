@@ -1,7 +1,7 @@
-@model EPYCUS_WEB_v0._1.ViewModels.Autenticacion.RestablecerContrasenaViewModel
+﻿@model EpycusApp.ViewModels.Autenticacion.RestablecerContrasenaViewModel
 
 @{
-    ViewData["Title"] = "Nueva contraseña";
+    ViewData["Title"] = "Nueva contraseÃ±a";
     Layout = "_LayoutAuth";
 }
 
@@ -11,8 +11,8 @@
         <div class="auth-card-icon">
             <i class="fas fa-shield-halved"></i>
         </div>
-        <h2 class="auth-card-title">Nueva contraseña</h2>
-        <p class="auth-card-subtitle">Elige una contraseña segura para tu cuenta.</p>
+        <h2 class="auth-card-title">Nueva contraseÃ±a</h2>
+        <p class="auth-card-subtitle">Elige una contraseÃ±a segura para tu cuenta.</p>
     </div>
 
     <form asp-action="RestablecerContrasena" method="post">
@@ -21,13 +21,13 @@
 
         <div asp-validation-summary="ModelOnly" class="auth-validation-summary"></div>
 
-        <!-- Nueva Contraseña -->
+        <!-- Nueva ContraseÃ±a -->
         <div class="auth-form-group">
-            <label asp-for="NuevaContrasena" class="auth-form-label">Nueva Contraseña</label>
+            <label asp-for="NuevaContrasena" class="auth-form-label">Nueva ContraseÃ±a</label>
             <div class="auth-input-wrapper">
                 <i class="fas fa-lock auth-input-icon"></i>
-                <input asp-for="NuevaContrasena" id="nuevaContrasena" class="auth-input" placeholder="••••••••" autocomplete="new-password" />
-                <button type="button" class="auth-toggle-password" onclick="togglePass('nuevaContrasena', this)" aria-label="Mostrar contraseña">
+                <input asp-for="NuevaContrasena" id="nuevaContrasena" class="auth-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autocomplete="new-password" />
+                <button type="button" class="auth-toggle-password" onclick="togglePass('nuevaContrasena', this)" aria-label="Mostrar contraseÃ±a">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
@@ -38,13 +38,13 @@
             <span asp-validation-for="NuevaContrasena" class="auth-validation-error"></span>
         </div>
 
-        <!-- Confirmar Contraseña -->
+        <!-- Confirmar ContraseÃ±a -->
         <div class="auth-form-group">
-            <label asp-for="ConfirmarContrasena" class="auth-form-label">Confirmar Contraseña</label>
+            <label asp-for="ConfirmarContrasena" class="auth-form-label">Confirmar ContraseÃ±a</label>
             <div class="auth-input-wrapper">
                 <i class="fas fa-lock auth-input-icon"></i>
-                <input asp-for="ConfirmarContrasena" id="confirmarContrasena" class="auth-input" placeholder="••••••••" autocomplete="new-password" />
-                <button type="button" class="auth-toggle-password" onclick="togglePass('confirmarContrasena', this)" aria-label="Mostrar contraseña">
+                <input asp-for="ConfirmarContrasena" id="confirmarContrasena" class="auth-input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autocomplete="new-password" />
+                <button type="button" class="auth-toggle-password" onclick="togglePass('confirmarContrasena', this)" aria-label="Mostrar contraseÃ±a">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
@@ -52,7 +52,7 @@
         </div>
 
         <button type="submit" class="auth-btn-primary">
-            <span>Guardar contraseña</span>
+            <span>Guardar contraseÃ±a</span>
             <i class="fas fa-check"></i>
         </button>
     </form>

@@ -1,17 +1,19 @@
-using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.Models.Entidades;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+﻿using EpycusApp.Datos;
+using EpycusApp.Models.Entidades;
+using EpycusApp.Servicios.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
+namespace EpycusApp.Servicios.Implementaciones
 {
     public class ServicioProgreso : IServicioProgreso
     {
         private readonly ContextoAplicacion _contexto;
+        private readonly ILogger<ServicioProgreso> _logger;
 
-        public ServicioProgreso(ContextoAplicacion contexto)
+        public ServicioProgreso(ContextoAplicacion contexto, ILogger<ServicioProgreso> logger)
         {
             _contexto = contexto;
+            _logger = logger;
         }
 
         public async Task<ProgresoUsuario> ObtenerProgreso(int usuarioId)

@@ -1,7 +1,7 @@
-using EPYCUS_WEB_v0._1.Models.Entidades;
-using EPYCUS_WEB_v0._1.ViewModels;
+﻿using EpycusApp.Models.Entidades;
+using EpycusApp.ViewModels;
 
-namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
+namespace EpycusApp.Servicios.Interfaces
 {
     public interface IServicioMisiones
     {

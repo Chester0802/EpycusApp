@@ -1,4 +1,4 @@
-@model EPYCUS_WEB_v0._1.ViewModels.BienestarViewModel
+﻿@model EpycusApp.ViewModels.BienestarViewModel
 
 @{
     ViewData["Title"] = "Bienestar";
@@ -6,16 +6,16 @@
     // Mapeo visual de estados
     var estadoConfig = new Dictionary<string, (string Emoji, string Color, string BgColor, string Label)>
     {
-        ["Genial"]    = ("😄", "#22c55e", "rgba(34,197,94,0.12)",    "Genial"),
-        ["Bien"]      = ("🙂", "#3b82f6", "rgba(59,130,246,0.12)",   "Bien"),
-        ["Normal"]    = ("😐", "#eab308", "rgba(234,179,8,0.12)",    "Normal"),
-        ["Cansado"]   = ("😴", "#f97316", "rgba(249,115,22,0.12)",   "Cansado"),
-        ["Estresado"] = ("😰", "#ef4444", "rgba(239,68,68,0.12)",    "Estresado")
+        ["Genial"]    = ("ðŸ˜„", "#22c55e", "rgba(34,197,94,0.12)",    "Genial"),
+        ["Bien"]      = ("ðŸ™‚", "#3b82f6", "rgba(59,130,246,0.12)",   "Bien"),
+        ["Normal"]    = ("ðŸ˜", "#eab308", "rgba(234,179,8,0.12)",    "Normal"),
+        ["Cansado"]   = ("ðŸ˜´", "#f97316", "rgba(249,115,22,0.12)",   "Cansado"),
+        ["Estresado"] = ("ðŸ˜°", "#ef4444", "rgba(239,68,68,0.12)",    "Estresado")
     };
 
     string EstadoColor(string e) => estadoConfig.TryGetValue(e, out var c) ? c.Color : "var(--ep-texto-secundario)";
     string EstadoBg(string e)    => estadoConfig.TryGetValue(e, out var c) ? c.BgColor : "transparent";
-    string EstadoEmoji(string e) => estadoConfig.TryGetValue(e, out var c) ? c.Emoji : "•";
+    string EstadoEmoji(string e) => estadoConfig.TryGetValue(e, out var c) ? c.Emoji : "â€¢";
 }
 
 <!-- Header -->
@@ -24,7 +24,7 @@
         <i class="fas fa-heart-pulse" style="color: var(--accent-primary);"></i>
         Bienestar
     </h1>
-    <p class="ep-header-subtitle">Cuida tu energía, tu ánimo y tu equilibrio diario.</p>
+    <p class="ep-header-subtitle">Cuida tu energÃ­a, tu Ã¡nimo y tu equilibrio diario.</p>
 </div>
 
 @if (TempData["AnimoRegistrado"] != null)
@@ -33,20 +33,20 @@
     <div class="alert border-0 rounded-3 py-2 px-3 mb-4 small d-flex align-items-center gap-2"
          style="background: @EstadoBg(estado); color: @EstadoColor(estado);" role="alert">
         <span class="fs-5">@EstadoEmoji(estado)</span>
-        Estado de ánimo registrado: <strong>@estado</strong>
+        Estado de Ã¡nimo registrado: <strong>@estado</strong>
     </div>
 }
 
 <div class="row g-4">
 
-    <!-- Col izquierda: Ánimo hoy + Frase -->
+    <!-- Col izquierda: Ãnimo hoy + Frase -->
     <div class="col-lg-5">
 
-        <!-- Tarjeta: Cómo te sientes hoy -->
+        <!-- Tarjeta: CÃ³mo te sientes hoy -->
         <div class="ep-card mb-4">
             <h5 class="fw-semibold mb-1 d-flex align-items-center gap-2">
                 <i class="bi bi-emoji-smile" style="color: var(--accent-primary);"></i>
-                ¿Cómo te sientes hoy?
+                Â¿CÃ³mo te sientes hoy?
             </h5>
             <p class="text-muted small mb-4">
                 @if (Model.EstadoHoy != null)
@@ -87,7 +87,7 @@
                 <div class="mb-3">
                     <label class="form-label small fw-semibold text-muted">Nota opcional</label>
                     <textarea name="nota" class="form-control ep-input" rows="2"
-                              placeholder="¿Qué está influyendo en tu día?"
+                              placeholder="Â¿QuÃ© estÃ¡ influyendo en tu dÃ­a?"
                               style="resize: none;">@(Model.EstadoHoy?.Nota ?? "")</textarea>
                 </div>
 
@@ -107,7 +107,7 @@
                 <p class="fst-italic mb-2" style="color: var(--ep-texto-primario); line-height: 1.6;">
                     "@Model.FraseMotivacional.Frase"
                 </p>
-                <p class="small text-muted mb-0">— @Model.FraseMotivacional.Autor</p>
+                <p class="small text-muted mb-0">â€” @Model.FraseMotivacional.Autor</p>
             </div>
         }
 
@@ -147,28 +147,28 @@
                 <i class="bi bi-shield-check fs-3 flex-shrink-0" style="color: #22c55e;"></i>
                 <div>
                     <div class="fw-semibold small" style="color: #22c55e;">Todo en orden</div>
-                    <div class="small text-muted">No hay alertas de bienestar activas. ¡Sigue así!</div>
+                    <div class="small text-muted">No hay alertas de bienestar activas. Â¡Sigue asÃ­!</div>
                 </div>
             </div>
         }
 
-        <!-- Historial de ánimo -->
+        <!-- Historial de Ã¡nimo -->
         <div class="ep-card">
             <h5 class="fw-semibold mb-4 d-flex align-items-center gap-2">
                 <i class="bi bi-calendar3" style="color: var(--accent-primary);"></i>
-                Historial de ánimo (14 días)
+                Historial de Ã¡nimo (14 dÃ­as)
             </h5>
 
             @if (!Model.HistorialAnimo.Any())
             {
                 <div class="text-center py-4 text-muted small">
                     <i class="bi bi-calendar-x fs-2 d-block mb-2 opacity-50"></i>
-                    Aún no has registrado ningún estado de ánimo.
+                    AÃºn no has registrado ningÃºn estado de Ã¡nimo.
                 </div>
             }
             else
             {
-                <!-- Mini gráfico de puntos -->
+                <!-- Mini grÃ¡fico de puntos -->
                 <div class="d-flex gap-2 flex-wrap mb-4">
                     @{
                         var hoy = DateOnly.FromDateTime(DateTime.Today);
@@ -179,7 +179,7 @@
                         var fecha = hoy.AddDays(-i);
                         var tieneRegistro = historialDict.TryGetValue(fecha, out var reg);
                         var color = tieneRegistro ? EstadoColor(reg!.Estado) : "var(--ep-borde)";
-                        var emoji = tieneRegistro ? EstadoEmoji(reg!.Estado) : "·";
+                        var emoji = tieneRegistro ? EstadoEmoji(reg!.Estado) : "Â·";
                         var esDomingo = fecha.DayOfWeek == DayOfWeek.Sunday;
                         <div class="text-center" style="min-width: 36px;">
                             <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-1"
@@ -191,7 +191,7 @@
                                 }
                                 else
                                 {
-                                    <span style="font-size: 0.5rem; color: var(--ep-texto-secundario);">—</span>
+                                    <span style="font-size: 0.5rem; color: var(--ep-texto-secundario);">â€”</span>
                                 }
                             </div>
                             <div class="small" style="font-size: 0.6rem; color: var(--ep-texto-secundario);">

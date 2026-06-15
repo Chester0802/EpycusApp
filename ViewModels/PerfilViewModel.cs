@@ -1,6 +1,6 @@
-using EPYCUS_WEB_v0._1.Models.Entidades;
+﻿using EpycusApp.Models.Entidades;
 
-namespace EPYCUS_WEB_v0._1.ViewModels
+namespace EpycusApp.ViewModels
 {
     public class PerfilViewModel
     {
@@ -18,7 +18,7 @@ namespace EPYCUS_WEB_v0._1.ViewModels
         public string? FotoGoogleUrl { get; set; }
         public int? TemaActualId { get; set; }
 
-        // Gamificación
+        // GamificaciÃ³n
         public int NivelActual { get; set; }
         public int XpTotal { get; set; }
         public int RachaActual { get; set; }

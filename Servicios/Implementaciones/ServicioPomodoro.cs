@@ -1,23 +1,26 @@
-using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.DTOs;
-using EPYCUS_WEB_v0._1.Models.Entidades;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels;
+﻿using EpycusApp.Ayudantes;
+using EpycusApp.Datos;
+using EpycusApp.DTOs;
+using EpycusApp.Models.Entidades;
+using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
-namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
+namespace EpycusApp.Servicios.Implementaciones
 {
     public class ServicioPomodoro : IServicioPomodoro
     {
         private readonly ContextoAplicacion _context;
         private readonly IServicioGamificacion _servicioGamificacion;
         private readonly IServicioBienestar _servicioBienestar;
+        private readonly ILogger<ServicioPomodoro> _logger;
 
-        public ServicioPomodoro(ContextoAplicacion context, IServicioGamificacion servicioGamificacion, IServicioBienestar servicioBienestar)
+        public ServicioPomodoro(ContextoAplicacion context, IServicioGamificacion servicioGamificacion, IServicioBienestar servicioBienestar, ILogger<ServicioPomodoro> logger)
         {
             _context = context;
             _servicioGamificacion = servicioGamificacion;
             _servicioBienestar = servicioBienestar;
+            _logger = logger;
         }
 
         public async Task<SesionPomodoro> IniciarSesion(int usuarioId, int? habitoId, int? misionId)
@@ -46,7 +49,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
             sesion.CiclosCompletados = ciclosCompletados;
 
-            int xpGanado = ciclosCompletados * 15;
+            int xpGanado = ciclosCompletados * ConstantesGamificacion.XP_BASE_POMODORO;
             sesion.XpOtorgado = xpGanado;
 
             var config = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == sesion.UsuarioId);
@@ -65,7 +68,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             _context.SesionesPomodoro.Update(sesion);
             await _context.SaveChangesAsync();
 
-            await _servicioGamificacion.SumarXP(sesion.UsuarioId, 15);
+            await _servicioGamificacion.SumarXP(sesion.UsuarioId, ConstantesGamificacion.XP_BASE_POMODORO);
 
             return (xpGanado, sugerir, pausaActiva ?? pausa);
         }
@@ -175,7 +178,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 {
                     Id = h.Id,
                     Nombre = h.Nombre,
-                    CategoriaNombre = h.Categoria != null ? h.Categoria.Nombre : "Sin categoría",
+                    CategoriaNombre = h.Categoria != null ? h.Categoria.Nombre : "Sin categorÃ­a",
                     Tipo = "Habito"
                 }).ToListAsync();
 
@@ -186,7 +189,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 {
                     Id = m.Id,
                     Nombre = m.Nombre,
-                    CategoriaNombre = m.Categoria != null ? m.Categoria.Nombre : "Sin categoría",
+                    CategoriaNombre = m.Categoria != null ? m.Categoria.Nombre : "Sin categorÃ­a",
                     Tipo = "Mision"
                 }).ToListAsync();
 

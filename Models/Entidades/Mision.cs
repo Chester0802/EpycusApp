@@ -1,4 +1,4 @@
-﻿namespace EPYCUS_WEB_v0._1.Models.Entidades
+﻿namespace EpycusApp.Models.Entidades
 {
     public class Mision
     {
@@ -11,7 +11,7 @@
         public string Estado { get; set; } = "Pendiente";
         public bool ConPomodoro { get; set; } = false;
         public int XpOtorgado { get; set; } = 0;
-        public DateTime FechaCreacion { get; set; } = DateTime.Now;
+        public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
         public DateTime? FechaCompletado { get; set; }
         public int UsuarioId { get; set; }
         public int CategoriaId { get; set; }

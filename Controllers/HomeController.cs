@@ -1,11 +1,11 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Security.Claims;
-using EPYCUS_WEB_v0._1.Models;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels;
+using EpycusApp.Models;
+using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EPYCUS_WEB_v0._1.Controllers
+namespace EpycusApp.Controllers
 {
     public class HomeController : Controller
     {
@@ -44,7 +44,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
                 // Obtener datos del dashboard
                 modelo.Estadisticas = await _servicioHabitos.ObtenerDashboard(usuarioId);
 
-                // Obtener hábitos de hoy
+                // Obtener hÃ¡bitos de hoy
                 var todosLosHabitos = await _servicioHabitos.ObtenerHabitosViewModel(usuarioId);
                 var hoy = (int)DateTime.Today.DayOfWeek;
 

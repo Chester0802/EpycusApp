@@ -1,4 +1,4 @@
-namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
+﻿namespace EpycusApp.Servicios.Interfaces
 {
     public class AlertaBienestar
     {

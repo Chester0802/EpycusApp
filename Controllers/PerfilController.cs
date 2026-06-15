@@ -1,10 +1,10 @@
-using System.Security.Claims;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels;
+﻿using System.Security.Claims;
+using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EPYCUS_WEB_v0._1.Controllers
+namespace EpycusApp.Controllers
 {
     [Authorize]
     public class PerfilController : Controller
@@ -25,7 +25,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
             _servicioAutenticacion  = servicioAutenticacion;
         }
 
-        // ── GET /Perfil ───────────────────────────────────────────────────────
+        // â”€â”€ GET /Perfil â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -43,7 +43,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
             return View(perfil);
         }
 
-        // ── POST /Perfil/ActualizarPerfil ─────────────────────────────────────
+        // â”€â”€ POST /Perfil/ActualizarPerfil â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActualizarPerfil(ActualizarPerfilViewModel modelo)
@@ -61,7 +61,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ── POST /Perfil/CambiarContrasena ────────────────────────────────────
+        // â”€â”€ POST /Perfil/CambiarContrasena â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CambiarContrasena(CambiarContrasenaViewModel modelo)
@@ -77,12 +77,12 @@ namespace EPYCUS_WEB_v0._1.Controllers
                 correo, modelo.ContrasenaActual, modelo.NuevaContrasena);
 
             TempData[resultado.EsExitoso ? ClaveExitoContrasena : ClaveErrorContrasena] =
-                resultado.EsExitoso ? "Contraseña actualizada correctamente." : resultado.Mensaje;
+                resultado.EsExitoso ? "ContraseÃ±a actualizada correctamente." : resultado.Mensaje;
 
             return RedirectToAction(nameof(Index));
         }
 
-        // ── POST /Perfil/CambiarPersonaje ─────────────────────────────────────
+        // â”€â”€ POST /Perfil/CambiarPersonaje â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CambiarPersonaje(int personajeId)
@@ -95,7 +95,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ── POST /api/perfil/tema  (AJAX) ─────────────────────────────────────
+        // â”€â”€ POST /api/perfil/tema  (AJAX) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         [HttpPost("/api/perfil/tema")]
         public async Task<IActionResult> CambiarTema([FromBody] CambiarTemaDto? dto)
         {
@@ -106,7 +106,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
             return Ok(new { exito = resultado.EsExitoso, mensaje = resultado.Mensaje });
         }
 
-        // ── Helper ────────────────────────────────────────────────────────────
+        // â”€â”€ Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private int ObtenerUsuarioId()
             => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     }

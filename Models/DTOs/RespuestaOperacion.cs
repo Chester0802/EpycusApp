@@ -1,4 +1,4 @@
-﻿namespace EPYCUS_WEB_v0._1.Models.DTOs
+﻿namespace EpycusApp.Models.DTOs
 {
     public class RespuestaOperacion
     {

@@ -1,4 +1,4 @@
-namespace EPYCUS_WEB_v0._1.ViewModels.Admin
+﻿namespace EpycusApp.ViewModels.Admin
 {
     public class AdminDashboardViewModel
     {

@@ -1,11 +1,11 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Text.Json.Serialization;
-using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.Models.Entidades;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+using EpycusApp.Datos;
+using EpycusApp.Models.Entidades;
+using EpycusApp.Servicios.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
+namespace EpycusApp.Servicios.Implementaciones
 {
     public class ServicioIA : IServicioIA
     {
@@ -15,20 +15,23 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private readonly string _modelo;
+        private readonly ILogger<ServicioIA> _logger;
 
         public ServicioIA(
             ContextoAplicacion contexto,
             IHttpClientFactory httpClientFactory,
-            IConfiguration config)
+            IConfiguration config,
+            ILogger<ServicioIA> logger)
         {
             _contexto  = contexto;
             _httpClient = httpClientFactory.CreateClient("Gemini");
             _apiKey    = config["Gemini:ApiKey"]
-                ?? throw new InvalidOperationException("Gemini:ApiKey no está configurado.");
+                ?? throw new InvalidOperationException("Gemini:ApiKey no estÃ¡ configurado.");
             _modelo    = config["Gemini:Modelo"] ?? "gemini-2.5-flash-lite";
+            _logger = logger;
         }
 
-        // ── Público ───────────────────────────────────────────────────────────
+        // â”€â”€ PÃºblico â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         public string NuevaConversacionId() => Guid.NewGuid().ToString();
 
@@ -42,14 +45,14 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
         public async Task<string> ChatAsync(int usuarioId, string mensaje, string conversacionId)
         {
-            // Seguridad: si la conversación ya tiene mensajes, validar que pertenezca al usuario
+            // Seguridad: si la conversaciÃ³n ya tiene mensajes, validar que pertenezca al usuario
             var primerMensaje = await _contexto.MensajesIA
                 .Where(m => m.ConversacionId == conversacionId)
                 .Select(m => (int?)m.UsuarioId)
                 .FirstOrDefaultAsync();
 
             if (primerMensaje.HasValue && primerMensaje.Value != usuarioId)
-                throw new UnauthorizedAccessException("La conversación no pertenece al usuario.");
+                throw new UnauthorizedAccessException("La conversaciÃ³n no pertenece al usuario.");
 
             // 1. Construir contexto del usuario para el system prompt
             var ctxUsuario = await ConstruirContextoAsync(usuarioId);
@@ -65,7 +68,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             });
             await _contexto.SaveChangesAsync();
 
-            // 3. Cargar los últimos N mensajes (incluye el recién guardado).
+            // 3. Cargar los Ãºltimos N mensajes (incluye el reciÃ©n guardado).
             // Nota: TakeLast no es traducible a SQL por EF Core; se toma en orden
             // descendente y se invierte en memoria.
             var historial = (await _contexto.MensajesIA
@@ -95,7 +98,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             return respuestaTexto;
         }
 
-        // ── Privados ──────────────────────────────────────────────────────────
+        // â”€â”€ Privados â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         private async Task<string> LlamarGeminiAsync(ContextoUsuarioIA ctx, List<MensajeIA> historial)
         {
@@ -119,29 +122,52 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
             var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_modelo}:generateContent?key={_apiKey}";
 
-            try
+            var maxReintentos = 2;
+            for (var intento = 0; intento <= maxReintentos; intento++)
             {
-                var reqMsg = new HttpRequestMessage(HttpMethod.Post, url)
+                try
                 {
-                    Content = JsonContent.Create(request)
-                };
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                    var reqMsg = new HttpRequestMessage(HttpMethod.Post, url)
+                    {
+                        Content = JsonContent.Create(request)
+                    };
 
-                var httpResp = await _httpClient.SendAsync(reqMsg);
-                if (!httpResp.IsSuccessStatusCode)
-                    return "Lo siento, no pude conectarme a la IA en este momento. Inténtalo de nuevo más tarde. 🔄";
+                    var httpResp = await _httpClient.SendAsync(reqMsg, cts.Token);
+                    if (!httpResp.IsSuccessStatusCode)
+                    {
+                        if (intento < maxReintentos && (int)httpResp.StatusCode >= 500)
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(1 << intento));
+                            continue;
+                        }
+                        return "Lo siento, no pude conectarme a la IA en este momento. IntÃ©ntalo de nuevo mÃ¡s tarde. ðŸ”„";
+                    }
 
-                var geminiResp = await httpResp.Content.ReadFromJsonAsync<GeminiResponse>();
-                var texto = geminiResp?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
+                    var geminiResp = await httpResp.Content.ReadFromJsonAsync<GeminiResponse>(cancellationToken: cts.Token);
+                    var texto = geminiResp?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
 
-                return string.IsNullOrWhiteSpace(texto)
-                    ? "No recibí respuesta de la IA. Intenta reformular tu pregunta. 🔄"
-                    : texto;
+                    return string.IsNullOrWhiteSpace(texto)
+                        ? "No recibÃ­ respuesta de la IA. Intenta reformular tu pregunta. ðŸ”„"
+                        : texto;
+                }
+                catch (OperationCanceledException)
+                {
+                    if (intento < maxReintentos) continue;
+                    return "La conexiÃ³n con EDY tardÃ³ demasiado. IntÃ©ntalo de nuevo. ðŸ”„";
+                }
+                catch (HttpRequestException)
+                {
+                    if (intento < maxReintentos)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(1 << intento));
+                        continue;
+                    }
+                    return "Hubo un error al comunicarme con EDY. Verifica tu conexiÃ³n e intÃ©ntalo de nuevo. ðŸ”„";
+                }
             }
-            catch (Exception)
-            {
-                // No exponer detalles sensibles en la respuesta al usuario
-                return "Hubo un error al comunicarme con EDY. Verifica tu conexión e inténtalo de nuevo. 🔄";
-            }
+
+            return "Hubo un error al comunicarme con EDY. Verifica tu conexiÃ³n e intÃ©ntalo de nuevo. ðŸ”„";
         }
 
         private async Task<ContextoUsuarioIA> ConstruirContextoAsync(int usuarioId)
@@ -159,7 +185,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
                 .OrderByDescending(e => e.Fecha)
                 .FirstOrDefault();
 
-            // ── Resumen de la última semana (últimos 7 días) ──────────────────
+            // â”€â”€ Resumen de la Ãºltima semana (Ãºltimos 7 dÃ­as) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             var hoyFecha       = DateOnly.FromDateTime(DateTime.Today);
             var inicioSemana   = hoyFecha.AddDays(-6);
             var inicioSemanaDt = DateTime.Today.AddDays(-6);
@@ -232,70 +258,70 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
 
             var habitos = ctx.Habitos.Count > 0
                 ? string.Join("\n", ctx.Habitos.Select(h =>
-                    $"  • {h.Nombre} ({h.Categoria}) — {h.Frecuencia}, racha: {h.Racha} días"))
-                : "  • Sin hábitos activos todavía";
+                    $"  â€¢ {h.Nombre} ({h.Categoria}) â€” {h.Frecuencia}, racha: {h.Racha} dÃ­as"))
+                : "  â€¢ Sin hÃ¡bitos activos todavÃ­a";
 
             var misiones = ctx.Misiones.Count > 0
                 ? string.Join("\n", ctx.Misiones.Select(m =>
                 {
                     var estado = m.DiasRestantes >= 0
-                        ? $"{m.DiasRestantes} días restantes"
-                        : $"vencida hace {Math.Abs(m.DiasRestantes)} días ⚠️";
-                    return $"  • [{m.Prioridad}] {m.Nombre} — {m.Estado} · {estado}";
+                        ? $"{m.DiasRestantes} dÃ­as restantes"
+                        : $"vencida hace {Math.Abs(m.DiasRestantes)} dÃ­as âš ï¸";
+                    return $"  â€¢ [{m.Prioridad}] {m.Nombre} â€” {m.Estado} Â· {estado}";
                 }))
-                : "  • Sin misiones pendientes";
+                : "  â€¢ Sin misiones pendientes";
 
             var animoInfo = ctx.DiasDesdeUltimoAnimo >= 0
                 ? $"{ctx.UltimoEstadoAnimo} (registrado hace {ctx.DiasDesdeUltimoAnimo} " +
-                  $"día{(ctx.DiasDesdeUltimoAnimo != 1 ? "s" : "")})"
-                : "Sin registros de estado de ánimo recientes";
+                  $"dÃ­a{(ctx.DiasDesdeUltimoAnimo != 1 ? "s" : "")})"
+                : "Sin registros de estado de Ã¡nimo recientes";
 
             var animosSemana = ctx.AnimosSemana.Count > 0
-                ? string.Join("\n", ctx.AnimosSemana.Select(a => $"  • {a}"))
-                : "  • Sin registros esta semana";
+                ? string.Join("\n", ctx.AnimosSemana.Select(a => $"  â€¢ {a}"))
+                : "  â€¢ Sin registros esta semana";
 
             return $"""
-                Eres EDY, el asistente de inteligencia artificial de EPYCUS — una plataforma académica
-                gamificada diseñada para estudiantes universitarios. Tu misión es actuar como coach personal
-                que combina productividad, bienestar y motivación.
+                Eres EDY, el asistente de inteligencia artificial de EPYCUS â€” una plataforma acadÃ©mica
+                gamificada diseÃ±ada para estudiantes universitarios. Tu misiÃ³n es actuar como coach personal
+                que combina productividad, bienestar y motivaciÃ³n.
 
-                ## Filosofía EPYCUS:
-                - PRODUCTIVIDAD: Ayudas a completar misiones y mantener hábitos con consistencia.
-                - BIENESTAR (ODS 3): Cuidas la salud mental y emocional. Si detectas señales de estrés,
-                  agotamiento o desmotivación, priorizas el bienestar sobre la productividad.
-                - GAMIFICACIÓN: El aprendizaje es una aventura. Celebras logros, XP, niveles y rachas.
-                  Incluso los pequeños avances merecen reconocimiento.
+                ## FilosofÃ­a EPYCUS:
+                - PRODUCTIVIDAD: Ayudas a completar misiones y mantener hÃ¡bitos con consistencia.
+                - BIENESTAR (ODS 3): Cuidas la salud mental y emocional. Si detectas seÃ±ales de estrÃ©s,
+                  agotamiento o desmotivaciÃ³n, priorizas el bienestar sobre la productividad.
+                - GAMIFICACIÃ“N: El aprendizaje es una aventura. Celebras logros, XP, niveles y rachas.
+                  Incluso los pequeÃ±os avances merecen reconocimiento.
 
-                ## Cómo te comportas:
-                - Respondes SIEMPRE en español.
-                - Tono cercano, motivador y empático — eres un compañero de estudio, no un bot frío.
-                - Máximo 3-4 párrafos por respuesta (salvo que el usuario pida algo extenso o técnico).
-                - Usas emojis con moderación (máx 3 por respuesta).
-                - Solo referencias datos reales del usuario que te proporciono — nunca inventas información.
-                - Si el usuario pregunta algo fuera de tu alcance (medicina, legal, financiero), redirige con empatía.
-                - Si el usuario pregunta quién eres o cómo te llamas, dices que eres EDY, el asistente de EPYCUS.
+                ## CÃ³mo te comportas:
+                - Respondes SIEMPRE en espaÃ±ol.
+                - Tono cercano, motivador y empÃ¡tico â€” eres un compaÃ±ero de estudio, no un bot frÃ­o.
+                - MÃ¡ximo 3-4 pÃ¡rrafos por respuesta (salvo que el usuario pida algo extenso o tÃ©cnico).
+                - Usas emojis con moderaciÃ³n (mÃ¡x 3 por respuesta).
+                - Solo referencias datos reales del usuario que te proporciono â€” nunca inventas informaciÃ³n.
+                - Si el usuario pregunta algo fuera de tu alcance (medicina, legal, financiero), redirige con empatÃ­a.
+                - Si el usuario pregunta quiÃ©n eres o cÃ³mo te llamas, dices que eres EDY, el asistente de EPYCUS.
 
                 ## Fecha actual: {hoy}
 
                 ## Perfil del usuario ({ctx.Nombre}):
-                - Nivel: {ctx.NivelNumero} — "{ctx.TituloNivel}"
+                - Nivel: {ctx.NivelNumero} â€” "{ctx.TituloNivel}"
                 - XP acumulado: {ctx.XpTotal:N0} puntos
-                - Racha actual: {ctx.RachaActual} días consecutivos
+                - Racha actual: {ctx.RachaActual} dÃ­as consecutivos
                 - Productividad diaria registrada: {ctx.ProductividadDiaria:F0}%
-                - Estado de ánimo reciente: {animoInfo}
+                - Estado de Ã¡nimo reciente: {animoInfo}
                 - Logros desbloqueados: {ctx.TotalLogros}
 
-                ## Resumen de la última semana (últimos 7 días):
-                - Hábitos completados: {ctx.HabitosCompletadosSemana}
+                ## Resumen de la Ãºltima semana (Ãºltimos 7 dÃ­as):
+                - HÃ¡bitos completados: {ctx.HabitosCompletadosSemana}
                 - Sesiones Pomodoro: {ctx.PomodorosSemana} iniciadas, {ctx.PomodorosCompletadosSemana} completadas ({ctx.CiclosPomodoroSemana} ciclos en total)
                 - Misiones completadas: {ctx.MisionesCompletadasSemana}
-                - Estados de ánimo registrados:
+                - Estados de Ã¡nimo registrados:
                 {animosSemana}
 
                 Usa este resumen semanal para personalizar tus consejos: reconoce el esfuerzo si la
-                semana fue productiva, y motiva con empatía (sin regañar) si fue floja.
+                semana fue productiva, y motiva con empatÃ­a (sin regaÃ±ar) si fue floja.
 
-                ## Hábitos activos ({ctx.Habitos.Count}):
+                ## HÃ¡bitos activos ({ctx.Habitos.Count}):
                 {habitos}
 
                 ## Misiones pendientes ({ctx.Misiones.Count}):
@@ -304,7 +330,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
         }
     }
 
-    // ── Clases de contexto interno ────────────────────────────────────────────
+    // â”€â”€ Clases de contexto interno â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     internal sealed class ContextoUsuarioIA
     {
@@ -320,7 +346,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
         public List<MisionIA> Misiones { get; set; } = new();
         public int TotalLogros { get; set; }
 
-        // Resumen de la última semana
+        // Resumen de la Ãºltima semana
         public int HabitosCompletadosSemana { get; set; }
         public int PomodorosSemana { get; set; }
         public int PomodorosCompletadosSemana { get; set; }
@@ -345,7 +371,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
         public int DiasRestantes { get; set; }
     }
 
-    // ── DTOs Gemini API ───────────────────────────────────────────────────────
+    // â”€â”€ DTOs Gemini API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     internal sealed class GeminiRequest
     {

@@ -1,16 +1,18 @@
-using EPYCUS_WEB_v0._1.Models.Entidades;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
+﻿using EpycusApp.Models.Entidades;
+using EpycusApp.Servicios.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
+namespace EpycusApp.Servicios.Implementaciones
 {
     public class ServicioAdmin : IServicioAdmin
     {
         private readonly Datos.ContextoAplicacion _contexto;
+        private readonly ILogger<ServicioAdmin> _logger;
 
-        public ServicioAdmin(Datos.ContextoAplicacion contexto)
+        public ServicioAdmin(Datos.ContextoAplicacion contexto, ILogger<ServicioAdmin> logger)
         {
             _contexto = contexto;
+            _logger = logger;
         }
 
         public async Task<List<Usuario>> ObtenerTodosUsuarios()
@@ -97,7 +99,7 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             _contexto.FrasesMotivacionales.Add(new FraseMotivacional
             {
                 Frase = frase.Trim(),
-                Autor = string.IsNullOrWhiteSpace(autor) ? "Anónimo" : autor.Trim(),
+                Autor = string.IsNullOrWhiteSpace(autor) ? "AnÃ³nimo" : autor.Trim(),
                 EstaActiva = true
             });
 

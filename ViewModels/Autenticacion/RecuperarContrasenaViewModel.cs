@@ -1,12 +1,12 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace EPYCUS_WEB_v0._1.ViewModels.Autenticacion
+namespace EpycusApp.ViewModels.Autenticacion
 {
     public class RecuperarContrasenaViewModel
     {
         [Required(ErrorMessage = "El correo es obligatorio")]
-        [EmailAddress(ErrorMessage = "Correo no válido")]
-        [Display(Name = "Correo electrónico")]
+        [EmailAddress(ErrorMessage = "Correo no vÃ¡lido")]
+        [Display(Name = "Correo electrÃ³nico")]
         public string CorreoElectronico { get; set; } = string.Empty;
     }
 }

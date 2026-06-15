@@ -1,4 +1,4 @@
-@model EPYCUS_WEB_v0._1.ViewModels.PomodoroIndexViewModel
+﻿@model EpycusApp.ViewModels.PomodoroIndexViewModel
 
 @{
     ViewData["Title"] = "Pomodoro";
@@ -6,7 +6,7 @@
 
 <div class="mb-4">
     <h1 class="ep-header-title d-flex align-items-center gap-2">Pomodoro <i class="bi bi-clock-history text-primary"></i></h1>
-    <p class="ep-header-subtitle">Enfócate, mantén la concentración y conquista tus metas. <i class="bi bi-tree text-success"></i></p>
+    <p class="ep-header-subtitle">EnfÃ³cate, mantÃ©n la concentraciÃ³n y conquista tus metas. <i class="bi bi-tree text-success"></i></p>
 </div>
 
 <div class="row">
@@ -27,11 +27,11 @@
                 </div>
             </div>
 
-            <!-- Círculo del Temporizador -->
+            <!-- CÃ­rculo del Temporizador -->
             <div class="ep-pomodoro-timer-wrapper">
                 <div class="ep-pomodoro-ring" id="timerRing">
                     <!-- Icono decorativo (como el tomate de la imagen) -->
-                    <div class="mb-2" style="font-size: 2rem;">🍅</div>
+                    <div class="mb-2" style="font-size: 2rem;">ðŸ…</div>
                     <div class="ep-pomodoro-time" id="timerDisplay">25:00</div>
                     <div class="ep-pomodoro-label" id="timerLabel">Tiempo de enfoque</div>
                 </div>
@@ -47,7 +47,7 @@
                 </button>
             </div>
 
-            <!-- Configuraciones rápidas inferiores -->
+            <!-- Configuraciones rÃ¡pidas inferiores -->
             <div class="row text-start border-top border-secondary pt-4 mt-2">
                 <div class="col-md-4 mb-3 mb-md-0">
                     <label class="text-secondary small mb-1 d-block">Ciclos objetivo</label>
@@ -64,13 +64,13 @@
                     <select class="form-select form-select-sm bg-transparent border-secondary text-white" id="configSonido">
                         @if (Model?.Configuracion?.SonidoActivo == true)
                         {
-                            <option value="true" selected>🎵 Campana suave</option>
-                            <option value="false">🔇 Sin sonido</option>
+                            <option value="true" selected>ðŸŽµ Campana suave</option>
+                            <option value="false">ðŸ”‡ Sin sonido</option>
                         }
                         else
                         {
-                            <option value="true">🎵 Campana suave</option>
-                            <option value="false" selected>🔇 Sin sonido</option>
+                            <option value="true">ðŸŽµ Campana suave</option>
+                            <option value="false" selected>ðŸ”‡ Sin sonido</option>
                         }
                     </select>
                 </div>
@@ -86,7 +86,7 @@
         </div>
     </div>
 
-    <!-- Columna Derecha: Panel de Información -->
+    <!-- Columna Derecha: Panel de InformaciÃ³n -->
     <div class="col-lg-5">
         
         <!-- Resumen de Hoy -->
@@ -154,13 +154,13 @@
                 else
                 {
                     <div class="alert alert-info bg-transparent border-info text-info small">
-                        No tienes hábitos ni misiones marcados para usar Pomodoro. Puedes activarlos editándolos en sus respectivas pantallas.
+                        No tienes hÃ¡bitos ni misiones marcados para usar Pomodoro. Puedes activarlos editÃ¡ndolos en sus respectivas pantallas.
                     </div>
                 }
             </div>
             
             <div class="mt-3 p-3 rounded" style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #F59E0B; font-size: 0.85rem;">
-                <i class="bi bi-lightbulb text-warning me-2"></i> Consejo: Una tarea por ciclo. Concéntrate al 100%. <i class="bi bi-tree text-success"></i>
+                <i class="bi bi-lightbulb text-warning me-2"></i> Consejo: Una tarea por ciclo. ConcÃ©ntrate al 100%. <i class="bi bi-tree text-success"></i>
             </div>
         </div>
 
@@ -195,7 +195,7 @@
                 }
                 else
                 {
-                    <div class="text-secondary small fst-italic no-sesiones-msg">Aún no hay sesiones registradas hoy.</div>
+                    <div class="text-secondary small fst-italic no-sesiones-msg">AÃºn no hay sesiones registradas hoy.</div>
                 }
             </div>
         </div>
@@ -205,7 +205,7 @@
 
 @section Scripts {
     <script>
-        // Configuración Pomodoro obtenida de BD
+        // ConfiguraciÃ³n Pomodoro obtenida de BD
         const CONFIG = {
             enfoque: @(Model?.Configuracion?.TiempoEstudioMin ?? 25) * 60,
             corto: @(Model?.Configuracion?.TiempoDescansoMin ?? 5) * 60,
@@ -252,7 +252,7 @@
         // Cambiar Modo (Enfoque, Descanso Corto, Descanso Largo)
         function setMode(mode) {
             if (timerState.isRunning) {
-                if(!confirm("Hay un temporizador en curso. ¿Deseas cambiar de modo y detenerlo?")) return;
+                if(!confirm("Hay un temporizador en curso. Â¿Deseas cambiar de modo y detenerlo?")) return;
                 stopTimer();
             }
 
@@ -269,7 +269,7 @@
                 }
             });
 
-            // Actualizar Colores Anillo y Botón
+            // Actualizar Colores Anillo y BotÃ³n
             if (mode === 'enfoque') {
                 elTimerRing.classList.remove('descanso');
                 elBtnPlayPause.classList.remove('descanso');
@@ -315,7 +315,7 @@
         }
 
         async function startTimer() {
-            // Llamada API Iniciar (solo si es enfoque y no hay sesión activa)
+            // Llamada API Iniciar (solo si es enfoque y no hay sesiÃ³n activa)
             if (timerState.mode === 'enfoque' && !timerState.sesionId) {
                 let bodyParams = {};
                 if (timerState.tareaSeleccionadaId) {
@@ -332,7 +332,7 @@
                         const data = await res.json();
                         timerState.sesionId = data.datos.sesionId;
                     }
-                } catch(e) { console.error("Error al iniciar sesión en API", e); }
+                } catch(e) { console.error("Error al iniciar sesiÃ³n en API", e); }
             }
 
             timerState.isRunning = true;
@@ -365,7 +365,7 @@
             elPlayIcon.classList.replace('bi-pause-fill', 'bi-play-fill');
             elPlayText.innerText = "Iniciar";
             
-            // Cancelar sesión en API
+            // Cancelar sesiÃ³n en API
             if (timerState.sesionId) {
                 fetch(`/api/apipomodoro/${timerState.sesionId}/cancelar`, { method: 'POST' });
                 timerState.sesionId = null;
@@ -381,18 +381,18 @@
         async function onTimerComplete() {
             pauseTimer();
             
-            // Sonido de campana si está activado
+            // Sonido de campana si estÃ¡ activado
             const sonidoActivo = document.getElementById('configSonido').value === 'true';
             if (sonidoActivo) {
-                console.log("¡Ding!");
-                // Aquí se podría reproducir un archivo de audio real
+                console.log("Â¡Ding!");
+                // AquÃ­ se podrÃ­a reproducir un archivo de audio real
             }
 
             if (timerState.mode === 'enfoque') {
                 timerState.ciclosCompletados++;
                 timerState.minutosTotales += Math.floor(CONFIG.enfoque / 60);
                 
-                // Actualizar Estadísticas
+                // Actualizar EstadÃ­sticas
                 document.getElementById('statCiclos').innerText = timerState.ciclosCompletados;
                 document.getElementById('statMinutos').innerText = timerState.minutosTotales;
 
@@ -411,11 +411,11 @@
                             timerState.xpTotal += 15; // 15 XP por ciclo
                             document.getElementById('statXP').innerText = timerState.xpTotal;
 
-                            timerState.sesionId = null; // La sesión ya está completada
+                            timerState.sesionId = null; // La sesiÃ³n ya estÃ¡ completada
                             
                             // Alerta ODS 3 de Salud y Bienestar
                             if (data.datos.sugerirDescanso) {
-                                alert("¡Alerta de Bienestar! Has completado varios ciclos seguidos. Te sugerimos tomar un Descanso Largo ahora.");
+                                alert("Â¡Alerta de Bienestar! Has completado varios ciclos seguidos. Te sugerimos tomar un Descanso Largo ahora.");
                                 setMode('largo');
                                 return;
                             }
@@ -423,11 +423,11 @@
                     } catch(e) { console.error("Error API ciclo completado"); }
                 }
 
-                // Cambiar automáticamente a descanso corto
+                // Cambiar automÃ¡ticamente a descanso corto
                 setMode('corto');
 
             } else {
-                // Terminó un descanso
+                // TerminÃ³ un descanso
                 agregarHistorial(timerState.mode === 'corto' ? "Descanso corto" : "Descanso largo", formatTime(CONFIG[timerState.mode]), false);
                 setMode('enfoque');
             }

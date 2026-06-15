@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace EPYCUS_WEB_v0._1.ViewModels
+namespace EpycusApp.ViewModels
 {
     public class ActualizarPerfilViewModel
     {

@@ -1,6 +1,6 @@
-using EPYCUS_WEB_v0._1.Models.Entidades;
+﻿using EpycusApp.Models.Entidades;
 
-namespace EPYCUS_WEB_v0._1.ViewModels.Ia
+namespace EpycusApp.ViewModels.Ia
 {
     public class IaChatViewModel
     {

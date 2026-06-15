@@ -1,10 +1,10 @@
-using System.Security.Claims;
-using EPYCUS_WEB_v0._1.Servicios.Interfaces;
-using EPYCUS_WEB_v0._1.ViewModels.Ia;
+﻿using System.Security.Claims;
+using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels.Ia;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EPYCUS_WEB_v0._1.Controllers
+namespace EpycusApp.Controllers
 {
     [Authorize]
     public class IaController : Controller
@@ -18,11 +18,11 @@ namespace EPYCUS_WEB_v0._1.Controllers
             _logger = logger;
         }
 
-        // ── GET /ia  o  /ia?conv={guid} ──────────────────────────────────────
+        // â”€â”€ GET /ia  o  /ia?conv={guid} â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         [HttpGet]
         public async Task<IActionResult> Index(string? conv)
         {
-            // Sin conversación → generar nueva y redirigir
+            // Sin conversaciÃ³n â†’ generar nueva y redirigir
             if (string.IsNullOrWhiteSpace(conv))
             {
                 var nuevaId = _servicioIA.NuevaConversacionId();
@@ -39,7 +39,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
             });
         }
 
-        // ── POST /ia/nueva  (botón "Nueva conversación") ─────────────────────
+        // â”€â”€ POST /ia/nueva  (botÃ³n "Nueva conversaciÃ³n") â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Nueva()
@@ -47,7 +47,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ── POST /api/ia/chat  (llamada AJAX) ─────────────────────────────────
+        // â”€â”€ POST /api/ia/chat  (llamada AJAX) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         [HttpPost("/api/ia/chat")]
         public async Task<IActionResult> Chat([FromBody] ChatMensajeDto? dto)
         {
@@ -76,11 +76,11 @@ namespace EPYCUS_WEB_v0._1.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error en chat IA para usuario {UsuarioId}", usuarioId);
-                return Ok(new { exito = false, error = "No pude conectarme con EDY. Inténtalo de nuevo." });
+                return Ok(new { exito = false, error = "No pude conectarme con EDY. IntÃ©ntalo de nuevo." });
             }
         }
 
-        // ── Helper ────────────────────────────────────────────────────────────
+        // â”€â”€ Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private int ObtenerUsuarioId()
             => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     }

@@ -1,4 +1,4 @@
-﻿namespace EPYCUS_WEB_v0._1.Models.Entidades
+﻿namespace EpycusApp.Models.Entidades
 {
     public class Nivel
     {

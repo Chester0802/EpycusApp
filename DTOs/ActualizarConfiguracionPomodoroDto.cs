@@ -1,4 +1,4 @@
-namespace EPYCUS_WEB_v0._1.DTOs
+﻿namespace EpycusApp.DTOs
 {
     public class ActualizarConfiguracionPomodoroDto
     {
