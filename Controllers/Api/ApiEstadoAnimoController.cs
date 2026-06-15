@@ -1,10 +1,7 @@
 using EPYCUS_WEB_v0._1.Ayudantes;
-using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.Models.Entidades;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace EPYCUS_WEB_v0._1.Controllers.Api
 {
@@ -13,12 +10,10 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
     [Authorize]
     public class ApiEstadoAnimoController : ControllerBase
     {
-        private readonly ContextoAplicacion _contexto;
         private readonly IServicioBienestar _servicioBienestar;
 
-        public ApiEstadoAnimoController(ContextoAplicacion contexto, IServicioBienestar servicioBienestar)
+        public ApiEstadoAnimoController(IServicioBienestar servicioBienestar)
         {
-            _contexto = contexto;
             _servicioBienestar = servicioBienestar;
         }
 
@@ -26,20 +21,7 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
         public async Task<IActionResult> Registrar([FromBody] EstadoAnimoDto dto)
         {
             var usuarioId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
-
-            var estado = new EstadoAnimo
-            {
-                UsuarioId = usuarioId,
-                Estado = dto.Estado,
-                Nota = dto.Nota,
-                Fecha = DateOnly.FromDateTime(DateTime.Today),
-                FechaRegistro = DateTime.UtcNow
-            };
-
-            _contexto.EstadosAnimo.Add(estado);
-            await _contexto.SaveChangesAsync();
-
-            var alerta = await _servicioBienestar.VerificarAnimoNegativoConsecutivo(usuarioId);
+            var alerta = await _servicioBienestar.RegistrarEstadoAnimo(usuarioId, dto.Estado, dto.Nota);
             return Ok(RespuestaApi<object>.Exitosa(new { success = true, alertaBienestar = alerta }));
         }
 
@@ -47,13 +29,9 @@ namespace EPYCUS_WEB_v0._1.Controllers.Api
         public async Task<IActionResult> Historial()
         {
             var usuarioId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
-            var historial = await _contexto.EstadosAnimo
-                .Where(e => e.UsuarioId == usuarioId)
-                .OrderByDescending(e => e.Fecha)
-                .Select(e => new { fecha = e.Fecha, estado = e.Estado, nota = e.Nota })
-                .ToListAsync();
-
-            return Ok(RespuestaApi<object>.Exitosa(historial));
+            var historial = await _servicioBienestar.ObtenerHistorialAnimoCompletoAsync(usuarioId);
+            var resultado = historial.Select(e => new { fecha = e.Fecha, estado = e.Estado, nota = e.Nota });
+            return Ok(RespuestaApi<object>.Exitosa(resultado));
         }
 
         public class EstadoAnimoDto

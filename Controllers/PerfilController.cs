@@ -1,11 +1,8 @@
 using System.Security.Claims;
-using EPYCUS_WEB_v0._1.Datos;
-using EPYCUS_WEB_v0._1.Models.Entidades;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using EPYCUS_WEB_v0._1.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace EPYCUS_WEB_v0._1.Controllers
 {
@@ -19,16 +16,13 @@ namespace EPYCUS_WEB_v0._1.Controllers
 
         private readonly IServicioPerfil _servicioPerfil;
         private readonly IServicioAutenticacion _servicioAutenticacion;
-        private readonly ContextoAplicacion _contexto;
 
         public PerfilController(
             IServicioPerfil servicioPerfil,
-            IServicioAutenticacion servicioAutenticacion,
-            ContextoAplicacion contexto)
+            IServicioAutenticacion servicioAutenticacion)
         {
             _servicioPerfil         = servicioPerfil;
             _servicioAutenticacion  = servicioAutenticacion;
-            _contexto               = contexto;
         }
 
         // ── GET /Perfil ───────────────────────────────────────────────────────
@@ -43,16 +37,8 @@ namespace EPYCUS_WEB_v0._1.Controllers
             perfil.PersonajesDisponibles =
                 await _servicioPerfil.ObtenerPersonajesDisponiblesAsync(usuarioId);
 
-            ViewBag.Logros = await _contexto.LogrosUsuario
-                .Include(lu => lu.Logro)
-                .Where(lu => lu.UsuarioId == usuarioId)
-                .OrderByDescending(lu => lu.FechaObtenido)
-                .ToListAsync();
-
-            ViewBag.Carreras = await _contexto.Carreras
-                .Where(c => c.EstaActiva)
-                .OrderBy(c => c.Nombre)
-                .ToListAsync();
+            ViewBag.Logros = await _servicioPerfil.ObtenerLogrosUsuarioConLogroAsync(usuarioId);
+            ViewBag.Carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
 
             return View(perfil);
         }

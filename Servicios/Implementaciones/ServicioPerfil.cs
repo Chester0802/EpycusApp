@@ -155,6 +155,15 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             return img ?? placeholder;
         }
 
+        public async Task<List<LogroUsuario>> ObtenerLogrosUsuarioConLogroAsync(int usuarioId)
+        {
+            return await _contexto.LogrosUsuario
+                .Include(lu => lu.Logro)
+                .Where(lu => lu.UsuarioId == usuarioId)
+                .OrderByDescending(lu => lu.FechaObtenido)
+                .ToListAsync();
+        }
+
         public async Task<RespuestaOperacion> CambiarTemaAsync(int usuarioId, int temaId)
         {
             var temaUsuario = await _contexto.TemasUsuario

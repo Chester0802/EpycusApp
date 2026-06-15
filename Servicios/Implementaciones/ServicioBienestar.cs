@@ -200,17 +200,42 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
         }
 
         // Registra un estado de ánimo para el usuario
-        public async Task RegistrarEstadoAnimo(int usuarioId, string estado, string? nota)
+        public async Task<AlertaBienestar?> RegistrarEstadoAnimo(int usuarioId, string estado, string? nota)
         {
             _contexto.EstadosAnimo.Add(new EstadoAnimo
             {
                 UsuarioId = usuarioId,
                 Estado = estado,
                 Nota = nota,
-                Fecha = DateOnly.FromDateTime(DateTime.Today)
+                Fecha = DateOnly.FromDateTime(DateTime.Today),
+                FechaRegistro = DateTime.UtcNow
             });
 
             await _contexto.SaveChangesAsync();
+            return await VerificarAnimoNegativoConsecutivo(usuarioId);
+        }
+
+        public async Task<List<EstadoAnimo>> ObtenerHistorialAnimoCompletoAsync(int usuarioId)
+        {
+            return await _contexto.EstadosAnimo
+                .Where(e => e.UsuarioId == usuarioId)
+                .OrderByDescending(e => e.Fecha)
+                .ToListAsync();
+        }
+
+        public async Task<int> ObtenerHabitosPendientesAsync(int usuarioId)
+        {
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
+            return await _contexto.Habitos
+                .Include(h => h.Registros)
+                .Where(h => h.UsuarioId == usuarioId && h.EstaActivo)
+                .CountAsync(h => !h.Registros.Any(r => r.Fecha == hoy && r.Estado == "Completado"));
+        }
+
+        public async Task<int> ObtenerMisionesPendientesAsync(int usuarioId)
+        {
+            return await _contexto.Misiones
+                .CountAsync(m => m.UsuarioId == usuarioId && (m.Estado == "Pendiente" || m.Estado == "EnProgreso"));
         }
     }
 }

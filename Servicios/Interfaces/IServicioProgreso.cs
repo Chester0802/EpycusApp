@@ -10,5 +10,6 @@ namespace EPYCUS_WEB_v0._1.Servicios.Interfaces
         Task<Nivel?> ObtenerNivelSiguiente(int nivelActualNumero);
         Task<List<Logro>> ObtenerTodosLosLogros();
         Task<string> ObtenerImagenPersonaje(int usuarioId, int nivelActual);
+        Task<Nivel?> ObtenerNivelInicialAsync();
     }
 }

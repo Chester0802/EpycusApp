@@ -1,4 +1,3 @@
-using EPYCUS_WEB_v0._1.Datos;
 using EPYCUS_WEB_v0._1.Models.Entidades;
 using EPYCUS_WEB_v0._1.Servicios.Interfaces;
 using EPYCUS_WEB_v0._1.ViewModels;
@@ -14,12 +13,10 @@ namespace EPYCUS_WEB_v0._1.Controllers
     public class ProgresoController : Controller
     {
         private readonly IServicioProgreso _servicioProgreso;
-        private readonly ContextoAplicacion _contexto;
 
-        public ProgresoController(IServicioProgreso servicioProgreso, ContextoAplicacion contexto)
+        public ProgresoController(IServicioProgreso servicioProgreso)
         {
             _servicioProgreso = servicioProgreso;
-            _contexto = contexto;
         }
 
         [AllowAnonymous]
@@ -29,7 +26,7 @@ namespace EPYCUS_WEB_v0._1.Controllers
             if (string.IsNullOrEmpty(claim) || !int.TryParse(claim, out var usuarioId))
             {
                 // Usuario anónimo o sin sesión
-                var nivelInicial = _contexto.Niveles.OrderBy(n => n.Numero).FirstOrDefault();
+                var nivelInicial = await _servicioProgreso.ObtenerNivelInicialAsync();
                 var progresoDefecto = new ProgresoUsuario
                 {
                     UsuarioId = 0,
