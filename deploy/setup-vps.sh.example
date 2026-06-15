@@ -1,22 +1,27 @@
 #!/bin/bash
 # ============================================================
 # Script de configuración inicial del VPS para Epycus Web
-# Ejecutar como root o con sudo en Ubuntu
+# CONFIGURACIÓN REQUERIDA ANTES DE EJECUTAR:
+#   - Editar DB_PASSWORD abajo con una contraseña segura
+#   - Tener acceso sudo
 # ============================================================
 
 set -e
 
+DB_NAME="epycus_db"
+DB_USER="epycus_user"
+DB_PASSWORD="CHANGE_ME_TO_A_SECURE_PASSWORD"
+
 echo "=== 1. Configurando MariaDB ==="
 
-# Crear base de datos y usuario (si no existen)
 mysql -u root <<EOF
-CREATE DATABASE IF NOT EXISTS epicus_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'epicus_user'@'localhost' IDENTIFIED BY '***REMOVED***';
-GRANT ALL PRIVILEGES ON epicus_db.* TO 'epicus_user'@'localhost';
+CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
+GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';
 FLUSH PRIVILEGES;
 EOF
 
-echo "Base de datos epicus_db creada exitosamente."
+echo "Base de datos ${DB_NAME} creada exitosamente."
 
 echo "=== 2. Instalando Nginx ==="
 apt update
@@ -33,7 +38,9 @@ rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
 
 echo "=== 5. Configurando servicio systemd ==="
-cp deploy/epycus-web.service /etc/systemd/system/
+echo "IMPORTANTE: Edita /etc/systemd/system/epycus-web.service con tus credenciales reales"
+echo "Usa como base: deploy/epycus-web.service.example"
+cp deploy/epycus-web.service.example /etc/systemd/system/epycus-web.service
 systemctl daemon-reload
 systemctl enable epycus-web
 
@@ -45,15 +52,10 @@ echo "  sudo certbot --nginx -d your-domain.com -d www.your-domain.com"
 echo ""
 echo "=== CONFIGURACIÓN COMPLETADA ==="
 echo ""
-echo "IMPORTANTE: Edita el archivo /etc/systemd/system/epycus-web.service"
-echo "y reemplaza los valores de las variables de entorno con tus datos reales:"
-echo "  - Jwt__Clave (genera una clave aleatoria de 32+ caracteres)"
-echo "  - Google__ClientId y Google__ClientSecret"
-echo "  - Correo__* (credenciales SMTP)"
-echo "  - Gemini__ApiKey"
-echo "  - App__UrlBase (tu dominio)"
+echo "Próximos pasos:"
+echo "  1. sudo nano /etc/systemd/system/epycus-web.service  # reemplazar CHANGE_ME"
+echo "  2. sudo systemctl daemon-reload"
+echo "  3. sudo systemctl start epycus-web"
+echo "  4. sudo systemctl status epycus-web"
 echo ""
-echo "Luego ejecuta:"
-echo "  sudo systemctl daemon-reload"
-echo "  sudo systemctl start epycus-web"
-echo "  sudo systemctl status epycus-web"
+echo "NO OLVIDES: editar el archivo de servicio con contraseñas reales."

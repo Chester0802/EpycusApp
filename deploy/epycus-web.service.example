@@ -14,25 +14,26 @@ KillSignal=SIGINT
 SyslogIdentifier=epycus-web
 TimeoutStopSec=90
 
-# Variables de entorno para producción
+# Variables de entorno — reemplazar con valores reales en producción
+# NO commiter este archivo con credenciales reales
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=ASPNETCORE_URLS=http://localhost:5000
-Environment=ConnectionStrings__ConexionPrincipal=Server=localhost;Port=3306;Database=epicus_db;User=epicus_user;Password=***REMOVED***;
+Environment=ConnectionStrings__ConexionPrincipal=Server=localhost;Port=3306;Database=epycus_db;User=epycus_user;Password=CHANGE_ME
 Environment=MySql__ServerVersion=11.8.6-mariadb
-Environment=Jwt__Clave=CHANGE_THIS_TO_A_RANDOM_SECRET_KEY_AT_LEAST_32_CHARACTERS_LONG
+Environment=Jwt__Clave=CHANGE_ME_32_CHAR_MIN_SECRET_KEY
 Environment=Jwt__Emisor=EpycusWeb
 Environment=Jwt__Audiencia=EpycusUsuarios
 Environment=Jwt__ExpiracionMinutos=60
 Environment=Jwt__ExpiracionRefreshDias=7
-Environment=Google__ClientId=YOUR_GOOGLE_CLIENT_ID
-Environment=Google__ClientSecret=YOUR_GOOGLE_CLIENT_SECRET
+Environment=Google__ClientId=CHANGE_ME
+Environment=Google__ClientSecret=CHANGE_ME
 Environment=Correo__Servidor=smtp.gmail.com
 Environment=Correo__Puerto=587
-Environment=Correo__Usuario=your-email@gmail.com
-Environment=Correo__Contrasena=YOUR_GMAIL_APP_PASSWORD
+Environment=Correo__Usuario=CHANGE_ME
+Environment=Correo__Contrasena=CHANGE_ME
 Environment=Correo__NombreRemitente=Epycus App
-Environment=App__UrlBase=https://your-domain.com
-Environment=Gemini__ApiKey=YOUR_GEMINI_API_KEY
+Environment=App__UrlBase=https://CHANGE_ME
+Environment=Gemini__ApiKey=CHANGE_ME
 Environment=Gemini__Modelo=gemini-2.5-flash-lite
 
 [Install]

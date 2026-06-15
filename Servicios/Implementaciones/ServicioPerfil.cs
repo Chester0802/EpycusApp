@@ -64,9 +64,20 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             }).ToList();
         }
 
-        public Task ActualizarPerfil(PerfilViewModel modelo, int usuarioId)
+        public async Task ActualizarPerfil(PerfilViewModel modelo, int usuarioId)
         {
-            throw new NotImplementedException();
+            var usuario = await _contexto.Usuarios.FindAsync(usuarioId);
+            if (usuario == null)
+                throw new KeyNotFoundException("Usuario no encontrado.");
+
+            usuario.Nombre = modelo.Nombre;
+            usuario.FechaNacimiento = modelo.FechaNacimiento ?? usuario.FechaNacimiento;
+            usuario.Genero = modelo.Genero;
+
+            if (modelo.CarreraId.HasValue)
+                usuario.CarreraId = modelo.CarreraId.Value;
+
+            await _contexto.SaveChangesAsync();
         }
 
         public async Task<RespuestaOperacion> ActualizarPerfilAsync(int usuarioId, ActualizarPerfilViewModel modelo)
@@ -84,32 +95,64 @@ namespace EPYCUS_WEB_v0._1.Servicios.Implementaciones
             return RespuestaOperacion.Exitosa("Perfil actualizado correctamente.");
         }
 
-        public Task CambiarPersonaje(int personajeId, int usuarioId)
+        public async Task CambiarPersonaje(int personajeId, int usuarioId)
         {
-            throw new NotImplementedException();
+            var personajeExiste = await _contexto.Personajes.AnyAsync(p => p.Id == personajeId && p.EstaActivo);
+            if (!personajeExiste)
+                throw new KeyNotFoundException("Personaje no encontrado o inactivo.");
+
+            var personajesUsuario = await _contexto.PersonajesUsuario
+                .Where(pu => pu.UsuarioId == usuarioId)
+                .ToListAsync();
+
+            foreach (var pu in personajesUsuario)
+            {
+                pu.EstaSeleccionado = false;
+            }
+
+            var seleccionado = personajesUsuario.FirstOrDefault(pu => pu.PersonajeId == personajeId);
+            if (seleccionado == null)
+            {
+                _contexto.PersonajesUsuario.Add(new PersonajeUsuario
+                {
+                    UsuarioId = usuarioId,
+                    PersonajeId = personajeId,
+                    EstaSeleccionado = true,
+                    FechaObtenido = DateTime.UtcNow
+                });
+            }
+            else
+            {
+                seleccionado.EstaSeleccionado = true;
+            }
+
+            await _contexto.SaveChangesAsync();
         }
 
         public async Task<string> ObtenerImagenPersonajeActual(int usuarioId)
         {
+            var placeholder = "https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=200";
+
             var personajeActivo = await _contexto.PersonajesUsuario
                 .Where(pu => pu.UsuarioId == usuarioId && pu.EstaSeleccionado)
+                .Select(pu => pu.PersonajeId)
                 .FirstOrDefaultAsync();
 
-            if (personajeActivo == null)
-                return "https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=200";
+            if (personajeActivo == 0)
+                return placeholder;
 
             var progreso = await _contexto.ProgresosUsuario
-                .Include(p => p.NivelActual)
-                .FirstOrDefaultAsync(p => p.UsuarioId == usuarioId);
-
-            var nivelNumero = progreso?.NivelActual?.Numero ?? 0;
-
-            var imagen = await _contexto.ImagenesNivelPersonaje
-                .Where(i => i.PersonajeId == personajeActivo.PersonajeId && i.NivelNumero <= nivelNumero)
-                .OrderByDescending(i => i.NivelNumero)
+                .Where(p => p.UsuarioId == usuarioId)
+                .Select(p => p.NivelActual.Numero)
                 .FirstOrDefaultAsync();
 
-            return imagen?.ImagenUrl ?? "https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=200";
+            var img = await _contexto.ImagenesNivelPersonaje
+                .Where(i => i.PersonajeId == personajeActivo && i.NivelNumero <= progreso)
+                .OrderByDescending(i => i.NivelNumero)
+                .Select(i => i.ImagenUrl)
+                .FirstOrDefaultAsync();
+
+            return img ?? placeholder;
         }
 
         public async Task<RespuestaOperacion> CambiarTemaAsync(int usuarioId, int temaId)
