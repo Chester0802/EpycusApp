@@ -25,7 +25,7 @@ namespace EpycusApp.ViewModels
 
         [Required(ErrorMessage = "La fecha de nacimiento es obligatoria")]
         [DataType(DataType.Date)]
-        public DateTime FechaNacimiento { get; set; }
+        public DateOnly FechaNacimiento { get; set; }
 
         [Required(ErrorMessage = "Seleccione un gÃ©nero")]
         public string Genero { get; set; } = string.Empty;
@@ -33,7 +33,6 @@ namespace EpycusApp.ViewModels
         [Required(ErrorMessage = "Seleccione una carrera")]
         public int CarreraId { get; set; }
 
-        [Range(typeof(bool), "true", "true", ErrorMessage = "Debe aceptar los tÃ©rminos")]
         public bool AceptoTerminos { get; set; }
     }
 }
