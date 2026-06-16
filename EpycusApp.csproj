@@ -12,6 +12,14 @@
     <Content Remove="EpycusApp.Tests\**\*" />
     <EmbeddedResource Remove="EpycusApp.Tests\**\*" />
     <None Remove="EpycusApp.Tests\**\*" />
+    <Compile Remove="EpycusApp.AcceptanceTests\**\*.cs" />
+    <Content Remove="EpycusApp.AcceptanceTests\**\*" />
+    <EmbeddedResource Remove="EpycusApp.AcceptanceTests\**\*" />
+    <None Remove="EpycusApp.AcceptanceTests\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="EpycusApp.AcceptanceTests" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +28,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
