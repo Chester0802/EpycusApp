@@ -112,6 +112,27 @@ namespace EpycusApp.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        public async Task<IActionResult> VerificarCorreo(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var exito = await _servicioAutenticacion.VerificarCorreo(token);
+
+            if (!exito)
+            {
+                TempData["ErrorVerificacion"] = "El enlace de verificacion no es valido o ya expiro.";
+                return RedirectToAction(nameof(Login));
+            }
+
+            TempData["CorreoVerificado"] = true;
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
         public IActionResult RestablecerContrasena(string token)
         {
             if (string.IsNullOrWhiteSpace(token))
