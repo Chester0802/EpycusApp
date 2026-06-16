@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="EpycusApp.Tests\**\*.cs" />
+    <Content Remove="EpycusApp.Tests\**\*" />
+    <EmbeddedResource Remove="EpycusApp.Tests\**\*" />
+    <None Remove="EpycusApp.Tests\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.MySql" Version="9.0.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.0" />

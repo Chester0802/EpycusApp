@@ -159,10 +159,11 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var hoy = DateOnly.FromDateTime(DateTime.Today);
 
-            var habitosProgramadosHoy = await _contexto.Habitos
+            var habitos = await _contexto.Habitos
                 .Where(h => h.UsuarioId == usuarioId && h.EstaActivo)
-                .Where(h => EstaProgramadoParaHoy(h, hoy))
-                .CountAsync();
+                .ToListAsync();
+
+            var habitosProgramadosHoy = habitos.Count(h => EstaProgramadoParaHoy(h, hoy));
 
             if (habitosProgramadosHoy == 0)
             {
