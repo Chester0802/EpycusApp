@@ -85,7 +85,7 @@ jobs:
 
       # Backup del despliegue actual
       - name: Backup current deployment
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         continue-on-error: true
         with:
           host: ${{ env.VPS_HOST }}
@@ -119,7 +119,7 @@ jobs:
 
       # Reinicio seguro
       - name: Restart service
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ env.VPS_HOST }}
           username: ${{ env.VPS_USER }}
