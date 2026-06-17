@@ -1,4 +1,4 @@
-﻿using EpycusApp.Servicios.Interfaces;
+using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels.Autenticacion;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +19,7 @@ namespace EpycusApp.Controllers
             return new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = Request.IsHttps,
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTime.UtcNow.AddDays(expiracionDias)
             };
@@ -30,7 +30,7 @@ namespace EpycusApp.Controllers
             return new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = Request.IsHttps,
                 SameSite = SameSiteMode.Strict,
                 Expires = recordarme
                     ? DateTime.UtcNow.AddDays(7)

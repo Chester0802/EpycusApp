@@ -1,9 +1,11 @@
 #!/bin/bash
 # ============================================================
 # Script de configuración inicial del VPS para Epycus Web
+# Target: Debian 13 (Trixie)
 # CONFIGURACIÓN REQUERIDA ANTES DE EJECUTAR:
 #   - Editar DB_PASSWORD abajo con una contraseña segura
-#   - Tener acceso sudo
+#   - Editar SSH_PUBLIC_KEY con tu clave pública
+#   - Tener acceso root
 # ============================================================
 
 set -e
@@ -11,43 +13,104 @@ set -e
 DB_NAME="epicus_db"
 DB_USER="epicus_user"
 DB_PASSWORD="CHANGE_ME_TO_A_SECURE_PASSWORD"
+DOMAIN="app.epycus.es"
+SSH_PUBLIC_KEY="CHANGE_ME_SSH_PUBLIC_KEY"
 
-echo "=== 1. Configurando MariaDB ==="
+echo "=== 1. Actualizando sistema ==="
+apt update && apt upgrade -y
+apt install -y curl wget gnupg2 apt-transport-https ca-certificates unzip git nftables
 
-mysql -u root <<EOF
+echo "=== 2. Instalando .NET 9 ASP.NET Runtime ==="
+wget https://packages.microsoft.com/config/debian/13/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+apt update
+apt install -y aspnetcore-runtime-9.0
+dotnet --info
+
+echo "=== 3. Instalando y configurando MariaDB ==="
+apt install -y mariadb-server
+systemctl enable mariadb
+systemctl start mariadb
+
+mariadb -u root <<EOF
 CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
 GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';
 FLUSH PRIVILEGES;
 EOF
-
 echo "Base de datos ${DB_NAME} creada exitosamente."
 
-echo "=== 2. Instalando Nginx ==="
-apt update
+echo "=== 4. Instalando Nginx ==="
 apt install -y nginx
+systemctl enable nginx
+systemctl start nginx
 
-echo "=== 3. Configurando directorio de la aplicación ==="
+echo "=== 5. Creando usuario deploy ==="
+if ! id "deploy" &>/dev/null; then
+    adduser --disabled-password --gecos "" deploy
+fi
+mkdir -p /home/deploy/.ssh
+echo "${SSH_PUBLIC_KEY}" > /home/deploy/.ssh/authorized_keys
+chmod 700 /home/deploy/.ssh
+chmod 600 /home/deploy/.ssh/authorized_keys
+chown -R deploy:deploy /home/deploy/.ssh
+
+cat > /etc/sudoers.d/deploy << 'SUDOERS'
+deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl daemon-reload
+deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart epycus-web
+deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl start epycus-web
+deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop epycus-web
+deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl status epycus-web
+deploy ALL=(ALL) NOPASSWD: /usr/bin/systemctl is-active epycus-web
+deploy ALL=(ALL) NOPASSWD: /usr/bin/chown *
+SUDOERS
+chmod 440 /etc/sudoers.d/deploy
+
+echo "=== 6. Configurando directorio de la aplicación ==="
 mkdir -p /var/www/epycus-web
 chown -R www-data:www-data /var/www/epycus-web
+chmod 775 /var/www/epycus-web
+usermod -aG www-data deploy
 
-echo "=== 4. Copiando configuración de Nginx ==="
+echo "=== 7. Configurando Nginx ==="
 cp deploy/nginx-epycus.conf /etc/nginx/sites-available/epycus-web
 ln -sf /etc/nginx/sites-available/epycus-web /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
 
-echo "=== 5. Configurando servicio systemd ==="
+echo "=== 8. Configurando servicio systemd ==="
 echo "IMPORTANTE: Edita /etc/systemd/system/epycus-web.service con tus credenciales reales"
 echo "Usa como base: deploy/epycus-web.service.example"
 cp deploy/epycus-web.service.example /etc/systemd/system/epycus-web.service
 systemctl daemon-reload
 systemctl enable epycus-web
 
-echo "=== 6. Instalando Certbot para SSL (opcional) ==="
-apt install -y certbot python3-certbot-nginx
-echo "Para obtener certificado SSL ejecuta:"
-echo "  sudo certbot --nginx -d your-domain.com -d www.your-domain.com"
+echo "=== 9. Configurando firewall (nftables) ==="
+cat > /etc/nftables.conf << 'NFTABLES'
+#!/usr/sbin/nft -f
+flush ruleset
+
+table inet filter {
+    chain input {
+        type filter hook input priority 0; policy drop;
+        iif "lo" accept
+        ct state established,related accept
+        tcp dport 22 accept
+        tcp dport { 80, 443 } accept
+        ip protocol icmp accept
+        ip6 nexthdr icmpv6 accept
+    }
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+    }
+    chain output {
+        type filter hook output priority 0; policy accept;
+    }
+}
+NFTABLES
+systemctl enable nftables
+systemctl restart nftables
 
 echo ""
 echo "=== CONFIGURACIÓN COMPLETADA ==="
@@ -55,7 +118,7 @@ echo ""
 echo "Próximos pasos:"
 echo "  1. sudo nano /etc/systemd/system/epycus-web.service  # reemplazar CHANGE_ME"
 echo "  2. sudo systemctl daemon-reload"
-echo "  3. sudo systemctl start epycus-web"
-echo "  4. sudo systemctl status epycus-web"
+echo "  3. Hacer deploy de la app"
+echo "  4. sudo systemctl start epycus-web"
 echo ""
 echo "NO OLVIDES: editar el archivo de servicio con contraseñas reales."

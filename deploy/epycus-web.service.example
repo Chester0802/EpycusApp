@@ -18,6 +18,7 @@ TimeoutStopSec=90
 # NO commiter este archivo con credenciales reales
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=ASPNETCORE_URLS=http://localhost:5000
+Environment=DisableHttpsRedirect=true
 Environment=ConnectionStrings__ConexionPrincipal=Server=localhost;Port=3306;Database=epicus_db;User=epicus_user;Password=CHANGE_ME
 Environment=MySql__ServerVersion=11.8.6-mariadb
 Environment=Jwt__Clave=CHANGE_ME_32_CHAR_MIN_SECRET_KEY
@@ -32,9 +33,11 @@ Environment=Correo__Puerto=587
 Environment=Correo__Usuario=CHANGE_ME
 Environment=Correo__Contrasena=CHANGE_ME
 Environment=Correo__NombreRemitente=Epycus App
-Environment=App__UrlBase=https://app.epycus.es
+Environment=App__UrlBase=http://app.epycus.es
 Environment=Gemini__ApiKey=CHANGE_ME
 Environment=Gemini__Modelo=gemini-2.5-flash-lite
+Environment=Cors__OrigenesPermitidos__0=http://app.epycus.es
+Environment=Cors__OrigenesPermitidos__1=https://app.epycus.es
 
 [Install]
 WantedBy=multi-user.target
