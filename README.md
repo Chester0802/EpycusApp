@@ -5,24 +5,29 @@ Sistema multiplataforma de gamificación de hábitos inspirado en Solo Leveling,
 ## Stack Tecnológico
 
 - **Backend:** ASP.NET MVC (.NET 9)
-- **Base de datos:** MariaDB
+- **Base de datos:** MariaDB 11.8
 - **ORM:** Entity Framework Core 9 + Pomelo
 - **Autenticación:** JWT + Google OAuth
 - **IA:** Gemini API (EDY - Asistente Virtual)
 - **Frontend:** Razor Views + Bootstrap 5 + Chart.js
-- **Deploy:** VPS Hostinger (Ubuntu + Nginx)
+- **Deploy:** VPS Debian 13 (Trixie) + Nginx
+- **CI/CD:** GitHub Actions
+
+## URL de Producción
+
+- **Web:** http://app.epycus.es
 
 ## Requisitos
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download)
-- MariaDB 10.x+
+- MariaDB 11.8+
 - Visual Studio 2026 / VS Code
 
 ## Instalación Local
 
 ```bash
 # 1. Clonar el repositorio
-git clone <repo-url>
+git clone https://github.com/Chester0802/EpycusApp.git
 cd EpycusApp
 
 # 2. Configurar appsettings
@@ -56,11 +61,13 @@ Copia `appsettings.Example.json` a `appsettings.json` y configura:
 
 ## Deploy en VPS
 
-### Requisitos del servidor:
-- Ubuntu 22.04+
-- .NET 9 SDK
-- MariaDB
-- Nginx
+### Datos del servidor:
+- **VPS:** 147.93.119.193 (Debian 13 Trixie)
+- **Dominio:** app.epycus.es
+- **Base de datos:** epicus_db / epicus_user
+- **Runtime:** ASP.NET Core 9
+- **Reverse Proxy:** Nginx → Kestrel (localhost:5000)
+- **Servicio:** systemd `epycus-web`
 
 ### Deploy automático (CI/CD):
 El deploy se ejecuta automáticamente via GitHub Actions al hacer push a `main`.
@@ -68,51 +75,50 @@ El deploy se ejecuta automáticamente via GitHub Actions al hacer push a `main`.
 ### Deploy manual:
 
 ```bash
-# 1. En el VPS, configurar la base de datos y servicios
-export DB_PASSWORD='tu_contraseña_segura'
+# 1. En el VPS, ejecutar el script de configuración
 sudo bash deploy/setup-vps.sh
 
-# 2. Editar variables de entorno del servicio
-sudo cp deploy/epycus-web.service.example /etc/systemd/system/epycus-web.service
+# 2. Configurar el servicio con credenciales reales
 sudo nano /etc/systemd/system/epycus-web.service
 
-# 3. Publicar la aplicación (desde tu máquina local)
-dotnet publish EpycusApp.csproj -c Release -o ./publish
-
-# 4. Copiar al VPS
-scp -r ./publish/* usuario@tu-vps:/var/www/epycus-web/
-
-# 5. En el VPS, iniciar el servicio
+# 3. Deploy inicial
+git clone https://github.com/Chester0802/EpycusApp.git /tmp/epycus-build
+cd /tmp/epycus-build
+dotnet publish EpycusApp.csproj -c Release -o /var/www/epycus-web
+sudo chown -R www-data:www-data /var/www/epycus-web
 sudo systemctl daemon-reload
-sudo systemctl restart epycus-web
+sudo systemctl start epycus-web
+
+# 4. Verificar
 sudo systemctl status epycus-web
+curl http://localhost:5000/health
 ```
 
 ### Secretos requeridos en GitHub (para CI/CD):
 
 | Secreto | Descripción |
 |---|---|
-| `VPS_HOST` | IP o dominio del VPS |
-| `VPS_USER` | Usuario SSH |
-| `VPS_SSH_KEY` | Clave privada SSH |
-| `VPS_PORT` | Puerto SSH (default: 22) |
-| `VPS_APP_PATH` | Ruta de la app (ej: `/var/www/epycus-web`) |
+| `VPS_HOST` | `147.93.119.193` |
+| `VPS_USER` | `deploy` |
+| `VPS_SSH_KEY` | Clave privada SSH (ed25519) |
+| `VPS_PORT` | `22` |
+| `VPS_APP_PATH` | `/var/www/epycus-web` |
 
 ### Archivos de deploy incluidos:
 
 | Archivo | Descripción |
 |---|---|
 | `deploy/epycus-web.service.example` | Servicio systemd (template con placeholders) |
-| `deploy/nginx-epycus.conf` | Configuración de Nginx (reverse proxy + SSL) |
-| `deploy/setup-vps.sh` | Script de configuración inicial del VPS |
+| `deploy/nginx-epycus.conf` | Configuración de Nginx (reverse proxy) |
+| `deploy/setup-vps.sh.example` | Script de configuración inicial del VPS (Debian 13) |
 
 ## Base de datos
 
 Configuración de MariaDB para producción:
 
 ```
-Base de datos: epycus_db
-Usuario: epycus_user
+Base de datos: epicus_db
+Usuario: epicus_user
 ServerVersion: 11.8.6-mariadb
 ```
 
