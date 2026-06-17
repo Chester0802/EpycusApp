@@ -16,9 +16,6 @@ namespace EpycusApp.Controllers
             _servicioPomodoro = servicioPomodoro;
         }
 
-        [AllowAnonymous]
-        [HttpGet("")]
-        [HttpGet("Index")]
         public async Task<IActionResult> Index()
         {
             var modelo = new PomodoroIndexViewModel();

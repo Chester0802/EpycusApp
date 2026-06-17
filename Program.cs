@@ -241,7 +241,11 @@ public partial class Program
             context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
             if (!app.Environment.IsDevelopment())
             {
-                context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: https://ui-avatars.com; font-src 'self' data:; connect-src 'self'";
+                context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https://ui-avatars.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self'";
+            }
+            if (context.Response.ContentType == "text/html" || context.Response.ContentType?.StartsWith("text/html") == true)
+            {
+                context.Response.Headers["Content-Type"] = "text/html; charset=utf-8";
             }
             await next();
         });
