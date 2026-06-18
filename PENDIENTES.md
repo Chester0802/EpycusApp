@@ -1,6 +1,6 @@
 # PENDIENTES — Auditoría Pre-Producción EpycusApp
 
-> Generado: 2026-06-15 | Última actualización: 2026-06-17
+> Generado: 2026-06-15 | Última actualización: 2026-06-18
 > Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API)
 
 ---
@@ -14,6 +14,8 @@
 | CRITICO-003 | Alta | `deploy/epycus-web.service` | Placeholder de credenciales en archivo de servicio | **Alto** | ⚠️ Mitigado | Archivo en `.gitignore`. Usar `.example` como template. |
 | CRITICO-004 | Alta | `.github/workflows/ci-cd.yml` | Pipeline CI/CD vacío (0 bytes) | **Muy Alto** | ✅ Corregido | Creado pipeline completo con build, calidad, seguridad y deploy. |
 | CRITICO-005 | Alta | `Servicios/Implementaciones/ServicioAutenticacion.cs:316` | Envía email de recuperación cuando debería enviar bienvenida | **Alto** | ✅ Corregido | Cambiado a `EnviarBienvenida()`. |
+| CRITICO-006 | **Muy Alta** | `appsettings.json` | Google OAuth: `ClientId` y `ClientSecret` son placeholders (`YOUR_GOOGLE_CLIENT_ID...`) | **Muy Alto** | ⚠️ Pendiente | Configurar OAuth real en https://console.cloud.google.com/ y poner los valores por variable de entorno. |
+| CRITICO-007 | **Muy Alta** | `appsettings.json` | Servicio de correo: `Correo:Contrasena` es placeholder (`ROTATED_SMTP_PASSWORD`) | **Muy Alto** | ⚠️ Pendiente | Generar App Password de Gmail y configurarlo como variable de entorno. Sin esto, registro, recuperación y verificación de correo no funcionan. |
 
 ---
 
@@ -34,6 +36,8 @@
 | IMP-011 | Alta | Migraciones múltiples | Dos migraciones iniciales (`InitialMerge` e `InitialMigration`) | **Medio** | ✅ Corregido | Consolidado en una sola migración `Initial` (requiere reset de BD local). |
 | IMP-012 | Media | `deploy/nginx-epycus.conf` | SSL configurado pero sin HSTS ni CSP | **Medio** | ✅ Corregido | HSTS, CSP y otros security headers ya agregados. |
 | IMP-013 | Alta | `appsettings.Example.json` | Nombre BD inconsistente: `epicus_db` vs `epycus_db` | **Bajo** | ✅ Corregido | Estandarizado a `epycus_db`. |
+| IMP-014 | **Muy Alta** | `Views/` (Login, auth, formularios) | **Mojibake en acentos:** `Correo ElectrÃ³nico`, `ContraseÃ±a` en lugar de `Correo Electrónico`, `Contraseña` en varios formularios | **Alto** | ⚠️ Pendiente | Revisar encoding de archivos `.cshtml` — algunos están en Windows-1252 y deben convertirse a UTF-8. |
+| IMP-015 | **Muy Alta** | `Program.cs` | **Nginx sin HTTPS.** `CookieSecurePolicy` está en `SameAsRequest` como workaround. La app no puede volver a `Always` hasta que nginx tenga SSL | **Alto** | ⚠️ Pendiente | Configurar Certbot/Let's Encrypt en nginx, luego revertir a `CookieSecurePolicy.Always` en producción. |
 
 ---
 
@@ -54,6 +58,11 @@
 | MEJ-011 | Alta | `Views/` (24 archivos) | UTF-8 mojibake en textos en español (`Ã¡`, `Ã©`, `Ã³`, etc.) | **Alto** | ✅ Corregido | Re-encoding de Windows-1252 a UTF-8 correcto en todas las vistas. |
 | MEJ-012 | Media | `wwwroot/css/variables.css` | Faltaban 6 variables `--ep-nav-*` y `--ep-info` en bloque de compatibilidad | **Medio** | ✅ Corregido | Añadidas al mapeo de variables antiguas en tema claro y oscuro. |
 | MEJ-013 | Media | `Servicios/Implementaciones/DiskHealthCheck.cs` | Ruta default `.` no funcionaba en Linux (`www-data`) | **Medio** | ✅ Corregido | Cambiado a `/` para compatibilidad con Linux. |
+| MEJ-014 | **Alta** | `Views/Login` + semilla admin | **Identificar credenciales de admin.** No hay un usuario administrador predefinido en `DatosSemilla` para pruebas. | **Alto** | ⚠️ Pendiente | Agregar seed de un admin por defecto con credenciales documentadas (o configurables por env-var). |
+| MEJ-015 | **Alta** | `wwwroot/css/` | **Responsividad móvil:** La app no se adapta bien a pantallas pequeñas. Tablas, sidebar y formularios se ven mal en móvil. | **Alto** | ⚠️ Pendiente | Agregar media queries, convertir sidebar a menú colapsable, rediseñar tablas como cards en móvil. |
+| MEJ-016 | **Alta** | `wwwroot/css/variables.css`, temas | **Modo oscuro/claro:** Letras negras se pierden en modo oscuro. Contraste insuficiente en varios componentes. | **Alto** | ⚠️ Pendiente | Revisar paleta de colores, asegurar contraste AA/AAA en ambos modos. Probar todos los componentes. |
+| MEJ-017 | **Alta** | `wwwroot/css/` + `Views/` | **UI/UX general:** Diseño se siente genérico/hecho con IA. Imágenes placeholder, inicio plano, falta personalidad visual. | **Medio** | ⚠️ Pendiente | Rediseñar con identidad visual propia: ilustraciones personalizadas, micro-interacciones, tipografía coherente, home atractivo. |
+| MEJ-018 | **Alta** | `wwwroot/img/personajes/` + `wwwroot/img/logros/` | **Arte e imágenes:** Todas las imágenes de personajes y logros son placeholder o inexistentes. | **Alto** | ⚠️ Pendiente | Crear o contratar ilustraciones originales para personajes (Kai, Luna, Ares, Nova) en todos los niveles y logros. |
 
 ---
 
@@ -75,6 +84,10 @@
 | SEC-012 | ✅ | Dependabot configurado (NuGet + GitHub Actions, semanal) |
 | SEC-013 | ✅ | Gitleaks configurado en CI/CD — escanea secretos en cada push a main/master |
 | SEC-014 | ✅ | Timeout y retry agregados a Gemini API |
+| SEC-015 | ⚠️ Pendiente | Sin política de contraseñas: no hay longitud mínima, ni complejidad, ni bloqueo por intentos fallidos |
+| SEC-016 | ⚠️ Pendiente | Sin CAPTCHA en Login / Registro — vulnerable a ataques de fuerza bruta y automatizados |
+| SEC-017 | ⚠️ Pendiente | Sin bloqueo de cuenta después de N intentos fallidos de login |
+| SEC-018 | ⚠️ Pendiente | Los endpoints de API no verifican CSRF (solo los formularios MVC tienen antiforgery) |
 
 ---
 
@@ -88,6 +101,8 @@
 | BD-004 | ✅ | `DiasSemana` normalizado a tabla `DiasSemanaHabito` (relación 1:N con `Habito`). |
 | BD-005 | ✅ | Relaciones y foreign keys correctamente definidas en `OnModelCreating` |
 | BD-006 | ✅ | Índice en `ConversacionId` y `UsuarioId` agregado en `MensajeIA` |
+| BD-007 | ⚠️ Pendiente | Definir y automatizar backup periódico de la BD (cron + mysqldump a bucket/almacenamiento externo) |
+| BD-008 | ⚠️ Pendiente | Agregar política de reintentos y pool de conexiones en `Program.cs` (`MaxRetryCount`, `EnableRetryOnFailure`) |
 
 ---
 
@@ -100,6 +115,8 @@
 | CI-003 | ✅ | Verificación de estado del servicio post-deploy |
 | CI-004 | ❌ No planificado | Tests unitarios — el usuario decidió no implementarlos |
 | CI-005 | ✅ | Warnings como errores en compilación |
+| CI-006 | ⚠️ Pendiente | Agregar rollback automático: si el deploy falla (health check post-deploy), restaurar backup automáticamente |
+| CI-007 | ⚠️ Pendiente | Agregar migraciones de BD al pipeline CI/CD (`dotnet ef database update` antes de iniciar la app) |
 
 ---
 
@@ -113,6 +130,29 @@
 | VPS-004 | ✅ | Dependabot configurado para NuGet y GitHub Actions |
 | VPS-005 | ✅ | Health checks endpoint (`/health`) implementado con checks de BD, Gemini y disco. |
 | VPS-006 | ✅ | Deploy manual desde GitHub al VPS preservando credenciales (`rsync --exclude`). |
+| VPS-007 | ⚠️ Pendiente | Agregar monitorio de uptime (ej: UptimeRobot, cron + webhook a Discord/Telegram si `/health` no responde 200) |
+| VPS-008 | ⚠️ Pendiente | Configurar rotación de logs de systemd/journald para que no llenen el disco |
+
+---
+
+---
+
+## 🎨 UI/UX — REDISEÑO COMPLETO
+
+| ID | Prioridad | Área | Problema | Estado |
+|----|-----------|------|----------|--------|
+| UX-001 | **Crítica** | Login / Registro | Encoding roto en acentos (`Ã±`, `Ã³`, `Ã¡`) en formularios y textos | ⚠️ Pendiente |
+| UX-002 | **Crítica** | General | Sin HTTPS — la app se sirve por HTTP puro | ⚠️ Pendiente |
+| UX-003 | **Alta** | Sidebar | No es responsive — sidebar fijo inservible en móvil | ⚠️ Pendiente |
+| UX-004 | **Alta** | Modo oscuro | Texto negro sobre fondo oscuro ilegible en varios componentes | ⚠️ Pendiente |
+| UX-005 | **Alta** | Modo claro | Verificar contraste en todos los componentes | ⚠️ Pendiente |
+| UX-006 | **Alta** | Imágenes | Personajes, logros e iconos son placeholder — sin arte original | ⚠️ Pendiente |
+| UX-007 | **Alta** | Home/Inicio | Dashboard genérico, sin personalidad ni micro-interacciones | ⚠️ Pendiente |
+| UX-008 | **Media** | Tipografía | Unificar jerarquía tipográfica (tamaños, pesos, colores) | ⚠️ Pendiente |
+| UX-009 | **Media** | Formularios | Feedback visual pobre en validaciones y estados | ⚠️ Pendiente |
+| UX-010 | **Media** | Transiciones | Faltan animaciones suaves en navegación y cambios de estado | ⚠️ Pendiente |
+| UX-011 | **Media** | Tablas | Datos en tablas no responsive — no se ven en móvil | ⚠️ Pendiente |
+| UX-012 | **Baja** | 404 / Error | Páginas de error genéricas sin diseño cuidado | ⚠️ Pendiente |
 
 ---
 
@@ -128,6 +168,11 @@
 | DEV-006 | Dockerizar la aplicación | 1 día | ❌ No necesario (deploy directo a VPS) |
 | DEV-007 | Agregar OpenAPI/Swagger para API endpoints | 4 horas | ✅ |
 | DEV-008 | Migrar a `DateOnly` consistente en toda la BD | 1 día | ✅ (parcial: `FechaNacimiento` + entidades existentes) |
+| DEV-009 | Agregar sistema de monitoreo/error tracking (Sentry, OpenTelemetry, etc.) | 1 día | ⚠️ Pendiente |
+| DEV-010 | Implementar caché (Redis o MemoryCache) para datos frecuentes (carreras, niveles, frases) | 1 día | ⚠️ Pendiente |
+| DEV-011 | Agregar tests de integración para los flujos críticos (registro, login, hábitos, pomodoro) | 3-4 días | ⚠️ Pendiente |
+| DEV-012 | Agregar meta tags SEO, sitemap.xml y robots.txt | 4 horas | ⚠️ Pendiente |
+| DEV-013 | Agregar banner de consentimiento de cookies (GDPR) | 4 horas | ⚠️ Pendiente |
 
 ---
 
