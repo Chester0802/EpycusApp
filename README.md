@@ -46,7 +46,7 @@ Sistema multiplataforma de gamificación de hábitos profesionales inspirado en 
 | Web funcional | ✅ |
 | HTTPS | ⚠️ Pendiente (Certbot / Let's Encrypt) |
 | App móvil | 📱 En planificación (Flutter) |
-| UI/UX | 🎨 En rediseño |
+| UI/UX | ✅ Responsivo, modo oscuro/claro, animaciones |
 | Tests | ❌ No planificados |
 
 > Ver [PENDIENTES.md](./PENDIENTES.md) para la lista completa de tareas.

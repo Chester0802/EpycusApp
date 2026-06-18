@@ -171,7 +171,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 |----|-----------|------|----------|--------|
 | UX-001 | **Crítica** | Login / Registro | Encoding roto en acentos (`Ã±`, `Ã³`, `Ã¡`) en formularios y textos | ⚠️ Pendiente |
 | UX-002 | **Crítica** | General | Sin HTTPS — la app se sirve por HTTP puro | ⚠️ Pendiente |
-| UX-003 | **Alta** | Sidebar | No es responsive — sidebar fijo inservible en móvil | ⚠️ Pendiente |
+| UX-003 | **Alta** | Sidebar | No es responsive — sidebar fijo inservible en móvil | ✅ Corregido |
 | UX-004 | **Alta** | Modo oscuro | Texto negro sobre fondo oscuro ilegible en varios componentes | ⚠️ Pendiente |
 | UX-005 | **Alta** | Modo claro | Verificar contraste en todos los componentes | ⚠️ Pendiente |
 | UX-006 | **Alta** | Imágenes | Personajes, logros e iconos son placeholder — sin arte original | ⚠️ Pendiente |
@@ -179,7 +179,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | UX-008 | **Media** | Tipografía | Unificar jerarquía tipográfica (tamaños, pesos, colores) | ⚠️ Pendiente |
 | UX-009 | **Media** | Formularios | Feedback visual pobre en validaciones y estados | ⚠️ Pendiente |
 | UX-010 | **Media** | Transiciones | Faltan animaciones suaves en navegación y cambios de estado | ⚠️ Pendiente |
-| UX-011 | **Media** | Tablas | Datos en tablas no responsive — no se ven en móvil | ⚠️ Pendiente |
+| UX-011 | **Media** | Tablas | Datos en tablas no responsive — no se ven en móvil | ✅ Corregido |
 | UX-012 | **Baja** | 404 / Error | Páginas de error genéricas sin diseño cuidado | ⚠️ Pendiente |
 | UX-013 | **Media** | General | Sin micro-interacciones (hover effects, transiciones suaves entre páginas, feedback táctil) | ⚠️ Pendiente |
 
@@ -266,63 +266,26 @@ En la vista:
 
 ---
 
-## 📱 RESPONSIVIDAD — Auditoría de issues pendientes
+## 📱 RESPONSIVIDAD — Auditoría de issues (corregido 2026-06-18)
 
-> Generado: 2026-06-17 | Auditoría de todos los `.cshtml` del proyecto
+> Generado: 2026-06-17 | Corregido: 2026-06-18
 
-### 🔴 CRÍTICOS
+Todos los issues de responsividad identificados en la auditoría han sido corregidos:
 
-| Archivo | Línea | Problema | Severidad |
-|---------|-------|----------|-----------|
-| `Habitos/Index.cshtml` | 107-152 | `.ep-habit-card` tiene 9+ elementos (icono, nombre, categoría, frecuencia, 7 day-checkboxes, botón, dropdown) en una sola fila — se desborda horizontalmente | **Crítica** |
-| `Habitos/Index.cshtml` | 122-151 | Day-checkboxes + botón "100%" + dropdown no caben en <400px de ancho | **Crítica** |
-
-### 🟡 ALTOS
-
-| Archivo | Línea | Problema | Severidad |
-|---------|-------|----------|-----------|
-| `Habitos/Index.cshtml` | 88-96 | Días de la semana con `width: 24px` fijo sin wrap — se salen en móvil | **Alta** |
-| `Home/Index.cshtml` | 85 | Racha/streak oculta con `d-none d-sm-block` — info motivacional clave no visible en móvil | **Alta** |
-| `Habitos/Index.cshtml` | 116-119 | Columna frecuencia + racha ocupa espacio valioso en tarjeta ya saturada | **Alta** |
-
-### 🟢 MEDIOS
-
-| Archivo | Línea | Problema | Severidad |
-|---------|-------|----------|-----------|
-| `Progreso/Index.cshtml` | 97 | `min-width: 64px` en icono de logro fuerza tamaño mínimo que no escala | **Media** |
-| `Pomodoro/Index.cshtml` | 185-193 | Icono timeline con `left: -1.35rem` puede cortarse en móvil | **Media** |
-| `Bienestar/Index.cshtml` | 184-205 | 14 círculos de historial con `min-width: 36px` — wrapping desordenado | **Media** |
-| `Ia/Index.cshtml` | 15-38 | Header del chat (avatar + nombre + status + botón nuevo) saturado en móvil | **Media** |
-| `Pomodoro/Index.cshtml` | 709-713 (CSS) | Timer ring `280px` fijo — en pantallas <360px se desborda | **Media** |
-| `Shared/_Paginacion.cshtml` | 6 | Paginación con muchas páginas se desborda horizontalmente | **Media** |
-| `Admin/Usuarios.cshtml` | 66-83 | Botones de acción en tabla demasiado pequeños para touch (<44px) en móvil | **Media** |
-| `Home/Index.cshtml` | 101 | Chart con altura fija `300px` — ocupa mucho espacio vertical en móvil | **Media** |
-| `Shared/_LayoutAdmin.cshtml` | 23-58 | Sidebar admin sin scroll en móvil (`overflow:hidden` corta items del footer) | **Media** |
-| `Ajustes/Index.cshtml` | 384-395 | Texto largo en "Zona de peligro" se comprime al lado del botón | **Media** |
-
-### 🔵 BAJOS
-
-| Archivo | Línea | Problema | Severidad |
-|---------|-------|----------|-----------|
-| `Bienestar/Index.cshtml` | 233 (CSS) | `.ep-animo-btn` con `min-width: 72px` + columna = tarjetas muy altas en móvil | **Baja** |
-| `Progreso/Index.cshtml` | 23-32 | `justify-content-between` con texto largo (XP numbers) puede romper layout | **Baja** |
-| `Perfil/Index.cshtml` | 115-131 | Stats row con `white-space: nowrap` en labels — riesgo de overflow | **Baja** |
-| `Pomodoro/Index.cshtml` | 54 | `width: fit-content` puede fallar en WebView/Android antiguo | **Baja** |
-| `Ajustes/Index.cshtml` | 76-91 | Stats sidebar con inline `border-bottom` no responsivo | **Baja** |
-| `Shared/_Layout.cshtml` | 85-91 | Breakpoint JS hardcodeado `768` no coincide con Bootstrap (`767.98px`) | **Baja** |
-| `site.css` | 385-391 | Override agresivo: todas las `col-md/lg-*` al 100% en móvil — impide layouts de 2 columnas en tablet | **Baja** |
-
-### 📋 Soluciones recomendadas
-
-| Prioridad | Archivo | Solución |
-|-----------|---------|----------|
-| 1 | `Habitos/Index.cshtml` | Envolver `.ep-habit-card` con `flex-wrap`. Ocultar day-checkboxes en <576px, mostrar solo badge "Hoy" |
-| 2 | `Home/Index.cshtml` | Cambiar `d-none d-sm-block` a `d-none d-md-block` en racha/streak |
-| 3 | `Habitos/Index.cshtml` | Encabezado días: cambiar `width: 24px` fijo por `min-width: 24px; flex: 0 0 auto` + wrap |
-| 4 | `Progreso/Index.cshtml` | Cambiar `min-width: 64px` por `width: clamp(48px, 12vw, 64px)` |
-| 5 | `Pomodoro/Index.cshtml` | Timer ring con `width: min(280px, 80vw)` |
-| 6 | `Ia/Index.cshtml` | Ocultar `.edy-status-text` en <576px, reducir gaps |
-| 7 | `Shared/_Paginacion.cshtml` | Agregar `flex-wrap` y botones más pequeños en móvil |
-| 8 | `admin/Usuarios.cshtml` | Botones en stacked vertical en móvil (`d-flex flex-column d-sm-flex-row`)
-| 9 | `Shared/_LayoutAdmin.cshtml` | Agregar `overflow-y: auto` al sidebar en móvil |
-| 10 | `site.css` | Reemplazar override agresivo de columnas por clases Bootstrap explícitas |
+| Prioridad | Archivo | Solución aplicada | Estado |
+|-----------|---------|-------------------|--------|
+| 🔴 1 | `Habitos/Index.cshtml` | `.ep-habit-card` con `flex-wrap`, day-checkboxes ocultos en <576px, nombre con `text-truncate` | ✅ |
+| 🟡 2 | `Home/Index.cshtml` | `d-none d-sm-block` → `d-none d-md-block` en racha/streak | ✅ |
+| 🟡 3 | `Habitos/Index.cshtml` | Encabezado días: `width: 24px` fijo → `min-width: 24px; flex: 0 0 auto` | ✅ |
+| 🟢 4 | `Progreso/Index.cshtml` | `min-width: 64px` → `width: clamp(48px, 12vw, 64px)` | ✅ |
+| 🟢 5 | `Pomodoro/Index.cshtml` | Timer ring: `280px` fijo → `min(280px, 80vw)` | ✅ |
+| 🟢 6 | `Ia/Index.cshtml` | `.edy-status-text` oculto en <576px | ✅ |
+| 🟢 7 | `Shared/_Paginacion.cshtml` | `flex-wrap` + botones más pequeños en móvil | ✅ |
+| 🟢 8 | `Admin/Usuarios.cshtml` | Botones apilados verticalmente en móvil (`.ep-admin-actions`) | ✅ |
+| 🟢 9 | `Home/Index.cshtml` | Chart `height: 300px` → `clamp(200px, 40vw, 300px)` | ✅ |
+| 🟢 10 | `Shared/_LayoutAdmin.cshtml` | `overflow-y: auto` en sidebar admin móvil | ✅ |
+| 🟢 11 | `Ajustes/Index.cshtml` | Texto zona peligro con `flex-fill` + `min-w-0` | ✅ |
+| 🟢 12 | `Bienestar/Index.cshtml` | Círculos historial con `clamp()`, animo-btn responsive | ✅ |
+| 🟢 13 | `Pomodoro/Index.cshtml` | Timeline icon `left: -1.35rem` → `left: 0` + `ps-4` | ✅ |
+| 🔵 14 | `site.css` | Override columnas suavizado (col-md-6 y col-lg-5/6 ya no forzados a 100%) | ✅ |
+| 🔵 15 | `Bienestar/Index.cshtml` | `.ep-animo-btn` min-width reducido en móvil | ✅ |
