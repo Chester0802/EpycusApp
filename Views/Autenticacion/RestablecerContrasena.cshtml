@@ -83,7 +83,7 @@
                 if (/[0-9]/.test(val)) fortaleza++;
                 if (/[^A-Za-z0-9]/.test(val)) fortaleza++;
 
-                var colores = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
+                var colores = ['var(--ep-pass-weak)', 'var(--ep-pass-fair)', 'var(--ep-pass-good)', 'var(--ep-pass-strong)'];
                 var anchos = ['25%', '50%', '75%', '100%'];
                 var relleno = document.getElementById('fortalezaRelleno');
                 if (val.length === 0) {

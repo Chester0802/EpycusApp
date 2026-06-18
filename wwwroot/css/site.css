@@ -585,23 +585,23 @@ textarea:focus-visible {
 }
 
 .ep-summary-icon.icon-purple {
-  background: rgba(167, 139, 250, 0.15);
-  color: #A78BFA;
+  background: var(--ep-icon-purple-bg);
+  color: var(--ep-icon-purple);
 }
 
 .ep-summary-icon.icon-green {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10B981;
+  background: var(--ep-icon-green-bg);
+  color: var(--ep-icon-green);
 }
 
 .ep-summary-icon.icon-orange {
-  background: rgba(249, 115, 22, 0.15);
-  color: #F97316;
+  background: var(--ep-icon-orange-bg);
+  color: var(--ep-icon-orange);
 }
 
 .ep-summary-icon.icon-blue {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3B82F6;
+  background: var(--ep-icon-blue-bg);
+  color: var(--ep-icon-blue);
 }
 
 .ep-summary-value {
@@ -776,6 +776,27 @@ textarea:focus-visible {
     box-shadow: var(--shadow-md);
 }
 
+/* ── Sidebar Toggle Button ───────────────────────────── */
+.ep-sidebar-toggle {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1060;
+  background: var(--accent-primary);
+  color: var(--text-on-accent, #fff);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.65rem;
+  font-size: 1.1rem;
+  border: none;
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .ep-sidebar-toggle {
+    display: block;
+  }
+}
+
 /* ── Loading Skeleton ──────────────────────────────────── */
 .ep-skeleton {
   background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
@@ -800,6 +821,19 @@ textarea:focus-visible {
 
 .ep-skeleton-card {
   height: 120px;
+  border-radius: var(--radius-lg);
+}
+
+.ep-skeleton-block {
+  height: 100%;
+  min-height: 200px;
+  width: 100%;
+  border-radius: var(--radius-lg);
+}
+
+.ep-skeleton-chart {
+  height: clamp(200px, 40vw, 300px);
+  width: 100%;
   border-radius: var(--radius-lg);
 }
 
@@ -1114,6 +1148,29 @@ textarea:focus-visible {
 
 .ep-contenido {
   animation: ep-fade-in 0.35s ease-out;
+}
+
+/* ── Page-level skeleton overlay ──────────────────────── */
+.ep-page-loading {
+  position: relative;
+}
+
+.ep-page-loading::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: ep-skeleton-shimmer 1.5s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.ep-page-loading.is-loading::before {
+  opacity: 1;
 }
 
 /* ═══════════════════════════════════════════════════════════════

@@ -12,7 +12,9 @@
     <div class="row g-4 mb-5">
         <!-- Tarjeta de Personaje y Nivel -->
         <div class="col-12 col-lg-4">
-            <div class="ep-card text-center h-100 position-relative overflow-hidden">
+            <!-- Skeleton loading for character card -->
+            <div id="skeletonPersonaje" class="ep-skeleton" style="height: 350px; width: 100%; border-radius: var(--radius-lg); display: none;"></div>
+            <div class="ep-card text-center h-100 position-relative overflow-hidden" id="personajeCard" style="display: none;">
                 <div class="mb-4 mt-2">
                     <img src="@Model.ImagenPersonajeUrl" alt="Personaje" class="img-fluid rounded-circle shadow" style="width: min(130px, 35vw); height: min(130px, 35vw); object-fit: cover; object-position: center 8%; border: 3px solid var(--accent-primary); background: var(--bg-elevated);" />
                 </div>
@@ -45,7 +47,7 @@
                 <div class="col-12 col-md-6">
                     <div class="ep-card ep-card-neon h-100 d-flex flex-column justify-content-center text-center">
                         <div class="mb-3">
-                            <i class="bi bi-fire text-warning display-4" style="filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.5));"></i>
+                            <i class="bi bi-fire text-warning display-4" style="filter: drop-shadow(0 0 10px var(--warning));"></i>
                         </div>
                         <h3 class="h1 fw-bold mb-0">@Model.Progreso.RachaActual <span class="fs-4 text-muted fw-normal">Días</span></h3>
                         <p class="text-muted mt-2 mb-0">Racha Actual</p>
@@ -54,7 +56,7 @@
                 <div class="col-12 col-md-6">
                     <div class="ep-card h-100 d-flex flex-column justify-content-center text-center">
                         <div class="mb-3">
-                            <i class="bi bi-trophy text-primary display-4" style="filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));"></i>
+                            <i class="bi bi-trophy text-primary display-4" style="filter: drop-shadow(0 0 10px var(--info));"></i>
                         </div>
                         <h3 class="h1 fw-bold mb-0">@Model.Progreso.RachaMaxima <span class="fs-4 text-muted fw-normal">Días</span></h3>
                         <p class="text-muted mt-2 mb-0">Racha Máxima Histórica</p>
@@ -123,3 +125,14 @@
         }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var skel = document.getElementById('skeletonPersonaje');
+            if (skel) skel.style.display = 'none';
+            var card = document.getElementById('personajeCard');
+            if (card) card.style.display = '';
+        });
+    </script>
+}

@@ -24,7 +24,7 @@
             var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
             var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
         }
-        <button id="ep-sidebar-toggle" class="btn d-md-none position-fixed" style="top: 0.75rem; left: 0.75rem; z-index: 1060; background: var(--accent-primary); color: var(--text-on-accent, #fff); border-radius: var(--radius-md); padding: 0.5rem 0.65rem; font-size: 1.1rem;">
+        <button id="ep-sidebar-toggle" class="ep-sidebar-toggle btn">
             <i class="bi bi-list"></i>
         </button>
         <aside class="ep-sidebar" id="ep-sidebar">
@@ -66,6 +66,13 @@
         </main>
     </div>
 
+    <script>
+        // Page loading skeleton - remove after render
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.remove('ep-page-loading');
+        });
+        document.body.classList.add('ep-page-loading');
+    </script>
     <script>
         // Sidebar toggle for mobile
         document.addEventListener('DOMContentLoaded', function() {

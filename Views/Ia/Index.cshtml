@@ -95,6 +95,18 @@
             </div>
         </div>
 
+        <!-- Skeleton loading for initial conversation -->
+        <div class="edy-skeleton-conversacion" id="edy-skeleton">
+            <div class="edy-msg edy-msg-edy">
+                <div class="edy-avatar-sm"><i class="fas fa-robot"></i></div>
+                <div class="ep-skeleton edy-skeleton-msg"></div>
+            </div>
+            <div class="edy-msg edy-msg-edy">
+                <div class="edy-avatar-sm"><i class="fas fa-robot"></i></div>
+                <div class="ep-skeleton edy-skeleton-msg" style="width: 60%;"></div>
+            </div>
+        </div>
+
     </div>
 
     <!-- ── Input ─────────────────────────────────────────────── -->
@@ -148,6 +160,10 @@
     const input       = document.getElementById('edy-input');
     const sendBtn     = document.getElementById('edy-send');
     const typingEl    = document.getElementById('edy-typing');
+
+    // ── Ocultar skeleton ────────────────────────────────────
+    var skeleton = document.getElementById('edy-skeleton');
+    if (skeleton) skeleton.style.display = 'none';
 
     // ── Scroll al fondo ─────────────────────────────────────
     function scrollToBottom() {
@@ -254,11 +270,11 @@
             if (data.exito) {
                 agregarMensaje('edy', data.respuesta);
             } else {
-                agregarMensaje('edy', data.error || 'Ocurrió un error al procesar tu mensaje. Intenta de nuevo. 🔄');
+                agregarMensaje('edy', data.error || 'Ocurrió un error al procesar tu mensaje. Intenta de nuevo.');
             }
         } catch (_) {
             typingEl.style.display = 'none';
-            agregarMensaje('edy', 'No pude conectarme. Verifica tu conexión e intenta de nuevo. 🔄');
+            agregarMensaje('edy', 'No pude conectarme. Verifica tu conexión e intenta de nuevo.');
         }
 
         sendBtn.disabled = false;

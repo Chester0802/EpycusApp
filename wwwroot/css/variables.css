@@ -82,6 +82,48 @@
     --sidebar-toggle-bg: rgba(255, 107, 157, 0.12);
     --sidebar-toggle-hover: rgba(255, 107, 157, 0.22);
 
+    /* Mood/Animo colors */
+    --ep-animo-genial: #22c55e;
+    --ep-animo-genial-bg: rgba(34, 197, 94, 0.12);
+    --ep-animo-bien: #3b82f6;
+    --ep-animo-bien-bg: rgba(59, 130, 246, 0.12);
+    --ep-animo-normal: #eab308;
+    --ep-animo-normal-bg: rgba(234, 179, 8, 0.12);
+    --ep-animo-cansado: #f97316;
+    --ep-animo-cansado-bg: rgba(249, 115, 22, 0.12);
+    --ep-animo-estresado: #ef4444;
+    --ep-animo-estresado-bg: rgba(239, 68, 68, 0.12);
+
+    /* Chart category colors */
+    --ep-chart-category-1: #3B82F6;
+    --ep-chart-category-2: #A78BFA;
+    --ep-chart-category-3: #F59E0B;
+    --ep-chart-category-4: #10B981;
+
+    /* Summary icon colors */
+    --ep-icon-purple: #A78BFA;
+    --ep-icon-purple-bg: rgba(167, 139, 250, 0.15);
+    --ep-icon-green: #10B981;
+    --ep-icon-green-bg: rgba(16, 185, 129, 0.15);
+    --ep-icon-orange: #F97316;
+    --ep-icon-orange-bg: rgba(249, 115, 22, 0.15);
+    --ep-icon-blue: #3B82F6;
+    --ep-icon-blue-bg: rgba(59, 130, 246, 0.15);
+
+    /* Accent primary bg */
+    --accent-primary-bg: rgba(255, 107, 157, 0.15);
+
+    /* Password strength colors */
+    --ep-pass-weak: #ef4444;
+    --ep-pass-fair: #f97316;
+    --ep-pass-good: #eab308;
+    --ep-pass-strong: #22c55e;
+
+    /* Sidebar toggle button */
+    --ep-sidebar-toggle-top: 0.75rem;
+    --ep-sidebar-toggle-left: 0.75rem;
+    --ep-sidebar-toggle-z: 1060;
+
     /* Borders - Suaves */
     --border-color: #ffd9f0;
     --border-color-light: #ffe8f5;
@@ -198,6 +240,48 @@ body[data-theme="dark"] {
     --sidebar-char-bg: rgba(255, 255, 255, 0.05);
     --sidebar-toggle-bg: rgba(255, 255, 255, 0.12);
     --sidebar-toggle-hover: rgba(255, 255, 255, 0.22);
+
+    /* Mood/Animo colors (keep consistent for emotional meaning) */
+    --ep-animo-genial: #22c55e;
+    --ep-animo-genial-bg: rgba(34, 197, 94, 0.15);
+    --ep-animo-bien: #3b82f6;
+    --ep-animo-bien-bg: rgba(59, 130, 246, 0.15);
+    --ep-animo-normal: #eab308;
+    --ep-animo-normal-bg: rgba(234, 179, 8, 0.15);
+    --ep-animo-cansado: #f97316;
+    --ep-animo-cansado-bg: rgba(249, 115, 22, 0.15);
+    --ep-animo-estresado: #ef4444;
+    --ep-animo-estresado-bg: rgba(239, 68, 68, 0.15);
+
+    /* Chart category colors - more vibrant in dark */
+    --ep-chart-category-1: #60a5fa;
+    --ep-chart-category-2: #c084fc;
+    --ep-chart-category-3: #fbbf24;
+    --ep-chart-category-4: #34d399;
+
+    /* Summary icon colors - brighter in dark */
+    --ep-icon-purple: #c084fc;
+    --ep-icon-purple-bg: rgba(192, 132, 252, 0.15);
+    --ep-icon-green: #34d399;
+    --ep-icon-green-bg: rgba(52, 211, 153, 0.15);
+    --ep-icon-orange: #fb923c;
+    --ep-icon-orange-bg: rgba(251, 146, 60, 0.15);
+    --ep-icon-blue: #60a5fa;
+    --ep-icon-blue-bg: rgba(96, 165, 250, 0.15);
+
+    /* Accent primary bg */
+    --accent-primary-bg: rgba(139, 92, 246, 0.15);
+
+    /* Password strength colors */
+    --ep-pass-weak: #ef4444;
+    --ep-pass-fair: #f97316;
+    --ep-pass-good: #eab308;
+    --ep-pass-strong: #22c55e;
+
+    /* Sidebar toggle button */
+    --ep-sidebar-toggle-top: 0.75rem;
+    --ep-sidebar-toggle-left: 0.75rem;
+    --ep-sidebar-toggle-z: 1060;
 
     /* Borders - Púrpura oscuro */
     --border-color: #2d1b4e;

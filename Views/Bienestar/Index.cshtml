@@ -6,11 +6,11 @@
     // Mapeo visual de estados
     var estadoConfig = new Dictionary<string, (string Emoji, string Color, string BgColor, string Label)>
     {
-        ["Genial"]    = ("😄", "#22c55e", "rgba(34,197,94,0.12)",    "Genial"),
-        ["Bien"]      = ("🙂", "#3b82f6", "rgba(59,130,246,0.12)",   "Bien"),
-        ["Normal"]    = ("😐", "#eab308", "rgba(234,179,8,0.12)",    "Normal"),
-        ["Cansado"]   = ("😴", "#f97316", "rgba(249,115,22,0.12)",   "Cansado"),
-        ["Estresado"] = ("😰", "#ef4444", "rgba(239,68,68,0.12)",    "Estresado")
+        ["Genial"]    = ("😄", "var(--ep-animo-genial)",    "var(--ep-animo-genial-bg)",    "Genial"),
+        ["Bien"]      = ("🙂", "var(--ep-animo-bien)",      "var(--ep-animo-bien-bg)",      "Bien"),
+        ["Normal"]    = ("😐", "var(--ep-animo-normal)",    "var(--ep-animo-normal-bg)",    "Normal"),
+        ["Cansado"]   = ("😴", "var(--ep-animo-cansado)",   "var(--ep-animo-cansado-bg)",   "Cansado"),
+        ["Estresado"] = ("😰", "var(--ep-animo-estresado)", "var(--ep-animo-estresado-bg)", "Estresado")
     };
 
     string EstadoColor(string e) => estadoConfig.TryGetValue(e, out var c) ? c.Color : "var(--ep-texto-secundario)";
@@ -102,7 +102,7 @@
         <!-- Frase motivacional -->
         @if (Model.FraseMotivacional != null)
         {
-            <div class="ep-card" style="background: linear-gradient(135deg, rgba(var(--ep-primario-rgb, 99,102,241),0.08), rgba(var(--ep-primario-rgb, 99,102,241),0.03)); border-color: rgba(var(--ep-primario-rgb, 99,102,241),0.2);">
+            <div class="ep-card" style="background: linear-gradient(135deg, rgba(var(--ep-primario-rgb, 255,107,157),0.08), rgba(var(--ep-primario-rgb, 255,107,157),0.03)); border-color: rgba(var(--ep-primario-rgb, 255,107,157),0.2);">
                 <i class="bi bi-quote fs-2 mb-2" style="color: var(--accent-primary); opacity: 0.5;"></i>
                 <p class="fst-italic mb-2" style="color: var(--ep-texto-primario); line-height: 1.6;">
                     "@Model.FraseMotivacional.Frase"
@@ -123,12 +123,12 @@
                 <h5 class="fw-semibold mb-3 d-flex align-items-center gap-2">
                     <i class="bi bi-bell" style="color: var(--accent-primary);"></i>
                     Alertas activas
-                    <span class="badge rounded-pill ms-1" style="background: rgba(239,68,68,0.15); color: #ef4444; font-size: 0.7rem;">@Model.Alertas.Count</span>
+                    <span class="badge rounded-pill ms-1" style="background: var(--ep-animo-estresado-bg); color: var(--ep-animo-estresado); font-size: 0.7rem;">@Model.Alertas.Count</span>
                 </h5>
                 @foreach (var alerta in Model.Alertas)
                 {
-                    var colorAlerta = alerta.EsCritica ? "#ef4444" : "#f97316";
-                    var bgAlerta = alerta.EsCritica ? "rgba(239,68,68,0.08)" : "rgba(249,115,22,0.08)";
+                    var colorAlerta = alerta.EsCritica ? "var(--ep-animo-estresado)" : "var(--ep-animo-cansado)";
+                    var bgAlerta = alerta.EsCritica ? "var(--ep-animo-estresado-bg)" : "var(--ep-animo-cansado-bg)";
                     <div class="ep-card mb-3 d-flex gap-3 align-items-start"
                          style="background: @bgAlerta; border-color: @colorAlerta; border-left: 3px solid @colorAlerta;">
                         <i class="bi @alerta.Icono fs-4 flex-shrink-0 mt-1" style="color: @colorAlerta;"></i>
@@ -143,10 +143,10 @@
         else
         {
             <div class="ep-card mb-4 d-flex align-items-center gap-3"
-                 style="background: rgba(34,197,94,0.07); border-color: rgba(34,197,94,0.25);">
-                <i class="bi bi-shield-check fs-3 flex-shrink-0" style="color: #22c55e;"></i>
+                 style="background: var(--ep-animo-genial-bg); border-color: var(--ep-animo-genial);">
+                <i class="bi bi-shield-check fs-3 flex-shrink-0" style="color: var(--ep-animo-genial);"></i>
                 <div>
-                    <div class="fw-semibold small" style="color: #22c55e;">Todo en orden</div>
+                    <div class="fw-semibold small" style="color: var(--ep-animo-genial);">Todo en orden</div>
                     <div class="small text-muted">No hay alertas de bienestar activas. ¡Sigue así!</div>
                 </div>
             </div>
