@@ -1,6 +1,6 @@
 # PENDIENTES — Auditoría Pre-Producción EpycusApp
 
-> Generado: 2026-06-15 | Última actualización: 2026-06-18 (UX/UI + auditoría responsividad móvil)
+> Generado: 2026-06-15 | Última actualización: 2026-06-18 (UX/UI + responsividad móvil resuelta)
 > Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API)
 
 ## Flujo de trabajo (para la IA)
@@ -296,42 +296,42 @@ Todos los issues de responsividad identificados en la auditoría han sido correg
 
 Issues pendientes identificados en auditoría posterior:
 
-### 🔴 Críticos
+### 🔴 Críticos — ✅ Resueltos
 
-| ID | Archivo | Problema | Solución propuesta |
-|----|---------|----------|-------------------|
-| RMOB-01 | `Pomodoro/Index.cshtml:57-58` | Botones `+`/`-` de 28×28px (mínimo táctil: 44×44px) | Cambiar a `min-width:44px; min-height:44px` |
-| RMOB-02 | `Habitos/Index.cshtml:240` | Pie chart fijo 100px en col-5 se comprime en móvil | Usar `min(100px, 35vw)` |
+| ID | Archivo | Solución aplicada | Estado |
+|----|---------|-------------------|--------|
+| RMOB-01 | `Pomodoro/Index.cshtml:57-58` | Botones `+`/`-` cambiados a 44×44px con centrado flex | ✅ |
+| RMOB-02 | `Habitos/Index.cshtml:240` | Pie chart cambiado a `min(100px, 35vw)` | ✅ |
 
-### 🟡 Altos
+### 🟡 Altos — ✅ Resueltos
 
-| ID | Archivo | Problema | Solución propuesta |
-|----|---------|----------|-------------------|
-| RMOB-03 | Pomodoro, Bienestar, Ajustes, Home | Fuentes de 0.5rem–0.7rem (8–11px) ilegibles en móvil | Override CSS a ≥0.85rem en <576px |
-| RMOB-04 | `Habitos/Index.cshtml:295-321` | `col-6` dentro del modal muy angosto en móvil | Cambiar a `col-12 col-sm-6` |
-| RMOB-05 | 17 vistas | Botones `btn-sm` (~31px) debajo del mínimo táctil (44px) | Override `.btn-sm` con `min-height:44px` en móvil |
-| RMOB-06 | `Shared/_Paginacion.cshtml` | Links de paginación ~31px, muy pequeños para tocar | Aumentar padding y min-width a 44px |
+| ID | Archivo | Solución aplicada | Estado |
+|----|---------|-------------------|--------|
+| RMOB-03 | `site.css` + vistas | Override de `font-size: 0.5-0.7rem` a ≥0.7-0.85rem en <576px | ✅ |
+| RMOB-04 | `Habitos/Index.cshtml:295-321` | `col-6` → `col-12 col-sm-6` en modal | ✅ |
+| RMOB-05 | `site.css` | `.btn-sm` con `min-height:44px` y padding mejorado en móvil | ✅ |
+| RMOB-06 | `site.css` + `_Paginacion.cshtml` | Paginación con `min-width:44px; min-height:44px` | ✅ |
 
-### 🟢 Medios
+### 🟢 Medios — ✅ Resueltos
 
-| ID | Archivo | Problema | Solución propuesta |
-|----|---------|----------|-------------------|
-| RMOB-07 | `Progreso/Index.cshtml:17` | Avatar 130×130px fijo | Usar `min(130px, 35vw)` |
-| RMOB-08 | `Home/Index.cshtml:14-20` | Personaje hero con tamaños fijos | Reducir a 80×90px en <576px |
-| RMOB-09 | `Pomodoro/Index.cshtml:98-127` | Stats en col-6 muy justos en móvil | Apilar a 100% en <576px |
-| RMOB-10 | `Bienestar/Index.cshtml:172-206` | Círculos de ánimo pueden desbordar y romper agrupación semanal | Reducir min-width a 22px en móvil |
-| RMOB-11 | Login, Registro, Admin/Login | Icono decorativo 64px fijo | Reducir a 48px en móvil |
-| RMOB-12 | `Shared/Error.cshtml:40` | Icono error 100px fijo | Usar `clamp(64px, 25vw, 100px)` |
-| RMOB-13 | `Ajustes/Index.cshtml:51,57` | Foto perfil 88px fija | Usar `min(88px, 30vw)` |
-| RMOB-14 | `Pomodoro/Index.cshtml:15` | Padding 2.5rem desperdicia espacio vertical | Reducir a 1.5rem en móvil |
+| ID | Archivo | Solución aplicada | Estado |
+|----|---------|-------------------|--------|
+| RMOB-07 | `Progreso/Index.cshtml:17` | Avatar cambiado a `min(130px, 35vw)` | ✅ |
+| RMOB-08 | `site.css` | Personaje hero reducido a 80×90px en <576px | ✅ |
+| RMOB-09 | `Pomodoro/Index.cshtml:98-127` | Stats apilados a 100% con clase `.pomodoro-stats` | ✅ |
+| RMOB-10 | `site.css` | Círculos de ánimo reducidos a min-width:22px en móvil | ✅ |
+| RMOB-11 | Login, Registro, Admin/Login + `site.css` | Icono 64px → 48px con clase `.auth-icon-box` en móvil | ✅ |
+| RMOB-12 | `Shared/Error.cshtml:40` | Icono error con `clamp(64px, 25vw, 100px)` | ✅ |
+| RMOB-13 | `Ajustes/Index.cshtml:51,57` | Foto perfil con `min(88px, 30vw)` | ✅ |
+| RMOB-14 | `site.css` | Padding de Pomodoro card reducido a 1.5rem en móvil | ✅ |
 
-### 🔵 Bajos
+### 🔵 Bajos — ✅ Resueltos
 
-| ID | Archivo | Problema | Solución propuesta |
-|----|---------|----------|-------------------|
-| RMOB-15 | `Habitos/Index.cshtml:185-253` | col-5/col-7 no se apilan en móvil | Forzar 100% en <576px |
-| RMOB-16 | `Progreso/Index.cshtml:7` | Doble `container-fluid` anidado | Eliminar el externo |
-| RMOB-17 | `epycus-modern.css:50` | `overflow:hidden` en sidebar puede recortar contenido | Cambiar a `overflow-y:auto` |
-| RMOB-18 | `site.css:446-448` | Días de hábito ocultos en móvil sin alternativa visible | Mostrar versión condensada |
-| RMOB-19 | `Ajustes/Index.cshtml:241-244` | Barras de fortaleza de 4px muy finas | Aumentar a 6-8px |
-| RMOB-20 | `ia.css:415` | Hint de input oculto en móvil (usuario no sabe cómo enviar) | Mostrar versión compacta |
+| ID | Archivo | Solución aplicada | Estado |
+|----|---------|-------------------|--------|
+| RMOB-15 | `site.css` | col-5/col-7 forzados a 100% en <576px | ✅ |
+| RMOB-16 | `Progreso/Index.cshtml:7` | `container-fluid` externo eliminado | ✅ |
+| RMOB-17 | `site.css` | Sidebar cambiado a `overflow-y:auto` | ✅ |
+| RMOB-18 | `site.css` | Días de hábito visibles en versión condensada en móvil | ✅ |
+| RMOB-19 | `Ajustes/Index.cshtml:241-244` | Barras de fortaleza aumentadas a 6px | ✅ |
+| RMOB-20 | `site.css` | Hint de input IA visible en móvil con fuente compacta | ✅ |

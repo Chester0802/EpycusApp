@@ -4,7 +4,7 @@
     ViewData["Title"] = "Mi Progreso";
 }
 
-<div class="container-fluid py-4">
+<div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 fw-bold ep-texto-gradiente"><i class="bi bi-graph-up me-2"></i>Mi Progreso</h1>
     </div>
@@ -14,7 +14,7 @@
         <div class="col-12 col-lg-4">
             <div class="ep-card text-center h-100 position-relative overflow-hidden">
                 <div class="mb-4 mt-2">
-                    <img src="@Model.ImagenPersonajeUrl" alt="Personaje" class="img-fluid rounded-circle shadow" style="width: 130px; height: 130px; object-fit: cover; object-position: center 8%; border: 3px solid var(--accent-primary); background: var(--bg-elevated);" />
+                    <img src="@Model.ImagenPersonajeUrl" alt="Personaje" class="img-fluid rounded-circle shadow" style="width: min(130px, 35vw); height: min(130px, 35vw); object-fit: cover; object-position: center 8%; border: 3px solid var(--accent-primary); background: var(--bg-elevated);" />
                 </div>
                 <h2 class="h4 fw-bold mb-1">@Model.Progreso.NivelActual.Titulo</h2>
                 <p class="text-muted mb-4">Nivel @Model.Progreso.NivelActual.Numero</p>

@@ -434,9 +434,9 @@ textarea:focus-visible {
   .ep-card { padding: 1rem; }
   .ep-header-title { font-size: 1.35rem; }
   .dash-hero { padding: 1rem; }
-  .dash-hero-personaje { width: 140px; height: 160px; }
-  .dash-personaje-img { max-height: 140px; max-width: 130px; }
-  .dash-personaje-aura { width: 160px; height: 160px; }
+  .dash-hero-personaje { width: 80px !important; height: 90px !important; }
+  .dash-personaje-img { max-height: 80px !important; max-width: 75px !important; }
+  .dash-personaje-aura { width: 90px !important; height: 90px !important; }
   .dash-hero-glow-orb { display: none; }
   .dash-progress-bar { width: 100px; }
   .dash-streak-name { width: 80px; }
@@ -460,6 +460,94 @@ textarea:focus-visible {
   }
 
   .edy-header-actions .edy-status-text { display: none; }
+
+  /* RMOB-03: Font size bump for mobile readability */
+  [style*="font-size: 0.5rem"],
+  [style*="font-size:0.5rem"] { font-size: 0.7rem !important; }
+  [style*="font-size: 0.6rem"],
+  [style*="font-size:0.6rem"] { font-size: 0.75rem !important; }
+  [style*="font-size: 0.7rem"],
+  [style*="font-size:0.7rem"] { font-size: 0.85rem !important; }
+
+  /* RMOB-05: btn-sm touch target sizing */
+  .btn-sm {
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* RMOB-06: Pagination touch targets */
+  .ep-pagination .page-link {
+    padding: 0.55rem 0.75rem !important;
+    font-size: 0.9rem !important;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* RMOB-09: Pomodoro stats stack */
+  .pomodoro-stats .col-6 { flex: 0 0 100%; max-width: 100%; }
+
+  /* RMOB-15: col-5/col-7 stack on mobile */
+  .col-5, .col-7 { flex: 0 0 100%; max-width: 100%; }
+
+  /* RMOB-14: Pomodoro card padding */
+  .ep-card[style*="padding: 2.5rem"] { padding: 1.5rem 1rem !important; }
+}
+
+/* RMOB-10: Mood circles responsive */
+@media (max-width: 576px) {
+  .ep-animo-circle { min-width: 22px !important; max-width: 28px !important; }
+}
+
+/* RMOB-11: Auth icon boxes responsive */
+@media (max-width: 576px) {
+  .auth-icon-box { width: 48px !important; height: 48px !important; font-size: 1.5rem !important; }
+}
+
+/* RMOB-17: Sidebar overflow fix */
+.ep-sidebar {
+  overflow-y: auto !important;
+}
+
+/* RMOB-18: Show condensed habit days on mobile */
+@media (max-width: 576px) {
+  .ep-habit-days {
+    display: inline-flex !important;
+    gap: 0.15rem;
+  }
+  .ep-habit-days .ep-day-check {
+    width: 20px;
+    height: 20px;
+    font-size: 0.55rem;
+  }
+  .ep-day-header {
+    display: flex !important;
+    gap: 0.15rem;
+  }
+  .ep-day-header span {
+    min-width: 20px !important;
+    width: 20px !important;
+    font-size: 0.55rem;
+  }
+}
+
+/* RMOB-20: IA input hint keep visible on mobile */
+@media (max-width: 768px) {
+  .edy-input-hint {
+    display: block !important;
+    font-size: 0.65rem;
+    margin-top: 0.25rem;
+  }
+  .edy-input-hint kbd {
+    font-size: 0.6rem;
+    padding: 0 0.2rem;
+  }
 }
 
 /* --- Habits Dashboard Redesign --- */
