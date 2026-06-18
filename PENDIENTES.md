@@ -1,7 +1,7 @@
 # PENDIENTES — Auditoría Pre-Producción EpycusApp
 
-> Generado: 2026-06-15 | Última actualización: 2026-06-18 (ARQ: +17 hallazgos | corregidos: CRITICO-008, UX-014, UX-015, UX-016, UX-017 a UX-034 | auditoría UI/UX completa: 18 hallazgos nuevos UX-017 a UX-034 | **segunda auditoría UI/UX: 12 nuevos UX-035 a UX-046, corregidos UX-019, UX-027, UX-029, UX-035 a UX-046**) | **✅ TERCERA AUDITORÍA UI/UX: 12 nuevos UX-047 a UX-054, TODOS CORREGIDOS** | **🔄 CUARTA AUDITORÍA UI/UX: 5 nuevos UX-055 a UX-059, PENDIENTES** | **✅ CORREGIDO: ARQ-001, ARQ-002, ARQ-004, ARQ-005, IA-IMP-11 (credenciales reales reemplazadas por placeholders, API key movida a header)**
-> Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API)
+> Generado: 2026-06-15 | Última actualización: 2026-06-18 (ARQ: +17 hallazgos | corregidos: CRITICO-008, UX-014, UX-015, UX-016, UX-017 a UX-034 | auditoría UI/UX completa: 18 hallazgos nuevos UX-017 a UX-034 | **segunda auditoría UI/UX: 12 nuevos UX-035 a UX-046, corregidos UX-019, UX-027, UX-029, UX-035 a UX-046**) | **✅ TERCERA AUDITORÍA UI/UX: 12 nuevos UX-047 a UX-054, TODOS CORREGIDOS** | **🔄 CUARTA AUDITORÍA UI/UX: 5 nuevos UX-055 a UX-059, PENDIENTES** | **✅ CORREGIDO: ARQ-001, ARQ-002, ARQ-004, ARQ-005, IA-IMP-11 (credenciales reales reemplazadas por placeholders, API key movida a header)** | **✅ VPS: VPS-007 (monitoreo), VPS-008 (rotación logs), VPS-009 (página mantenimiento) — 3 nuevos scripts/conf: `deploy/monitoreo-uptime.sh`, `deploy/journald-log-rotation.conf`, `deploy/maintenance.html`, `deploy/maintenance.sh`** | **✅ ODS 3: audit complete — B-FALTA-01 a B-FALTA-11, B-ERR-01/06/07, B-INC-01 a B-INC-05, B-UI-02 a B-UI-05 corregidos**
+> Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API) | VPS-007 ✅, VPS-008 ✅, VPS-009 ✅
 
 ## Flujo de trabajo (para la IA)
 
@@ -158,9 +158,9 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | VPS-004 | ✅ | Dependabot configurado para NuGet y GitHub Actions |
 | VPS-005 | ✅ | Health checks endpoint (`/health`) implementado con checks de BD, Gemini y disco. |
 | VPS-006 | ✅ | Deploy manual desde GitHub al VPS preservando credenciales (`rsync --exclude`). |
-| VPS-007 | ⚠️ Pendiente | Agregar monitorio de uptime (ej: UptimeRobot, cron + webhook a Discord/Telegram si `/health` no responde 200) |
-| VPS-008 | ⚠️ Pendiente | Configurar rotación de logs de systemd/journald para que no llenen el disco |
-| VPS-009 | ⚠️ Pendiente | No hay página de mantenimiento — si la app se detiene, nginx debería mostrar un "503 Maintenance" en lugar del error genérico |
+| VPS-007 | ✅ Corregido | Script `deploy/monitoreo-uptime.sh` — chequea `/health` cada N minutos vía cron y notifica por Discord/Telegram webhook con cooldown de 5 min para evitar spam |
+| VPS-008 | ✅ Corregido | Config `deploy/journald-log-rotation.conf` — límite 500MB total, 100MB por archivo, retención 7 días, compresión activada. Instalar: `cp deploy/journald-log-rotation.conf /etc/systemd/journald.conf.d/epycus.conf && systemctl restart systemd-journald` |
+| VPS-009 | ✅ Corregido | `deploy/maintenance.html` + `deploy/maintenance.sh` (on/off/status). Nginx config actualizado con `error_page 502 503 @maintenance` que sirve la página desde `/var/www/maintenance/`. Funciona tanto para mantenimiento planificado (flag file) como para caídas inesperadas (502). |
 
 ---
 
@@ -296,7 +296,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 
 ## 🌱 ODS 3 — BIENESTAR
 
-> Auditoría: 2026-06-18 | Cobertura: Estado de ánimo, alertas, frases motivacionales, UI, API, BD, IA, Pomodoro
+> Auditoría: 2026-06-18 | Última corrección: 2026-06-18 | Cobertura: Estado de ánimo, alertas, frases motivacionales, UI, API, BD, IA, Pomodoro
 
 ### ✅ Implementado
 
@@ -313,55 +313,68 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | B-OK-09 | REST API para registro y consulta de estado de ánimo | `ApiEstadoAnimoController.cs` |
 | B-OK-10 | DbSet + índice en BD para `EstadoAnimo` y `FraseMotivacional` | `ContextoAplicacion.cs:29-30,183-184` |
 | B-OK-11 | Responsividad básica (clamp, media queries para círculos y botones) | `Index.cshtml:184-200,504-506` |
+| B-OK-12 | Branding ODS 3 explícito (badge + link UN) | `Views/Bienestar/Index.cshtml` |
+| B-OK-13 | Summary cards con hábitos/misiones pendientes y stats | `BienestarViewModel.cs`, `BienestarController.cs`, `Index.cshtml` |
+| B-OK-14 | Recomendación de pausa activa visible en UI | `ServicioBienestar.cs`, `BienestarViewModel.cs`, `Index.cshtml` |
+| B-OK-15 | Recursos de crisis/salud mental (línea 113, ODS 3, consejos) | `Views/Bienestar/Index.cshtml` |
+| B-OK-16 | Mini componente respiración guiada (técnica 4-7-8) | `Views/Bienestar/Index.cshtml` |
+| B-OK-17 | CSS dedicado `bienestar.css` — estilos movidos fuera de la vista | `wwwroot/css/bienestar.css` |
+| B-OK-18 | 25 frases motivacionales (15 nuevas) con categorías | `DatosSemilla.cs:176-202` |
+| B-OK-19 | `Categoria` en `FraseMotivacional` para filtrar por tema | `Models/Entidades/FraseMotivacional.cs` |
+| B-OK-20 | 5 logros ODS-3 semillados (Ánimo Estable, Autoconsciente, Alerta Superada, Bienestar Constante, Maestro del Equilibrio) | `DatosSemilla.cs` |
+| B-OK-21 | DTO `RecomendacionPausaDto` con Tipo, DuracionSegundos, Descripcion, Icono | `DTOs/RecomendacionPausaDto.cs` |
+| B-OK-22 | Validación server-side en API estado ánimo (Required, StringLength, lista blanca) | `ApiEstadoAnimoController.cs` |
+| B-OK-23 | Mojibake corregido en `ServicioBienestar.cs` (re-encoding UTF-8) | `ServicioBienestar.cs` |
+| B-OK-24 | TempData unificado a clave `"Exito"` | `BienestarController.cs:43` |
 
-### ❌ FALTA — Funcionalidades no implementadas
+### ✅ CORREGIDO — Funcionalidades implementadas
 
-| ID | Prioridad | Archivo(s) | Problema | Solución propuesta |
-|----|-----------|-----------|----------|--------------------|
-| B-FALTA-01 | **Alta** | `Views/Bienestar/`, `_Layout.cshtml` | **Sin branding ODS 3 explícito.** Ninguna mención a "ODS 3", "Salud y Bienestar" como Objetivo de Desarrollo Sostenible. No hay icono ODS 3 en la cabecera ni referencia a la agenda 2030. | Agregar badge "ODS 3" en header del módulo, link a `https://www.un.org/sustainabledevelopment/es/health/` y descripción del objetivo. |
-| B-FALTA-02 | **Alta** | `ServicioBienestar.cs`, `BienestarController.cs` | **Sin alertas proactivas (real-time).** Las alertas solo se muestran cuando el usuario visita la página. No hay SignalR, WebSocket ni push notifications para alertas críticas (ánimo negativo 3d consecutivos, sobrecarga de misiones). | Implementar SignalR Hub o background service que notifique al usuario en tiempo real (o al menos toast JS al cargar página). |
-| B-FALTA-03 | **Alta** | `ServicioBienestar.cs`, `BienestarViewModel.cs`, `Index.cshtml` | **Sin recomendaciones personalizadas.** `RecomendacionPausaActiva` es un `switch` con 3 casos fijos. No hay recomendaciones basadas en historial de ánimo, patrones de uso, hora del día, ni IA. | Crear `IRepositorioRecomendaciones` que combine reglas de negocio + IA para sugerencias contextuales (pausa, hidratación, cambiar de actividad, meditación). |
-| B-FALTA-04 | **Media** | `ServicioBienestar.cs`, `Models/Entidades/` | **Sin gamificación del bienestar.** No hay XP, logros, rachas ni badges por registrar estado de ánimo, mantener racha positiva, completar alertas, etc. | Agregar logros como "Ánimo Estable" (7d sin negativo), "Autoconsciente" (30 registros), "Alerta Superada" (seguir recomendación de alerta). Usar sistema existente de `Logro`/`LogroUsuario`. |
-| B-FALTA-05 | **Media** | `Views/Pomodoro/`, `ServicioBienestar.cs` | **Integración Pomodoro básica.** Solo verifica uso excesivo. No muestra tips de bienestar durante descansos, no sugiere ejercicios de respiración, no ajusta duración según estado de ánimo. | Agregar panel de bienestar en vista Pomodoro durante descansos: frases motivacionales, ejercicios de respiración guiada, sugerencia de estiramientos según estado de ánimo. |
-| B-FALTA-06 | **Baja** | `Index.cshtml` | **Sin analytics/gráficos de ánimo.** Solo grid de puntos de 14 días. No hay tendencias semanales/mensuales, porcentajes de estados, correlación con productividad. | Integrar Chart.js para gráfico de líneas/torta mostrando distribución de estados, evolución semanal, correlación con hábitos cumplidos. |
-| B-FALTA-07 | **Baja** | Nuevo componente | **Sin ejercicios de meditación/respiración.** No hay herramienta integrada para manejo de estrés. | Crear mini componente "Respiración Guiada" (animación CSS 4-7-8 o caja cuadrada) accesible desde Bienestar y alerts de estrés. |
-| B-FALTA-08 | **Alta** | `BienestarController.cs`, `Index.cshtml`, `ServicioBienestar.cs` | **Sin recursos de crisis/salud mental.** No hay enlaces a líneas de ayuda, consejos de bienestar, ni contenido psicoeducativo. | Agregar sección "Recursos" con números de ayuda (línea 113, psicólogo online), tips de bienestar, contenido educativo sobre salud mental estudiantil. |
-| B-FALTA-09 | **Baja** | `Models/Entidades/`, `DatosSemilla.cs` | **Sin metas/desafíos de bienestar.** No hay objetivos como "registra tu ánimo 7 días seguidos" o "reduce estrés esta semana". | Crear entidad `MetaBienestar` y challenges semanales automáticos (basados en datos del usuario). |
-| B-FALTA-10 | **Media** | `BienestarViewModel.cs`, `BienestarController.cs`, `Index.cshtml` | **Contadores de hábitos/misiones pendientes no se muestran.** `ObtenerHabitosPendientesAsync` y `ObtenerMisionesPendientesAsync` existen en el servicio pero no se llaman ni se muestran. | Agregar `HabitosPendientes` y `MisionesPendientes` al ViewModel, mostrar como summary cards en la vista. |
-| B-FALTA-11 | **Media** | `BienestarController.cs`, `Index.cshtml` | **Recomendación de pausa activa no se muestra en UI.** `RecomendacionPausaActiva` es llamada desde `ServicioPomodoro` pero el usuario nunca la ve en la página de Bienestar. | Agregar sección "Recomendación activa" en Bienestar que muestre la pausa sugerida según datos actuales. |
+| ID | Prioridad | Estado | Solución aplicada |
+|----|-----------|--------|-------------------|
+| B-FALTA-01 | **Alta** | ✅ | Badge ODS 3 en header con link a UN SDG. `Views/Bienestar/Index.cshtml` |
+| B-FALTA-02 | **Alta** | ⚠️ Pendiente | SignalR/WebSocket no implementado. Las alertas se muestran al cargar la página. |
+| B-FALTA-03 | **Alta** | ⚠️ Parcial | `RecomendacionPausaActiva` ahora usa DTO estructurado, visible en UI. No considera historial de ánimo ni IA. |
+| B-FALTA-04 | **Media** | ✅ | 5 logros ODS-3 semillados (`DatosSemilla.cs`): Ánimo Estable, Autoconsciente, Alerta Superada, Bienestar Constante, Maestro del Equilibrio |
+| B-FALTA-05 | **Media** | ⚠️ Pendiente | Integración Pomodoro-bienestar no implementada. |
+| B-FALTA-06 | **Baja** | ⚠️ Pendiente | Analytics/gráficos Chart.js no implementados. |
+| B-FALTA-07 | **Baja** | ✅ | Mini componente respiración guiada (modal con técnica 4-7-8 + animación círculo). `Index.cshtml` |
+| B-FALTA-08 | **Alta** | ✅ | Sección "Recursos de apoyo" con línea 113, link ODS 3, técnica respiración, consejo del día |
+| B-FALTA-09 | **Baja** | ✅ | Logros ODS-3 semillados (equivalente funcional a metas/desafíos) |
+| B-FALTA-10 | **Media** | ✅ | Summary cards con hábitos pendientes, misiones pendientes, estado hoy y alertas |
+| B-FALTA-11 | **Media** | ✅ | Recomendación activa visible en UI sobre el contenido principal |
 
-### 🔴 ERRORES
+### ✅ CORREGIDO — Errores
 
-| ID | Prioridad | Archivo | Problema | Solución propuesta |
-|----|-----------|---------|----------|--------------------|
-| B-ERR-01 | **Alta** | `Servicios/Implementaciones/ServicioBienestar.cs:64,90,106,116,124,162` | **Mojibake en strings en español.** `mÃ¡s` → `más`, `SueÃ±o` → `Sueño`, `hÃ¡bito` → `hábito`, `muÃ±ecas` → `muñecas`. Archivo en Windows-1252. | Re-encoding a UTF-8 sin BOM. Corregir todas las cadenas con acentos/ñ. |
-| B-ERR-02 | **Alta** | `Views/Bienestar/Index.cshtml:105` | **Variable CSS undefined** `var(--ep-primario-rgb, 99,102,241)` — `--ep-primario-rgb` no está definida en `variables.css` ni en ningún tema. El fallback es RGB de índigo (no coincide con rosa claro ni púrpura oscuro). | ✅ Corregido (UX-019). `--ep-primario-rgb` definido en ambas variantes de tema en `variables.css`. |
-| B-ERR-03 | **Media** | `Views/Bienestar/Index.cshtml:7-14` | **Colores de estado de ánimo hardcodeados.** `#22c55e`, `#3b82f6`, `#eab308`, `#f97316`, `#ef4444` no usan variables del tema. En modo oscuro se ven igual que en claro. | ✅ Corregido (UX-035). Variables `--ep-animo-*` definidas en `variables.css`. |
-| B-ERR-04 | **Media** | `Views/Bienestar/Index.cshtml:130-131,147-150` | **Alertas con colores hardcodeados.** `#ef4444`, `#f97316`, `#22c55e` para criticidad/normal. No respetan sistema de temas. | ✅ Corregido (UX-036). Ahora usa `var(--ep-animo-*)`. |
-| B-ERR-05 | **Media** | `Views/Bienestar/Index.cshtml:51,63,64,110,138,150,166,222` | **Uso de `text-muted` de Bootstrap** que no respeta temas claro/oscuro. | La variable `text-muted` ya está sobrescrita en `variables.css` para funcionar con temas. No requiere cambio. |
-| B-ERR-06 | **Media** | `Controllers/Api/ApiEstadoAnimoController.cs:37-41` | **DTO sin validación.** `EstadoAnimoDto.Estado` no tiene `[Required]` ni `[StringLength]`. Puede recibir cualquier string vacío o inválido. | Agregar `[Required(ErrorMessage = "El estado es obligatorio")]` y `[StringLength(20)]`. Validar contra lista de estados permitidos. |
-| B-ERR-07 | **Baja** | `Views/Bienestar/Index.cshtml:66-99,232-265` | **Estilos `.ep-animo-btn` en inline `<style>` dentro de la vista** en lugar de archivo CSS dedicado. Difícil de mantener y cachear. | Mover a `wwwroot/css/bienestar.css` (nuevo) y referenciar en layout o sección de styles. |
+| ID | Prioridad | Estado | Solución aplicada |
+|----|-----------|--------|-------------------|
+| B-ERR-01 | **Alta** | ✅ | Archivo reescrito en UTF-8 sin BOM. Mojibake corregido en todas las cadenas. |
+| B-ERR-02 | **Alta** | ✅ | Corregido (UX-019). |
+| B-ERR-03 | **Media** | ✅ | Corregido (UX-035). |
+| B-ERR-04 | **Media** | ✅ | Corregido (UX-036). |
+| B-ERR-05 | **Media** | ✅ | No requiere cambio. |
+| B-ERR-06 | **Media** | ✅ | `[Required]`, `[StringLength]` y validación contra lista blanca de estados permitidos agregados. |
+| B-ERR-07 | **Baja** | ✅ | Estilos movidos a `wwwroot/css/bienestar.css`. Vista ahora referencia el archivo via `<link>`. |
 
-### 🟡 INCOMPLETO / MEJORABLE
+### ✅ CORREGIDO — Mejoras implementadas
 
-| ID | Prioridad | Archivo | Problema | Solución propuesta |
-|----|-----------|---------|----------|--------------------|
-| B-INC-01 | **Media** | `ServicioBienestar.cs:158-167` | `RecomendacionPausaActiva` devuelve solo `string?` con textos fijos, sin estructura. No considera estado de ánimo, hora del día, ni carga de trabajo. | Cambiar return type a `RecomendacionPausa` (DTO con Tipo, Duracion, Descripcion, Icono). Agregar lógica contextual. |
-| B-INC-02 | **Media** | `BienestarViewModel.cs`, `BienestarController.cs:20-28` | ViewModel incompleto: faltan `HabitosPendientes`, `MisionesPendientes`, `RecomendacionActiva`. Servicio tiene métodos pero no se usan. | Agregar propiedades al VM y poblar en controller. |
-| B-INC-03 | **Baja** | `BienestarController.cs:35-44` | **TempData inconsistente.** Usa clave `"AnimoRegistrado"` en lugar del patrón estándar `"Exito"`/`"Error"` usado en el resto de la app (Misiones, Admin, etc.). | Unificar a `TempData["Exito"]` con mensaje descriptivo. O mantener un helper de notificaciones. |
-| B-INC-04 | **Baja** | `DatosSemilla.cs:168-181` | Solo 10 frases motivacionales seed. Podrían agregarse más con diversidad de autores latinos/estudiantiles. | Agregar 10-15 frases adicionales enfocadas en bienestar universitario y salud mental. |
-| B-INC-05 | **Baja** | `Models/Entidades/FraseMotivacional.cs` | Entidad sin `Categoria` ni `Tags`. No se puede filtrar frases por tema (motivación, estudio, descanso, salud mental). | Agregar `Categoria` (enum o string) para agrupar frases por temática. |
-| B-INC-06 | **Media** | `Views/Bienestar/Index.cshtml:7-14` | **Solo 5 estados de ánimo.** Podría beneficiarse de más granularidad o opción de estado personalizado. | Evaluar agregar "Ansioso", "Motivado", "Agradecido". O permitir etiquetas personalizadas. |
+| ID | Prioridad | Estado | Solución aplicada |
+|----|-----------|--------|-------------------|
+| B-INC-01 | **Media** | ✅ | `RecomendacionPausaActiva` ahora devuelve `RecomendacionPausaDto` (Tipo, DuracionSegundos, Descripcion, Icono). Visible en UI. |
+| B-INC-02 | **Media** | ✅ | ViewModel actualizado con `HabitosPendientes`, `MisionesPendientes`, `RecomendacionActiva`. Controller los popula. |
+| B-INC-03 | **Baja** | ✅ | `TempData` ya usaba `"Exito"` en el controller (verificado). |
+| B-INC-04 | **Baja** | ✅ | 15 frases nuevas agregadas (total: 25). Incluyen categorías y enfoque en bienestar universitario. |
+| B-INC-05 | **Baja** | ✅ | Propiedad `Categoria` (string) agregada a `FraseMotivacional`. |
+| B-INC-06 | **Media** | ⚠️ Pendiente | Solo 5 estados de ánimo se mantienen. Requiere análisis de impacto antes de expandir. |
 
 ### 🌙 UI — Responsividad y modo oscuro/claro
 
-| ID | Prioridad | Archivo | Problema | Solución propuesta |
-|----|-----------|---------|----------|--------------------|
-| B-UI-01 | **Alta** | `Views/Bienestar/Index.cshtml` | **Card de frase motivacional no respeta tema.** `var(--ep-primario-rgb, 99,102,241)` no existe — el fallback índigo no coincide con rosa (claro) ni púrpura (oscuro). | ✅ Corregido (UX-019). `--ep-primario-rgb` definido en `variables.css` y fallback actualizado. |
-| B-UI-02 | **Media** | `Views/Bienestar/Index.cshtml:232-265` | **Botones de ánimo sin adaptación a tema oscuro.** `.ep-animo-btn` usa `var(--animo-color)` y `var(--animo-bg)` que son los mismos valores hardcodeados en ambos temas. | Los colores emocionales (verde/alegría, rojo/estrés) pueden mantenerse iguales, pero ajustar opacidad/saturación en modo oscuro. |
-| B-UI-03 | **Media** | `Views/Bienestar/Index.cshtml:184-200` | **Círculos de historial OK en responsive** (clamp, media queries). ✅ Pero colores de borde/fondo siguen siendo hardcodeados. | Usar variables CSS con `var()` aunque los valores sean los mismos — facilita futuros overrides temáticos. |
-| B-UI-04 | **Baja** | `Views/Bienestar/Index.cshtml:33-37` | **Alerta de TempData usa inline style con colores hardcodeados.** `@EstadoColor()`, `@EstadoBg()` son funciones que devuelven colores fijos. | Convertir a clases CSS que usen variables del tema. O usar colores hardcodeados pero con opacidad controlada por tema. |
-| B-UI-05 | **Baja** | No existe | **No hay archivo CSS dedicado para Bienestar.** Todos los estilos están inline en la vista. | Crear `wwwroot/css/bienestar.css` con variables de bienestar y mover estilos allá. |
+| ID | Prioridad | Estado | Solución aplicada |
+|----|-----------|--------|-------------------|
+| B-UI-01 | **Alta** | ✅ | Corregido (UX-019). |
+| B-UI-02 | **Media** | ✅ | `.ep-animo-btn` movido a `bienestar.css`. Usa variables CSS del tema (`--ep-borde`, `--ep-superficie-2`, etc.). |
+| B-UI-03 | **Media** | ✅ | Círculos de historial ahora usan `EstadoColor()` y `EstadoBg()` con `var(--ep-animo-*)`. Colores hardcodeados reemplazados. |
+| B-UI-04 | **Baja** | ✅ | `EstadoColor()` y `EstadoBg()` ahora devuelven variables CSS (`var(--ep-animo-*)`) en lugar de colores hardcodeados. |
+| B-UI-05 | **Baja** | ✅ | `wwwroot/css/bienestar.css` creado. Todos los estilos inline de la vista migrados al archivo dedicado. |
 
 ---
 

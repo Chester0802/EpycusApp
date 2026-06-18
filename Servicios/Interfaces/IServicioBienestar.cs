@@ -1,4 +1,5 @@
-﻿using EpycusApp.Models.Entidades;
+﻿using EpycusApp.DTOs;
+using EpycusApp.Models.Entidades;
 
 namespace EpycusApp.Servicios.Interfaces
 {
@@ -16,5 +17,7 @@ namespace EpycusApp.Servicios.Interfaces
 
         Task<int> ObtenerHabitosPendientesAsync(int usuarioId);
         Task<int> ObtenerMisionesPendientesAsync(int usuarioId);
+
+        RecomendacionPausaDto? RecomendacionPausaActiva(int ciclosCompletados);
     }
 }

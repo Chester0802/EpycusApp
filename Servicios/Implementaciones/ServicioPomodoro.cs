@@ -70,7 +70,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
             await _servicioGamificacion.SumarXP(sesion.UsuarioId, ConstantesGamificacion.XP_BASE_POMODORO);
 
-            return (xpGanado, sugerir, pausaActiva ?? pausa);
+            return (xpGanado, sugerir, pausaActiva?.Descripcion ?? pausa);
         }
 
         public async Task FinalizarSesion(int sesionId, int ciclosCompletados)

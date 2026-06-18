@@ -161,23 +161,45 @@ namespace EpycusApp.Datos.Semilla
                         new Logro { Nombre = "Asistente", Descripcion = "Alcanza el nivel 5.", IconoUrl = "/img/logros/nivel_5.png", CondicionTipo = "NivelAlcanzado", CondicionValor = 5, XpRecompensa = 150, EstaActivo = true },
                         new Logro { Nombre = "Profesional", Descripcion = "Alcanza el nivel 10.", IconoUrl = "/img/logros/nivel_10.png", CondicionTipo = "NivelAlcanzado", CondicionValor = 10, XpRecompensa = 300, EstaActivo = true },
                         new Logro { Nombre = "Gran Maestro", Descripcion = "Alcanza el nivel 18.", IconoUrl = "/img/logros/nivel_18.png", CondicionTipo = "NivelAlcanzado", CondicionValor = 18, XpRecompensa = 700, EstaActivo = true },
-                        new Logro { Nombre = "Leyenda Viviente", Descripcion = "Alcanza el nivel máximo: nivel 20.", IconoUrl = "/img/logros/leyenda.png", CondicionTipo = "NivelAlcanzado", CondicionValor = 20, XpRecompensa = 1000, EstaActivo = true });
+                        new Logro { Nombre = "Leyenda Viviente", Descripcion = "Alcanza el nivel máximo: nivel 20.", IconoUrl = "/img/logros/leyenda.png", CondicionTipo = "NivelAlcanzado", CondicionValor = 20, XpRecompensa = 1000, EstaActivo = true },
+                        // Logros ODS-3 — Bienestar
+                        new Logro { Nombre = "Ánimo Estable", Descripcion = "Mantén 7 días consecutivos sin registrar ánimo negativo.", IconoUrl = "/img/logros/placeholder.png", CondicionTipo = "RachaAnimoPositivo", CondicionValor = 7, XpRecompensa = 30, EstaActivo = true },
+                        new Logro { Nombre = "Autoconsciente", Descripcion = "Registra tu estado de ánimo 30 veces.", IconoUrl = "/img/logros/placeholder.png", CondicionTipo = "TotalRegistrosAnimo", CondicionValor = 30, XpRecompensa = 50, EstaActivo = true },
+                        new Logro { Nombre = "Alerta Superada", Descripcion = "Sigue una recomendación de alerta de bienestar.", IconoUrl = "/img/logros/placeholder.png", CondicionTipo = "AlertasAtendidas", CondicionValor = 1, XpRecompensa = 20, EstaActivo = true },
+                        new Logro { Nombre = "Bienestar Constante", Descripcion = "Registra tu estado de ánimo por 14 días consecutivos.", IconoUrl = "/img/logros/placeholder.png", CondicionTipo = "RachaRegistroAnimo", CondicionValor = 14, XpRecompensa = 80, EstaActivo = true },
+                        new Logro { Nombre = "Maestro del Equilibrio", Descripcion = "Completa 5 pausas activas recomendadas.", IconoUrl = "/img/logros/placeholder.png", CondicionTipo = "PausasActivasCompletadas", CondicionValor = 5, XpRecompensa = 40, EstaActivo = true });
                     await contexto.SaveChangesAsync();
                 }
 
                 if (!contexto.FrasesMotivacionales.Any())
                 {
                     contexto.FrasesMotivacionales.AddRange(
-                        new FraseMotivacional { Frase = "El secreto para avanzar es comenzar.", Autor = "Mark Twain", EstaActiva = true },
-                        new FraseMotivacional { Frase = "No cuentes los días, haz que los días cuenten.", Autor = "Muhammad Ali", EstaActiva = true },
-                        new FraseMotivacional { Frase = "Sé el cambio que quieres ver en el mundo.", Autor = "Mahatma Gandhi", EstaActiva = true },
-                        new FraseMotivacional { Frase = "El éxito es la suma de pequeños esfuerzos repetidos día tras día.", Autor = "Robert Collier", EstaActiva = true },
-                        new FraseMotivacional { Frase = "No importa lo lento que vayas, siempre y cuando no te detengas.", Autor = "Confucio", EstaActiva = true },
-                        new FraseMotivacional { Frase = "La disciplina es el puente entre metas y logros.", Autor = "Jim Rohn", EstaActiva = true },
-                        new FraseMotivacional { Frase = "Cree que puedes y ya estarás a mitad de camino.", Autor = "Theodore Roosevelt", EstaActiva = true },
-                        new FraseMotivacional { Frase = "Cada día es una nueva oportunidad para mejorar.", Autor = "Anónimo", EstaActiva = true },
-                        new FraseMotivacional { Frase = "La constancia es la madre del éxito.", Autor = "Anónimo", EstaActiva = true },
-                        new FraseMotivacional { Frase = "Haz de cada día tu obra maestra.", Autor = "John Wooden", EstaActiva = true });
+                        new FraseMotivacional { Frase = "El secreto para avanzar es comenzar.", Autor = "Mark Twain", Categoria = "Motivación", EstaActiva = true },
+                        new FraseMotivacional { Frase = "No cuentes los días, haz que los días cuenten.", Autor = "Muhammad Ali", Categoria = "Motivación", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Sé el cambio que quieres ver en el mundo.", Autor = "Mahatma Gandhi", Categoria = "Reflexión", EstaActiva = true },
+                        new FraseMotivacional { Frase = "El éxito es la suma de pequeños esfuerzos repetidos día tras día.", Autor = "Robert Collier", Categoria = "Constancia", EstaActiva = true },
+                        new FraseMotivacional { Frase = "No importa lo lento que vayas, siempre y cuando no te detengas.", Autor = "Confucio", Categoria = "Persistencia", EstaActiva = true },
+                        new FraseMotivacional { Frase = "La disciplina es el puente entre metas y logros.", Autor = "Jim Rohn", Categoria = "Disciplina", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Cree que puedes y ya estarás a mitad de camino.", Autor = "Theodore Roosevelt", Categoria = "Confianza", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Cada día es una nueva oportunidad para mejorar.", Autor = "Anónimo", Categoria = "Motivación", EstaActiva = true },
+                        new FraseMotivacional { Frase = "La constancia es la madre del éxito.", Autor = "Anónimo", Categoria = "Constancia", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Haz de cada día tu obra maestra.", Autor = "John Wooden", Categoria = "Motivación", EstaActiva = true },
+                        // Frases adicionales de bienestar universitario (B-INC-04)
+                        new FraseMotivacional { Frase = "Tu salud mental es tan importante como tus notas. Priorízate.", Autor = "Anónimo", Categoria = "Salud Mental", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Descansar no es perder el tiempo. Es invertir en tu rendimiento.", Autor = "Anónimo", Categoria = "Descanso", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Está bien no estar bien. Lo importante es buscar ayuda cuando la necesites.", Autor = "Anónimo", Categoria = "Salud Mental", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Duerme bien, come bien, muévete. Tu cerebro te lo agradecerá en los exámenes.", Autor = "Anónimo", Categoria = "Bienestar", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Una mente descansada es una mente creativa. No olvides tus pausas.", Autor = "Anónimo", Categoria = "Descanso", EstaActiva = true },
+                        new FraseMotivacional { Frase = "La universidad no es una carrera de velocidad, es una maratón. Cuida tu paso.", Autor = "Anónimo", Categoria = "Reflexión", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Hidrátate, estira las piernas y respira. Tu cuerpo es tu herramienta más valiosa.", Autor = "Anónimo", Categoria = "Bienestar", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Compararte con otros es robarle la alegría a tu propio progreso.", Autor = "Theodore Roosevelt", Categoria = "Confianza", EstaActiva = true },
+                        new FraseMotivacional { Frase = "El descanso no es un lujo, es una necesidad biológica.", Autor = "Matthew Walker", Categoria = "Descanso", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Hablar de lo que sientes no te hace débil. Te hace humano.", Autor = "Anónimo", Categoria = "Salud Mental", EstaActiva = true },
+                        new FraseMotivacional { Frase = "No necesitas hacer más. A veces necesitas hacer menos, pero mejor.", Autor = "Greg McKeown", Categoria = "Reflexión", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Tomar agua, dormir bien y moverte: tres hábitos que cambian tu vida.", Autor = "Anónimo", Categoria = "Bienestar", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Un paso a la vez. No tienes que tener todo resuelto hoy.", Autor = "Anónimo", Categoria = "Motivación", EstaActiva = true },
+                        new FraseMotivacional { Frase = "El estrés es temporal. Tu capacidad para superarlo también.", Autor = "Anónimo", Categoria = "Salud Mental", EstaActiva = true },
+                        new FraseMotivacional { Frase = "Respira. Todo lo que estás atravesando te está preparando para algo mejor.", Autor = "Anónimo", Categoria = "Reflexión", EstaActiva = true });
                     await contexto.SaveChangesAsync();
                 }
 

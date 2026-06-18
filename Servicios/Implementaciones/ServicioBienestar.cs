@@ -1,4 +1,5 @@
 ﻿using EpycusApp.Datos;
+using EpycusApp.DTOs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -22,27 +23,19 @@ namespace EpycusApp.Servicios.Implementaciones
 
             var alertaPomodoro = await VerificarUsoExcesivoPomodoro(usuarioId);
             if (alertaPomodoro != null)
-            {
                 alertas.Add(alertaPomodoro);
-            }
 
             var alertaAnimo = await VerificarAnimoNegativoConsecutivo(usuarioId);
             if (alertaAnimo != null)
-            {
                 alertas.Add(alertaAnimo);
-            }
 
             var alertaSueno = await VerificarHabitoSueno(usuarioId);
             if (alertaSueno != null)
-            {
                 alertas.Add(alertaSueno);
-            }
 
             var alertaMisiones = await VerificarSobrecargaMisiones(usuarioId);
             if (alertaMisiones != null)
-            {
                 alertas.Add(alertaMisiones);
-            }
 
             return alertas;
         }
@@ -61,7 +54,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 return new AlertaBienestar
                 {
                     Tipo = "Sobrecarga",
-                    Mensaje = "Llevas mÃ¡s de 8 ciclos Pomodoro hoy. Es momento de una pausa real. Tu cerebro lo necesita.",
+                    Mensaje = "Llevas más de 8 ciclos Pomodoro hoy. Es momento de una pausa real. Tu cerebro lo necesita.",
                     Icono = "bi-exclamation-triangle",
                     EsCritica = true
                 };
@@ -87,7 +80,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 return new AlertaBienestar
                 {
                     Tipo = "Estres",
-                    Mensaje = "Has registrado estrÃ©s o cansancio 3 dÃ­as seguidos. Considera reducir la carga de hÃ¡bitos por hoy y priorizar el descanso.",
+                    Mensaje = "Has registrado estrés o cansancio 3 días seguidos. Considera reducir la carga de hábitos por hoy y priorizar el descanso.",
                     Icono = "bi-heart-pulse",
                     EsCritica = true
                 };
@@ -103,16 +96,14 @@ namespace EpycusApp.Servicios.Implementaciones
             var tieneHabitoSueno = await _contexto.Habitos
                 .AnyAsync(h => h.UsuarioId == usuarioId
                             && h.EstaActivo
-                            && h.Categoria.Nombre == "SueÃ±o");
+                            && h.Categoria.Nombre == "Sueño");
 
             if (!tieneHabitoSueno)
-            {
                 return null;
-            }
 
             var suenoCumplido = await _contexto.RegistrosHabito
                 .AnyAsync(r => r.Habito.UsuarioId == usuarioId
-                            && r.Habito.Categoria.Nombre == "SueÃ±o"
+                            && r.Habito.Categoria.Nombre == "Sueño"
                             && r.Fecha >= hace3dias
                             && r.Estado == "Completado");
 
@@ -121,7 +112,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 return new AlertaBienestar
                 {
                     Tipo = "Descanso",
-                    Mensaje = "No has registrado tu hÃ¡bito de sueÃ±o en 3 dÃ­as. El descanso es fundamental para tu rendimiento acadÃ©mico.",
+                    Mensaje = "No has registrado tu hábito de sueño en 3 días. El descanso es fundamental para tu rendimiento académico.",
                     Icono = "bi-moon-stars",
                     EsCritica = false
                 };
@@ -146,7 +137,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 return new AlertaBienestar
                 {
                     Tipo = "Sobrecarga",
-                    Mensaje = $"Tienes {misionesUrgentes} misiones que vencen en los prÃ³ximos 2 dÃ­as. Prioriza y divide el trabajo en sesiones Pomodoro.",
+                    Mensaje = $"Tienes {misionesUrgentes} misiones que vencen en los próximos 2 días. Prioriza y divide el trabajo en sesiones Pomodoro.",
                     Icono = "bi-lightning",
                     EsCritica = true
                 };
@@ -155,13 +146,31 @@ namespace EpycusApp.Servicios.Implementaciones
             return null;
         }
 
-        public string? RecomendacionPausaActiva(int ciclosCompletados)
+        public RecomendacionPausaDto? RecomendacionPausaActiva(int ciclosCompletados)
         {
             return ciclosCompletados switch
             {
-                2 => "Estira los dedos y mueve las muÃ±ecas. 30 segundos.",
-                4 => "PÃ¡rate, camina y mira por la ventana. 5 minutos.",
-                6 => "Come algo ligero y toma agua. Tu cerebro necesita glucosa.",
+                2 => new RecomendacionPausaDto
+                {
+                    Tipo = "Micro-pausa",
+                    DuracionSegundos = 30,
+                    Descripcion = "Estira los dedos y mueve las muñecas.",
+                    Icono = "bi-hand-index-thumb"
+                },
+                4 => new RecomendacionPausaDto
+                {
+                    Tipo = "Pausa activa",
+                    DuracionSegundos = 300,
+                    Descripcion = "Párate, camina y mira por la ventana.",
+                    Icono = "bi-person-walking"
+                },
+                6 => new RecomendacionPausaDto
+                {
+                    Tipo = "Recarga",
+                    DuracionSegundos = 600,
+                    Descripcion = "Come algo ligero y toma agua. Tu cerebro necesita glucosa.",
+                    Icono = "bi-cup-straw"
+                },
                 _ => null
             };
         }
@@ -175,13 +184,11 @@ namespace EpycusApp.Servicios.Implementaciones
             if (!frasesActivas.Any())
                 return null;
 
-            // Seleccionar una frase aleatoria
             var random = new Random();
             var indiceAleatorio = random.Next(frasesActivas.Count);
             return frasesActivas[indiceAleatorio];
         }
 
-        // Devuelve el estado de Ã¡nimo del usuario para hoy (si existe)
         public async Task<EstadoAnimo?> ObtenerEstadoHoy(int usuarioId)
         {
             var hoy = DateOnly.FromDateTime(DateTime.Today);
@@ -191,7 +198,6 @@ namespace EpycusApp.Servicios.Implementaciones
                 .FirstOrDefaultAsync();
         }
 
-        // Devuelve el historial de estados de Ã¡nimo de los Ãºltimos `dias` dÃ­as
         public async Task<List<EstadoAnimo>> ObtenerHistorialAnimo(int usuarioId, int dias)
         {
             var inicio = DateOnly.FromDateTime(DateTime.Today.AddDays(-dias + 1));
@@ -201,7 +207,6 @@ namespace EpycusApp.Servicios.Implementaciones
                 .ToListAsync();
         }
 
-        // Registra un estado de Ã¡nimo para el usuario
         public async Task<AlertaBienestar?> RegistrarEstadoAnimo(int usuarioId, string estado, string? nota)
         {
             _contexto.EstadosAnimo.Add(new EstadoAnimo

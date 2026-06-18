@@ -1,0 +1,84 @@
+/* ============================================================
+   Estilos del módulo Bienestar (ODS 3)
+   ============================================================ */
+
+.ep-animo-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--ep-borde);
+    background: var(--ep-superficie-2);
+    color: var(--ep-texto-primario);
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 60px;
+}
+
+@media (max-width: 576px) {
+    .ep-animo-btn {
+        min-width: 48px;
+        padding: 0.4rem 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+.ep-animo-btn:hover {
+    border-color: var(--animo-color);
+    background: var(--animo-bg);
+    transform: translateY(-2px);
+}
+
+.ep-animo-btn.activo {
+    border-color: var(--animo-color);
+    background: var(--animo-bg);
+    color: var(--animo-color);
+    box-shadow: 0 0 0 2px var(--animo-bg);
+}
+
+.ep-ods-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(76, 175, 80, 0.12);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.ep-ods-badge:hover {
+    background: rgba(76, 175, 80, 0.2);
+    color: #388e3c;
+}
+
+.ep-recursos-card {
+    background: var(--ep-superficie-2);
+    border: 1px solid var(--ep-borde);
+    border-radius: 0.75rem;
+    transition: all 0.2s;
+}
+
+.ep-recursos-card:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+}
+
+.ep-summary-stat {
+    text-align: center;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    background: var(--ep-superficie-2);
+    border: 1px solid var(--ep-borde);
+    transition: all 0.2s;
+}
+
+.ep-summary-stat:hover {
+    border-color: var(--accent-primary);
+}
