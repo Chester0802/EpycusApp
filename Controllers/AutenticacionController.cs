@@ -23,8 +23,8 @@ namespace EpycusApp.Controllers
             return new CookieOptions
             {
                 HttpOnly = true,
-                Secure = Request.IsHttps,
-                SameSite = SameSiteMode.Strict,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
                 Expires = DateTime.UtcNow.AddDays(expiracionDias)
             };
         }
@@ -34,8 +34,8 @@ namespace EpycusApp.Controllers
             return new CookieOptions
             {
                 HttpOnly = true,
-                Secure = Request.IsHttps,
-                SameSite = SameSiteMode.Strict,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
                 Expires = recordarme
                     ? DateTime.UtcNow.AddDays(7)
                     : DateTime.UtcNow.AddMinutes(expiracionMinutos)
