@@ -48,13 +48,13 @@
             {
                 <img src="@Model.FotoGoogleUrl" alt="Foto de perfil"
                      class="rounded-circle mb-3 shadow"
-                     style="width: 88px; height: 88px; border: 3px solid var(--accent-primary); object-fit: cover;" />
+                     style="width: min(88px, 30vw); height: min(88px, 30vw); border: 3px solid var(--accent-primary); object-fit: cover;" />
             }
             else
             {
                 <img src="@imagenPersonaje" alt="Personaje"
                      class="rounded-circle mb-3 shadow"
-                     style="width: 88px; height: 88px; border: 3px solid var(--accent-primary); object-fit: cover; object-position: center 8%; background: var(--bg-elevated);" />
+                     style="width: min(88px, 30vw); height: min(88px, 30vw); border: 3px solid var(--accent-primary); object-fit: cover; object-position: center 8%; background: var(--bg-elevated);" />
             }
             <h5 class="fw-bold mb-0" style="color: var(--text-primary);">@Model.Nombre</h5>
             <p class="small mb-1" style="color: var(--text-secondary);">@Model.CorreoElectronico</p>
@@ -238,10 +238,10 @@
                     <!-- Indicador de fortaleza de contraseña -->
                     <div class="mt-3 d-none" id="strength-box">
                         <div class="d-flex gap-1 mb-1">
-                            <div class="strength-bar rounded" id="sb1" style="height:4px; flex:1; background: var(--border-color); transition: background 0.3s;"></div>
-                            <div class="strength-bar rounded" id="sb2" style="height:4px; flex:1; background: var(--border-color); transition: background 0.3s;"></div>
-                            <div class="strength-bar rounded" id="sb3" style="height:4px; flex:1; background: var(--border-color); transition: background 0.3s;"></div>
-                            <div class="strength-bar rounded" id="sb4" style="height:4px; flex:1; background: var(--border-color); transition: background 0.3s;"></div>
+                            <div class="strength-bar rounded" id="sb1" style="height:6px; flex:1; background: var(--border-color); transition: background 0.3s;"></div>
+                            <div class="strength-bar rounded" id="sb2" style="height:6px; flex:1; background: var(--border-color); transition: background 0.3s;"></div>
+                            <div class="strength-bar rounded" id="sb3" style="height:6px; flex:1; background: var(--border-color); transition: background 0.3s;"></div>
+                            <div class="strength-bar rounded" id="sb4" style="height:6px; flex:1; background: var(--border-color); transition: background 0.3s;"></div>
                         </div>
                         <p class="small mb-0" id="strength-text" style="color: var(--text-secondary);"></p>
                     </div>
