@@ -12,7 +12,7 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             _httpClient = httpClientFactory.CreateClient("Gemini");
             _apiKey = config["Gemini:ApiKey"] ?? "";
-            _modelo = config["Gemini:Modelo"] ?? "gemini-2.5-flash-lite";
+            _modelo = config["Gemini:Modelo"] ?? "gemini-2.0-flash-lite";
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
