@@ -8,7 +8,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public DiskHealthCheck(IConfiguration config)
         {
-            _ruta = config["HealthChecks:DiscoRuta"] ?? ".";
+            _ruta = config["HealthChecks:DiscoRuta"] ?? "/";
         }
 
         public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
