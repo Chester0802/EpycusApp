@@ -43,10 +43,10 @@
             <div class="auth-form-side">
                 <div class="auth-form-inner">
                     <div class="d-flex justify-content-end mb-3">
-                        <button id="btn-toggle-tema-login" class="btn btn-sm btn-ep-outline d-flex align-items-center gap-2" type="button">
-                            <span id="texto-tema-login"><i class="bi bi-moon-stars"></i> Modo Oscuro</span>
+                        <button id="btn-toggle-tema" class="btn btn-sm btn-ep-outline d-flex align-items-center gap-2" type="button">
+                            <span><i class="bi bi-moon-stars"></i> Modo Oscuro</span>
                             <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                                <input class="form-check-input ms-0" type="checkbox" role="switch" id="switch-tema-login" style="cursor: pointer; width: 2.5em; height: 1.25em;">
+                                <input class="form-check-input ms-0" type="checkbox" role="switch" id="switch-tema" style="cursor: pointer; width: 2.5em; height: 1.25em;">
                             </div>
                         </button>
                     </div>
@@ -58,49 +58,7 @@
 
     <script src="~/lib/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var switchTema = document.getElementById('switch-tema-login');
-            var botonTema = document.getElementById('btn-toggle-tema-login');
-            var textoTema = document.getElementById('texto-tema-login');
-            var hojaTema = document.getElementById('hoja-tema');
-
-            if (!switchTema || !botonTema || !textoTema || !hojaTema) {
-                return;
-            }
-
-            var temaGuardado = localStorage.getItem('epycus_theme') || 'oscuro';
-            if (temaGuardado === 'oscuro') {
-                switchTema.checked = true;
-                textoTema.innerHTML = '<i class="bi bi-moon-stars"></i> Modo Oscuro';
-            } else {
-                switchTema.checked = false;
-                textoTema.innerHTML = '<i class="bi bi-sun"></i> Modo Claro';
-            }
-
-            switchTema.addEventListener('change', alternarTema);
-            botonTema.addEventListener('click', function(e) {
-                if (e.target !== switchTema) {
-                    switchTema.checked = !switchTema.checked;
-                    alternarTema();
-                }
-            });
-
-            function alternarTema() {
-                if (switchTema.checked) {
-                    localStorage.setItem('epycus_theme', 'oscuro');
-                    hojaTema.href = '/css/temas/tema-noche-epica.css';
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    textoTema.innerHTML = '<i class="bi bi-moon-stars"></i> Modo Oscuro';
-                } else {
-                    localStorage.setItem('epycus_theme', 'claro');
-                    hojaTema.href = '/css/temas/tema-sakura.css';
-                    document.documentElement.setAttribute('data-theme', 'light');
-                    textoTema.innerHTML = '<i class="bi bi-sun"></i> Modo Claro';
-                }
-            }
-        });
-    </script>
+    <script src="~/js/theme-manager.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

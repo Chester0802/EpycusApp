@@ -377,6 +377,7 @@ body[data-theme="dark"] {
     --ep-info: var(--info);
     --ep-primario-rgb: var(--accent-primary-rgb);
     --accent-primary-rgb: 255, 107, 157;
+    --error-rgb: 255, 107, 157;
 }
 
 /* === SOBREESCRITURA DE BOOTSTRAP UTILITIES PARA SOPORTE DE TEMAS === */
@@ -397,10 +398,13 @@ body[data-theme="dark"] {
 [data-theme] .bg-secondary { background-color: var(--surface-border) !important; }
 [data-theme] .bg-dark { background-color: var(--bg-primary) !important; }
 [data-theme] .bg-white { background-color: var(--surface) !important; }
+[data-theme] .bg-primary { background-color: var(--accent-primary) !important; }
 [data-theme] .border-secondary { border-color: var(--border-color) !important; }
 [data-theme] .border-success { border-color: var(--success) !important; }
 [data-theme] .border-warning { border-color: var(--warning) !important; }
 [data-theme] .border-danger { border-color: var(--error) !important; }
+[data-theme] .border-info { border-color: var(--info) !important; }
+[data-theme] .border-primary { border-color: var(--accent-primary) !important; }
 [data-theme] .badge.bg-warning.text-dark {
     color: var(--text-primary) !important;
     background-color: var(--warning-bg) !important;
@@ -435,6 +439,23 @@ body[data-theme="dark"] {
 }
 [data-theme] .btn-link:hover {
     color: var(--accent-primary-hover) !important;
+}
+[data-theme] .btn-primary {
+    background-color: var(--accent-primary) !important;
+    border-color: var(--accent-primary) !important;
+    color: var(--text-inverse) !important;
+}
+[data-theme] .btn-primary:hover {
+    background-color: var(--accent-primary-hover) !important;
+    border-color: var(--accent-primary-hover) !important;
+    color: var(--text-inverse) !important;
+}
+[data-theme] .btn-primary:active,
+[data-theme] .btn-primary:focus {
+    background-color: var(--accent-primary-hover) !important;
+    border-color: var(--accent-primary-hover) !important;
+    color: var(--text-inverse) !important;
+    box-shadow: 0 0 0 0.2rem var(--accent-primary-bg) !important;
 }
 
 [data-theme="dark"] {
@@ -478,4 +499,5 @@ body[data-theme="dark"] {
     --ep-info: var(--info);
     --ep-primario-rgb: var(--accent-primary-rgb);
     --accent-primary-rgb: 139, 92, 246;
+    --error-rgb: 239, 68, 68;
 }
