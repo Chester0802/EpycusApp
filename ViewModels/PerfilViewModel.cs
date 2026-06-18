@@ -18,7 +18,7 @@ namespace EpycusApp.ViewModels
         public string? FotoGoogleUrl { get; set; }
         public int? TemaActualId { get; set; }
 
-        // GamificaciÃ³n
+        // Gamificación
         public int NivelActual { get; set; }
         public int XpTotal { get; set; }
         public int RachaActual { get; set; }

@@ -178,7 +178,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 {
                     Id = h.Id,
                     Nombre = h.Nombre,
-                    CategoriaNombre = h.Categoria != null ? h.Categoria.Nombre : "Sin categorÃ­a",
+                    CategoriaNombre = h.Categoria != null ? h.Categoria.Nombre : "Sin categoría",
                     Tipo = "Habito"
                 }).ToListAsync();
 
@@ -189,7 +189,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 {
                     Id = m.Id,
                     Nombre = m.Nombre,
-                    CategoriaNombre = m.Categoria != null ? m.Categoria.Nombre : "Sin categorÃ­a",
+                    CategoriaNombre = m.Categoria != null ? m.Categoria.Nombre : "Sin categoría",
                     Tipo = "Mision"
                 }).ToListAsync();
 

@@ -5,8 +5,8 @@ using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
-// Servicio de Misiones: implementaciÃ³n de la lÃ³gica de negocio para CRUD y cambios de estado
-// Todas las variables, mÃ©todos y comentarios en espaÃ±ol segÃºn convenciones del proyecto
+// Servicio de Misiones: implementación de la lógica de negocio para CRUD y cambios de estado
+// Todas las variables, métodos y comentarios en español segÃºn convenciones del proyecto
 
 namespace EpycusApp.Servicios.Implementaciones
 {
@@ -63,10 +63,10 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task EditarMision(EditarMisionViewModel modelo, int usuarioId)
         {
             var mision = await _contexto.Misiones.FirstOrDefaultAsync(m => m.Id == modelo.Id && m.UsuarioId == usuarioId);
-            if (mision == null) throw new Exception("MisiÃ³n no encontrada o no autorizada.");
+            if (mision == null) throw new Exception("Misión no encontrada o no autorizada.");
 
             if (mision.Estado == "Completado" || mision.Estado == "Fallido")
-                throw new Exception("No se puede editar una misiÃ³n que ya estÃ¡ completada o fallida.");
+                throw new Exception("No se puede editar una misiÃ³n que ya está completada o fallida.");
 
             mision.Nombre = modelo.Nombre;
             mision.Descripcion = modelo.Descripcion;

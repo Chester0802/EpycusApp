@@ -24,7 +24,7 @@ namespace EpycusApp.Controllers
             var usuarioId = ObtenerUsuarioId();
             if (usuarioId == 0)
             {
-                // Usuario anÃ³nimo o sin sesiÃ³n
+                // Usuario anónimo o sin sesión
                 var nivelInicial = await _servicioProgreso.ObtenerNivelInicialAsync();
                 var progresoDefecto = new ProgresoUsuario
                 {

@@ -99,7 +99,7 @@ namespace EpycusApp.Servicios.Implementaciones
             _contexto.FrasesMotivacionales.Add(new FraseMotivacional
             {
                 Frase = frase.Trim(),
-                Autor = string.IsNullOrWhiteSpace(autor) ? "AnÃ³nimo" : autor.Trim(),
+                Autor = string.IsNullOrWhiteSpace(autor) ? "Anónimo" : autor.Trim(),
                 EstaActiva = true
             });
 

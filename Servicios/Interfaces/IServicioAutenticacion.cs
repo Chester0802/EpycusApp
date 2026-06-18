@@ -14,7 +14,7 @@ namespace EpycusApp.Servicios.Interfaces
         Task CerrarSesion(int usuarioId);
         Task<List<Carrera>> ObtenerCarrerasActivas();
         
-        // Cambiar contraseÃ±a: correo + actual + nueva
+        // Cambiar contraseña: correo + actual + nueva
         Task<(bool EsExitoso, string? Mensaje)> CambiarContrasenaAsync(string correo, string contrasenaActual, string nuevaContrasena);
     }
 }

@@ -120,7 +120,7 @@ namespace EpycusApp.Controllers
         {
             var adminId = ObtenerUsuarioId();
             await _servicioAdmin.ActivarSuscripcion(usuarioId, adminId);
-            TempData["Exito"] = "SuscripciÃ³n activada correctamente.";
+            TempData["Exito"] = "Suscripción activada correctamente.";
             return RedirectToAction(nameof(Usuarios));
         }
 
@@ -130,7 +130,7 @@ namespace EpycusApp.Controllers
         public async Task<IActionResult> DesactivarSuscripcion(int usuarioId)
         {
             await _servicioAdmin.DesactivarSuscripcion(usuarioId);
-            TempData["Exito"] = "SuscripciÃ³n desactivada correctamente.";
+            TempData["Exito"] = "Suscripción desactivada correctamente.";
             return RedirectToAction(nameof(Usuarios));
         }
 
