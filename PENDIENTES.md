@@ -263,3 +263,66 @@ En la vista:
 ```
 
 > **Pendiente:** Los controllers existentes aún no tienen lógica `Skip`/`Take` — hay que agregar `pagina` como parámetro en cada action y aplicar `.Skip((pagina-1)*tamano).Take(tamano)` en las queries.
+
+---
+
+## 📱 RESPONSIVIDAD — Auditoría de issues pendientes
+
+> Generado: 2026-06-17 | Auditoría de todos los `.cshtml` del proyecto
+
+### 🔴 CRÍTICOS
+
+| Archivo | Línea | Problema | Severidad |
+|---------|-------|----------|-----------|
+| `Habitos/Index.cshtml` | 107-152 | `.ep-habit-card` tiene 9+ elementos (icono, nombre, categoría, frecuencia, 7 day-checkboxes, botón, dropdown) en una sola fila — se desborda horizontalmente | **Crítica** |
+| `Habitos/Index.cshtml` | 122-151 | Day-checkboxes + botón "100%" + dropdown no caben en <400px de ancho | **Crítica** |
+
+### 🟡 ALTOS
+
+| Archivo | Línea | Problema | Severidad |
+|---------|-------|----------|-----------|
+| `Habitos/Index.cshtml` | 88-96 | Días de la semana con `width: 24px` fijo sin wrap — se salen en móvil | **Alta** |
+| `Home/Index.cshtml` | 85 | Racha/streak oculta con `d-none d-sm-block` — info motivacional clave no visible en móvil | **Alta** |
+| `Habitos/Index.cshtml` | 116-119 | Columna frecuencia + racha ocupa espacio valioso en tarjeta ya saturada | **Alta** |
+
+### 🟢 MEDIOS
+
+| Archivo | Línea | Problema | Severidad |
+|---------|-------|----------|-----------|
+| `Progreso/Index.cshtml` | 97 | `min-width: 64px` en icono de logro fuerza tamaño mínimo que no escala | **Media** |
+| `Pomodoro/Index.cshtml` | 185-193 | Icono timeline con `left: -1.35rem` puede cortarse en móvil | **Media** |
+| `Bienestar/Index.cshtml` | 184-205 | 14 círculos de historial con `min-width: 36px` — wrapping desordenado | **Media** |
+| `Ia/Index.cshtml` | 15-38 | Header del chat (avatar + nombre + status + botón nuevo) saturado en móvil | **Media** |
+| `Pomodoro/Index.cshtml` | 709-713 (CSS) | Timer ring `280px` fijo — en pantallas <360px se desborda | **Media** |
+| `Shared/_Paginacion.cshtml` | 6 | Paginación con muchas páginas se desborda horizontalmente | **Media** |
+| `Admin/Usuarios.cshtml` | 66-83 | Botones de acción en tabla demasiado pequeños para touch (<44px) en móvil | **Media** |
+| `Home/Index.cshtml` | 101 | Chart con altura fija `300px` — ocupa mucho espacio vertical en móvil | **Media** |
+| `Shared/_LayoutAdmin.cshtml` | 23-58 | Sidebar admin sin scroll en móvil (`overflow:hidden` corta items del footer) | **Media** |
+| `Ajustes/Index.cshtml` | 384-395 | Texto largo en "Zona de peligro" se comprime al lado del botón | **Media** |
+
+### 🔵 BAJOS
+
+| Archivo | Línea | Problema | Severidad |
+|---------|-------|----------|-----------|
+| `Bienestar/Index.cshtml` | 233 (CSS) | `.ep-animo-btn` con `min-width: 72px` + columna = tarjetas muy altas en móvil | **Baja** |
+| `Progreso/Index.cshtml` | 23-32 | `justify-content-between` con texto largo (XP numbers) puede romper layout | **Baja** |
+| `Perfil/Index.cshtml` | 115-131 | Stats row con `white-space: nowrap` en labels — riesgo de overflow | **Baja** |
+| `Pomodoro/Index.cshtml` | 54 | `width: fit-content` puede fallar en WebView/Android antiguo | **Baja** |
+| `Ajustes/Index.cshtml` | 76-91 | Stats sidebar con inline `border-bottom` no responsivo | **Baja** |
+| `Shared/_Layout.cshtml` | 85-91 | Breakpoint JS hardcodeado `768` no coincide con Bootstrap (`767.98px`) | **Baja** |
+| `site.css` | 385-391 | Override agresivo: todas las `col-md/lg-*` al 100% en móvil — impide layouts de 2 columnas en tablet | **Baja** |
+
+### 📋 Soluciones recomendadas
+
+| Prioridad | Archivo | Solución |
+|-----------|---------|----------|
+| 1 | `Habitos/Index.cshtml` | Envolver `.ep-habit-card` con `flex-wrap`. Ocultar day-checkboxes en <576px, mostrar solo badge "Hoy" |
+| 2 | `Home/Index.cshtml` | Cambiar `d-none d-sm-block` a `d-none d-md-block` en racha/streak |
+| 3 | `Habitos/Index.cshtml` | Encabezado días: cambiar `width: 24px` fijo por `min-width: 24px; flex: 0 0 auto` + wrap |
+| 4 | `Progreso/Index.cshtml` | Cambiar `min-width: 64px` por `width: clamp(48px, 12vw, 64px)` |
+| 5 | `Pomodoro/Index.cshtml` | Timer ring con `width: min(280px, 80vw)` |
+| 6 | `Ia/Index.cshtml` | Ocultar `.edy-status-text` en <576px, reducir gaps |
+| 7 | `Shared/_Paginacion.cshtml` | Agregar `flex-wrap` y botones más pequeños en móvil |
+| 8 | `admin/Usuarios.cshtml` | Botones en stacked vertical en móvil (`d-flex flex-column d-sm-flex-row`)
+| 9 | `Shared/_LayoutAdmin.cshtml` | Agregar `overflow-y: auto` al sidebar en móvil |
+| 10 | `site.css` | Reemplazar override agresivo de columnas por clases Bootstrap explícitas |
