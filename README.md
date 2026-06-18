@@ -20,6 +20,25 @@ Sistema multiplataforma de gamificación de hábitos profesionales inspirado en 
 | CI/CD | GitHub Actions (build + quality + deploy) |
 | Monitoreo | Health checks (BD, Gemini, disco) + TelemetriaMiddleware |
 
+## Flujo de trabajo (local → GitHub → VPS)
+
+```
+[Windows] Editar código → commit → push
+                          ↓
+                   GitHub (main branch)
+                          ↓
+[SSH desde cmd]  cd /tmp/epycus-build
+                 git pull origin main
+                 sudo systemctl stop epycus-web
+                 dotnet publish -c Release -o /var/www/epycus-web
+                 sudo chown -R www-data:www-data /var/www/epycus-web
+                 sudo systemctl start epycus-web
+                          ↓
+                 curl http://localhost:5000/health ✅
+```
+
+> **IMPORTANTE:** La app en el VPS corre como servicio systemd. Siempre hay que detenerlo (`stop`) antes de publicar para evitar archivos bloqueados, e iniciarlo (`start`) después.
+
 ## Estado del Proyecto
 
 | Aspecto | Estado |
