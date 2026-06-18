@@ -5,7 +5,7 @@
     Layout = "_LayoutAuth";
 }
 
-<div class="ep-card ep-card-neon p-4">
+<div class="ep-card ep-card-neon p-4 position-relative overflow-hidden">
     <div class="text-center mb-4">
         <div class="d-inline-flex align-items-center justify-content-center mb-3 auth-icon-box" style="width: 64px; height: 64px; border-radius: 1rem; background: var(--ep-superficie-2); color: var(--ep-primario);">
             <i class="bi bi-person-plus fs-2"></i>
@@ -14,72 +14,113 @@
         <p class="text-muted small">Empieza tu camino con Epycus.</p>
     </div>
 
-    <form asp-action="Registro" method="post">
+    <form asp-action="Registro" method="post" class="position-relative">
         @Html.AntiForgeryToken()
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger shadow-sm rounded-3 py-2 px-3 mb-4 border-0 small" role="alert"></div>
 
-        <div class="mb-3">
-            <label asp-for="Nombre" class="form-label"></label>
-            <input asp-for="Nombre" class="form-control ep-input" placeholder="Nombre completo" />
-            <span asp-validation-for="Nombre" class="text-danger small"></span>
+        <div class="mb-4">
+            <label asp-for="Nombre" class="form-label small fw-semibold text-muted mb-2"></label>
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0 text-muted ps-3">
+                    <i class="bi bi-person"></i>
+                </span>
+                <input asp-for="Nombre" class="form-control border-start-0 ps-0 bg-transparent ep-input" placeholder="Nombre completo" />
+            </div>
+            <span asp-validation-for="Nombre" class="text-danger small mt-1 d-block"></span>
         </div>
 
-        <div class="mb-3">
-            <label asp-for="CorreoElectronico" class="form-label"></label>
-            <input asp-for="CorreoElectronico" class="form-control ep-input" placeholder="correo@ejemplo.com" />
-            <span asp-validation-for="CorreoElectronico" class="text-danger small"></span>
+        <div class="mb-4">
+            <label asp-for="CorreoElectronico" class="form-label small fw-semibold text-muted mb-2"></label>
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0 text-muted ps-3">
+                    <i class="bi bi-envelope"></i>
+                </span>
+                <input asp-for="CorreoElectronico" class="form-control border-start-0 ps-0 bg-transparent ep-input" placeholder="correo@ejemplo.com" />
+            </div>
+            <span asp-validation-for="CorreoElectronico" class="text-danger small mt-1 d-block"></span>
         </div>
 
         <div class="row g-3">
             <div class="col-md-6">
-                <label asp-for="Contrasena" class="form-label"></label>
-                <input asp-for="Contrasena" class="form-control ep-input" placeholder="••••••••" />
-                <span asp-validation-for="Contrasena" class="text-danger small"></span>
+                <label asp-for="Contrasena" class="form-label small fw-semibold text-muted mb-2"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted ps-3">
+                        <i class="bi bi-lock"></i>
+                    </span>
+                    <input asp-for="Contrasena" class="form-control border-start-0 ps-0 bg-transparent ep-input" placeholder="••••••••" />
+                </div>
+                <span asp-validation-for="Contrasena" class="text-danger small mt-1 d-block"></span>
             </div>
             <div class="col-md-6">
-                <label asp-for="ConfirmarContrasena" class="form-label"></label>
-                <input asp-for="ConfirmarContrasena" class="form-control ep-input" placeholder="••••••••" />
-                <span asp-validation-for="ConfirmarContrasena" class="text-danger small"></span>
+                <label asp-for="ConfirmarContrasena" class="form-label small fw-semibold text-muted mb-2"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted ps-3">
+                        <i class="bi bi-lock-fill"></i>
+                    </span>
+                    <input asp-for="ConfirmarContrasena" class="form-control border-start-0 ps-0 bg-transparent ep-input" placeholder="••••••••" />
+                </div>
+                <span asp-validation-for="ConfirmarContrasena" class="text-danger small mt-1 d-block"></span>
             </div>
         </div>
 
-        <div class="row g-3 mt-1">
+        <div class="row g-3 mt-2">
             <div class="col-md-6">
-                <label asp-for="FechaNacimiento" class="form-label"></label>
-                <input asp-for="FechaNacimiento" type="date" class="form-control ep-input" />
-                <span asp-validation-for="FechaNacimiento" class="text-danger small"></span>
+                <label asp-for="FechaNacimiento" class="form-label small fw-semibold text-muted mb-2"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted ps-3">
+                        <i class="bi bi-calendar"></i>
+                    </span>
+                    <input asp-for="FechaNacimiento" type="date" class="form-control border-start-0 ps-0 bg-transparent ep-input" />
+                </div>
+                <span asp-validation-for="FechaNacimiento" class="text-danger small mt-1 d-block"></span>
             </div>
             <div class="col-md-6">
-                <label asp-for="Genero" class="form-label"></label>
-                <select asp-for="Genero" class="form-select ep-input">
+                <label asp-for="Genero" class="form-label small fw-semibold text-muted mb-2"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted ps-3">
+                        <i class="bi bi-gender-ambiguous"></i>
+                    </span>
+                    <select asp-for="Genero" class="form-select border-start-0 ps-0 bg-transparent ep-input">
+                        <option value="">Seleccione</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="Prefiero no decir">Prefiero no decir</option>
+                    </select>
+                </div>
+                <span asp-validation-for="Genero" class="text-danger small mt-1 d-block"></span>
+            </div>
+        </div>
+
+        <div class="mb-4 mt-3">
+            <label asp-for="CarreraId" class="form-label small fw-semibold text-muted mb-2">Carrera</label>
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0 text-muted ps-3">
+                    <i class="bi bi-mortarboard"></i>
+                </span>
+                <select asp-for="CarreraId" class="form-select border-start-0 ps-0 bg-transparent ep-input">
                     <option value="">Seleccione</option>
-                    <option value="Masculino">Masculino</option>
-                    <option value="Femenino">Femenino</option>
-                    <option value="Prefiero no decir">Prefiero no decir</option>
+                    @foreach (var carrera in (ViewBag.Carreras as List<EpycusApp.Models.Entidades.Carrera> ?? new List<EpycusApp.Models.Entidades.Carrera>()))
+                    {
+                        <option value="@carrera.Id">@carrera.Nombre</option>
+                    }
                 </select>
-                <span asp-validation-for="Genero" class="text-danger small"></span>
             </div>
+            <span asp-validation-for="CarreraId" class="text-danger small mt-1 d-block"></span>
         </div>
 
-        <div class="mb-3 mt-3">
-            <label asp-for="CarreraId" class="form-label">Carrera</label>
-            <select asp-for="CarreraId" class="form-select ep-input">
-                <option value="">Seleccione</option>
-                @foreach (var carrera in (ViewBag.Carreras as List<EpycusApp.Models.Entidades.Carrera> ?? new List<EpycusApp.Models.Entidades.Carrera>()))
-                {
-                    <option value="@carrera.Id">@carrera.Nombre</option>
-                }
-            </select>
-            <span asp-validation-for="CarreraId" class="text-danger small"></span>
+        <div class="form-check mb-4">
+            <input asp-for="AceptoTerminos" class="form-check-input shadow-sm" />
+            <label asp-for="AceptoTerminos" class="form-check-label small text-muted">Acepto los términos y condiciones</label>
+            <span asp-validation-for="AceptoTerminos" class="text-danger small mt-1 d-block"></span>
         </div>
 
-        <div class="form-check mb-3">
-            <input asp-for="AceptoTerminos" class="form-check-input" />
-            <label asp-for="AceptoTerminos" class="form-check-label">Acepto los términos y condiciones</label>
-            <span asp-validation-for="AceptoTerminos" class="text-danger small"></span>
-        </div>
+        <button type="submit" class="btn btn-ep w-100 py-3 d-flex align-items-center justify-content-center gap-2">
+            Crear cuenta <i class="bi bi-person-plus"></i>
+        </button>
 
-        <button type="submit" class="btn btn-ep w-100">Crear cuenta</button>
+        <div class="text-center mt-4">
+            <p class="small text-muted mb-0">¿Ya tienes una cuenta? <a asp-action="Login" class="text-primary text-decoration-none fw-semibold">Inicia sesión</a></p>
+        </div>
     </form>
 </div>
 

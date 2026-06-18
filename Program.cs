@@ -229,10 +229,8 @@ public partial class Program
 
         if (!app.Configuration.GetValue<bool>("DisableHttpsRedirect"))
             app.UseHttpsRedirection();
+
         app.UseStaticFiles();
-        app.UseRouting();
-        app.UseRateLimiter();
-        app.UseMiddleware<TelemetriaMiddleware>();
 
         app.Use(async (context, next) =>
         {
@@ -252,6 +250,8 @@ public partial class Program
             await next();
         });
 
+        app.UseRouting();
+
         if (origenesPermitidos is { Length: > 0 })
         {
             app.UseCors("ApiPolicy");
@@ -259,6 +259,8 @@ public partial class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseRateLimiter();
+        app.UseMiddleware<TelemetriaMiddleware>();
 
         app.MapDefaultControllerRoute();
 
