@@ -95,17 +95,7 @@
             </div>
         </div>
 
-        <!-- Skeleton loading for initial conversation -->
-        <div class="edy-skeleton-conversacion" id="edy-skeleton">
-            <div class="edy-msg edy-msg-edy">
-                <div class="edy-avatar-sm"><i class="fas fa-robot"></i></div>
-                <div class="ep-skeleton edy-skeleton-msg"></div>
-            </div>
-            <div class="edy-msg edy-msg-edy">
-                <div class="edy-avatar-sm"><i class="fas fa-robot"></i></div>
-                <div class="ep-skeleton edy-skeleton-msg" style="width: 60%;"></div>
-            </div>
-        </div>
+        <div id="ep-spinner" class="ep-spinner-overlay"><div class="ep-spinner"></div><span class="ms-2">Cargando conversación...</span></div>
 
     </div>
 
@@ -161,9 +151,9 @@
     const sendBtn     = document.getElementById('edy-send');
     const typingEl    = document.getElementById('edy-typing');
 
-    // ── Ocultar skeleton ────────────────────────────────────
-    var skeleton = document.getElementById('edy-skeleton');
-    if (skeleton) skeleton.style.display = 'none';
+    // ── Ocultar spinner ────────────────────────────────────
+    var spinner = document.getElementById('ep-spinner');
+    if (spinner) spinner.style.display = 'none';
 
     // ── Scroll al fondo ─────────────────────────────────────
     function scrollToBottom() {
