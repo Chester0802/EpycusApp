@@ -1,127 +1,172 @@
 # EpycusApp
 
-Sistema multiplataforma de gamificación de hábitos inspirado en Solo Leveling, enfocado en universitarios peruanos.
+Sistema multiplataforma de gamificación de hábitos profesionales inspirado en Solo Leveling, enfocado en universitarios peruanos. Incluye gestión de hábitos, temporizador Pomodoro, misiones, progreso con personajes, niveles y un asistente IA (EDY).
+
+**Web:** http://app.epycus.es  
+**API:** http://app.epycus.es/swagger  
+**Health:** http://app.epycus.es/health
 
 ## Stack Tecnológico
 
-- **Backend:** ASP.NET MVC (.NET 9)
-- **Base de datos:** MariaDB 11.8
-- **ORM:** Entity Framework Core 9 + Pomelo
-- **Autenticación:** JWT + Google OAuth
-- **IA:** Gemini API (EDY - Asistente Virtual)
-- **Frontend:** Razor Views + Bootstrap 5 + Chart.js
-- **Deploy:** VPS Debian 13 (Trixie) + Nginx
-- **CI/CD:** GitHub Actions
+| Capa | Tecnología |
+|------|-----------|
+| Backend | ASP.NET Core MVC 9 (C#) |
+| ORM | Entity Framework Core 9 + Pomelo.EntityFrameworkCore.MySql |
+| Base de datos | MariaDB 11.8 |
+| Autenticación | JWT (cookies HttpOnly) + Google OAuth |
+| Frontend | Razor Views + Bootstrap 5 + Chart.js + Font Awesome |
+| IA | Gemini API 2.5 Flash Lite (asistente EDY) |
+| Deploy | VPS Debian 13 (Trixie) + Nginx (reverse proxy) |
+| CI/CD | GitHub Actions (build + quality + deploy) |
+| Monitoreo | Health checks (BD, Gemini, disco) + TelemetriaMiddleware |
 
-## URL de Producción
+## Estado del Proyecto
 
-- **Web:** http://app.epycus.es
+| Aspecto | Estado |
+|---------|--------|
+| Web funcional | ✅ |
+| HTTPS | ⚠️ Pendiente (Certbot / Let's Encrypt) |
+| App móvil | 📱 En planificación (Flutter) |
+| UI/UX | 🎨 En rediseño |
+| Tests | ❌ No planificados |
+
+> Ver [PENDIENTES.md](./PENDIENTES.md) para la lista completa de tareas.
 
 ## Requisitos
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download)
 - MariaDB 11.8+
-- Visual Studio 2026 / VS Code
+- Visual Studio 2026 / VS Code / Rider
 
 ## Instalación Local
 
 ```bash
-# 1. Clonar el repositorio
+# 1. Clonar
 git clone https://github.com/Chester0802/EpycusApp.git
 cd EpycusApp
 
-# 2. Configurar appsettings
+# 2. Configurar (usa el ejemplo como template)
 cp appsettings.Example.json appsettings.json
-# Editar appsettings.json con tus credenciales
+# Edita appsettings.json con tus credenciales reales
 
-# 3. Restaurar dependencias
+# Para desarrollo rápido con BD en memoria:
+#   Agrega "Database:Provider": "InMemory" en appsettings.json
+
+# 3. Restaurar y migrar
 dotnet restore
-
-# 4. Aplicar migraciones
 dotnet ef database update
 
-# 5. Ejecutar la aplicación
+# 4. Ejecutar
 dotnet run
 ```
 
-La aplicación estará disponible en: `http://localhost:5053`
+La app estará en `http://localhost:5053`.  
+Con BD en memoria los datos se resetean al reiniciar.
 
 ## Configuración
 
 Copia `appsettings.Example.json` a `appsettings.json` y configura:
 
-| Clave | Descripción |
-|---|---|
-| `ConnectionStrings:ConexionPrincipal` | Cadena de conexión a MariaDB |
-| `MySql:ServerVersion` | Versión del servidor (ej: `11.8.6-mariadb`) |
-| `Jwt:Clave` | Clave secreta para JWT (mínimo 32 caracteres) |
-| `Google:ClientId` / `ClientSecret` | Credenciales OAuth de Google |
-| `Correo:*` | Configuración SMTP para envío de correos |
-| `Gemini:ApiKey` | API Key de Google Gemini |
+| Clave | Descripción | Obligatorio |
+|-------|------------|-------------|
+| `ConnectionStrings:ConexionPrincipal` | Cadena de conexión a MariaDB | ✅ |
+| `MySql:ServerVersion` | Versión del servidor (ej: `11.8.6-mariadb`) | ✅ |
+| `Jwt:Clave` | Clave secreta JWT (mínimo 32 caracteres) | ✅ |
+| `Google:ClientId` / `ClientSecret` | Credenciales OAuth de Google | ⚠️ Para login con Google |
+| `Correo:*` | Configuración SMTP (Gmail App Password) | ⚠️ Para registro/recuperación |
+| `Gemini:ApiKey` | API Key de Google Gemini | ⚠️ Para asistente IA |
+| `Database:Provider` | `"InMemory"` para desarrollo sin BD | ❌ Opcional |
+
+En producción todas las credenciales se pasan como variables de entorno en el servicio systemd.
 
 ## Deploy en VPS
 
-### Datos del servidor:
+### Servidor de producción
+
 - **VPS:** 147.93.119.193 (Debian 13 Trixie)
 - **Dominio:** app.epycus.es
-- **Base de datos:** epycus_db / epicus_user
 - **Runtime:** ASP.NET Core 9
-- **Reverse Proxy:** Nginx → Kestrel (localhost:5000)
+- **Proxy:** Nginx → Kestrel (localhost:5000)
 - **Servicio:** systemd `epycus-web`
 
-### Deploy automático (CI/CD):
-El deploy se ejecuta automáticamente via GitHub Actions al hacer push a `main`.
+### CI/CD automático
 
-### Deploy manual:
+El pipeline en `.github/workflows/ci-cd.yml` se ejecuta al hacer push a `main`:
 
-```bash
-# 1. En el VPS, ejecutar el script de configuración
-sudo bash deploy/setup-vps.sh
+1. **Code Quality** — restore, format check, build con warnings como errores
+2. **Build & Publish** — build + `dotnet publish`
+3. **Deploy** — backup del deploy actual → SCP → restart service → health check
+4. **Security Scan** — Gitleaks (detección de secretos)
 
-# 2. Configurar el servicio con credenciales reales
-sudo nano /etc/systemd/system/epycus-web.service
+### Secretos requeridos en GitHub
 
-# 3. Deploy inicial
-git clone https://github.com/Chester0802/EpycusApp.git /tmp/epycus-build
-cd /tmp/epycus-build
-dotnet publish EpycusApp.csproj -c Release -o /var/www/epycus-web
-sudo chown -R www-data:www-data /var/www/epycus-web
-sudo systemctl daemon-reload
-sudo systemctl start epycus-web
-
-# 4. Verificar
-sudo systemctl status epycus-web
-curl http://localhost:5000/health
-```
-
-### Secretos requeridos en GitHub (para CI/CD):
-
-| Secreto | Descripción |
-|---|---|
+| Secreto | Valor |
+|---------|-------|
 | `VPS_HOST` | `147.93.119.193` |
 | `VPS_USER` | `deploy` |
 | `VPS_SSH_KEY` | Clave privada SSH (ed25519) |
 | `VPS_PORT` | `22` |
 | `VPS_APP_PATH` | `/var/www/epycus-web` |
 
-### Archivos de deploy incluidos:
+### Deploy manual (SSH)
+
+```bash
+# En el VPS
+cd /tmp/epycus-build
+git pull origin main
+sudo systemctl stop epycus-web
+dotnet publish EpycusApp.csproj -c Release -o /var/www/epycus-web
+sudo chown -R www-data:www-data /var/www/epycus-web
+sudo systemctl start epycus-web
+
+# Verificar
+sudo systemctl status epycus-web
+curl http://localhost:5000/health
+```
+
+### Archivos de deploy
 
 | Archivo | Descripción |
-|---|---|
-| `deploy/epycus-web.service.example` | Servicio systemd (template con placeholders) |
+|---------|-------------|
+| `deploy/setup-vps.sh` | Configuración inicial del VPS (Debian 13) |
+| `deploy/epycus-web.service` | Servicio systemd con variables de entorno |
 | `deploy/nginx-epycus.conf` | Configuración de Nginx (reverse proxy) |
-| `deploy/setup-vps.sh.example` | Script de configuración inicial del VPS (Debian 13) |
+| `deploy/epycus-web.service.example` | Template del servicio (placeholders) |
+| `deploy/setup-vps.sh.example` | Template del setup (placeholders) |
+
+## Endpoints destacados
+
+| Ruta | Descripción |
+|------|-------------|
+| `/` | Home / Dashboard |
+| `/Autenticacion/Login` | Inicio de sesión |
+| `/Autenticacion/Registro` | Registro de usuario |
+| `/Habitos/*` | Gestión de hábitos |
+| `/Pomodoro/*` | Temporizador Pomodoro |
+| `/Misiones/*` | Misiones y objetivos |
+| `/Progreso/*` | Estadísticas y evolución |
+| `/Perfil/*` | Perfil de usuario y personaje |
+| `/admin/*` | Panel de administración |
+| `/api/*` | API REST (para app móvil futura) |
+| `/health` | Health checks (BD, Gemini, disco) |
+| `/swagger` | Documentación OpenAPI |
 
 ## Base de datos
 
-Configuración de MariaDB para producción:
-
 ```
-Base de datos: epycus_db
-Usuario: epicus_user
-ServerVersion: 11.8.6-mariadb
+Motor:    MariaDB 11.8
+Base:     epycus_db
+Usuario:  epicus_user
+Server:   localhost:3306
+```
+
+### Migraciones
+
+```bash
+dotnet ef migrations add NombreMigracion
+dotnet ef database update
 ```
 
 ## Licencia
 
-Epycus App © 2025 — Todos los derechos reservados.
+Epycus App © 2026 — Todos los derechos reservados.
