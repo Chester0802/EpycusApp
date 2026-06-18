@@ -55,7 +55,7 @@
                 <div class="ep-card h-100">
                     <div class="d-flex justify-content-between mb-3">
                         <span class="badge @badgeEstado">@mision.Estado</span>
-                        <span class="badge bg-@colorPrioridad text-white">@mision.Prioridad</span>
+                        <span class="badge bg-@colorPrioridad @(colorPrioridad == "warning" ? "text-dark" : "text-white")">@mision.Prioridad</span>
                     </div>
                     <h5 class="card-title fw-bold mb-1">@mision.Nombre</h5>
                     <p class="text-muted small mb-2">@mision.Categoria?.Nombre</p>
