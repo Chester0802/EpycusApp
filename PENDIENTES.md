@@ -63,6 +63,10 @@
 | MEJ-016 | **Alta** | `wwwroot/css/variables.css`, temas | **Modo oscuro/claro:** Letras negras se pierden en modo oscuro. Contraste insuficiente en varios componentes. | **Alto** | ⚠️ Pendiente | Revisar paleta de colores, asegurar contraste AA/AAA en ambos modos. Probar todos los componentes. |
 | MEJ-017 | **Alta** | `wwwroot/css/` + `Views/` | **UI/UX general:** Diseño se siente genérico/hecho con IA. Imágenes placeholder, inicio plano, falta personalidad visual. | **Medio** | ⚠️ Pendiente | Rediseñar con identidad visual propia: ilustraciones personalizadas, micro-interacciones, tipografía coherente, home atractivo. |
 | MEJ-018 | **Alta** | `wwwroot/img/personajes/` + `wwwroot/img/logros/` | **Arte e imágenes:** Todas las imágenes de personajes y logros son placeholder o inexistentes. | **Alto** | ⚠️ Pendiente | Crear o contratar ilustraciones originales para personajes (Kai, Luna, Ares, Nova) en todos los niveles y logros. |
+| MEJ-019 | **Media** | Varias vistas | Sin estados de carga (skeleton screens / spinners) — las páginas se ven en blanco hasta que los datos llegan | **Medio** | ⚠️ Pendiente | Agregar indicadores de carga mientras se fetch los datos asíncronos |
+| MEJ-020 | **Media** | Controladores | Sin paginación en listados (hábitos, misiones, progreso) — podría degradarse con muchos registros | **Medio** | ⚠️ Pendiente | Agregar paginación server-side con `Skip`/`Take` |
+| MEJ-021 | **Baja** | `wwwroot/` | Sin soporte PWA (manifest.json, service worker, offline) | **Baja** | ⚠️ Pendiente | Convertir en PWA para instalación en móvil y soporte offline parcial |
+| MEJ-022 | **Baja** | `wwwroot/favicon.ico` | Favicon es el default de ASP.NET — sin personalización de marca | **Baja** | ⚠️ Pendiente | Reemplazar con favicon personalizado de Epycus |
 
 ---
 
@@ -88,6 +92,10 @@
 | SEC-016 | ⚠️ Pendiente | Sin CAPTCHA en Login / Registro — vulnerable a ataques de fuerza bruta y automatizados |
 | SEC-017 | ⚠️ Pendiente | Sin bloqueo de cuenta después de N intentos fallidos de login |
 | SEC-018 | ⚠️ Pendiente | Los endpoints de API no verifican CSRF (solo los formularios MVC tienen antiforgery) |
+| SEC-019 | ⚠️ Pendiente | Refresh tokens no se rotan — usar uno nuevo e invalidar el anterior en cada renovación (previene replay attacks) |
+| SEC-020 | ⚠️ Pendiente | No hay auditoría de operaciones sensibles (login fallidos, cambios de contraseña, acciones admin) |
+| SEC-021 | ⚠️ Pendiente | Cambio de contraseña no invalida JWTs existentes — sesiones anteriores siguen activas |
+| SEC-022 | ⚠️ Pendiente | Sin validación de tipo/tamaño de archivos subidos (nginx permite 10MB, pero la app no valida nada) |
 
 ---
 
@@ -117,6 +125,7 @@
 | CI-005 | ✅ | Warnings como errores en compilación |
 | CI-006 | ⚠️ Pendiente | Agregar rollback automático: si el deploy falla (health check post-deploy), restaurar backup automáticamente |
 | CI-007 | ⚠️ Pendiente | Agregar migraciones de BD al pipeline CI/CD (`dotnet ef database update` antes de iniciar la app) |
+| CI-008 | ⚠️ Pendiente | Health check actual solo prueba BD, disco y Gemini — no verifica que el pipeline MVC funcione (controllers, razor, auth) |
 
 ---
 
@@ -132,6 +141,7 @@
 | VPS-006 | ✅ | Deploy manual desde GitHub al VPS preservando credenciales (`rsync --exclude`). |
 | VPS-007 | ⚠️ Pendiente | Agregar monitorio de uptime (ej: UptimeRobot, cron + webhook a Discord/Telegram si `/health` no responde 200) |
 | VPS-008 | ⚠️ Pendiente | Configurar rotación de logs de systemd/journald para que no llenen el disco |
+| VPS-009 | ⚠️ Pendiente | No hay página de mantenimiento — si la app se detiene, nginx debería mostrar un "503 Maintenance" en lugar del error genérico |
 
 ---
 
@@ -153,6 +163,7 @@
 | UX-010 | **Media** | Transiciones | Faltan animaciones suaves en navegación y cambios de estado | ⚠️ Pendiente |
 | UX-011 | **Media** | Tablas | Datos en tablas no responsive — no se ven en móvil | ⚠️ Pendiente |
 | UX-012 | **Baja** | 404 / Error | Páginas de error genéricas sin diseño cuidado | ⚠️ Pendiente |
+| UX-013 | **Media** | General | Sin micro-interacciones (hover effects, transiciones suaves entre páginas, feedback táctil) | ⚠️ Pendiente |
 
 ---
 
@@ -173,6 +184,10 @@
 | DEV-011 | Agregar tests de integración para los flujos críticos (registro, login, hábitos, pomodoro) | 3-4 días | ⚠️ Pendiente |
 | DEV-012 | Agregar meta tags SEO, sitemap.xml y robots.txt | 4 horas | ⚠️ Pendiente |
 | DEV-013 | Agregar banner de consentimiento de cookies (GDPR) | 4 horas | ⚠️ Pendiente |
+| DEV-014 | Versionar la API (ej: `/api/v1/`, `/api/v2/`) para no romper clientes existentes | 1 día | ⚠️ Pendiente |
+| DEV-015 | Agregar `favicon.ico`, `apple-touch-icon` y `manifest.json` personalizados de la marca Epycus | 4 horas | ⚠️ Pendiente |
+| DEV-016 | Revisar y actualizar dependencias NuGet a versiones recientes (seguridad y compatibilidad) | 2 horas | ⚠️ Pendiente |
+| DEV-017 | Agregar `Program.cs` graceful shutdown: finalizar requests en curso al recibir SIGINT antes de apagarse | 2 horas | ⚠️ Pendiente |
 
 ---
 
