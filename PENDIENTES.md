@@ -3,6 +3,24 @@
 > Generado: 2026-06-15 | Última actualización: 2026-06-18
 > Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API)
 
+## Flujo de trabajo (para la IA)
+
+Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debian 13. El flujo es:
+
+1. **Local (Windows):** Se edita el código, se commit y se push a GitHub (`main`)
+2. **VPS (SSH desde cmd):** Se ejecutan los comandos de deploy manual:
+   ```bash
+   cd /tmp/epycus-build
+   git pull origin main
+   sudo systemctl stop epycus-web
+   dotnet publish EpycusApp.csproj -c Release -o /var/www/epycus-web
+   sudo chown -R www-data:www-data /var/www/epycus-web
+   sudo systemctl start epycus-web
+   ```
+3. **Verificación:** `curl http://localhost:5000/health` y probar la web en `http://app.epycus.es`
+
+> **Nota para la IA:** Cuando sugieras cambios, recuerda que el ciclo es: editar → commit → push → SSH → pull → publish → restart. No olvides indicar al usuario que ejecute el deploy manual después del push.
+
 ---
 
 ## 🔴 CRÍTICOS
@@ -62,7 +80,7 @@
 | MEJ-015 | **Alta** | `wwwroot/css/` | **Responsividad móvil:** La app no se adapta bien a pantallas pequeñas. Tablas, sidebar y formularios se ven mal en móvil. | **Alto** | ⚠️ Pendiente | Agregar media queries, convertir sidebar a menú colapsable, rediseñar tablas como cards en móvil. |
 | MEJ-016 | **Alta** | `wwwroot/css/variables.css`, temas | **Modo oscuro/claro:** Letras negras se pierden en modo oscuro. Contraste insuficiente en varios componentes. | **Alto** | ⚠️ Pendiente | Revisar paleta de colores, asegurar contraste AA/AAA en ambos modos. Probar todos los componentes. |
 | MEJ-017 | **Alta** | `wwwroot/css/` + `Views/` | **UI/UX general:** Diseño se siente genérico/hecho con IA. Imágenes placeholder, inicio plano, falta personalidad visual. | **Medio** | ⚠️ Pendiente | Rediseñar con identidad visual propia: ilustraciones personalizadas, micro-interacciones, tipografía coherente, home atractivo. |
-| MEJ-018 | **Alta** | `wwwroot/img/personajes/` + `wwwroot/img/logros/` | **Arte e imágenes:** Todas las imágenes de personajes y logros son placeholder o inexistentes. | **Alto** | ⚠️ Pendiente | Crear o contratar ilustraciones originales para personajes (Kai, Luna, Ares, Nova) en todos los niveles y logros. |
+| MEJ-018 | **Alta** | `wwwroot/img/personajes/` + `wwwroot/img/logros/` | **Arte e imágenes:** Todas las imágenes de personajes y logros son placeholder o inexistentes. | **Alto** | ⚠️ Pendiente | Crear o contratar ilustraciones originales para personajes carreras profesionales en todos los niveles y logros. Tambien mejorar el centrado para foto de perfil del personaje, actualamente se muestra parte cintura, debe mostrar la cabeza, todas las imagenes actuales disponibles estan sin fondo. Agregar la imagen personaje completo debe mostrarse en Inicio |
 | MEJ-019 | **Media** | Varias vistas | Sin estados de carga (skeleton screens / spinners) — las páginas se ven en blanco hasta que los datos llegan | **Medio** | ⚠️ Pendiente | Agregar indicadores de carga mientras se fetch los datos asíncronos |
 | MEJ-020 | **Media** | Controladores | Sin paginación en listados (hábitos, misiones, progreso) — podría degradarse con muchos registros | **Medio** | ⚠️ Pendiente | Agregar paginación server-side con `Skip`/`Take` |
 | MEJ-021 | **Baja** | `wwwroot/` | Sin soporte PWA (manifest.json, service worker, offline) | **Baja** | ⚠️ Pendiente | Convertir en PWA para instalación en móvil y soporte offline parcial |
