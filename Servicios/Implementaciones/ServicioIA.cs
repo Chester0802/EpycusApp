@@ -32,7 +32,7 @@ namespace EpycusApp.Servicios.Implementaciones
             _httpClient = httpClientFactory.CreateClient("Gemini");
             _apiKey = config["Gemini:ApiKey"]
                 ?? throw new InvalidOperationException("Gemini:ApiKey no esta configurado.");
-            _modelo = config["Gemini:Modelo"] ?? "gemini-2.5-flash-lite";
+            _modelo = config["Gemini:Modelo"] ?? "gemini-2.0-flash-lite";
             _gamificacion = gamificacion;
             _logger = logger;
         }
@@ -314,7 +314,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 catch (OperationCanceledException)
                 {
                     if (intento < maxReintentos) continue;
-                    return "La conexion con AI EDY tardo demasiado. Intentelo de nuevo.";
+                    return "La conexion con EDY AI tardo demasiado. Intentelo de nuevo.";
                 }
                 catch (HttpRequestException)
                 {
@@ -323,11 +323,11 @@ namespace EpycusApp.Servicios.Implementaciones
                         await Task.Delay(TimeSpan.FromSeconds(1 << intento));
                         continue;
                     }
-                    return "Hubo un error al comunicarme con AI EDY. Verifica tu conexion e intentelo de nuevo.";
+                    return "Hubo un error al comunicarme con EDY AI. Verifica tu conexion e intentelo de nuevo.";
                 }
             }
 
-            return "Hubo un error al comunicarme con AI EDY. Verifica tu conexion e intentelo de nuevo.";
+            return "Hubo un error al comunicarme con EDY AI. Verifica tu conexion e intentelo de nuevo.";
         }
 
         private async Task<ContextoUsuarioIA> ConstruirContextoAsync(int usuarioId)
@@ -444,7 +444,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 : "  - Sin registros esta semana";
 
             return $"""
-                Eres AI EDY, el asistente de inteligencia artificial de EPYCUS - una plataforma academica
+                Eres EDY AI, el asistente de inteligencia artificial de EPYCUS - una plataforma academica
                 gamificada disenada para estudiantes universitarios. Tu mision es actuar como coach personal
                 que combina productividad, bienestar y motivacion.
 
@@ -462,7 +462,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 - Usas emojis con moderacion (max 3 por respuesta).
                 - Solo referencias datos reales del usuario que te proporciono - nunca inventas informacion.
                 - Si el usuario pregunta algo fuera de tu alcance (medicina, legal, financiero), redirige con empatia.
-                - Si el usuario pregunta quien eres o como te llamas, dices que eres AI EDY, el asistente de EPYCUS.
+                - Si el usuario pregunta quien eres o como te llamas, dices que eres EDY AI, el asistente de EPYCUS.
 
                 ## Fecha actual: {hoy}
 
