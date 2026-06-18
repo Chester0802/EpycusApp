@@ -16,5 +16,11 @@ namespace EpycusApp.Servicios.Interfaces
         
         // Cambiar contraseña: correo + actual + nueva
         Task<(bool EsExitoso, string? Mensaje)> CambiarContrasenaAsync(string correo, string contrasenaActual, string nuevaContrasena);
+
+        Task<(bool Exito, string Mensaje, string? Token, string? RefreshToken)> ProcesarAutenticacionGoogleAsync(
+            string googleId, string correo, string nombre, string? fotoUrl);
+
+        Task<(bool Exito, string Mensaje, string? Token, string? RefreshToken)> CompletarRegistroGoogleAsync(
+            CompletarRegistroGoogleViewModel modelo);
     }
 }

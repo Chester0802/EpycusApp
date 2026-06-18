@@ -1,5 +1,9 @@
+using System.Security.Claims;
 using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using EpycusApp.ViewModels.Autenticacion;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -196,6 +200,111 @@ namespace EpycusApp.Controllers
 
             ModelState.AddModelError(string.Empty, mensaje);
             return View(modelo);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult IniciarSesionGoogle()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(CallbackGoogle))
+            };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> CallbackGoogle()
+        {
+            var result = await HttpContext.AuthenticateAsync("ExternalCookie");
+            if (!result.Succeeded)
+                return RedirectToAction(nameof(Login));
+
+            var googleId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
+            var name = result.Principal.FindFirst(ClaimTypes.Name)?.Value;
+            var photoUrl = result.Principal.FindFirst("picture")?.Value;
+
+            await HttpContext.SignOutAsync("ExternalCookie");
+
+            if (string.IsNullOrWhiteSpace(googleId) || string.IsNullOrWhiteSpace(email))
+                return RedirectToAction(nameof(Login));
+
+            var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion
+                .ProcesarAutenticacionGoogleAsync(googleId, email, name ?? "Usuario", photoUrl);
+
+            if (exito && !string.IsNullOrEmpty(token))
+            {
+                var cookieOptions = CrearOpcionesCookie(7);
+                Response.Cookies.Append("jwt_token", token, cookieOptions);
+                if (!string.IsNullOrEmpty(refreshToken))
+                    Response.Cookies.Append("refresh_token", refreshToken, cookieOptions);
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (mensaje == "completar_registro")
+            {
+                TempData["GoogleId"] = googleId;
+                TempData["GoogleEmail"] = email;
+                TempData["GoogleName"] = name ?? "Usuario";
+                TempData["GooglePhoto"] = photoUrl;
+                return RedirectToAction(nameof(CompletarRegistroGoogle));
+            }
+
+            TempData["ErrorAutenticacion"] = mensaje;
+            return RedirectToAction(nameof(Login));
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> CompletarRegistroGoogle()
+        {
+            var googleId = TempData["GoogleId"] as string;
+            var email = TempData["GoogleEmail"] as string;
+            var name = TempData["GoogleName"] as string;
+
+            if (string.IsNullOrWhiteSpace(googleId) || string.IsNullOrWhiteSpace(email))
+                return RedirectToAction(nameof(Registro));
+
+            ViewBag.Carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
+
+            return View(new CompletarRegistroGoogleViewModel
+            {
+                Nombre = name ?? "",
+                CorreoElectronico = email,
+                GoogleId = googleId,
+                FotoGoogleUrl = TempData["GooglePhoto"] as string
+            });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CompletarRegistroGoogle(CompletarRegistroGoogleViewModel modelo)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
+                return View(modelo);
+            }
+
+            var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion
+                .CompletarRegistroGoogleAsync(modelo);
+
+            if (!exito || string.IsNullOrWhiteSpace(token))
+            {
+                ModelState.AddModelError(string.Empty, mensaje);
+                ViewBag.Carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
+                return View(modelo);
+            }
+
+            var cookieOptions = CrearOpcionesCookie(7);
+            Response.Cookies.Append("jwt_token", token, cookieOptions);
+            if (!string.IsNullOrEmpty(refreshToken))
+                Response.Cookies.Append("refresh_token", refreshToken, cookieOptions);
+
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]

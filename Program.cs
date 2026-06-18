@@ -5,6 +5,7 @@ using EpycusApp.Datos.Semilla;
 using EpycusApp.Middleware;
 using EpycusApp.Servicios.Implementaciones;
 using EpycusApp.Servicios.Interfaces;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -104,10 +105,20 @@ public partial class Program
                     }
                 };
             })
+            .AddCookie("ExternalCookie", options =>
+            {
+                options.Cookie.Name = ".AspNetCore.ExternalAuth";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                options.SlidingExpiration = false;
+            })
             .AddGoogle(options =>
             {
                 options.ClientId = builder.Configuration["Google:ClientId"]!;
                 options.ClientSecret = builder.Configuration["Google:ClientSecret"]!;
+                options.SignInScheme = "ExternalCookie";
             });
 
         builder.Services.AddAuthorization();

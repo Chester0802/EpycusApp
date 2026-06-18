@@ -415,5 +415,161 @@ namespace EpycusApp.Servicios.Implementaciones
                 .OrderBy(c => c.Nombre)
                 .ToListAsync();
         }
+
+        public async Task<(bool Exito, string Mensaje, string? Token, string? RefreshToken)> ProcesarAutenticacionGoogleAsync(
+            string googleId, string correo, string nombre, string? fotoUrl)
+        {
+            if (string.IsNullOrWhiteSpace(googleId) || string.IsNullOrWhiteSpace(correo))
+                return (false, "Datos de Google inválidos", null, null);
+
+            var usuario = await _contexto.Usuarios
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u => u.GoogleId == googleId);
+
+            if (usuario != null)
+            {
+                if (!usuario.EstaActivo)
+                    return (false, "La cuenta está desactivada", null, null);
+
+                usuario.UltimoAcceso = DateTime.UtcNow;
+                await _contexto.SaveChangesAsync();
+
+                var token = GenerarToken(usuario);
+                var refreshToken = GenerarRefreshToken();
+                var refreshHash = HashToken(refreshToken);
+
+                _contexto.TokensRefresh.Add(new Models.Entidades.TokenRefresh
+                {
+                    UsuarioId = usuario.Id,
+                    Token = refreshHash,
+                    ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
+                });
+                await _contexto.SaveChangesAsync();
+
+                return (true, "Login exitoso", token, refreshToken);
+            }
+
+            usuario = await _contexto.Usuarios
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u => u.CorreoElectronico == correo);
+
+            if (usuario != null)
+            {
+                usuario.GoogleId = googleId;
+                usuario.FotoGoogleUrl = fotoUrl;
+                usuario.UltimoAcceso = DateTime.UtcNow;
+                await _contexto.SaveChangesAsync();
+
+                var token = GenerarToken(usuario);
+                var refreshToken = GenerarRefreshToken();
+                var refreshHash = HashToken(refreshToken);
+
+                _contexto.TokensRefresh.Add(new Models.Entidades.TokenRefresh
+                {
+                    UsuarioId = usuario.Id,
+                    Token = refreshHash,
+                    ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
+                });
+                await _contexto.SaveChangesAsync();
+
+                return (true, "Login exitoso", token, refreshToken);
+            }
+
+            return (false, "completar_registro", null, null);
+        }
+
+        public async Task<(bool Exito, string Mensaje, string? Token, string? RefreshToken)> CompletarRegistroGoogleAsync(
+            CompletarRegistroGoogleViewModel modelo)
+        {
+            var existeCorreo = await _contexto.Usuarios
+                .AnyAsync(u => u.CorreoElectronico == modelo.CorreoElectronico);
+
+            if (existeCorreo)
+            {
+                return (false, "El correo ya está registrado", null, null);
+            }
+
+            var existeGoogleId = await _contexto.Usuarios
+                .AnyAsync(u => u.GoogleId == modelo.GoogleId);
+
+            if (existeGoogleId)
+            {
+                return (false, "Esta cuenta de Google ya está vinculada a otro usuario", null, null);
+            }
+
+            var rolUsuario = await _contexto.Roles.FirstOrDefaultAsync(r => r.Nombre == "Usuario");
+            if (rolUsuario == null)
+            {
+                return (false, "No existe el rol base de usuario", null, null);
+            }
+
+            string codigoUnico;
+            do
+            {
+                codigoUnico = Ayudantes.GeneradorCodigo.GenerarCodigoUsuario();
+            } while (await _contexto.Usuarios.AnyAsync(u => u.CodigoUnico == codigoUnico));
+
+            var usuario = new Models.Entidades.Usuario
+            {
+                CodigoUnico = codigoUnico,
+                Nombre = modelo.Nombre,
+                CorreoElectronico = modelo.CorreoElectronico,
+                ContrasenaHash = null,
+                FechaNacimiento = modelo.FechaNacimiento,
+                Genero = modelo.Genero,
+                RolId = rolUsuario.Id,
+                CarreraId = modelo.CarreraId,
+                GoogleId = modelo.GoogleId,
+                FotoGoogleUrl = modelo.FotoGoogleUrl,
+                CorreoVerificado = true,
+                AceptoTerminos = modelo.AceptoTerminos,
+                EstaActivo = true,
+                FechaRegistro = DateTime.UtcNow
+            };
+
+            _contexto.Usuarios.Add(usuario);
+            await _contexto.SaveChangesAsync();
+
+            var nivelInicial = await _contexto.Niveles.FirstOrDefaultAsync(n => n.Numero == 0);
+            if (nivelInicial != null)
+            {
+                _contexto.ProgresosUsuario.Add(new Models.Entidades.ProgresoUsuario
+                {
+                    UsuarioId = usuario.Id,
+                    NivelActualId = nivelInicial.Id,
+                    XpTotal = 0,
+                    RachaActual = 0,
+                    RachaMaxima = 0
+                });
+            }
+
+            _contexto.ConfiguracionesPomodoro.Add(new Models.Entidades.ConfiguracionPomodoro
+            {
+                UsuarioId = usuario.Id,
+                TiempoEstudioMin = 25,
+                TiempoDescansoMin = 5,
+                TiempoDescansoLargoMin = 15,
+                CiclosAntesDescansoLargo = 4,
+                SonidoActivo = true,
+                FechaActualizacion = DateTime.UtcNow
+            });
+
+            await _contexto.SaveChangesAsync();
+
+            var token = GenerarToken(usuario);
+            var refreshToken = GenerarRefreshToken();
+            var refreshHash = HashToken(refreshToken);
+
+            _contexto.TokensRefresh.Add(new Models.Entidades.TokenRefresh
+            {
+                UsuarioId = usuario.Id,
+                Token = refreshHash,
+                ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
+            });
+
+            await _contexto.SaveChangesAsync();
+
+            return (true, "Registro exitoso", token, refreshToken);
+        }
     }
 }
