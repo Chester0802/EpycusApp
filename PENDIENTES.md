@@ -1,6 +1,6 @@
 # PENDIENTES — Auditoría Pre-Producción EpycusApp
 
-> Generado: 2026-06-15 | Última actualización: 2026-06-18 (corregidos: CRITICO-008, UX-014, UX-015, UX-016)
+> Generado: 2026-06-15 | Última actualización: 2026-06-18 (corregidos: CRITICO-008, UX-014, UX-015, UX-016 | auditoría UI/UX completa: 18 hallazgos nuevos UX-017 a UX-034)
 > Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API)
 
 ## Flujo de trabajo (para la IA)
@@ -79,10 +79,10 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | MEJ-013 | Media | `Servicios/Implementaciones/DiskHealthCheck.cs` | Ruta default `.` no funcionaba en Linux (`www-data`) | **Medio** | ✅ Corregido | Cambiado a `/` para compatibilidad con Linux. |
 | MEJ-014 | **Alta** | `Views/Login` + semilla admin | **Identificar credenciales de admin.** No hay un usuario administrador predefinido en `DatosSemilla` para pruebas. | **Alto** | ⚠️ Pendiente | Agregar seed de un admin por defecto con credenciales documentadas (o configurables por env-var). |
 | MEJ-015 | **Alta** | `wwwroot/css/` | **Responsividad móvil:** La app no se adapta bien a pantallas pequeñas. Tablas, sidebar y formularios se ven mal en móvil. | **Alto** | ✅ Corregido | Sidebar colapsable con botón hamburguesa, padding reducido en móvil, tablas responsivas. |
-| MEJ-016 | **Alta** | `wwwroot/css/variables.css`, temas | **Modo oscuro/claro:** Letras negras se pierden en modo oscuro. Contraste insuficiente en varios componentes. | **Alto** | ✅ Corregido | Eliminadas clases hardcodeadas `bg-dark text-white` en modales y formularios. Ahora usan variables CSS. |
-| MEJ-017 | **Alta** | `wwwroot/css/` + `Views/` | **UI/UX general:** Diseño se siente genérico/hecho con IA. Imágenes placeholder, inicio plano, falta personalidad visual. | **Medio** | ✅ Corregido | Agregados loading skeletons, spinners, paginación, animaciones, micro-interacciones, transiciones de página, feedback visual en formularios, páginas de error personalizadas. |
+| MEJ-016 | **Alta** | `wwwroot/css/variables.css`, temas | **Modo oscuro/claro:** Letras negras se pierden en modo oscuro. Contraste insuficiente en varios componentes. | **Alto** | ⚠️ Parcial — Ver UX-017, UX-018, UX-020, UX-021, UX-022 | Eliminadas clases hardcodeadas `bg-dark text-white` en modales y formularios. Ahora usan variables CSS. **Pero persisten 100+ instancias de Bootstrap color utilities** (`text-muted`, `text-primary`, `bg-success`, `border-secondary`, etc.) que no se adaptan al tema. |
+| MEJ-017 | **Alta** | `wwwroot/css/` + `Views/` | **UI/UX general:** Diseño se siente genérico/hecho con IA. Imágenes placeholder, inicio plano, falta personalidad visual. | **Medio** | ⚠️ Parcial — Ver UX-029, UX-030, UX-031 | Agregados spinners, paginación, animaciones, micro-interacciones parciales, transiciones de página, páginas de error personalizadas. **Pendiente: skeletons CSS definidos pero nunca implementados en vistas, pressed states faltantes en botones, hover colors hardcodeados.** |
 | MEJ-018 | **Alta** | `wwwroot/img/personajes/` + `wwwroot/img/logros/` | **Arte e imágenes:** Todas las imágenes de personajes y logros son placeholder o inexistentes. | **Alto** | ⚠️ Parcial | Logo (`logo.webp`), favicon (`favicon.ico`) e imagen de login (`login-hero.webp`) ya agregados con la marca Epycus. Personajes de Ing. Sistemas y Medicina tienen PNG reales. Faltan ilustraciones originales para el resto de carreras y logros. |
-| MEJ-019 | **Media** | Varias vistas | Sin estados de carga (skeleton screens / spinners) — las páginas se ven en blanco hasta que los datos llegan | **Medio** | ✅ Corregido | Clases CSS `.ep-skeleton`, `.ep-skeleton-text`, `.ep-spinner-overlay` añadidas. |
+| MEJ-019 | **Media** | Varias vistas | Sin estados de carga (skeleton screens / spinners) — las páginas se ven en blanco hasta que los datos llegan | **Medio** | ⚠️ **Reabierto** — Ver UX-029 | Clases CSS `.ep-skeleton`, `.ep-skeleton-text`, `.ep-spinner-overlay` creadas en CSS pero **NUNCA implementadas en ninguna vista**. No hay loading states reales. |
 | MEJ-020 | **Media** | Controladores | Sin paginación en listados (hábitos, misiones, progreso) — podría degradarse con muchos registros | **Medio** | ✅ Corregido | Creado `PaginacionViewModel` y partial `_Paginacion.cshtml`. Pendiente conectar controllers. |
 | MEJ-021 | **Baja** | `wwwroot/` | Sin soporte PWA (manifest.json, service worker, offline) | **Baja** | ⚠️ Pendiente | Convertir en PWA para instalación en móvil y soporte offline parcial |
 | MEJ-022 | **Baja** | `wwwroot/favicon.ico` | Favicon es el default de ASP.NET — sin personalización de marca | **Baja** | ✅ Corregido | Reemplazado con favicon personalizado de Epycus |
@@ -173,20 +173,42 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | UX-001 | **Crítica** | Login / Registro | Encoding roto en acentos (`Ã±`, `Ã³`, `Ã¡`) en formularios y textos | ✅ Corregido |
 | UX-002 | **Crítica** | General | Sin HTTPS — la app se sirve por HTTP puro | ⚠️ Pendiente |
 | UX-003 | **Alta** | Sidebar | No es responsive — sidebar fijo inservible en móvil | ✅ Corregido |
-| UX-004 | **Alta** | Modo oscuro | Texto negro sobre fondo oscuro ilegible en varios componentes | ✅ Corregido |
-| UX-005 | **Alta** | Modo claro | Verificar contraste en todos los componentes | ✅ Corregido |
+| UX-004 | **Alta** | Modo oscuro | Texto negro sobre fondo oscuro ilegible en varios componentes | ⚠️ **Reabierto** — Ver UX-017 a UX-020 |
+| UX-005 | **Alta** | Modo claro | Verificar contraste en todos los componentes | ⚠️ **Reabierto** — Ver UX-017 a UX-020 |
 | UX-006 | **Alta** | Imágenes | Personajes, logros e iconos son placeholder — sin arte original | ⚠️ Parcial (favicon, logo e imagen de login personalizados de Epycus. Personajes Ing. Sistemas y Medicina con PNG reales. Faltan ilustraciones del resto) |
 | UX-007 | **Alta** | Home/Inicio | Dashboard genérico, sin personalidad ni micro-interacciones | ✅ Corregido |
 | UX-008 | **Media** | Tipografía | Unificar jerarquía tipográfica (tamaños, pesos, colores) | ✅ Corregido |
-| UX-009 | **Media** | Formularios | Feedback visual pobre en validaciones y estados | ✅ Corregido |
+| UX-009 | **Media** | Formularios | Feedback visual pobre en validaciones y estados | ⚠️ **Reabierto** — Ver UX-021, UX-022 |
 | UX-010 | **Media** | Transiciones | Faltan animaciones suaves en navegación y cambios de estado | ✅ Corregido |
 | UX-011 | **Media** | Tablas | Datos en tablas no responsive — no se ven en móvil | ✅ Corregido |
 | UX-012 | **Baja** | 404 / Error | Páginas de error genéricas sin diseño cuidado | ✅ Corregido |
-| UX-013 | **Media** | General | Sin micro-interacciones (hover effects, transiciones suaves entre páginas, feedback táctil) | ✅ Corregido |
-| UX-014 | **Alta** | Progreso | Modo oscuro/claro mal aplicado — colores incorrectos o ilegibles en ambas variantes (móvil y PC) | ✅ Corregido | Eliminado hardcode `text-white` en nombres de logros. Ahora usa `var(--text-primary)`. |
-| UX-015 | **Alta** | Ajustes | Mala distribución de tamaños en los elementos del formulario — desproporcionados en móvil y PC | ✅ Corregido | Agregado CSS para `.personaje-grid` (grid 140px), `.personaje-card`, `.tema-card`. Distribución responsiva con `auto-fill`. |
-| UX-016 | **Alta** | Home/Inicio | Modo oscuro/claro necesita mejora — contrastes y colores no se ven bien en ninguna variante | ✅ Corregido | `theme-manager.js` ahora setea `data-theme="dark/light"` en `<html>`, activando selectores `[data-theme="dark"]` en dashboard.css. Temas CSS actualizados con variables modernas compatibles. |
- 
+| UX-013 | **Media** | General | Sin micro-interacciones (hover effects, transiciones suaves entre páginas, feedback táctil) | ⚠️ **Reabierto** — Ver UX-023 |
+| UX-014 | **Alta** | Progreso | Modo oscuro/claro mal aplicado — colores incorrectos o ilegibles en ambas variantes (móvil y PC) | ✅ Corregido |
+| UX-015 | **Alta** | Ajustes | Mala distribución de tamaños en los elementos del formulario — desproporcionados en móvil y PC | ✅ Corregido |
+| UX-016 | **Alta** | Home/Inicio | Modo oscuro/claro necesita mejora — contrastes y colores no se ven bien en ninguna variante | ✅ Corregido |
+| UX-017 | **Alta** | Admin `_LayoutAdmin.cshtml` | **Sin soporte de temas (claro/oscuro).** NO carga `theme-manager.js`, NO tiene inline FOUC fix, NO tiene toggle de tema. `data-theme` NUNCA se setea. Siempre carga `tema-noche-epica.css` ignorando preferencia del usuario. | 🔴 **NUEVO** |
+| UX-018 | **Alta** | `notificaciones.css:110` | **Selector de tema roto:** usa `body:not([data-theme="oscuro"])` pero el theme-manager setea el atributo en `<html>` con valores `"dark"`/`"light"` (no `"oscuro"`). La condición NUNCA se cumple, el box-shadow de toasts nunca se aplica correctamente. | 🔴 **NUEVO** |
+| UX-019 | **Alta** | `Bienestar/Index.cshtml:105` | **Variable CSS undefined:** usa `var(--ep-primario-rgb, 99,102,241)` pero `--ep-primario-rgb` NO está definida en `variables.css` ni en ningún tema. La carta de frase motivacional se renderiza con fallback hardcodeado, no con colores del tema activo. | 🔴 **NUEVO** |
+| UX-020 | **Alta** | TODAS las vistas | **100+ instancias de Bootstrap color utilities hardcodeadas** que NO respetan el sistema de temas: `text-muted`, `text-primary`, `text-success`, `text-warning`, `text-danger`, `text-secondary`, `bg-success`, `bg-warning`, `bg-danger`, `bg-light`, `bg-secondary`, `border-secondary`, `border-success`, etc. Estos colores Bootstrap (#6c757d, #0d6efd, etc.) NO cambian con el tema claro/oscuro, ignorando completamente `variables.css`. | 🔴 **NUEVO** |
+| UX-021 | **Alta** | `Habitos/Index.cshtml:140` | **`dropdown-menu-dark` forzado en TODOS los temas.** Bootstrap siempre pinta el menú oscuro aunque el usuario esté en tema claro (Sakura). Inconsistencia visual evidente. | 🔴 **NUEVO** |
+| UX-022 | **Media** | `Habitos/Index.cshtml:269` | **Botón `btn-close` invisible en modo oscuro.** El inline `style="filter: none"` anula el filtro SVG que Bootstrap usa para mostrar la X blanca. En tema oscuro el botón de cerrar modal es negro sobre fondo oscuro. | 🔴 **NUEVO** |
+| UX-023 | **Media** | Varias vistas (Login, Registro, Hábitos, Pomodoro, Misiones, Progreso, Admin) | **Estados de validación usan `text-danger` de Bootstrap** en lugar de `var(--error)`. El rojo de Bootstrap (#dc3545) no coincide con el del tema (--error: #ff6b9d claro / #ef4444 oscuro). | 🟡 **NUEVO** |
+| UX-024 | **Media** | CSS general | **Iconos de categoría hardcodeados** en `dashboard.css:331-337` (`.dash-habit-icon.icon-*`) sin `[data-theme="dark"]` override. Colores como #3b82f6, #10b981 no tienen variante oscura. | 🟡 **NUEVO** |
+| UX-025 | **Media** | `site.css:1100-1105` | **`.ep-task-tag` con colores hardcodeados** (`rgba(167, 139, 250, 0.15)`, `#A78BFA`) sin override para modo oscuro. Se ve igual en ambos temas. | 🟡 **NUEVO** |
+| UX-026 | **Media** | Login / Registro | **Mezcla inconsistente de layout:** Usan `_LayoutAuth` que tiene diseño de split (hero + form), pero los `auth.css` y `_LayoutAuth.cshtml` definen estructuras DUPLICADAS (`.auth-hero` vs `.auth-hero-side`, `.auth-form-side` vs `.auth-form-wrapper`). Hay 990 líneas en `auth.css` con mucho código duplicado/no usado. | 🟡 **NUEVO** |
+| UX-027 | **Media** | `Habitos/Index.cshtml`, `Pomodoro/Index.cshtml`, `Ajustes/Index.cshtml` | **Uso inconsistente de emojis:** IA/Index usa emoji "👋", "🔄" mezclado con Font Awesome/Bootstrap Icons. El resto de la app usa exclusivamente Bootstrap Icons. Sin consistencia. | 🟢 **NUEVO** |
+| UX-028 | **Media** | Múltiples vistas | **Tres patrones diferentes para mensajes success/error:** (1) `TempData["Exito"]`/`["Error"]` con `ep-alerta` en Misiones y Admin, (2) `TempData["Mensaje"]`/`["Error"]` con estilo inline en Ajustes, (3) `TempData["AnimoRegistrado"]` con alert inline en Bienestar. Sin componente unificado. | 🟡 **NUEVO** |
+| UX-029 | **Media** | Múltiples vistas | **Loading skeletons definidos en CSS (`.ep-skeleton`, `.ep-skeleton-text`, `.ep-skeleton-card`) pero NUNCA usados en ninguna vista.** No hay shimmer/placeholder de carga en ninguna página. | 🔴 **NUEVO** |
+| UX-030 | **Media** | Botones | **Pressed state inconsistente:** site.css tiene `transform: scale(0.97)` en `:active` para `.btn-ep`, `.btn-ep-outline`, `.auth-btn-primary`, pero otros botones (`.ep-btn`, `.perfil-btn-primary`, `.ep-sidebar-btn`) no tienen pressed state. | 🟢 **NUEVO** |
+| UX-031 | **Media** | `site.css:918,923,1037,1045` | **Hover colors hardcodeados** sin variables CSS:
+- `.ep-btn-purple:hover` → `#4F46E5` (no usa `var(--accent-primary-hover)`)
+- `.ep-btn-white` → usa `--ep-texto` / `--ep-acento` como bg/text pero hover hardcodeado `#E2E8F0`
+- `.ep-btn-play:hover` → `#4F46E5`
+- `.ep-btn-play.descanso:hover` → `#059669` | 🟡 **NUEVO** |
+| UX-032 | **Baja** | `Pomodoro/Index.cshtml:51` | **`border-secondary` de Bootstrap** no se adapta al tema. El pomodoro usa `border-top border-secondary`, `border border-secondary`, `border-start border-2 border-secondary` que son siempre #6c757d (Bootstrap) sin importar el tema claro/oscuro. | 🟢 **NUEVO** |
+| UX-033 | **Baja** | `Ajustes/Index.cshtml` | **`btn.btn-link` en Login** (`line 59: Acceso admin`) usa estilo Bootstrap `btn-link` que no respeta el theme. | 🟢 **NUEVO** |
+| UX-034 | **Baja** | `Admin/Usuarios.cshtml:58,62` | **Badges de suscripción usan Bootstrap** `badge bg-warning text-dark` y `badge bg-light text-dark` en vez de colores del tema. | 🟢 **NUEVO** |
+
 ---
 
 ## 📋 DEUDA TÉCNICA
