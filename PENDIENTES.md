@@ -1,6 +1,6 @@
 # PENDIENTES — Auditoría Pre-Producción EpycusApp
 
-> Generado: 2026-06-15 | Última actualización: 2026-06-18 (corregidos: CRITICO-008, UX-014, UX-015, UX-016 | auditoría UI/UX completa: 18 hallazgos nuevos UX-017 a UX-034)
+> Generado: 2026-06-15 | Última actualización: 2026-06-18 (ARQ: +17 hallazgos | corregidos: CRITICO-008, UX-014, UX-015, UX-016 | auditoría UI/UX completa: 18 hallazgos nuevos UX-017 a UX-034)
 > Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API)
 
 ## Flujo de trabajo (para la IA)
@@ -477,3 +477,42 @@ Issues pendientes identificados en auditoría posterior:
 | RMOB-18 | `site.css` | Días de hábito visibles en versión condensada en móvil | ✅ |
 | RMOB-19 | `Ajustes/Index.cshtml:241-244` | Barras de fortaleza aumentadas a 6px | ✅ |
 | RMOB-20 | `site.css` | Hint de input IA visible en móvil con fuente compacta | ✅ |
+
+---
+
+## 🏗️ ARQUITECTURA — Auditoría (2026-06-18)
+
+> Auditoría de arquitectura completa del proyecto monolitico ASP.NET Core 9 + MariaDB + Gemini API.
+> VPS: Debian 13, 1 CPU, 4GB RAM, 50GB SSD, 4TB ancho de banda.
+
+### 🔴 CRÍTICOS — Violaciones arquitectónicas graves
+
+| ID | Prioridad | Archivo | Problema | Riesgo | Solución |
+|----|-----------|---------|----------|--------|----------|
+| ARQ-001 | **Muy Alta** | `appsettings.json` | **Gemini API Key real en texto plano** (`AIzaSyROTATED_GEMINI_KEY`) y el archivo NO está en `.gitignore` efectivo — el archivo existe en el repo con credenciales reales | **Crítico** — Cualquiera con acceso al repo puede usar la API key de Gemini, generando costos | Mover a variable de entorno `Gemini__ApiKey`. Rotar la API key actual en Google Cloud Console. Verificar historial de git para limpiar. |
+| ARQ-002 | **Muy Alta** | `appsettings.json` | **Contraseña de BD en texto plano** `ROTATED_DB_PASSWORD` en `appsettings.json` dentro del repo | **Crítico** — Exposición de credenciales de base de datos | Mover a variable de entorno `ConnectionStrings__ConexionPrincipal`. Rotar contraseña. |
+| ARQ-003 | **Muy Alta** | `Program.cs:132-137`, `IaController.cs` | **Rate limiter "Gemini" (20/min) NUNCA aplicado.** No hay `[EnableRateLimiting("Gemini")]` en IaController. Solo el global (200/min) protege. Un atacante autenticado puede hacer 200 llamadas/min a Gemini = costos reales. | **Alto** — Costos de API inesperados | Agregar `[EnableRateLimiting("Gemini")]` en IaController a nivel clase. |
+| ARQ-004 | **Muy Alta** | `Servicios/Implementaciones/GeminiHealthCheck.cs:24` | **API Key expuesta en URL como query parameter** `?key={_apiKey}` — queda en logs del servidor, proxies, nginx, y telemetría | **Alto** — Exposición de API key en logs | Usar header `x-goog-api-key` en lugar de query parameter. Aplicar también en `ServicioIA.cs`. |
+| ARQ-005 | **Alta** | `Servicios/Implementaciones/ServicioIA.cs` | **API key enviada como query param** `?key={_apiKey}` en las llamadas a Gemini API. Visible en logs, proxies y nginx access log | **Alto** — Exposición en logs | Cambiar a header `x-goog-api-key`. |
+| ARQ-006 | **Alta** | `Controllers/IaController.cs:50` | **Endpoint `/api/ia/chat` sin `[ValidateAntiForgeryToken]`.** JS fetch no envía token CSRF. Vulnerable a ataques CSRF. | **Alto** — Ataque CSRF en endpoint IA | Agregar `[ValidateAntiForgeryToken]`. Enviar token desde JS usando `X-CSRF-TOKEN` header (ya configurado en Program.cs:153). |
+| ARQ-007 | **Alta** | `Program.cs:237-253` | **Middleware pipeline fuera de orden según docs Microsoft.** Orden actual: StaticFiles → Routing → RateLimiter → SecurityHeaders → CORS → Auth. Orden correcto: ExceptionHandler → HSTS → HttpsRedirection → StaticFiles → Routing → CORS → Auth → RateLimiter → Endpoints | **Medio** — Security headers no cubren static files, CORS antes de auth puede causar problemas | Reordenar pipeline según https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/#middleware-order |
+
+### 🟡 IMPORTANTES — Malas prácticas y deuda técnica
+
+| ID | Prioridad | Archivo | Problema | Solución |
+|----|-----------|---------|----------|----------|
+| ARQ-008 | **Alta** | `Controllers/HabitosController.cs` | **Lógica de negocio en controller.** `CompletarModeloDesdeFormulario()`, `CompletarDiasSemanaDesdeFormulario()`, `EsCheckboxMarcado()` son métodos que parsean manualmente `Request.Form` — deberían estar en el servicio o usar model binding correcto | Mover lógica de parseo de formulario a un Custom Model Binder o al servicio `ServicioHabitos`. |
+| ARQ-009 | **Alta** | `DTOs/` vs `Models/DTOs/` | **Dos directorios DTOs inconsistentes.** `DTOs/` tiene 6 DTOs de hábitos/pomodoro. `Models/DTOs/` tiene `RespuestaOperacion.cs`. `Ayudantes/RespuestaApi.cs` es otro helper similar. Duplicidad conceptual. | Unificar todo en `DTOs/`. Eliminar `Models/DTOs/`. Decidir si usar `RespuestaOperacion` o `RespuestaApi<T>` (no ambos). |
+| ARQ-010 | **Alta** | `ViewModels/` | **ViewModels referencian directamente entidades del modelo.** `BienestarViewModel` expone `EstadoAnimo?` directamente en lugar de un DTO específico. `PerfilViewModel` expone `Usuario?`. Esto acopla la vista al modelo de datos. | Crear DTOs específicos para vistas. No exponer entidades EF directamente en ViewModels. |
+| ARQ-011 | **Media** | `ServicioIA.cs` aprox línea 46 | **ChatAsync guarda mensaje en DB ANTES de llamar a Gemini.** Si Gemini falla tras reintentos, el mensaje del usuario queda persistido pero la respuesta no. Conversaciones con mensajes huérfanos. | Envolver en transacción. Si Gemini falla, hacer rollback del mensaje de usuario. O guardar ambos (user+model) juntos al final. |
+| ARQ-012 | **Media** | `ServicioIA.cs`, `GeminiHealthCheck.cs` | **Inconsistencia de HttpClient.** `ServicioIA.cs` podría usar el cliente nombrado `"Gemini"`. `GeminiHealthCheck.cs` crea su propio `HttpClient` genérico en vez de usar `IHttpClientFactory.CreateClient("Gemini")`. Hardcodea el modelo en vez de leer `Gemini:Modelo` de config. | Unificar uso de `_httpClientFactory.CreateClient("Gemini")`. Leer modelo de configuración. |
+| ARQ-013 | **Media** | `DatosSemilla.cs:197` | **Seed data usa `Debug.WriteLine` para logging de errores** en lugar de `ILogger<DatosSemilla>`. En producción, `Debug.WriteLine` no genera salida. | Inyectar `ILogger<DatosSemilla>` en el método o usar `ILoggerFactory` desde el scope. |
+| ARQ-014 | **Media** | Varios controladores | **Nested DTO classes definidas dentro de archivos de controller.** `IaController.ChatMensajeDto` y `PerfilController.CambiarTemaDto` están al final de archivos de controller en vez de en `DTOs/`. | Mover a `DTOs/` como archivos separados. |
+
+### 🟢 MEJORAS RECOMENDADAS
+
+| ID | Prioridad | Archivo | Problema | Solución |
+|----|-----------|---------|----------|----------|
+| ARQ-015 | **Media** | Toda la app | **Sin capa de caché.** Las consultas a categorías, carreras, niveles, frases motivacionales y tips Pomodoro se hacen a BD en cada request. Datos quasi-estáticos que podrían cachearse. | Implementar `IMemoryCache` o `IDistributedCache` (Redis si hay recursos) para datos maestros. TTL: 5-30 min según volatilidad. |
+| ARQ-016 | **Baja** | `Program.cs` | **Sin graceful shutdown.** Al recibir SIGINT/SIGTERM, ASP.NET Core corta requests en curso. Podría dejar operaciones a medias. | Agregar `builder.Services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(10))`. |
+| ARQ-017 | **Baja** | `Models/Entidades/Suscripcion.cs:9` | **`PrecioSoles` usa `decimal`** pero es un campo monetario. Podría beneficiarse de `[Column(TypeName = "decimal(10,2)")]` para precisión en BD. | Agregar atributo de columna para tipo decimal con precisión explícita. |
