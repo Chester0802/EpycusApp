@@ -890,3 +890,101 @@
 [data-theme="dark"] .auth-btn-primary:hover {
     box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.2);
 }
+
+/* =============================================
+   AUTH SPLIT LAYOUT (hero image + form)
+   ============================================= */
+.auth-page {
+    min-height: 100vh;
+    background: var(--bg-primary);
+}
+
+.auth-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.auth-hero-side {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+}
+
+.auth-hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.auth-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(10, 14, 26, 0.7) 0%, rgba(30, 27, 75, 0.5) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-theme="dark"] .auth-hero-overlay {
+    background: linear-gradient(135deg, rgba(10, 14, 26, 0.8) 0%, rgba(30, 27, 75, 0.6) 100%);
+}
+
+.auth-hero-content {
+    text-align: center;
+    padding: 2rem;
+}
+
+.auth-hero-logo {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5));
+}
+
+.auth-hero-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+}
+
+.auth-hero-subtitle {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.75);
+    max-width: 320px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.auth-form-side {
+    width: 480px;
+    min-width: 480px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--surface);
+}
+
+.auth-form-inner {
+    width: 100%;
+    max-width: 400px;
+}
+
+@media (max-width: 768px) {
+    .auth-hero-side { display: none; }
+    .auth-form-side {
+        width: 100%;
+        min-width: 0;
+        padding: 1.5rem;
+    }
+}

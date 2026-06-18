@@ -29,8 +29,8 @@
         </button>
         <aside class="ep-sidebar" id="ep-sidebar">
             <div class="d-flex align-items-center gap-2 mb-4">
-                <img src="~/img/logo.webp" alt="Epycus" class="ep-sidebar-logo" style="width: 32px; height: 32px; object-fit: contain; display: none;" onerror="this.style.display='none'" />
-                <i class="bi bi-stars fs-4" id="ep-sidebar-icon"></i>
+                <img src="~/img/logo.webp" alt="Epycus" class="ep-sidebar-logo" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.style.display='none';document.getElementById('ep-sidebar-icon').style.display='inline-block'" />
+                <i class="bi bi-stars fs-4" id="ep-sidebar-icon" style="display:none"></i>
                 <span class="fw-semibold">Epycus</span>
             </div>
             <nav class="d-flex flex-column gap-2 mb-auto">
