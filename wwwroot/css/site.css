@@ -355,6 +355,10 @@ textarea:focus-visible {
     transform: translateX(0);
   }
 
+  .ep-sidebar-admin {
+    overflow-y: auto;
+  }
+
   .ep-contenido {
     margin-left: 0;
     padding: 1rem;
@@ -382,13 +386,11 @@ textarea:focus-visible {
     max-width: 100%;
   }
 
-  .col-md-3, .col-md-4, .col-md-6, .col-md-7, .col-md-8, .col-md-9,
-  .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-7, .col-lg-8, .col-lg-9 {
+  .col-md-3, .col-md-4, .col-md-7, .col-md-8, .col-md-9,
+  .col-lg-3, .col-lg-4, .col-lg-7, .col-lg-8, .col-lg-9 {
     flex: 0 0 100%;
     max-width: 100%;
   }
-
-  .col-md-6 { flex: 0 0 100%; max-width: 100%; }
 
   .dash-hero { padding: 1.25rem; }
   .dash-hero-grid { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 1rem; }
@@ -402,9 +404,12 @@ textarea:focus-visible {
   .perfil-personajes-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
   .perfil-logros-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
 
-  .ep-pomodoro-timer-wrapper { width: 220px; height: 220px; }
+  .ep-pomodoro-timer-wrapper { width: min(220px, 70vw); height: min(220px, 70vw); }
   .ep-pomodoro-time { font-size: 3rem; }
   .ep-pomodoro-tabs { flex-wrap: wrap; justify-content: center; }
+  .ep-pagination { gap: 0.15rem !important; }
+  .ep-pagination .page-link { padding: 0.3rem 0.5rem !important; font-size: 0.8rem !important; }
+  .ep-pagination .page-item { margin: 0.1rem; }
 
   .d-flex.justify-content-between.align-items-center.mb-4 {
     flex-direction: column;
@@ -413,6 +418,15 @@ textarea:focus-visible {
   }
 
   .personaje-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+
+  .ep-admin-actions {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .ep-admin-actions .btn {
+    width: 100%;
+  }
 }
 
 @media (max-width: 576px) {
@@ -428,6 +442,24 @@ textarea:focus-visible {
   .dash-streak-name { width: 80px; }
   .dash-landing-card { padding: 1.5rem 1rem; }
   .dash-features-grid { grid-template-columns: 1fr; }
+
+  .ep-habit-meta { display: none; }
+  .ep-habit-days { display: none !important; }
+  .ep-day-header { display: none !important; }
+
+  .ep-habit-card {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .ep-habit-card .ep-habit-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+    margin-right: 0.5rem;
+  }
+
+  .edy-header-actions .edy-status-text { display: none; }
 }
 
 /* --- Habits Dashboard Redesign --- */
@@ -501,6 +533,8 @@ textarea:focus-visible {
 .ep-habit-card {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   background: var(--ep-superficie);
   border: 1px solid var(--ep-borde);
   border-radius: var(--ep-radio);
@@ -508,6 +542,8 @@ textarea:focus-visible {
   margin-bottom: 0.75rem;
   transition: transform 0.2s;
 }
+
+.min-w-0 { min-width: 0; }
 
 .ep-habit-card:hover {
   border-color: var(--ep-neon-borde);
@@ -708,8 +744,8 @@ textarea:focus-visible {
 /* --- Pomodoro UI --- */
 .ep-pomodoro-timer-wrapper {
   position: relative;
-  width: 280px;
-  height: 280px;
+  width: min(280px, 80vw);
+  height: min(280px, 80vw);
   margin: 2rem auto;
 }
 

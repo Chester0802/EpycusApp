@@ -181,13 +181,13 @@
                         var color = tieneRegistro ? EstadoColor(reg!.Estado) : "var(--ep-borde)";
                         var emoji = tieneRegistro ? EstadoEmoji(reg!.Estado) : "·";
                         var esDomingo = fecha.DayOfWeek == DayOfWeek.Sunday;
-                        <div class="text-center" style="min-width: 36px;">
+                        <div class="text-center ep-animo-circle" style="min-width: 28px; max-width: 36px; flex: 0 0 auto;">
                             <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-1"
-                                 style="width: 32px; height: 32px; background: @(tieneRegistro ? EstadoBg(reg!.Estado) : "var(--ep-superficie-2)"); border: 1px solid @color;"
+                                 style="width: clamp(24px, 6vw, 32px); height: clamp(24px, 6vw, 32px); background: @(tieneRegistro ? EstadoBg(reg!.Estado) : "var(--ep-superficie-2)"); border: 1px solid @color;"
                                  title="@fecha.ToString("dd/MM")@(tieneRegistro ? ": " + reg!.Estado : "")">
                                 @if (tieneRegistro)
                                 {
-                                    <span style="font-size: 0.9rem;">@emoji</span>
+                                    <span style="font-size: clamp(0.7rem, 2vw, 0.9rem);">@emoji</span>
                                 }
                                 else
                                 {
@@ -200,7 +200,7 @@
                         </div>
                         @if (esDomingo && i > 0)
                         {
-                            <div style="width: 1px; height: 32px; background: var(--ep-borde); margin: 0 2px;"></div>
+                            <div style="width: 1px; align-self: stretch; background: var(--ep-borde); margin: 0 2px;"></div>
                         }
                     }
                 </div>
@@ -235,14 +235,22 @@
         flex-direction: column;
         align-items: center;
         gap: 4px;
-        padding: 0.6rem 1rem;
+        padding: 0.6rem 0.75rem;
         border-radius: 0.75rem;
         border: 1px solid var(--ep-borde);
         background: var(--ep-superficie-2);
         color: var(--ep-texto-primario);
         cursor: pointer;
         transition: all 0.2s;
-        min-width: 72px;
+        min-width: 60px;
+    }
+
+    @@media (max-width: 576px) {
+        .ep-animo-btn {
+            min-width: 48px;
+            padding: 0.4rem 0.5rem;
+            font-size: 0.8rem;
+        }
     }
     .ep-animo-btn:hover {
         border-color: var(--animo-color);

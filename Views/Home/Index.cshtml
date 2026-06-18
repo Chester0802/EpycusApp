@@ -82,7 +82,7 @@
                                 <h6 class="mb-1 fw-bold">@h.Nombre</h6>
                                 <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">@h.CategoriaNombre</span>
                             </div>
-                            <div class="me-4 text-secondary d-none d-sm-block" style="font-size: 0.85rem;">
+                            <div class="me-4 text-secondary d-none d-md-block" style="font-size: 0.85rem;">
                                 <div class="text-warning racha-cell"><i class="bi bi-fire me-1"></i>@h.RachaActual días</div>
                             </div>
                             <div class="ms-2">
@@ -98,7 +98,7 @@
         <div class="col-lg-5">
             <div class="ep-card h-100">
                 <h5 class="mb-3 fw-bold">Distribución por categoría</h5>
-                <div class="text-center" style="height: 300px; position: relative;">
+                <div class="text-center" style="height: clamp(200px, 40vw, 300px); position: relative;">
                     <canvas id="graficoCategorias"
                             data-categorias='@Html.Raw(Json.Serialize(Model.Estadisticas.DistribucionPorCategoria.Keys))'
                             data-valores='@Html.Raw(Json.Serialize(Model.Estadisticas.DistribucionPorCategoria.Values))'>

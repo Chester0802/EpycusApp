@@ -85,15 +85,15 @@
             </div>
 
             <!-- Cabecera de días -->
-            <div class="d-flex justify-content-end mb-2 pe-3 text-secondary" style="font-size: 0.85rem; gap: 1rem;">
-                <span style="width: 24px; text-align: center;">Lun</span>
-                <span style="width: 24px; text-align: center;">Mar</span>
-                <span style="width: 24px; text-align: center;">Mié</span>
-                <span style="width: 24px; text-align: center;">Jue</span>
-                <span style="width: 24px; text-align: center;">Vie</span>
-                <span style="width: 24px; text-align: center;">Sáb</span>
-                <span style="width: 24px; text-align: center;">Dom</span>
-                <span style="width: 40px; text-align: center; font-weight: bold; color: var(--ep-texto);">Hoy</span>
+            <div class="d-flex justify-content-end mb-2 pe-3 text-secondary ep-day-header" style="font-size: 0.85rem;">
+                <span style="min-width: 24px; flex: 0 0 auto; width: 24px; text-align: center;">Lun</span>
+                <span style="min-width: 24px; flex: 0 0 auto; width: 24px; text-align: center;">Mar</span>
+                <span style="min-width: 24px; flex: 0 0 auto; width: 24px; text-align: center;">Mié</span>
+                <span style="min-width: 24px; flex: 0 0 auto; width: 24px; text-align: center;">Jue</span>
+                <span style="min-width: 24px; flex: 0 0 auto; width: 24px; text-align: center;">Vie</span>
+                <span style="min-width: 24px; flex: 0 0 auto; width: 24px; text-align: center;">Sáb</span>
+                <span style="min-width: 24px; flex: 0 0 auto; width: 24px; text-align: center;">Dom</span>
+                <span style="min-width: 40px; flex: 0 0 auto; width: 40px; text-align: center; font-weight: bold; color: var(--ep-texto);">Hoy</span>
             </div>
 
             @if (Model?.Habitos == null || !Model.Habitos.Any())
@@ -106,35 +106,34 @@
                 {
                     <div class="ep-habit-card" data-habito-id="@h.Id">
                         <div class="ep-habit-icon icon-blue">
-                            <!-- Ícono genérico por ahora -->
                             <i class="bi bi-journal-check"></i>
                         </div>
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1 fw-bold">@h.Nombre</h6>
+                        <div class="flex-grow-1 min-w-0">
+                            <h6 class="mb-1 fw-bold text-truncate">@h.Nombre</h6>
                             <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">@h.CategoriaNombre</span>
                         </div>
-                        <div class="me-4 text-secondary" style="font-size: 0.85rem;">
+                        <div class="me-3 text-secondary ep-habit-meta" style="font-size: 0.85rem;">
                             <div class="mb-1"><i class="bi bi-calendar-event me-1"></i>@h.Frecuencia</div>
                             <div class="text-warning racha-cell"><i class="bi bi-fire me-1"></i>@h.RachaActual días</div>
                         </div>
                         
-                        <!-- Checkboxes de días (Simulados visualmente) -->
-                        <div class="d-flex align-items-center" style="gap: 1rem;">
-                            <!-- Lun a Dom (Visual representativo) -->
-                            <div class="ep-day-check checked"><i class="bi bi-check"></i></div>
-                            <div class="ep-day-check checked"><i class="bi bi-check"></i></div>
-                            <div class="ep-day-check disabled"></div>
-                            <div class="ep-day-check checked"><i class="bi bi-check"></i></div>
-                            <div class="ep-day-check checked"><i class="bi bi-check"></i></div>
-                            <div class="ep-day-check disabled"></div>
-                            <div class="ep-day-check disabled"></div>
+                        <div class="d-flex align-items-center ep-habit-actions" style="gap: 0.75rem;">
+                            <!-- Checkboxes de días (ocultos en móvil <576px) -->
+                            <div class="ep-habit-days d-flex align-items-center" style="gap: 0.5rem;">
+                                <div class="ep-day-check checked"><i class="bi bi-check"></i></div>
+                                <div class="ep-day-check checked"><i class="bi bi-check"></i></div>
+                                <div class="ep-day-check disabled"></div>
+                                <div class="ep-day-check checked"><i class="bi bi-check"></i></div>
+                                <div class="ep-day-check checked"><i class="bi bi-check"></i></div>
+                                <div class="ep-day-check disabled"></div>
+                                <div class="ep-day-check disabled"></div>
+                            </div>
                             
-                            <!-- Botón Hoy -->
-                            <div class="ms-2">
+                            <div>
                                 <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="completarHabito(@h.Id, this)">100%</button>
                             </div>
                             
-                            <div class="dropdown ms-2">
+                            <div class="dropdown">
                                 <button class="btn btn-sm btn-link text-secondary p-0" type="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
