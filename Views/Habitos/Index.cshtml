@@ -137,7 +137,7 @@
                                 <button class="btn btn-sm btn-link text-secondary p-0" type="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-dark">
+                                <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="/habitos/editar/@h.Id">Editar</a></li>
                                     <li>
                                         <form asp-action="Eliminar" method="post">
@@ -266,7 +266,7 @@
                 @Html.AntiForgeryToken()
                 <div class="modal-header" style="border-color: var(--border-color);">
                     <h5 class="modal-title fw-bold" style="color: var(--text-primary);">Crear hábito</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar" style="filter: none;"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>

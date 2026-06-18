@@ -51,6 +51,11 @@
         var ctx = document.getElementById('graficoCategorias');
         if (!ctx) return;
 
+        // Ocultar skeleton y mostrar canvas
+        var skeleton = document.getElementById('skeletonChart');
+        if (skeleton) skeleton.style.display = 'none';
+        ctx.style.display = 'block';
+
         // Obtener datos del atributo data-* del canvas
         var categorias = JSON.parse(ctx.dataset.categorias || '[]');
         var valores = JSON.parse(ctx.dataset.valores || '[]');
