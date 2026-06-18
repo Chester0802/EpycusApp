@@ -21,10 +21,13 @@ namespace EpycusApp.Controllers
 
             var modelo = new BienestarViewModel
             {
-                EstadoHoy    = await _servicioBienestar.ObtenerEstadoHoy(usuarioId),
-                Alertas      = await _servicioBienestar.ObtenerAlertasActivas(usuarioId),
-                FraseMotivacional = await _servicioBienestar.ObtenerFraseMotivacionalAleatoria(),
-                HistorialAnimo    = await _servicioBienestar.ObtenerHistorialAnimo(usuarioId, 14)
+                EstadoHoy          = await _servicioBienestar.ObtenerEstadoHoy(usuarioId),
+                Alertas            = await _servicioBienestar.ObtenerAlertasActivas(usuarioId),
+                FraseMotivacional  = await _servicioBienestar.ObtenerFraseMotivacionalAleatoria(),
+                HistorialAnimo     = await _servicioBienestar.ObtenerHistorialAnimo(usuarioId, 14),
+                HabitosPendientes  = await _servicioBienestar.ObtenerHabitosPendientesAsync(usuarioId),
+                MisionesPendientes = await _servicioBienestar.ObtenerMisionesPendientesAsync(usuarioId),
+                RecomendacionActiva = _servicioBienestar.RecomendacionPausaActiva(0)
             };
 
             return View(modelo);
