@@ -14,7 +14,7 @@
         <div class="col-12 col-lg-4">
             <div class="ep-card text-center h-100 position-relative overflow-hidden">
                 <div class="mb-4 mt-2">
-                    <img src="@Model.ImagenPersonajeUrl" alt="Personaje" class="img-fluid rounded-circle border border-3 border-primary shadow" style="width: 150px; height: 150px; object-fit: cover; background: var(--ep-superficie-2);" />
+                    <img src="@Model.ImagenPersonajeUrl" alt="Personaje" class="img-fluid rounded-circle shadow" style="width: 130px; height: 130px; object-fit: cover; object-position: center 20%; border: 3px solid var(--accent-primary); background: var(--bg-elevated);" />
                 </div>
                 <h2 class="h4 fw-bold mb-1">@Model.Progreso.NivelActual.Titulo</h2>
                 <p class="text-muted mb-4">Nivel @Model.Progreso.NivelActual.Numero</p>
@@ -94,7 +94,7 @@
                 
                 <div class="col-12 col-md-6 col-xl-4">
                     <div class="ep-card d-flex gap-3 h-100 @(desbloqueado ? "ep-card-neon" : "opacity-50")" style="transition: all 0.3s ease;">
-                        <div class="d-flex align-items-center justify-content-center rounded bg-dark" style="width: 64px; height: 64px; min-width: 64px;">
+                        <div class="d-flex align-items-center justify-content-center rounded" style="width: 64px; height: 64px; min-width: 64px; background: var(--bg-elevated);">
                             @if (!string.IsNullOrEmpty(logro.IconoUrl))
                             {
                                 <img src="@logro.IconoUrl" alt="@logro.Nombre" style="width: 40px; height: 40px; filter: @(desbloqueado ? "none" : "grayscale(100%)");" />
