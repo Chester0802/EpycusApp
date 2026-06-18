@@ -4,14 +4,14 @@ namespace EpycusApp.ViewModels.Autenticacion
 {
     public class LoginViewModel
     {
-        [Required(ErrorMessage = "El correo electrÃ³nico es requerido")]
-        [EmailAddress(ErrorMessage = "El formato del correo no es vÃ¡lido")]
-        [Display(Name = "Correo ElectrÃ³nico")]
+        [Required(ErrorMessage = "El correo electrónico es requerido")]
+        [EmailAddress(ErrorMessage = "El formato del correo no es válido")]
+        [Display(Name = "Correo Electrónico")]
         public string CorreoElectronico { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "La contraseÃ±a es requerida")]
+        [Required(ErrorMessage = "La contraseña es requerida")]
         [DataType(DataType.Password)]
-        [Display(Name = "ContraseÃ±a")]
+        [Display(Name = "Contraseña")]
         public string Contrasena { get; set; } = string.Empty;
 
         [Display(Name = "Recordarme")]

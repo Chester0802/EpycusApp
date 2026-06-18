@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace EpycusApp.Ayudantes;
 
 /// <summary>
-/// Valida que un checkbox booleano estÃ© marcado como true.
-/// Reemplaza [Range(typeof(bool), "true", "true")] que falla en validaciÃ³n
+/// Valida que un checkbox booleano esté marcado como true.
+/// Reemplaza [Range(typeof(bool), "true", "true")] que falla en validación
 /// cliente por incompatibilidad entre "True" (.NET) y "true" (HTML/JS).
 /// </summary>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
@@ -13,7 +13,7 @@ public class DebeSerVerdaderoAttribute : ValidationAttribute, IClientModelValida
 {
     public DebeSerVerdaderoAttribute()
     {
-        ErrorMessage = "Debe aceptar los tÃ©rminos";
+        ErrorMessage = "Debe aceptar los términos";
     }
 
     public override bool IsValid(object? value)

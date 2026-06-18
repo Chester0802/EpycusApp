@@ -10,13 +10,13 @@
         public int Id { get; set; }
 
         [Required(ErrorMessage = "El nombre es obligatorio")]
-        [StringLength(200, ErrorMessage = "El nombre no puede tener mÃ¡s de 200 caracteres")]
+        [StringLength(200, ErrorMessage = "El nombre no puede tener más de 200 caracteres")]
         public string Nombre { get; set; } = string.Empty;
 
-        [StringLength(500, ErrorMessage = "La descripciÃ³n no puede tener mÃ¡s de 500 caracteres")]
+        [StringLength(500, ErrorMessage = "La descripción no puede tener más de 500 caracteres")]
         public string? Descripcion { get; set; }
 
-        [Required(ErrorMessage = "Seleccione una categorÃ­a")]
+        [Required(ErrorMessage = "Seleccione una categoría")]
         public int CategoriaId { get; set; }
 
         [Required(ErrorMessage = "Seleccione la frecuencia")]
