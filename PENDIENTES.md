@@ -1,7 +1,7 @@
 # PENDIENTES — Auditoría Pre-Producción EpycusApp
 
-> Generado: 2026-06-15 | Última actualización: 2026-06-18 (ARQ: +17 hallazgos | corregidos: CRITICO-008, UX-014, UX-015, UX-016, UX-017 a UX-034 | auditoría UI/UX completa: 18 hallazgos nuevos UX-017 a UX-034 | **segunda auditoría UI/UX: 12 nuevos UX-035 a UX-046, corregidos UX-019, UX-027, UX-029, UX-035 a UX-046**) | **✅ TERCERA AUDITORÍA UI/UX: 12 nuevos UX-047 a UX-054, TODOS CORREGIDOS** | **🔄 CUARTA AUDITORÍA UI/UX: 5 nuevos UX-055 a UX-059, PENDIENTES** | **✅ CORREGIDO: ARQ-001, ARQ-002, ARQ-004, ARQ-005, IA-IMP-11 (credenciales reales reemplazadas por placeholders, API key movida a header)** | **✅ VPS: VPS-007 (monitoreo), VPS-008 (rotación logs), VPS-009 (página mantenimiento) — 3 nuevos scripts/conf: `deploy/monitoreo-uptime.sh`, `deploy/journald-log-rotation.conf`, `deploy/maintenance.html`, `deploy/maintenance.sh`** | **✅ ODS 3: audit complete — B-FALTA-01 a B-FALTA-11, B-ERR-01/06/07, B-INC-01 a B-INC-05, B-UI-02 a B-UI-05 corregidos**
-> Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API) | VPS-007 ✅, VPS-008 ✅, VPS-009 ✅
+> Generado: 2026-06-15 | Última actualización: 2026-06-18 (ARQ: +17 hallazgos | corregidos: CRITICO-008, UX-014, UX-015, UX-016, UX-017 a UX-034 | auditoría UI/UX completa: 18 hallazgos nuevos UX-017 a UX-034 | **segunda auditoría UI/UX: 12 nuevos UX-035 a UX-046, corregidos UX-019, UX-027, UX-029, UX-035 a UX-046**) | **✅ TERCERA AUDITORÍA UI/UX: 12 nuevos UX-047 a UX-054, TODOS CORREGIDOS** | **🔄 CUARTA AUDITORÍA UI/UX: 5 nuevos UX-055 a UX-059, PENDIENTES** | **✅ CORREGIDO: ARQ-001, ARQ-002, ARQ-004, ARQ-005, IA-IMP-11 (credenciales reales reemplazadas por placeholders, API key movida a header)** | **✅ VPS: VPS-007 (monitoreo), VPS-008 (rotación logs), VPS-009 (página mantenimiento) — 3 nuevos scripts/conf: `deploy/monitoreo-uptime.sh`, `deploy/journald-log-rotation.conf`, `deploy/maintenance.html`, `deploy/maintenance.sh`** | **✅ ODS 3: audit complete — B-FALTA-01 a B-FALTA-11, B-ERR-01/06/07, B-INC-01 a B-INC-05, B-UI-02 a B-UI-05 corregidos** | **✅ CRITICO-009 (jQuery), CRITICO-010 (Categoria BD), VPS-010 (sincronización GitHub↔VPS) corregidos**
+> Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API) | VPS-007 ✅, VPS-008 ✅, VPS-009 ✅, VPS-010 ✅
 
 ## Flujo de trabajo (para la IA)
 
@@ -35,6 +35,8 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | CRITICO-006 | **Muy Alta** | `appsettings.json` | Google OAuth: `ClientId` y `ClientSecret` son placeholders (`YOUR_GOOGLE_CLIENT_ID...`) | **Muy Alto** | ⚠️ Pendiente | Configurar OAuth real en https://console.cloud.google.com/ y poner los valores por variable de entorno. |
 | CRITICO-007 | **Muy Alta** | `appsettings.json` | Servicio de correo: `Correo:Contrasena` es placeholder (`ROTATED_SMTP_PASSWORD`) | **Muy Alto** | ⚠️ Pendiente | Generar App Password de Gmail y configurarlo como variable de entorno. Sin esto, registro, recuperación y verificación de correo no funcionan. |
 | CRITICO-008 | **Muy Alta** | `ViewModels/Autenticacion/LoginViewModel.cs`, `AdminLoginViewModel.cs` y otros 6 ViewModels | **Mojibake en Display Names y ErrorMessages:** archivos `.cs` guardados en Windows-1252 en lugar de UTF-8 | **Alto** | ✅ Corregido | Archivados reescritos en UTF-8 sin BOM con caracteres españoles correctos (ó, ñ, á, é, etc.). |
+| CRITICO-009 | **Muy Alta** | `Views/Shared/_ValidationScriptsPartial.cshtml` | **`jQuery is not defined`** — `jquery.validate.min.js` y `jquery.validate.unobtrusive.min.js` se cargaban sin que `jquery.min.js` estuviera disponible en producción | **Alto** | ✅ Corregido | Agregado `<script src="~/lib/jquery/dist/jquery.min.js">` como primera línea del partial. Commit `3da7ce5`. |
+| CRITICO-010 | **Muy Alta** | `Models/Entidades/FraseMotivacional.cs` / BD | **500 Internal Server Error — `Unknown column 'f.Categoria'`** — propiedad `Categoria` agregada al modelo pero migración no aplicada en BD producción | **Alto** | ✅ Corregido | Ejecutado `ALTER TABLE FrasesMotivacionales ADD COLUMN Categoria` en MySQL. Migración `AddCategoriaToFraseMotivacional` subida a GitHub. |
 
 ---
 
@@ -161,6 +163,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | VPS-007 | ✅ Corregido | Script `deploy/monitoreo-uptime.sh` — chequea `/health` cada N minutos vía cron y notifica por Discord/Telegram webhook con cooldown de 5 min para evitar spam |
 | VPS-008 | ✅ Corregido | Config `deploy/journald-log-rotation.conf` — límite 500MB total, 100MB por archivo, retención 7 días, compresión activada. Instalar: `cp deploy/journald-log-rotation.conf /etc/systemd/journald.conf.d/epycus.conf && systemctl restart systemd-journald` |
 | VPS-009 | ✅ Corregido | `deploy/maintenance.html` + `deploy/maintenance.sh` (on/off/status). Nginx config actualizado con `error_page 502 503 @maintenance` que sirve la página desde `/var/www/maintenance/`. Funciona tanto para mantenimiento planificado (flag file) como para caídas inesperadas (502). |
+| VPS-010 | ✅ Corregido | **Sincronización GitHub↔VPS:** El commit del VPS (`0dd1ffa`) subió migraciones pero no incluyó el fix de jQuery. Se sincronizó haciendo commit local del fix (`3da7ce5`) y pull en VPS. Los 3 entornos (local, GitHub, VPS) ahora están en el mismo commit. |
 
 ---
 
