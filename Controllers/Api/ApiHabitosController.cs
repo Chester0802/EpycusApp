@@ -57,7 +57,7 @@ namespace EpycusApp.Controllers.Api
 
             var resultado = await _servicioHabitos.CompletarHabito(id, usuarioId.Value);
             if (!resultado.Exito)
-                return BadRequest(RespuestaApi<CompletarHabitoRespuestaDto>.Fallida("No se pudo completar el hÃ¡bito"));
+                return BadRequest(RespuestaApi<CompletarHabitoRespuestaDto>.Fallida("No se pudo completar el hábito"));
 
             var respuesta = new CompletarHabitoRespuestaDto { XpGanado = resultado.XpGanado };
             return Ok(RespuestaApi<CompletarHabitoRespuestaDto>.Exitosa(respuesta));

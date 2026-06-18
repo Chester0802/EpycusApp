@@ -32,7 +32,7 @@ namespace EpycusApp.Servicios.Implementaciones
             var habitos = await _context.Habitos.Where(h => h.UsuarioId == usuarioId).ToListAsync();
             vm.TotalHabitos = habitos.Count;
 
-            // Conteo registros Ãºltimos 7 dÃ­as
+            // Conteo registros últimos 7 días
             var desde = DateOnly.FromDateTime(DateTime.Today.AddDays(-6));
             var registrosSemana = await (from r in _context.RegistrosHabito
                                          join h in _context.Habitos on r.HabitoId equals h.Id
@@ -59,7 +59,7 @@ namespace EpycusApp.Servicios.Implementaciones
                     (g, c) => new { c.Nombre, g.Count })
                 .ToDictionary(x => x.Nombre, x => x.Count);
 
-            // Totales hoy y racha mÃ¡xima actual entre hÃ¡bitos
+            // Totales hoy y racha máxima actual entre hábitos
             var hoy = DateOnly.FromDateTime(DateTime.Today);
             vm.TotalCompletadosHoy = await (from r in _context.RegistrosHabito
                                             join h in _context.Habitos on r.HabitoId equals h.Id
@@ -143,16 +143,16 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task CrearHabito(CrearHabitoViewModel modelo, int usuarioId)
         {
-            // Validar categorÃ­a
+            // Validar categoría
             var categoria = await _context.Categorias.FirstOrDefaultAsync(c => c.Id == modelo.CategoriaId && c.EstaActiva);
             if (categoria is null)
-                throw new ArgumentException("CategorÃ­a no vÃ¡lida");
+                throw new ArgumentException("Categoría no válida");
 
             // Normalizar DiasSemana: si viene en formato de texto separado por comas en el formulario
             if (modelo.DiasSemana == null)
             {
                 // intentar leer de Request form si existe (cuando el input es string)
-                // Notar: aquÃ­ no se puede acceder a HttpContext, por lo que esperaremos que el controlador convierta correctamente.
+                // Notar: aquí no se puede acceder a HttpContext, por lo que esperaremos que el controlador convierta correctamente.
             }
             var habito = new Habito
             {
@@ -216,7 +216,7 @@ namespace EpycusApp.Servicios.Implementaciones
             if (habito is null)
                 return (false, 0);
 
-            // Evitar completar dos veces el mismo dÃ­a
+            // Evitar completar dos veces el mismo día
             var hoy = DateOnly.FromDateTime(DateTime.Today);
             if (habito.Registros.Any(r => r.Fecha == hoy && r.Estado == "Completado"))
                 return (false, 0);
@@ -249,7 +249,7 @@ namespace EpycusApp.Servicios.Implementaciones
             _context.Habitos.Update(habito);
             await _context.SaveChangesAsync();
 
-            // Llamar al servicio de gamificaciÃ³n: sumar XP calculado (xpGanado)
+            // Llamar al servicio de gamificación: sumar XP calculado (xpGanado)
             try
             {
                 await _servicioGamificacion.SumarXP(usuarioId, xpGanado);
@@ -270,13 +270,13 @@ namespace EpycusApp.Servicios.Implementaciones
 
             if (habito == null)
             {
-                return (false, "HÃ¡bito no encontrado");
+                return (false, "Hábito no encontrado");
             }
 
             var hoy = DateOnly.FromDateTime(DateTime.Today);
             if (habito.Registros.Any(r => r.Fecha == hoy))
             {
-                return (false, "Ya se registrÃ³ el estado de hoy");
+                return (false, "Ya se registró el estado de hoy");
             }
 
             // Romper racha
@@ -295,7 +295,7 @@ namespace EpycusApp.Servicios.Implementaciones
             _context.Habitos.Update(habito);
             await _context.SaveChangesAsync();
 
-            return (true, "HÃ¡bito marcado como fallido");
+            return (true, "Hábito marcado como fallido");
         }
 
         public async Task<List<HabitoRespuestaDto>> ObtenerHabitosConEstadoHoy(int usuarioId)

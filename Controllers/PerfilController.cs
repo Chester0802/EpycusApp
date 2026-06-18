@@ -77,7 +77,7 @@ namespace EpycusApp.Controllers
                 correo, modelo.ContrasenaActual, modelo.NuevaContrasena);
 
             TempData[resultado.EsExitoso ? ClaveExitoContrasena : ClaveErrorContrasena] =
-                resultado.EsExitoso ? "ContraseÃ±a actualizada correctamente." : resultado.Mensaje;
+                resultado.EsExitoso ? "Contraseña actualizada correctamente." : resultado.Mensaje;
 
             return RedirectToAction(nameof(Index));
         }

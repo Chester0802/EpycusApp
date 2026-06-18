@@ -46,7 +46,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
             if (existeCorreo)
             {
-                return (false, "El correo ya estÃ¡ registrado", null, null);
+                return (false, "El correo ya está registrado", null, null);
             }
 
             var rolUsuario = await _contexto.Roles.FirstOrDefaultAsync(r => r.Nombre == "Usuario");
@@ -128,7 +128,7 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
-                return (false, "Token invÃ¡lido", null, null);
+                return (false, "Token inválido", null, null);
             }
 
             var refreshHash = HashToken(refreshToken);
@@ -150,7 +150,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
                 if (usuario == null || !usuario.EstaActivo)
                 {
-                    return (false, "Usuario invÃ¡lido", null, null);
+                    return (false, "Usuario inválido", null, null);
                 }
 
                 tokenGuardado.Revocado = true;
@@ -193,12 +193,12 @@ namespace EpycusApp.Servicios.Implementaciones
 
             if (!usuario.EstaActivo)
             {
-                return (false, "La cuenta estÃ¡ desactivada", null, null);
+                return (false, "La cuenta está desactivada", null, null);
             }
 
             if (string.IsNullOrWhiteSpace(usuario.ContrasenaHash))
             {
-                return (false, "La cuenta no tiene contraseÃ±a, inicia sesiÃ³n con Google", null, null);
+                return (false, "La cuenta no tiene contraseña, inicia sesión con Google", null, null);
             }
 
             if (!BCrypt.Net.BCrypt.Verify(contrasena, usuario.ContrasenaHash))
@@ -231,10 +231,10 @@ namespace EpycusApp.Servicios.Implementaciones
                         return (false, "Usuario no encontrado");
 
                     if (string.IsNullOrWhiteSpace(usuario.ContrasenaHash))
-                        return (false, "La cuenta no permite cambio de contraseÃ±a (inicia sesiÃ³n con Google)");
+                        return (false, "La cuenta no permite cambio de contraseña (inicia sesiÃ³n con Google)");
 
                     if (!BCrypt.Net.BCrypt.Verify(contrasenaActual, usuario.ContrasenaHash))
-                        return (false, "ContraseÃ±a actual incorrecta");
+                        return (false, "Contraseña actual incorrecta");
 
                     usuario.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(nuevaContrasena, workFactor: 12);
                     await _contexto.SaveChangesAsync();
@@ -249,7 +249,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
         private string GenerarRefreshToken()
         {
-                    // Genera un token criptogrÃ¡ficamente seguro y URL-safe
+                    // Genera un token criptográficamente seguro y URL-safe
                     var bytes = new byte[32];
                     using (var rng = RandomNumberGenerator.Create())
                     {
@@ -282,7 +282,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
             var claveStr = _config["Jwt:Clave"];
             if (string.IsNullOrEmpty(claveStr))
-                throw new InvalidOperationException("La clave secreta de JWT no estÃ¡ configurada.");
+                throw new InvalidOperationException("La clave secreta de JWT no está configurada.");
 
             var clave = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(claveStr));
             var credenciales = new SigningCredentials(clave, SecurityAlgorithms.HmacSha256);

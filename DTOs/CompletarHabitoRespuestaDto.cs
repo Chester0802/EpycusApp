@@ -1,7 +1,7 @@
 ﻿namespace EpycusApp.DTOs
 {
     /// <summary>
-    /// DTO para la respuesta al completar un hÃ¡bito
+    /// DTO para la respuesta al completar un hábito
     /// </summary>
     public class CompletarHabitoRespuestaDto
     {

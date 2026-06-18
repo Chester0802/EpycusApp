@@ -1,7 +1,7 @@
 ﻿namespace EpycusApp.DTOs
 {
     /// <summary>
-    /// DTO para el registro de un hÃ¡bito en la semana
+    /// DTO para el registro de un hábito en la semana
     /// </summary>
     public class RegistroSemanaDto
     {

@@ -1,7 +1,7 @@
 ﻿namespace EpycusApp.DTOs
 {
     /// <summary>
-    /// DTO para la respuesta de hÃ¡bitos activos con estado de hoy
+    /// DTO para la respuesta de hábitos activos con estado de hoy
     /// </summary>
     public class HabitoHoyRespuestaDto
     {

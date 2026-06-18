@@ -8,7 +8,8 @@ namespace EpycusApp.ViewModels.Autenticacion
         public string Token { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La nueva contraseña es obligatoria")]
-        [MinLength(6, ErrorMessage = "Mínimo 6 caracteres")]
+        [RegularExpression("^(?=.*[a-zñ])(?=.*[A-ZÑ])(?=.*\\d)(?=.*[!@#$%^&*]).{8,}$", ErrorMessage = "La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.")]
+        [DataType(DataType.Password)]
         [Display(Name = "Nueva contraseña")]
         public string NuevaContrasena { get; set; } = string.Empty;
 

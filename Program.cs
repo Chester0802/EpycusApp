@@ -57,7 +57,7 @@ public partial class Program
         var jwtClave = builder.Configuration["Jwt:Clave"];
         if (string.IsNullOrEmpty(jwtClave) || jwtClave.Length < 32)
         {
-            throw new InvalidOperationException("La clave JWT (Jwt:Clave) no estÃ¡ configurada o es muy corta. Define una clave segura de al menos 32 caracteres en variables de entorno o en secretos.");
+            throw new InvalidOperationException("La clave JWT (Jwt:Clave) no está configurada o es muy corta. Define una clave segura de al menos 32 caracteres en variables de entorno o en secretos.");
         }
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -23,10 +23,10 @@ namespace EpycusApp.Controllers
             var usuarioId = ObtenerUsuarioId();
             if (usuarioId != 0)
             {
-                // ConfiguraciÃ³n
+                // Configuración
                 modelo.Configuracion = await _servicioPomodoro.ObtenerConfiguracion(usuarioId);
 
-                // EstadÃ­sticas e Historial de Hoy
+                // Estadísticas e Historial de Hoy
                 var sesionesHoy = await _servicioPomodoro.ObtenerSesionesHoyAsync(usuarioId);
                 modelo.HistorialHoy = sesionesHoy;
 

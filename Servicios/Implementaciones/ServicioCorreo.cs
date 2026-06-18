@@ -50,15 +50,15 @@ namespace EpycusApp.Servicios.Implementaciones
             var cuerpo = $"""
                 Hola {WebUtility.HtmlEncode(nombre)},
 
-                Â¡Bienvenido a Epycus! Tu correo ha sido verificado exitosamente.
+                ¡Bienvenido a Epycus! Tu correo ha sido verificado exitosamente.
 
-                Ahora puedes empezar a crear hÃ¡bitos, completar misiones y subir de nivel.
-                Â¡Cada dÃ­a es una nueva oportunidad para mejorar!
+                Ahora puedes empezar a crear hábitos, completar misiones y subir de nivel.
+                ¡Cada día es una nueva oportunidad para mejorar!
 
                 â€” El equipo de Epycus
                 """;
 
-            return EnviarAsync(correo, "Â¡Bienvenido a Epycus!", cuerpo);
+            return EnviarAsync(correo, "¡Bienvenido a Epycus!", cuerpo);
         }
 
         private async Task EnviarAsync(string destinatario, string asunto, string cuerpo)

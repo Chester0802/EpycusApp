@@ -25,7 +25,7 @@ namespace EpycusApp.Controllers.Api
 
             if (!resultado.Exito)
             {
-                return BadRequest(RespuestaApi<object>.Fallida("No se pudo completar la misiÃ³n"));
+                return BadRequest(RespuestaApi<object>.Fallida("No se pudo completar la misión"));
             }
 
             return Ok(RespuestaApi<object>.Exitosa(new { xpGanado = resultado.XpGanado }));
