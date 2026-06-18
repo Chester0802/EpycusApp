@@ -153,7 +153,7 @@ public partial class Program
         {
             options.HeaderName = "X-CSRF-TOKEN";
             options.Cookie.HttpOnly = true;
-            options.Cookie.SecurePolicy = builder.Environment.IsProduction() ? CookieSecurePolicy.Always : CookieSecurePolicy.SameAsRequest;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
             options.Cookie.SameSite = SameSiteMode.Strict;
         });
 
