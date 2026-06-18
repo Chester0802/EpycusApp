@@ -29,10 +29,10 @@ namespace EpycusApp.Servicios.Implementaciones
             ILogger<ServicioIA> logger)
         {
             _contexto = contexto;
-            _httpClient = httpClientFactory.CreateClient("Gemini");
-            _apiKey = config["Gemini:ApiKey"]
-                ?? throw new InvalidOperationException("Gemini:ApiKey no esta configurado.");
-            _modelo = config["Gemini:Modelo"] ?? "gemini-2.0-flash-lite";
+            _httpClient = httpClientFactory.CreateClient("DeepSeek");
+            _apiKey = config["DeepSeek:ApiKey"]
+                ?? throw new InvalidOperationException("DeepSeek:ApiKey no esta configurado.");
+            _modelo = config["DeepSeek:Modelo"] ?? "deepseek-v4-flash";
             _gamificacion = gamificacion;
             _logger = logger;
         }
@@ -196,7 +196,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
                 var resumen = await GenerarResumenSiNecesarioAsync(usuarioId, conversacionId, historial);
 
-                var respuestaTexto = await LlamarGeminiAsync(ctxUsuario, historial, resumen);
+                var respuestaTexto = await LlamarDeepSeekAsync(ctxUsuario, historial, resumen);
 
                 _contexto.MensajesIA.Add(new MensajeIA
                 {
@@ -236,36 +236,43 @@ namespace EpycusApp.Servicios.Implementaciones
             return null;
         }
 
-        private async Task<string> LlamarGeminiAsync(ContextoUsuarioIA ctx, List<MensajeIA> historial, string? resumen = null)
+        private async Task<string> LlamarDeepSeekAsync(ContextoUsuarioIA ctx, List<MensajeIA> historial, string? resumen = null)
         {
             var systemPrompt = ConstruirSystemPrompt(ctx);
 
-            var contents = historial.Select(m => new GeminiContent
+            var messages = new List<DeepSeekMessage>
             {
-                Role = m.Rol == "user" ? "user" : "model",
-                Parts = new List<GeminiPart> { new() { Text = m.Contenido } }
-            }).ToList();
+                new() { Role = "system", Content = systemPrompt }
+            };
 
             if (!string.IsNullOrEmpty(resumen))
             {
-                contents.Insert(0, new GeminiContent
+                messages.Add(new DeepSeekMessage
                 {
                     Role = "user",
-                    Parts = new List<GeminiPart> { new() { Text = "[Contexto previo] " + resumen } }
+                    Content = "[Contexto previo] " + resumen
                 });
             }
 
-            var request = new GeminiRequest
+            foreach (var m in historial)
             {
-                SystemInstruction = new GeminiContent
+                messages.Add(new DeepSeekMessage
                 {
-                    Parts = new List<GeminiPart> { new() { Text = systemPrompt } }
-                },
-                Contents = contents,
-                GenerationConfig = new GeminiConfig { Temperature = 0.75, MaxOutputTokens = 900 }
+                    Role = m.Rol == "user" ? "user" : "assistant",
+                    Content = m.Contenido
+                });
+            }
+
+            var request = new DeepSeekRequest
+            {
+                Model = _modelo,
+                Messages = messages,
+                Temperature = 0.75,
+                MaxTokens = 900,
+                Stream = false
             };
 
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_modelo}:generateContent";
+            var url = "https://api.deepseek.com/chat/completions";
 
             var maxReintentos = 2;
             for (var intento = 0; intento <= maxReintentos; intento++)
@@ -277,35 +284,32 @@ namespace EpycusApp.Servicios.Implementaciones
                     {
                         Content = JsonContent.Create(request)
                     };
-                    reqMsg.Headers.Add("x-goog-api-key", _apiKey);
+                    reqMsg.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
 
                     var httpResp = await _httpClient.SendAsync(reqMsg, cts.Token);
                     if (!httpResp.IsSuccessStatusCode)
                     {
+                        var errorBody = await httpResp.Content.ReadAsStringAsync(cts.Token);
+                        _logger.LogWarning("DeepSeek respondio {StatusCode}: {Error}", httpResp.StatusCode, errorBody);
                         if (intento < maxReintentos && (int)httpResp.StatusCode >= 500)
                         {
                             await Task.Delay(TimeSpan.FromSeconds(1 << intento));
                             continue;
                         }
+                        if ((int)httpResp.StatusCode == 429)
+                            return "La IA esta saturada en este momento. Espera un momento y vuelve a intentarlo.";
                         return "Lo siento, no pude conectarme a la IA en este momento. Intentelo de nuevo mas tarde.";
                     }
 
-                    var geminiResp = await httpResp.Content.ReadFromJsonAsync<GeminiResponse>(cancellationToken: cts.Token);
+                    var deepSeekResp = await httpResp.Content.ReadFromJsonAsync<DeepSeekResponse>(cancellationToken: cts.Token);
 
-                    if (geminiResp?.PromptFeedback?.BlockReason != null)
+                    var choice = deepSeekResp?.Choices?.FirstOrDefault();
+                    if (choice?.FinishReason == "length")
                     {
-                        _logger.LogWarning("Gemini bloqueo la respuesta: {BlockReason}", geminiResp.PromptFeedback.BlockReason);
-                        return "No puedo responder a eso. Intenta reformular tu pregunta de otra manera.";
+                        _logger.LogWarning("DeepSeek respuesta truncada por longitud maxima");
                     }
 
-                    var candidate = geminiResp?.Candidates?.FirstOrDefault();
-                    if (candidate?.FinishReason == "SAFETY" || candidate?.FinishReason == "BLOCKLIST")
-                    {
-                        _logger.LogWarning("Gemini candidate bloqueado: {FinishReason}", candidate.FinishReason);
-                        return "No puedo responder a eso. Intenta reformular tu pregunta de otra manera.";
-                    }
-
-                    var texto = candidate?.Content?.Parts?.FirstOrDefault()?.Text;
+                    var texto = choice?.Message?.Content;
 
                     return string.IsNullOrWhiteSpace(texto)
                         ? "No recibi respuesta de la IA. Intenta reformular tu pregunta."
@@ -530,63 +534,45 @@ namespace EpycusApp.Servicios.Implementaciones
         public int DiasRestantes { get; set; }
     }
 
-    internal sealed class GeminiRequest
+    internal sealed class DeepSeekRequest
     {
-        [JsonPropertyName("system_instruction")]
-        public GeminiContent SystemInstruction { get; set; } = new();
+        [JsonPropertyName("model")]
+        public string Model { get; set; } = "deepseek-v4-flash";
 
-        [JsonPropertyName("contents")]
-        public List<GeminiContent> Contents { get; set; } = new();
+        [JsonPropertyName("messages")]
+        public List<DeepSeekMessage> Messages { get; set; } = new();
 
-        [JsonPropertyName("generationConfig")]
-        public GeminiConfig? GenerationConfig { get; set; }
-    }
-
-    internal sealed class GeminiContent
-    {
-        [JsonPropertyName("role")]
-        public string? Role { get; set; }
-
-        [JsonPropertyName("parts")]
-        public List<GeminiPart> Parts { get; set; } = new();
-    }
-
-    internal sealed class GeminiPart
-    {
-        [JsonPropertyName("text")]
-        public string Text { get; set; } = string.Empty;
-    }
-
-    internal sealed class GeminiConfig
-    {
         [JsonPropertyName("temperature")]
         public double Temperature { get; set; } = 0.75;
 
-        [JsonPropertyName("maxOutputTokens")]
-        public int MaxOutputTokens { get; set; } = 900;
+        [JsonPropertyName("max_tokens")]
+        public int MaxTokens { get; set; } = 900;
+
+        [JsonPropertyName("stream")]
+        public bool Stream { get; set; } = false;
     }
 
-    internal sealed class GeminiResponse
+    internal sealed class DeepSeekMessage
     {
-        [JsonPropertyName("candidates")]
-        public List<GeminiCandidate>? Candidates { get; set; }
+        [JsonPropertyName("role")]
+        public string Role { get; set; } = string.Empty;
 
-        [JsonPropertyName("promptFeedback")]
-        public GeminiPromptFeedback? PromptFeedback { get; set; }
-    }
-
-    internal sealed class GeminiCandidate
-    {
         [JsonPropertyName("content")]
-        public GeminiContent? Content { get; set; }
-
-        [JsonPropertyName("finishReason")]
-        public string? FinishReason { get; set; }
+        public string Content { get; set; } = string.Empty;
     }
 
-    internal sealed class GeminiPromptFeedback
+    internal sealed class DeepSeekResponse
     {
-        [JsonPropertyName("blockReason")]
-        public string? BlockReason { get; set; }
+        [JsonPropertyName("choices")]
+        public List<DeepSeekChoice>? Choices { get; set; }
+    }
+
+    internal sealed class DeepSeekChoice
+    {
+        [JsonPropertyName("message")]
+        public DeepSeekMessage? Message { get; set; }
+
+        [JsonPropertyName("finish_reason")]
+        public string? FinishReason { get; set; }
     }
 }
