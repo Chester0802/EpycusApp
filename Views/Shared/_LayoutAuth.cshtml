@@ -26,26 +26,32 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <div class="d-flex min-vh-100 align-items-center justify-content-center" style="background: var(--ep-fondo);">
-        <main class="w-100 position-relative" style="max-width: 480px;">
-            <div class="d-flex justify-content-end mb-3">
-                <button id="btn-toggle-tema-login" class="btn btn-sm btn-ep-outline d-flex align-items-center gap-2" type="button">
-                    <span id="texto-tema-login"><i class="bi bi-moon-stars"></i> Modo Oscuro</span>
-                    <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
-                        <input class="form-check-input ms-0" type="checkbox" role="switch" id="switch-tema-login" style="cursor: pointer; width: 2.5em; height: 1.25em;">
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-hero-side">
+                <img src="~/login-hero.webp" alt="Epycus" class="auth-hero-img" />
+                <div class="auth-hero-overlay">
+                    <div class="auth-hero-content">
+                        <img src="~/img/logo.webp" alt="Epycus" class="auth-hero-logo" onerror="this.style.display='none'" />
+                        <h2 class="auth-hero-title">Epycus</h2>
+                        <p class="auth-hero-subtitle">Tu progreso profesional en un solo lugar.</p>
                     </div>
-                </button>
-            </div>
-            <div class="text-center mb-4">
-                <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; border-radius: 16px; background: var(--ep-superficie-2); color: var(--ep-primario); overflow: hidden;">
-                    <img src="~/img/logo.webp" alt="Epycus" style="width: 32px; height: 32px; object-fit: contain; display: none;" onerror="this.style.display='none'" />
-                    <i class="bi bi-stars" id="ep-auth-icon"></i>
                 </div>
-                <h1 class="h4 fw-bold mb-1">Epycus</h1>
-                <p class="text-muted small mb-0">Tu progreso profesional en un solo lugar.</p>
             </div>
-            @RenderBody()
-        </main>
+            <div class="auth-form-side">
+                <div class="auth-form-inner">
+                    <div class="d-flex justify-content-end mb-3">
+                        <button id="btn-toggle-tema-login" class="btn btn-sm btn-ep-outline d-flex align-items-center gap-2" type="button">
+                            <span id="texto-tema-login"><i class="bi bi-moon-stars"></i> Modo Oscuro</span>
+                            <div class="form-check form-switch m-0 p-0 d-flex align-items-center">
+                                <input class="form-check-input ms-0" type="checkbox" role="switch" id="switch-tema-login" style="cursor: pointer; width: 2.5em; height: 1.25em;">
+                            </div>
+                        </button>
+                    </div>
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="~/lib/bootstrap.bundle.min.js" asp-append-version="true"></script>

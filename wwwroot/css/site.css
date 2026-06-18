@@ -358,6 +358,7 @@ textarea:focus-visible {
   .ep-contenido {
     margin-left: 0;
     padding: 1rem;
+    padding-top: 3.5rem;
   }
 
   .ep-card {
