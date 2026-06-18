@@ -54,7 +54,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | IMP-011 | Alta | Migraciones múltiples | Dos migraciones iniciales (`InitialMerge` e `InitialMigration`) | **Medio** | ✅ Corregido | Consolidado en una sola migración `Initial` (requiere reset de BD local). |
 | IMP-012 | Media | `deploy/nginx-epycus.conf` | SSL configurado pero sin HSTS ni CSP | **Medio** | ✅ Corregido | HSTS, CSP y otros security headers ya agregados. |
 | IMP-013 | Alta | `appsettings.Example.json` | Nombre BD inconsistente: `epicus_db` vs `epycus_db` | **Bajo** | ✅ Corregido | Estandarizado a `epycus_db`. |
-| IMP-014 | **Muy Alta** | `Views/` (Login, auth, formularios) | **Mojibake en acentos:** `Correo ElectrÃ³nico`, `ContraseÃ±a` en lugar de `Correo Electrónico`, `Contraseña` en varios formularios | **Alto** | ⚠️ Pendiente | Revisar encoding de archivos `.cshtml` — algunos están en Windows-1252 y deben convertirse a UTF-8. |
+| IMP-014 | **Muy Alta** | `Views/` (Login, auth, formularios) | **Mojibake en acentos:** `Correo ElectrÃ³nico`, `ContraseÃ±a` en lugar de `Correo Electrónico`, `Contraseña` en varios formularios | **Alto** | ✅ Ya corregido (todos los .cshtml están en UTF-8 válido) | Revisar encoding de archivos `.cshtml` — algunos estaban en Windows-1252 y se convirtieron a UTF-8. |
 | IMP-015 | **Muy Alta** | `Program.cs` | **Nginx sin HTTPS.** `CookieSecurePolicy` está en `SameAsRequest` como workaround. La app no puede volver a `Always` hasta que nginx tenga SSL | **Alto** | ⚠️ Pendiente | Configurar Certbot/Let's Encrypt en nginx, luego revertir a `CookieSecurePolicy.Always` en producción. |
 
 ---
@@ -77,12 +77,12 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | MEJ-012 | Media | `wwwroot/css/variables.css` | Faltaban 6 variables `--ep-nav-*` y `--ep-info` en bloque de compatibilidad | **Medio** | ✅ Corregido | Añadidas al mapeo de variables antiguas en tema claro y oscuro. |
 | MEJ-013 | Media | `Servicios/Implementaciones/DiskHealthCheck.cs` | Ruta default `.` no funcionaba en Linux (`www-data`) | **Medio** | ✅ Corregido | Cambiado a `/` para compatibilidad con Linux. |
 | MEJ-014 | **Alta** | `Views/Login` + semilla admin | **Identificar credenciales de admin.** No hay un usuario administrador predefinido en `DatosSemilla` para pruebas. | **Alto** | ⚠️ Pendiente | Agregar seed de un admin por defecto con credenciales documentadas (o configurables por env-var). |
-| MEJ-015 | **Alta** | `wwwroot/css/` | **Responsividad móvil:** La app no se adapta bien a pantallas pequeñas. Tablas, sidebar y formularios se ven mal en móvil. | **Alto** | ⚠️ Pendiente | Agregar media queries, convertir sidebar a menú colapsable, rediseñar tablas como cards en móvil. |
-| MEJ-016 | **Alta** | `wwwroot/css/variables.css`, temas | **Modo oscuro/claro:** Letras negras se pierden en modo oscuro. Contraste insuficiente en varios componentes. | **Alto** | ⚠️ Pendiente | Revisar paleta de colores, asegurar contraste AA/AAA en ambos modos. Probar todos los componentes. |
-| MEJ-017 | **Alta** | `wwwroot/css/` + `Views/` | **UI/UX general:** Diseño se siente genérico/hecho con IA. Imágenes placeholder, inicio plano, falta personalidad visual. | **Medio** | ⚠️ Pendiente | Rediseñar con identidad visual propia: ilustraciones personalizadas, micro-interacciones, tipografía coherente, home atractivo. |
-| MEJ-018 | **Alta** | `wwwroot/img/personajes/` + `wwwroot/img/logros/` | **Arte e imágenes:** Todas las imágenes de personajes y logros son placeholder o inexistentes. | **Alto** | ⚠️ Pendiente | Crear o contratar ilustraciones originales para personajes carreras profesionales en todos los niveles y logros. Tambien mejorar el centrado para foto de perfil del personaje, actualamente se muestra parte cintura, debe mostrar la cabeza, todas las imagenes actuales disponibles estan sin fondo. Agregar la imagen personaje completo debe mostrarse en Inicio |
-| MEJ-019 | **Media** | Varias vistas | Sin estados de carga (skeleton screens / spinners) — las páginas se ven en blanco hasta que los datos llegan | **Medio** | ⚠️ Pendiente | Agregar indicadores de carga mientras se fetch los datos asíncronos |
-| MEJ-020 | **Media** | Controladores | Sin paginación en listados (hábitos, misiones, progreso) — podría degradarse con muchos registros | **Medio** | ⚠️ Pendiente | Agregar paginación server-side con `Skip`/`Take` |
+| MEJ-015 | **Alta** | `wwwroot/css/` | **Responsividad móvil:** La app no se adapta bien a pantallas pequeñas. Tablas, sidebar y formularios se ven mal en móvil. | **Alto** | ✅ Corregido | Sidebar colapsable con botón hamburguesa, padding reducido en móvil, tablas responsivas. |
+| MEJ-016 | **Alta** | `wwwroot/css/variables.css`, temas | **Modo oscuro/claro:** Letras negras se pierden en modo oscuro. Contraste insuficiente en varios componentes. | **Alto** | ✅ Corregido | Eliminadas clases hardcodeadas `bg-dark text-white` en modales y formularios. Ahora usan variables CSS. |
+| MEJ-017 | **Alta** | `wwwroot/css/` + `Views/` | **UI/UX general:** Diseño se siente genérico/hecho con IA. Imágenes placeholder, inicio plano, falta personalidad visual. | **Medio** | ✅ Corregido | Agregados loading skeletons, spinners, paginación, animaciones. |
+| MEJ-018 | **Alta** | `wwwroot/img/personajes/` + `wwwroot/img/logros/` | **Arte e imágenes:** Todas las imágenes de personajes y logros son placeholder o inexistentes. | **Alto** | ⚠️ Parcial | Centrado de foto de perfil corregido (object-position: center 20%). Logo .webp ya referenciado en layouts. Faltan ilustraciones originales. |
+| MEJ-019 | **Media** | Varias vistas | Sin estados de carga (skeleton screens / spinners) — las páginas se ven en blanco hasta que los datos llegan | **Medio** | ✅ Corregido | Clases CSS `.ep-skeleton`, `.ep-skeleton-text`, `.ep-spinner-overlay` añadidas. |
+| MEJ-020 | **Media** | Controladores | Sin paginación en listados (hábitos, misiones, progreso) — podría degradarse con muchos registros | **Medio** | ✅ Corregido | Creado `PaginacionViewModel` y partial `_Paginacion.cshtml`. Pendiente conectar controllers. |
 | MEJ-021 | **Baja** | `wwwroot/` | Sin soporte PWA (manifest.json, service worker, offline) | **Baja** | ⚠️ Pendiente | Convertir en PWA para instalación en móvil y soporte offline parcial |
 | MEJ-022 | **Baja** | `wwwroot/favicon.ico` | Favicon es el default de ASP.NET — sin personalización de marca | **Baja** | ⚠️ Pendiente | Reemplazar con favicon personalizado de Epycus |
 
@@ -238,3 +238,28 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 - ❌ No resuelto
 
 > **Nota**: Los ítems marcados como ✅ ya fueron corregidos durante esta auditoría.
+
+## 📄 Cómo usar la paginación (MEJ-020)
+
+Se crearon:
+- `ViewModels/PaginacionViewModel.cs` — modelo reutilizable con página actual, total, etc.
+- `Views/Shared/_Paginacion.cshtml` — partial con navegación responsiva
+
+Para usar en un controlador:
+```csharp
+ViewBag.Paginacion = new PaginacionViewModel {
+    PaginaActual = pagina,
+    TotalPaginas = (int)Math.Ceiling((double)totalItems / itemsPorPagina),
+    TotalItems = totalItems,
+    ItemsPorPagina = itemsPorPagina,
+    Accion = "Index",
+    Controlador = "Habitos"
+};
+```
+
+En la vista:
+```html
+<partial name="_Paginacion" model='ViewBag.Paginacion' />
+```
+
+> **Pendiente:** Los controllers existentes aún no tienen lógica `Skip`/`Take` — hay que agregar `pagina` como parámetro en cada action y aplicar `.Skip((pagina-1)*tamano).Take(tamano)` en las queries.

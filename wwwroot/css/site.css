@@ -343,14 +343,21 @@ textarea:focus-visible {
 
 @media (max-width: 768px) {
   .ep-sidebar {
-    position: static;
-    width: 100%;
-    min-height: auto;
+    position: fixed;
+    width: 280px;
+    min-height: 100vh;
+    transform: translateX(-100%);
+    z-index: 1050;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ep-sidebar.open {
+    transform: translateX(0);
   }
 
   .ep-contenido {
     margin-left: 0;
-    padding: 1.5rem;
+    padding: 1rem;
   }
 
   .ep-card {
@@ -361,6 +368,10 @@ textarea:focus-visible {
   .ep-contenido .container-fluid {
     max-width: 100%;
   }
+
+  .ep-tabla { font-size: 0.85rem; }
+  .ep-tabla th,
+  .ep-tabla td { padding: 0.55rem 0.6rem; }
 }
 
 /* --- Habits Dashboard Redesign --- */
@@ -482,6 +493,60 @@ textarea:focus-visible {
   border-color: var(--ep-superficie-2);
   background: var(--ep-superficie-2);
   cursor: not-allowed;
+}
+
+/* ── Loading Skeleton ──────────────────────────────────── */
+.ep-skeleton {
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: ep-skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+.ep-skeleton-text {
+  height: 0.85rem;
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.ep-skeleton-text:last-child { width: 60%; }
+
+.ep-skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.ep-skeleton-card {
+  height: 120px;
+  border-radius: var(--radius-lg);
+}
+
+@keyframes ep-skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Loading Spinner overlay ───────────────────────────── */
+.ep-spinner-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+
+.ep-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid var(--bg-hover);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: ep-spin 0.7s linear infinite;
+}
+
+@keyframes ep-spin {
+  to { transform: rotate(360deg); }
 }
 
 .ep-tabs {
