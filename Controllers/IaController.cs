@@ -95,7 +95,7 @@ namespace EpycusApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error en chat IA para usuario {UsuarioId}", usuarioId);
-                return Ok(new { exito = false, error = "No pude conectarme con EDY. Intentelo de nuevo." });
+                return Ok(new { exito = false, error = "No pude conectarme con AI EDY. Intentelo de nuevo." });
             }
         }
 
