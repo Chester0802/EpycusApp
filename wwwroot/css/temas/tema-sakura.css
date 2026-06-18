@@ -34,4 +34,24 @@
     --ep-radio: 12px;
     --ep-radio-sm: 8px;
     --ep-radio-lg: 20px;
+
+    --bg-primary: #fef5ff;
+    --bg-secondary: #fff0f9;
+    --bg-elevated: #ffe8f5;
+    --bg-hover: #ffd9f0;
+    --bg-active: #ffc7ea;
+    --surface: #ffffff;
+    --surface-border: #ffd9f0;
+    --text-primary: #4a2545;
+    --text-secondary: #7d5f7a;
+    --text-tertiary: #b094ad;
+    --accent-primary: #ff6b9d;
+    --accent-primary-hover: #ff4d85;
+    --accent-primary-light: #ffe5f0;
+    --accent-secondary: #c77dff;
+    --accent-secondary-hover: #b565ff;
+    --success: #7ed957;
+    --warning: #ffa94d;
+    --error: #ff6b9d;
+    --info: #70a5ff;
 }

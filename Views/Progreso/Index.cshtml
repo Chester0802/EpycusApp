@@ -106,7 +106,7 @@
                         </div>
                         <div>
                             <div class="d-flex justify-content-between align-items-start mb-1">
-                                <h5 class="mb-0 fw-bold @(desbloqueado ? "text-white" : "text-muted")">@logro.Nombre</h5>
+                                <h5 class="mb-0 fw-bold @(desbloqueado ? "" : "text-muted")" style="color: @(desbloqueado ? "var(--text-primary)" : "")">@logro.Nombre</h5>
                                 @if (desbloqueado)
                                 {
                                     <i class="bi bi-check-circle-fill text-success fs-5"></i>

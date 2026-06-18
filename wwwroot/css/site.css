@@ -675,6 +675,107 @@ textarea:focus-visible {
   cursor: not-allowed;
 }
 
+/* ── Personaje Grid (Ajustes) ──────────────────────────── */
+.personaje-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.personaje-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 0.75rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    text-align: center;
+    position: relative;
+    width: 100%;
+}
+
+.personaje-card:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(139,92,246,0.2);
+}
+
+.personaje-card.seleccionado {
+    border-color: var(--accent-primary);
+    background: var(--accent-primary-light);
+    box-shadow: 0 4px 14px rgba(139,92,246,0.25);
+}
+
+.personaje-card-img img {
+    width: 80px;
+    height: 100px;
+    object-fit: contain;
+}
+
+.personaje-card-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.personaje-nombre {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+}
+
+.personaje-genero-badge {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-full);
+    background: var(--accent-primary-light);
+    color: var(--accent-primary);
+}
+
+.personaje-activo-badge {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-full);
+    background: var(--success-bg);
+    color: var(--success);
+    font-weight: 600;
+}
+
+.personaje-placeholder-note {
+    font-size: 0.55rem;
+    color: var(--text-tertiary);
+    font-style: italic;
+}
+
+.personaje-check {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+}
+
+.tema-card {
+    transition: all var(--transition-fast);
+}
+
+.tema-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
 /* ── Loading Skeleton ──────────────────────────────────── */
 .ep-skeleton {
   background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);

@@ -1,6 +1,6 @@
 # PENDIENTES — Auditoría Pre-Producción EpycusApp
 
-> Generado: 2026-06-15 | Última actualización: 2026-06-18 (nuevos issues: login mojibake, Progreso/Ajustes/Inicio modo oscuro)
+> Generado: 2026-06-15 | Última actualización: 2026-06-18 (corregidos: CRITICO-008, UX-014, UX-015, UX-016)
 > Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API)
 
 ## Flujo de trabajo (para la IA)
@@ -34,7 +34,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | CRITICO-005 | Alta | `Servicios/Implementaciones/ServicioAutenticacion.cs:316` | Envía email de recuperación cuando debería enviar bienvenida | **Alto** | ✅ Corregido | Cambiado a `EnviarBienvenida()`. |
 | CRITICO-006 | **Muy Alta** | `appsettings.json` | Google OAuth: `ClientId` y `ClientSecret` son placeholders (`YOUR_GOOGLE_CLIENT_ID...`) | **Muy Alto** | ⚠️ Pendiente | Configurar OAuth real en https://console.cloud.google.com/ y poner los valores por variable de entorno. |
 | CRITICO-007 | **Muy Alta** | `appsettings.json` | Servicio de correo: `Correo:Contrasena` es placeholder (`CHANGE_ME_GMAIL_APP_PASSWORD`) | **Muy Alto** | ⚠️ Pendiente | Generar App Password de Gmail y configurarlo como variable de entorno. Sin esto, registro, recuperación y verificación de correo no funcionan. |
-| CRITICO-008 | **Muy Alta** | `Views/Login/` | **Mojibake regresivo:** Login muestra "Correo ElectrÃ³nico" y "ContraseÃ±a" en lugar de "Correo Electrónico" y "Contraseña" | **Alto** | ⚠️ Pendiente | Revisar encoding del archivo `.cshtml` de login — posiblemente se reconvirtió a Windows-1252 o tiene un BOM incorrecto. Forzar UTF-8 sin BOM. |
+| CRITICO-008 | **Muy Alta** | `ViewModels/Autenticacion/LoginViewModel.cs`, `AdminLoginViewModel.cs` y otros 6 ViewModels | **Mojibake en Display Names y ErrorMessages:** archivos `.cs` guardados en Windows-1252 en lugar de UTF-8 | **Alto** | ✅ Corregido | Archivados reescritos en UTF-8 sin BOM con caracteres españoles correctos (ó, ñ, á, é, etc.). |
 
 ---
 
@@ -183,9 +183,9 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | UX-011 | **Media** | Tablas | Datos en tablas no responsive — no se ven en móvil | ✅ Corregido |
 | UX-012 | **Baja** | 404 / Error | Páginas de error genéricas sin diseño cuidado | ✅ Corregido |
 | UX-013 | **Media** | General | Sin micro-interacciones (hover effects, transiciones suaves entre páginas, feedback táctil) | ✅ Corregido |
-| UX-014 | **Alta** | Progreso | Modo oscuro/claro mal aplicado — colores incorrectos o ilegibles en ambas variantes (móvil y PC) | ⚠️ Pendiente |
-| UX-015 | **Alta** | Ajustes | Mala distribución de tamaños en los elementos del formulario — desproporcionados en móvil y PC | ⚠️ Pendiente |
-| UX-016 | **Alta** | Home/Inicio | Modo oscuro/claro necesita mejora — contrastes y colores no se ven bien en ninguna variante | ⚠️ Pendiente |
+| UX-014 | **Alta** | Progreso | Modo oscuro/claro mal aplicado — colores incorrectos o ilegibles en ambas variantes (móvil y PC) | ✅ Corregido | Eliminado hardcode `text-white` en nombres de logros. Ahora usa `var(--text-primary)`. |
+| UX-015 | **Alta** | Ajustes | Mala distribución de tamaños en los elementos del formulario — desproporcionados en móvil y PC | ✅ Corregido | Agregado CSS para `.personaje-grid` (grid 140px), `.personaje-card`, `.tema-card`. Distribución responsiva con `auto-fill`. |
+| UX-016 | **Alta** | Home/Inicio | Modo oscuro/claro necesita mejora — contrastes y colores no se ven bien en ninguna variante | ✅ Corregido | `theme-manager.js` ahora setea `data-theme="dark/light"` en `<html>`, activando selectores `[data-theme="dark"]` en dashboard.css. Temas CSS actualizados con variables modernas compatibles. |
  
 ---
 

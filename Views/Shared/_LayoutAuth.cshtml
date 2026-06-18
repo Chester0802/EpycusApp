@@ -18,8 +18,10 @@
             var hojaTema = document.getElementById('hoja-tema');
             if (temaGuardado === 'claro') {
                 hojaTema.href = '/css/temas/tema-sakura.css';
+                document.documentElement.setAttribute('data-theme', 'light');
             } else {
                 hojaTema.href = '/css/temas/tema-noche-epica.css';
+                document.documentElement.setAttribute('data-theme', 'dark');
             }
         })();
     </script>
@@ -88,10 +90,12 @@
                 if (switchTema.checked) {
                     localStorage.setItem('epycus_theme', 'oscuro');
                     hojaTema.href = '/css/temas/tema-noche-epica.css';
+                    document.documentElement.setAttribute('data-theme', 'dark');
                     textoTema.innerHTML = '<i class="bi bi-moon-stars"></i> Modo Oscuro';
                 } else {
                     localStorage.setItem('epycus_theme', 'claro');
                     hojaTema.href = '/css/temas/tema-sakura.css';
+                    document.documentElement.setAttribute('data-theme', 'light');
                     textoTema.innerHTML = '<i class="bi bi-sun"></i> Modo Claro';
                 }
             }

@@ -522,13 +522,13 @@
             const data = await res.json();
 
             if (data.exito) {
-                // Aplicar tema visualmente
                 const hojaTema = document.getElementById('hoja-tema');
                 if (hojaTema) {
                     hojaTema.href = nombreTema === 'claro'
                         ? '/css/temas/tema-sakura.css'
                         : '/css/temas/tema-noche-epica.css';
                 }
+                document.documentElement.setAttribute('data-theme', nombreTema === 'claro' ? 'light' : 'dark');
                 localStorage.setItem('epycus_theme', nombreTema);
 
                 // Actualizar selección visual
