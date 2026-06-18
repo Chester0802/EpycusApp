@@ -372,6 +372,61 @@ textarea:focus-visible {
   .ep-tabla { font-size: 0.85rem; }
   .ep-tabla th,
   .ep-tabla td { padding: 0.55rem 0.6rem; }
+
+  .row-cols-md-2 > .col,
+  .row-cols-md-3 > .col,
+  .row-cols-lg-3 > .col,
+  .row-cols-lg-4 > .col {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .col-md-3, .col-md-4, .col-md-6, .col-md-7, .col-md-8, .col-md-9,
+  .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-7, .col-lg-8, .col-lg-9 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .col-md-6 { flex: 0 0 100%; max-width: 100%; }
+
+  .dash-hero { padding: 1.25rem; }
+  .dash-hero-grid { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 1rem; }
+  .dash-hero-personaje { order: -1; width: 160px; height: 180px; }
+  .dash-personaje-img { max-height: 160px; max-width: 145px; }
+  .dash-hero-text { align-items: center; }
+  .dash-hero-quote-col { justify-self: center; text-align: center; max-width: 100%; }
+  .dash-hero-quote-col .dash-hero-quote { text-align: center; }
+
+  .perfil-stats-row { gap: 0.75rem; flex-wrap: wrap; }
+  .perfil-personajes-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+  .perfil-logros-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+
+  .ep-pomodoro-timer-wrapper { width: 220px; height: 220px; }
+  .ep-pomodoro-time { font-size: 3rem; }
+  .ep-pomodoro-tabs { flex-wrap: wrap; justify-content: center; }
+
+  .d-flex.justify-content-between.align-items-center.mb-4 {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start !important;
+  }
+
+  .personaje-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+}
+
+@media (max-width: 576px) {
+  .ep-contenido { padding: 0.75rem; }
+  .ep-card { padding: 1rem; }
+  .ep-header-title { font-size: 1.35rem; }
+  .dash-hero { padding: 1rem; }
+  .dash-hero-personaje { width: 140px; height: 160px; }
+  .dash-personaje-img { max-height: 140px; max-width: 130px; }
+  .dash-personaje-aura { width: 160px; height: 160px; }
+  .dash-hero-glow-orb { display: none; }
+  .dash-progress-bar { width: 100px; }
+  .dash-streak-name { width: 80px; }
+  .dash-landing-card { padding: 1.5rem 1rem; }
+  .dash-features-grid { grid-template-columns: 1fr; }
 }
 
 /* --- Habits Dashboard Redesign --- */

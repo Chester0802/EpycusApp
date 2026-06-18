@@ -4,6 +4,8 @@
 @{
     ViewData["Title"] = "Ajustes";
     var carreras = ViewBag.Carreras as List<Carrera> ?? new List<Carrera>();
+    var imagenPersonaje = ViewData["ImagenPersonaje"]?.ToString()
+                       ?? "/img/personajes/generico/masculino/placeholder.png";
 }
 
 <!-- Header -->
@@ -50,10 +52,9 @@
             }
             else
             {
-                <div class="rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center shadow"
-                     style="width: 88px; height: 88px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary, var(--accent-primary))); color: #fff; font-size: 2.2rem;">
-                    <i class="bi bi-person-fill"></i>
-                </div>
+                <img src="@imagenPersonaje" alt="Personaje"
+                     class="rounded-circle mb-3 shadow"
+                     style="width: 88px; height: 88px; border: 3px solid var(--accent-primary); object-fit: cover; object-position: center 20%; background: var(--bg-elevated);" />
             }
             <h5 class="fw-bold mb-0" style="color: var(--text-primary);">@Model.Nombre</h5>
             <p class="small mb-1" style="color: var(--text-secondary);">@Model.CorreoElectronico</p>
