@@ -328,6 +328,51 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 
 ---
 
+## 🤖 MÓDULO IA — EDY (Gemini)
+
+> Auditoría: 2026-06-18 | Archivos: `ServicioIA.cs`, `IaController.cs`, `Views/Ia/Index.cshtml`, `IaChatViewModel.cs`, `MensajeIA.cs`, `IServicioIA.cs`, `GeminiHealthCheck.cs`, `ia.css`, `appsettings.json`, `Program.cs`
+
+### 🔴 CRÍTICOS — Errores funcionales / seguridad
+
+| ID | Prioridad | Archivo | Problema | Solución propuesta |
+|----|-----------|---------|----------|--------------------|
+| IA-CRIT-01 | **Muy Alta** | `Program.cs:132-137`, `IaController.cs` | **Rate limiter "Gemini" (20/min) definido pero NUNCA aplicado.** Sin `[EnableRateLimiting("Gemini")]` en el controller/action. Solo el global (200/min) protege. Un atacante autenticado puede hacer 200 llamadas/min a Gemini = costos reales de API. | Agregar `[EnableRateLimiting("Gemini")]` en `IaController` a nivel de clase o en el action `Chat()`. |
+| IA-CRIT-02 | **Muy Alta** | `Controllers/IaController.cs:50` | **Endpoint `/api/ia/chat` sin `[ValidateAntiForgeryToken]`.** JS fetch no envía token CSRF. Cualquier sitio externo podría enviar requests autenticados (si el usuario tiene sesión activa). | Agregar `[ValidateAntiForgeryToken]` al action `Chat()`. Enviar token CSRF desde JS (header `X-CSRF-TOKEN` ya configurado en `Program.cs:153`). |
+| IA-CRIT-03 | **Alta** | `Servicios/Implementaciones/ServicioIA.cs` | **Todo el archivo tiene mojibake (Windows-1252 en lugar de UTF-8).** Mensajes de error en español rotos: `no estÃ¡` → `no está`, `IntÃ©ntalo` → `Inténtalo`, `tardÃ³` → `tardó`, `Ãºltimos` → `últimos`, etc. El usuario ve texto con caracteres extraños. | Re-encoding del archivo a UTF-8 sin BOM. Corregir todas las cadenas con acentos/ñ. |
+| IA-CRIT-04 | **Alta** | `Views/Ia/Index.cshtml` | **Sin límite de longitud server-side.** El textarea tiene `maxlength="2000"` (client-side) pero el backend no valida tamaño del mensaje. Un atacante podría enviar payloads enormes directamente a `/api/ia/chat`. | Agregar validación server-side: `if (dto.Mensaje.Length > 2000) return BadRequest(...)`. Validar también en `ServicioIA.ChatAsync()`. |
+
+### 🟡 IMPORTANTES — UX / funcionalidad
+
+| ID | Prioridad | Archivo | Problema | Solución propuesta |
+|----|-----------|---------|----------|--------------------|
+| IA-IMP-01 | **Alta** | `wwwroot/css/ia.css:38-49,161-172,232-243` | **Avatares de EDY con gradiente hardcodeado a púrpura oscuro.** `.edy-avatar-lg`, `.edy-avatar-sm`, `.edy-welcome-avatar` usan `linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)` — NO se adaptan al tema claro (Sakura/pastel). En modo claro se ven púrpura en lugar de rosa. | Usar `var(--accent-primary)` y `var(--accent-secondary)` en lugar de valores fijos. Ej: `linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))`. |
+| IA-IMP-02 | **Alta** | `Views/Ia/Index.cshtml:56-59` | **Sugerencias de bienvenida estáticas y hardcodeadas.** 4 botones fijos: "¿Cómo van mis hábitos?", "Tengo misiones urgentes", "Me siento desmotivado", "¿Cómo mejoro mi racha?". No se personalizan según datos reales del usuario. | Reemplazar con sugerencias generadas desde el servidor basadas en contexto del usuario (ej: si tiene misiones urgentes, priorizar esa; si racha baja, sugerir mejorar racha). Pasar como modelo en `IaChatViewModel`. |
+| IA-IMP-03 | **Alta** | `IaController.cs`, `Views/Ia/Index.cshtml` | **No hay lista/selector de conversaciones pasadas.** El usuario solo ve la conversación activa. No puede navegar entre sesiones anteriores. Las conversaciones quedan "perdidas" en la DB sin forma de acceder. | Agregar endpoint `GET /ia/conversaciones` que liste conversaciones del usuario. Mostrar sidebar o dropdown con historial de conversaciones. Agregar propiedad `FechaUltimoMensaje` para ordenarlas. |
+| IA-IMP-04 | **Alta** | `ServicioIA.cs:297-343` | **System prompt carece de "banderas de bienestar" explícitas.** Pasa datos crudos de ánimo pero obliga a la IA a inferir problemas de salud mental. Si el usuario tiene 3+ días de ánimo negativo, sobrecarga de misiones o racha rota, la IA no recibe esta señal procesada. | Agregar sección en el system prompt con "⚠️ Señales de Bienestar:" que incluya alertas detectadas (ánimo negativo recurrente, sobrecarga de tareas, falta de hábitos). Usar los mismos datos de `ServicioBienestar.ObtenerAlertasAsync()`. |
+| IA-IMP-05 | **Media** | `ServicioIA.cs:72-82` | **Límite de 20 mensajes de historial.** When se excede, los mensajes más antiguos se descartan sin resumen. La IA pierde contexto de conversaciones largas. | Implementar resumen automático: cuando se alcanzan 15 mensajes, generar un resumen del contexto anterior y enviarlo como mensaje de sistema adicional en lugar de descartar. |
+| IA-IMP-06 | **Media** | `Servicios/Implementaciones/GeminiHealthCheck.cs` | **`GeminiHealthCheck` crea su propio `HttpClient` genérico** en lugar de usar el cliente nombrado `"Gemini"`. Además hardcodea el modelo `"gemini-2.5-flash-lite"` en lugar de leer `Gemini:Modelo` de configuración. | Usar `_httpClient = httpClientFactory.CreateClient("Gemini")` y leer modelo de config. |
+| IA-IMP-07 | **Media** | `ServicioIA.cs:46` | **`ChatAsync` guarda en DB antes de llamar a Gemini.** Si Gemini falla después de reintentos, el mensaje del usuario queda persistido pero la respuesta no, dejando conversaciones con mensajes huérfanos del usuario. | Envolver en transacción: si Gemini falla, eliminar el mensaje del usuario de la DB (rollback). O guardar ambos mensajes juntos al final. |
+| IA-IMP-08 | **Media** | `IaController.cs:44-47` | **Action `Nueva()` usa POST** pero no hay formulario que envíe datos — solo un botón. Podría ser un `GET` simple (redirige sin side-effects). | Cambiar a `[HttpGet]` o mantener POST pero sin necesidad de antiforgery. O mejor: que el JS genere un nuevo `convid` en cliente y redirija. |
+| IA-IMP-09 | **Baja** | `Views/Ia/Index.cshtml:27-28` | **"En línea" siempre verde.** El status dot siempre muestra "En línea" aunque el health check de Gemini falle. No hay verificación real de disponibilidad. | Agregar JS que llame a `/health` periodicamente (o al endpoint de Gemini health check) para mostrar estado real. |
+| IA-IMP-10 | **Baja** | `Models/Entidades/MensajeIA.cs:17` | **Sin fecha de último acceso a la conversación.** `FechaHora` existe por mensaje pero no hay metadatos de la conversación como `Titulo`, `UltimoAcceso`, `Resumen`. | Agregar entidad `ConversacionIA` con `Id` (el GUID), `UsuarioId`, `Titulo` (generado por IA del primer mensaje), `UltimoAcceso`, `CantidadMensajes`. |
+| IA-IMP-11 | **Alta** | `Servicios/Implementaciones/ServicioIA.cs:137-138` | **API Key expuesta en la URL de la request** (`?key={_apiKey}`). Queda en logs del servidor, proxies, y potencialmente en telemetría. | Usar header `x-goog-api-key` en lugar de query parameter. |
+
+### 🟢 MEJORAS RECOMENDADAS
+
+| ID | Prioridad | Archivo | Problema | Solución propuesta |
+|----|-----------|---------|----------|--------------------|
+| IA-MEJ-01 | **Media** | `ServicioIA.cs` | **Sin gamificación del chat.** El usuario puede hablar con EDY todo lo que quiera pero no gana XP, no hay logros por interactuar, ni rachas por usar el chat. | Agregar XP por mensaje (ej: 1 XP por mensaje, 5 XP si fue útil según feedback del usuario). Usar `IServicioGamificacion` existente. |
+| IA-MEJ-02 | **Media** | `IaController.cs`, `ServicioIA.cs` | **Sin análisis de sentimiento.** Las respuestas de EDY no se ajustan al tono emocional del mensaje del usuario (enojo, tristeza, urgencia). | Integrar análisis de sentimiento básico (o pedirle a Gemini que clasifique el tono) y ajustar respuesta. También detectar crisis (menciones de suicidio, depresión) para mostrar recursos de ayuda (línea 113). |
+| IA-MEJ-03 | **Media** | `Views/Ia/Index.cshtml` | **Sin integración con bienestar.** EDY no puede crear alertas de bienestar, registrar estado de ánimo, ni sugerir acciones que se persistan en el sistema. | Agregar acciones post-chat: "¿Quieres registrar tu estado de ánimo?", "He notado que estás estresado — ¿quieres hacer una pausa activa?". Usar APIs de `ServicioBienestar`. |
+| IA-MEJ-04 | **Baja** | `Views/Ia/Index.cshtml` | **Sin botón de "Me gusta" / feedback en respuestas.** No hay forma de que el usuario califique si la respuesta de EDY fue útil. | Agregar botones 👍/👎 en cada respuesta de EDY. Persistir feedback en DB para mejorar el prompt engineering. |
+| IA-MEJ-05 | **Baja** | `ServicioIA.cs:103-121` | **Sin soporte para streaming de respuesta.** El usuario espera hasta que Gemini termine completamente antes de ver la respuesta. Para respuestas largas la espera es notable. | Implementar SSE (Server-Sent Events) o WebSocket para streaming de tokens de Gemini al cliente. |
+| IA-MEJ-06 | **Baja** | `Views/Ia/Index.cshtml` | **Sin búsqueda en conversaciones.** El usuario no puede buscar dentro de una conversación o en todo su historial. | Agregar campo de búsqueda con endpoint `GET /api/ia/buscar?q=...` que haga `LIKE` en `Contenido` de `MensajeIA`. |
+| IA-MEJ-07 | **Baja** | `Views/Ia/Index.cshtml`, `ia.css` | **Sin markdown completo.** Solo soporta `**bold**` y `*cursiva*`. No soporta listas, código, links, tablas que Gemini puede devolver. | Agregar sanitización de más elementos markdown: listas (`-`, `1.`), código `` ` `` y ``` ``` ```, links. Usar librería client-side como `marked` o implementar regex adicionales. |
+| IA-MEJ-08 | **Baja** | `ServicioIA.cs:38-44` | **Sin paginación en `ObtenerHistorialAsync`.** Si una conversación tiene cientos de mensajes, la carga será lenta. | Agregar `Take(50)` con offset y paginación desde el controller. |
+| IA-MEJ-09 | **Baja** | `appsettings.json` | **No hay `Gemini:MaxTokensPorDia` ni límite de costos.** Sin protección contra uso excesivo que genere costos altos de API. | Agregar límite diario de tokens/mensajes por usuario, configurable en `appsettings.json`. Persistir contador de uso diario en DB. |
+
+---
+
 ## Leyenda
 
 - ✅ Corregido / Implementado
