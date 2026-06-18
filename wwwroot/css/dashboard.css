@@ -336,6 +336,14 @@
 .dash-habit-icon.icon-indigo { background: rgba(99,  102, 241, 0.12); color: #6366f1; }
 .dash-habit-icon.icon-pink   { background: rgba(255, 107, 157, 0.12); color: #ff6b9d; }
 
+[data-theme="dark"] .dash-habit-icon.icon-blue   { background: rgba(59,  130, 246, 0.2); color: #60a5fa; }
+[data-theme="dark"] .dash-habit-icon.icon-green  { background: rgba(16,  185, 129, 0.2); color: #34d399; }
+[data-theme="dark"] .dash-habit-icon.icon-orange { background: rgba(249, 115,  22, 0.2); color: #fb923c; }
+[data-theme="dark"] .dash-habit-icon.icon-purple { background: rgba(139,  92, 246, 0.2); color: #a78bfa; }
+[data-theme="dark"] .dash-habit-icon.icon-red    { background: rgba(239,  68,  68, 0.2); color: #f87171; }
+[data-theme="dark"] .dash-habit-icon.icon-indigo { background: rgba(99,  102, 241, 0.2); color: #818cf8; }
+[data-theme="dark"] .dash-habit-icon.icon-pink   { background: rgba(255, 107, 157, 0.2); color: #ff6b9d; }
+
 /* Info del hábito */
 .dash-habit-info {
     flex: 1;

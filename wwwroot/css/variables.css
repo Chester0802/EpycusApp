@@ -291,9 +291,70 @@ body[data-theme="dark"] {
     --ep-nav-item-hover: var(--sidebar-item-hover);
     --ep-nav-item-activo: var(--sidebar-item-active);
     --ep-info: var(--info);
+    --ep-primario-rgb: var(--accent-primary-rgb);
+    --accent-primary-rgb: 255, 107, 157;
+}
+
+/* === SOBREESCRITURA DE BOOTSTRAP UTILITIES PARA SOPORTE DE TEMAS === */
+[data-theme] .text-muted { color: var(--text-secondary) !important; }
+[data-theme] .text-primary { color: var(--accent-primary) !important; }
+[data-theme] .text-success { color: var(--success) !important; }
+[data-theme] .text-danger { color: var(--error) !important; }
+[data-theme] .text-warning { color: var(--warning) !important; }
+[data-theme] .text-secondary { color: var(--text-secondary) !important; }
+[data-theme] .text-info { color: var(--info) !important; }
+[data-theme] .text-dark { color: var(--text-primary) !important; }
+[data-theme] .text-light { color: var(--text-secondary) !important; }
+[data-theme] .text-white { color: var(--text-inverse, #fff) !important; }
+[data-theme] .bg-success { background-color: var(--success-bg) !important; }
+[data-theme] .bg-warning { background-color: var(--warning-bg) !important; }
+[data-theme] .bg-danger { background-color: var(--error-bg) !important; }
+[data-theme] .bg-light { background-color: var(--bg-elevated) !important; }
+[data-theme] .bg-secondary { background-color: var(--surface-border) !important; }
+[data-theme] .bg-dark { background-color: var(--bg-primary) !important; }
+[data-theme] .bg-white { background-color: var(--surface) !important; }
+[data-theme] .border-secondary { border-color: var(--border-color) !important; }
+[data-theme] .border-success { border-color: var(--success) !important; }
+[data-theme] .border-warning { border-color: var(--warning) !important; }
+[data-theme] .border-danger { border-color: var(--error) !important; }
+[data-theme] .badge.bg-warning.text-dark {
+    color: var(--text-primary) !important;
+    background-color: var(--warning-bg) !important;
+}
+[data-theme] .badge.bg-light.text-dark {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-elevated) !important;
+}
+[data-theme] .dropdown-menu {
+    background-color: var(--surface) !important;
+    border-color: var(--border-color) !important;
+}
+[data-theme] .dropdown-menu .dropdown-item {
+    color: var(--text-primary) !important;
+}
+[data-theme] .dropdown-menu .dropdown-item:hover,
+[data-theme] .dropdown-menu .dropdown-item:focus {
+    background-color: var(--bg-hover) !important;
+    color: var(--text-primary) !important;
+}
+[data-theme] .dropdown-menu .dropdown-item.text-danger {
+    color: var(--error) !important;
+}
+[data-theme] .dropdown-menu .dropdown-divider {
+    border-color: var(--border-color) !important;
+}
+[data-theme] .btn-close {
+    filter: var(--btn-close-filter, none) !important;
+}
+[data-theme] .btn-link {
+    color: var(--accent-primary) !important;
+}
+[data-theme] .btn-link:hover {
+    color: var(--accent-primary-hover) !important;
 }
 
 [data-theme="dark"] {
+    --btn-close-filter: invert(1) grayscale(100%) brightness(200%);
     /* Mantener mapeo en tema oscuro */
     --ep-fondo: var(--bg-primary);
     --ep-texto: var(--text-primary);
@@ -331,4 +392,6 @@ body[data-theme="dark"] {
     --ep-nav-item-hover: var(--sidebar-item-hover);
     --ep-nav-item-activo: var(--sidebar-item-active);
     --ep-info: var(--info);
+    --ep-primario-rgb: var(--accent-primary-rgb);
+    --accent-primary-rgb: 139, 92, 246;
 }

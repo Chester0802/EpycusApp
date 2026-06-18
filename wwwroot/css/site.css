@@ -915,7 +915,7 @@ textarea:focus-visible {
 }
 
 .ep-btn-purple:hover {
-  background: #4F46E5;
+  background: var(--accent-secondary-hover);
   color: #fff;
 }
 
@@ -926,7 +926,7 @@ textarea:focus-visible {
 }
 
 .ep-btn-white:hover {
-  background: #E2E8F0;
+  background: var(--bg-hover);
   color: var(--ep-acento);
 }
 
@@ -1034,7 +1034,7 @@ textarea:focus-visible {
 }
 
 .ep-btn-play:hover {
-  background: #4F46E5;
+  background: var(--accent-secondary-hover);
 }
 
 .ep-btn-play.descanso {
@@ -1042,7 +1042,7 @@ textarea:focus-visible {
 }
 
 .ep-btn-play.descanso:hover {
-  background: #059669;
+  background: var(--success-hover);
 }
 
 .ep-btn-icon {
@@ -1099,8 +1099,8 @@ textarea:focus-visible {
   font-size: 0.75rem;
   padding: 0.15rem 0.5rem;
   border-radius: 12px;
-  background: rgba(167, 139, 250, 0.15);
-  color: #A78BFA;
+  background: var(--ep-neon-suave);
+  color: var(--ep-nivel);
   margin-left: 0.5rem;
 }
 
@@ -1151,7 +1151,8 @@ textarea:focus-visible {
 /* Scale press effect */
 .btn-ep:active,
 .btn-ep-outline:active,
-.auth-btn-primary:active {
+.auth-btn-primary:active,
+.ep-sidebar-btn:active {
   transform: scale(0.97);
 }
 
