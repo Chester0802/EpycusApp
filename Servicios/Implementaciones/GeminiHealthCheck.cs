@@ -10,7 +10,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public GeminiHealthCheck(IHttpClientFactory httpClientFactory, IConfiguration config)
         {
-            _httpClient = httpClientFactory.CreateClient();
+            _httpClient = httpClientFactory.CreateClient("Gemini");
             _apiKey = config["Gemini:ApiKey"] ?? "";
             _modelo = config["Gemini:Modelo"] ?? "gemini-2.5-flash-lite";
         }
@@ -19,8 +19,7 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             try
             {
-                var modelo = _modelo;
-                var url = $"https://generativelanguage.googleapis.com/v1beta/models/{modelo}";
+                var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_modelo}";
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts.CancelAfter(TimeSpan.FromSeconds(5));
 
@@ -29,7 +28,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 var resp = await _httpClient.SendAsync(reqMsg, cts.Token);
                 return resp.IsSuccessStatusCode
                     ? HealthCheckResult.Healthy("Gemini API disponible")
-                    : HealthCheckResult.Degraded($"Gemini API respondió {resp.StatusCode}");
+                    : HealthCheckResult.Degraded($"Gemini API respondio {resp.StatusCode}");
             }
             catch (Exception ex)
             {

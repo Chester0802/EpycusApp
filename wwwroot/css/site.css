@@ -1302,12 +1302,6 @@ span.text-danger[data-valmsg-for] {
   color: var(--error) !important;
 }
 
-.field-validation-error::before,
-span.text-danger[data-valmsg-for]::before {
-  content: '\\26A0';
-  font-size: 0.75rem;
-}
-
 /* ═══════════════════════════════════════════════════════════════
    COUNTER ANIMATION
    ═══════════════════════════════════════════════════════════════ */

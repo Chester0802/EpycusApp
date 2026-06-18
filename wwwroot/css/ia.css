@@ -38,20 +38,20 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    background: linear-gradient(135deg, var(--accent-primary, #8b5cf6) 0%, var(--accent-secondary, #6366f1) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     font-size: 1.3rem;
     flex-shrink: 0;
-    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 4px 14px var(--accent-primary-shadow, rgba(139, 92, 246, 0.4));
     animation: edy-pulse 3s ease-in-out infinite;
 }
 
 @keyframes edy-pulse {
-    0%, 100% { box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4); }
-    50%       { box-shadow: 0 4px 22px rgba(139, 92, 246, 0.7); }
+    0%, 100% { box-shadow: 0 4px 14px var(--accent-primary-shadow, rgba(139, 92, 246, 0.4)); }
+    50%       { box-shadow: 0 4px 22px var(--accent-primary-shadow, rgba(139, 92, 246, 0.7)); }
 }
 
 .edy-header-name {
@@ -69,7 +69,7 @@
     letter-spacing: 0.08em;
     padding: 0.15rem 0.45rem;
     border-radius: var(--radius-full);
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    background: linear-gradient(135deg, var(--accent-primary, #8b5cf6), var(--accent-secondary, #6366f1));
     color: #fff;
     vertical-align: middle;
 }
@@ -161,13 +161,13 @@
     width: 72px;
     height: 72px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    background: linear-gradient(135deg, var(--accent-primary, #8b5cf6) 0%, var(--accent-secondary, #6366f1) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     font-size: 1.9rem;
-    box-shadow: 0 8px 28px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 8px 28px var(--accent-primary-shadow, rgba(139, 92, 246, 0.4));
     animation: edy-pulse 3s ease-in-out infinite;
 }
 
@@ -232,7 +232,7 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    background: linear-gradient(135deg, var(--accent-primary, #8b5cf6) 0%, var(--accent-secondary, #6366f1) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -392,6 +392,143 @@
     font-size: 0.68rem;
     font-family: monospace;
     color: var(--text-secondary);
+}
+
+/* ── Bienestar notice ───────────────────────────────────── */
+.edy-bienestar-aviso {
+    background: var(--accent-primary-light, rgba(139,92,246,0.1));
+    border: 1.5px solid var(--accent-primary, #8b5cf6);
+    border-radius: var(--radius-lg);
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 450px;
+    margin-top: 0.5rem;
+}
+
+.edy-suggestion-bienestar {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.7rem;
+}
+
+/* ── Feedback buttons ───────────────────────────────────── */
+.edy-feedback-btns {
+    display: inline-flex;
+    gap: 0.25rem;
+    vertical-align: middle;
+}
+
+.edy-feedback-btn {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+    font-size: 0.75rem;
+    transition: color var(--transition-normal);
+    line-height: 1;
+}
+
+.edy-feedback-btn:hover { color: var(--accent-primary); }
+
+.edy-feedback-hecho {
+    color: var(--success);
+    font-size: 0.75rem;
+}
+
+/* ── Chat body (sidebar + main) ─────────────────────────── */
+.edy-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.edy-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border-color);
+    background: var(--surface);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.edy-sidebar-header {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.edy-sidebar-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.edy-sidebar-list {
+    padding: 0.4rem 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.edy-sidebar-item {
+    display: block;
+    padding: 0.6rem 1rem;
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all var(--transition-normal);
+}
+
+.edy-sidebar-item:hover {
+    background: var(--bg-hover, rgba(255,255,255,0.04));
+}
+
+.edy-sidebar-item.active {
+    background: var(--accent-primary-light, rgba(139,92,246,0.1));
+    border-left-color: var(--accent-primary);
+}
+
+.edy-sidebar-item-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.edy-sidebar-item-meta {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    margin-top: 0.15rem;
+}
+
+.edy-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+@media (max-width: 767px) {
+    .edy-sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        width: 280px;
+        height: 100vh;
+        z-index: 1050;
+        transition: left var(--transition-normal);
+        box-shadow: var(--shadow-lg);
+    }
+    .edy-sidebar.open {
+        left: 0;
+    }
 }
 
 /* ── Responsive ──────────────────────────────────────────── */

@@ -17,7 +17,11 @@
 
             if (!res.ok) {
                 const json = await res.json().catch(() => null);
-                alert(json?.mensaje ?? 'No se pudo completar el hábito');
+                if (typeof Notificaciones !== 'undefined') {
+                    Notificaciones.mostrarError(json?.mensaje ?? 'No se pudo completar el hábito');
+                } else {
+                    alert(json?.mensaje ?? 'No se pudo completar el hábito');
+                }
                 btn.innerText = originalText;
                 return;
             }
@@ -39,7 +43,11 @@
                 }
             }
         } catch (e) {
-            alert('Error de red al completar el hábito');
+            if (typeof Notificaciones !== 'undefined') {
+                Notificaciones.mostrarError('Error de red al completar el hábito');
+            } else {
+                alert('Error de red al completar el hábito');
+            }
             btn.innerText = originalText;
         } finally {
             setTimeout(() => { btn.disabled = false; }, 1000);
