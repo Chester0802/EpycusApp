@@ -8,7 +8,7 @@
 
 .auth-container {
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
     position: relative;
     z-index: 2;
 }
@@ -49,8 +49,13 @@
     padding: 2rem;
 }
 
-.auth-hero-content .auth-icon-box {
-    box-shadow: 0 0 30px rgba(168, 85, 247, 0.3), 0 0 60px rgba(168, 85, 247, 0.1);
+
+.auth-hero-logo {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5));
 }
 
 .auth-hero-title {
