@@ -27,15 +27,7 @@
     <p class="ep-header-subtitle">Cuida tu energía, tu ánimo y tu equilibrio diario.</p>
 </div>
 
-@if (TempData["AnimoRegistrado"] != null)
-{
-    var estado = TempData["AnimoRegistrado"]!.ToString()!;
-    <div class="alert border-0 rounded-3 py-2 px-3 mb-4 small d-flex align-items-center gap-2"
-         style="background: @EstadoBg(estado); color: @EstadoColor(estado);" role="alert">
-        <span class="fs-5">@EstadoEmoji(estado)</span>
-        Estado de ánimo registrado: <strong>@estado</strong>
-    </div>
-}
+<partial name="_MensajeFeedback" />
 
 <div class="row g-4">
 

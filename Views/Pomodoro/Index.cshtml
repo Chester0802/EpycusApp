@@ -95,10 +95,9 @@
                 <h6 class="fw-bold mb-0">Resumen de hoy</h6>
             </div>
 
-            <!-- Skeleton loading for stats -->
-            <div id="skeletonStats" class="ep-skeleton" style="height: 150px; width: 100%; border-radius: var(--radius-lg); display: none;"></div>
+            <div id="ep-spinner" class="ep-spinner-overlay"><div class="ep-spinner"></div><span class="ms-2">Cargando estadísticas...</span></div>
             
-            <div class="row g-2 pomodoro-stats" id="pomodoroStats" style="display: none;">
+            <div class="row g-2 pomodoro-stats" id="pomodoroStats">
                 <div class="col-6">
                     <div class="border border-secondary rounded p-3 text-center" style="background: var(--ep-superficie-2);">
                         <i class="bi bi-clock text-primary fs-4"></i>
@@ -182,7 +181,9 @@
                         string tipo = esEnfoque ? "Enfoque" : "Descanso";
                         string tiempoTxt = $"{(sesion.FechaFin.HasValue ? (sesion.FechaFin.Value - sesion.FechaInicio).Minutes : 0)} min";
                         string iconClass = esEnfoque ? "bi-check-circle text-success" : "bi-cup-hot text-warning";
-                        string badgeClass = esEnfoque ? "bg-success" : "bg-warning text-dark";
+                        string badgeBg = esEnfoque ? "var(--success-bg)" : "var(--warning-bg)";
+                        string badgeColor = esEnfoque ? "var(--success)" : "var(--warning)";
+                        string badgeBorder = esEnfoque ? "var(--success)" : "var(--warning)";
                         string badgeText = esEnfoque ? "Completado" : "Descanso";
                         
                         <div class="position-relative mb-3 ps-4">
@@ -191,7 +192,7 @@
                                 <div>
                                     <span class="fw-bold">@tipo</span> <span class="text-secondary ms-2">@tiempoTxt</span>
                                 </div>
-                                <span class="badge @badgeClass bg-opacity-25 border border-@(esEnfoque ? "success" : "warning")">@badgeText</span>
+                                <span class="badge bg-opacity-25" style="background: @badgeBg; color: @badgeColor; border: 1px solid @badgeBorder;">@badgeText</span>
                             </div>
                         </div>
                     }
@@ -418,11 +419,7 @@
                             
                             // Alerta ODS 3 de Salud y Bienestar
                             if (data.datos.sugerirDescanso) {
-                                if (typeof Notificaciones !== 'undefined') {
-                                    Notificaciones.mostrarExito("¡Alerta de Bienestar! Has completado varios ciclos seguidos. Te sugerimos tomar un Descanso Largo ahora.");
-                                } else {
-                                    alert("¡Alerta de Bienestar! Has completado varios ciclos seguidos. Te sugerimos tomar un Descanso Largo ahora.");
-                                }
+                                Notificaciones.mostrarExito("¡Alerta de Bienestar! Has completado varios ciclos seguidos. Te sugerimos tomar un Descanso Largo ahora.");
                                 setMode('largo');
                                 return;
                             }
@@ -446,7 +443,9 @@
             if (histList.querySelector('.no-sesiones-msg')) histList.innerHTML = '';
 
             const iconClass = esEnfoque ? "bi-check-circle text-success" : "bi-cup-hot text-warning";
-            const badgeClass = esEnfoque ? "bg-success" : "bg-warning text-dark";
+            const badgeBg = esEnfoque ? 'var(--success-bg)' : 'var(--warning-bg)';
+            const badgeColor = esEnfoque ? 'var(--success)' : 'var(--warning)';
+            const badgeBorder = esEnfoque ? 'var(--success)' : 'var(--warning)';
             const badgeText = esEnfoque ? "Completado" : "Descanso";
 
             const item = document.createElement('div');
@@ -457,7 +456,7 @@
                     <div>
                         <span class="fw-bold">${tipo}</span> <span class="text-secondary ms-2">${tiempoTxt}</span>
                     </div>
-                    <span class="badge ${badgeClass} bg-opacity-25 border border-${esEnfoque?'success':'warning'}">${badgeText}</span>
+                    <span class="badge bg-opacity-25" style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder};">${badgeText}</span>
                 </div>
             `;
             // Insertar al inicio
@@ -467,12 +466,9 @@
         // Iniciar UI
         updateTimerUI();
 
-        // Skeleton initializer
         document.addEventListener('DOMContentLoaded', function() {
-            var skel = document.getElementById('skeletonStats');
-            if (skel) skel.style.display = 'none';
-            var stats = document.getElementById('pomodoroStats');
-            if (stats) stats.style.display = '';
+            var spinner = document.getElementById('ep-spinner');
+            if (spinner) spinner.style.display = 'none';
         });
 
     </script>

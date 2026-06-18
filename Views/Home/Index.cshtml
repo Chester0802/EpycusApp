@@ -6,6 +6,7 @@
 
 @if (Model != null && Model.EstaAutenticado)
 {
+    <div id="ep-spinner" class="ep-spinner-overlay"><div class="ep-spinner"></div><span class="ms-2">Cargando panel...</span></div>
     <!-- Hero Section -->
     <div class="dash-hero mb-4">
         <div class="dash-hero-glow-orb"></div>
@@ -165,6 +166,12 @@
     @section Scripts {
         <script src="~/lib/chart.min.js" asp-append-version="true"></script>
         <script src="~/js/dashboard.js" asp-append-version="true"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var spinner = document.getElementById('ep-spinner');
+                if (spinner) spinner.style.display = 'none';
+            });
+        </script>
     }
 }
 else

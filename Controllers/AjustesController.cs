@@ -49,7 +49,7 @@ public class AjustesController : BaseController
 
         if (resultado.EsExitoso)
         {
-            TempData["Mensaje"] = "Perfil actualizado correctamente.";
+            TempData["Exito"] = "Perfil actualizado correctamente.";
         }
         else
         {
@@ -79,11 +79,11 @@ public class AjustesController : BaseController
 
         if (resultado.EsExitoso)
         {
-            TempData["Mensaje"] = "ContraseÃ±a cambiada correctamente.";
+            TempData["Exito"] = "Contraseña cambiada correctamente.";
         }
         else
         {
-            TempData["Error"] = resultado.Mensaje ?? "No se pudo cambiar la contraseÃ±a.";
+            TempData["Error"] = resultado.Mensaje ?? "No se pudo cambiar la contraseña.";
         }
 
         return RedirectToAction(nameof(Index));

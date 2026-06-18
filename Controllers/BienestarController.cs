@@ -40,7 +40,7 @@ namespace EpycusApp.Controllers
             var usuarioId = ObtenerUsuarioId();
             await _servicioBienestar.RegistrarEstadoAnimo(usuarioId, estado, nota);
 
-            TempData["AnimoRegistrado"] = estado;
+            TempData["Exito"] = $"Estado de ánimo registrado: {estado}";
             return RedirectToAction(nameof(Index));
         }
     }

@@ -96,8 +96,7 @@
                 <span style="min-width: 40px; flex: 0 0 auto; width: 40px; text-align: center; font-weight: bold; color: var(--ep-texto);">Hoy</span>
             </div>
 
-            <!-- Skeleton loading for habit list -->
-            <div id="skeletonHabitos" class="ep-skeleton" style="height: 200px; width: 100%; margin-bottom: 1rem; display: none;"></div>
+            <div id="ep-spinner" class="ep-spinner-overlay"><div class="ep-spinner"></div><span class="ms-2">Cargando hábitos...</span></div>
 
             @if (Model?.Habitos == null || !Model.Habitos.Any())
             {
@@ -353,11 +352,7 @@
 
                 if (!res.ok) {
                     const json = await res.json().catch(()=>null);
-                    if (typeof Notificaciones !== 'undefined') {
-                        Notificaciones.mostrarError(json?.mensaje ?? 'No se pudo completar el hábito');
-                    } else {
-                        alert(json?.mensaje ?? 'No se pudo completar el hábito');
-                    }
+                    Notificaciones.mostrarError(json?.mensaje ?? 'No se pudo completar el hábito');
                     btn.innerText = originalText;
                     return;
                 }
@@ -379,11 +374,7 @@
                     }
                 }
             } catch (e) {
-                if (typeof Notificaciones !== 'undefined') {
-                    Notificaciones.mostrarError('Error de red al completar el hábito');
-                } else {
-                    alert('Error de red al completar el hábito');
-                }
+                Notificaciones.mostrarError('Error de red al completar el hábito');
                 btn.innerText = originalText;
             } finally {
                 setTimeout(() => { btn.disabled = false; }, 1000);
@@ -417,11 +408,7 @@
 
                     if (!res.ok) {
                         if (res.redirected || res.status === 401) {
-                            if (typeof Notificaciones !== 'undefined') {
-                                Notificaciones.mostrarError('Necesitas iniciar sesión para crear un hábito.');
-                            } else {
-                                alert('Necesitas iniciar sesión para crear un hábito.');
-                            }
+                            Notificaciones.mostrarError('Necesitas iniciar sesión para crear un hábito.');
                             return;
                         }
 
@@ -435,18 +422,10 @@
                                 const bodyEl = modalContent.querySelector('.modal-body');
                                 if (bodyEl) bodyEl.innerHTML = nuevoBody.innerHTML;
                             } else {
-                                if (typeof Notificaciones !== 'undefined') {
-                                    Notificaciones.mostrarError('Error al crear hábito (código ' + res.status + ').');
-                                } else {
-                                    alert('Error al crear hábito (código ' + res.status + ').');
-                                }
+                                Notificaciones.mostrarError('Error al crear hábito (código ' + res.status + ').');
                             }
                         } catch (e) {
-                            if (typeof Notificaciones !== 'undefined') {
-                                Notificaciones.mostrarError('Error al crear hábito (respuesta inesperada).');
-                            } else {
-                                alert('Error al crear hábito (respuesta inesperada).');
-                            }
+                            Notificaciones.mostrarError('Error al crear hábito (respuesta inesperada).');
                         }
                         return;
                     }
@@ -485,29 +464,17 @@
                                 if (bodyEl) bodyEl.innerHTML = nuevoBody.innerHTML;
                                 return;
                             }
-                            if (typeof Notificaciones !== 'undefined') {
-                                Notificaciones.mostrarError('Necesitas iniciar sesión para crear un hábito.');
-                            } else {
-                                alert('Necesitas iniciar sesión para crear un hábito.');
-                            }
+                            Notificaciones.mostrarError('Necesitas iniciar sesión para crear un hábito.');
                             return;
                         } catch (e) {
-                            if (typeof Notificaciones !== 'undefined') {
-                                Notificaciones.mostrarError('Error al procesar la respuesta del servidor.');
-                            } else {
-                                alert('Error al procesar la respuesta del servidor.');
-                            }
+                            Notificaciones.mostrarError('Error al procesar la respuesta del servidor.');
                             return;
                         }
                     }
 
                     location.reload();
                 } catch (err) {
-                    if (typeof Notificaciones !== 'undefined') {
-                        Notificaciones.mostrarError('Error al crear hábito: ' + err);
-                    } else {
-                        alert('Error al crear hábito: ' + err);
-                    }
+                    Notificaciones.mostrarError('Error al crear hábito: ' + err);
                 } finally {
                     if (btn) btn.disabled = false;
                 }
@@ -516,10 +483,9 @@
     </script>
 
     <script>
-        // Skeleton initializer - show skeleton briefly during paint
         document.addEventListener('DOMContentLoaded', function() {
-            var skel = document.getElementById('skeletonHabitos');
-            if (skel) skel.style.display = 'none';
+            var spinner = document.getElementById('ep-spinner');
+            if (spinner) spinner.style.display = 'none';
         });
     </script>
 }

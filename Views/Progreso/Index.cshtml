@@ -12,9 +12,8 @@
     <div class="row g-4 mb-5">
         <!-- Tarjeta de Personaje y Nivel -->
         <div class="col-12 col-lg-4">
-            <!-- Skeleton loading for character card -->
-            <div id="skeletonPersonaje" class="ep-skeleton" style="height: 350px; width: 100%; border-radius: var(--radius-lg); display: none;"></div>
-            <div class="ep-card text-center h-100 position-relative overflow-hidden" id="personajeCard" style="display: none;">
+            <div id="ep-spinner" class="ep-spinner-overlay"><div class="ep-spinner"></div><span class="ms-2">Cargando progreso...</span></div>
+            <div class="ep-card text-center h-100 position-relative overflow-hidden" id="personajeCard">
                 <div class="mb-4 mt-2">
                     <img src="@Model.ImagenPersonajeUrl" alt="Personaje" class="img-fluid rounded-circle shadow" style="width: min(130px, 35vw); height: min(130px, 35vw); object-fit: cover; object-position: center 8%; border: 3px solid var(--accent-primary); background: var(--bg-elevated);" />
                 </div>
@@ -129,10 +128,8 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var skel = document.getElementById('skeletonPersonaje');
-            if (skel) skel.style.display = 'none';
-            var card = document.getElementById('personajeCard');
-            if (card) card.style.display = '';
+            var spinner = document.getElementById('ep-spinner');
+            if (spinner) spinner.style.display = 'none';
         });
     </script>
 }
