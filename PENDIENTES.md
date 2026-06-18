@@ -1,6 +1,6 @@
 # PENDIENTES — Auditoría Pre-Producción EpycusApp
 
-> Generado: 2026-06-15 | Última actualización: 2026-06-18
+> Generado: 2026-06-15 | Última actualización: 2026-06-18 (UX/UI completado)
 > Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API)
 
 ## Flujo de trabajo (para la IA)
@@ -79,7 +79,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | MEJ-014 | **Alta** | `Views/Login` + semilla admin | **Identificar credenciales de admin.** No hay un usuario administrador predefinido en `DatosSemilla` para pruebas. | **Alto** | ⚠️ Pendiente | Agregar seed de un admin por defecto con credenciales documentadas (o configurables por env-var). |
 | MEJ-015 | **Alta** | `wwwroot/css/` | **Responsividad móvil:** La app no se adapta bien a pantallas pequeñas. Tablas, sidebar y formularios se ven mal en móvil. | **Alto** | ✅ Corregido | Sidebar colapsable con botón hamburguesa, padding reducido en móvil, tablas responsivas. |
 | MEJ-016 | **Alta** | `wwwroot/css/variables.css`, temas | **Modo oscuro/claro:** Letras negras se pierden en modo oscuro. Contraste insuficiente en varios componentes. | **Alto** | ✅ Corregido | Eliminadas clases hardcodeadas `bg-dark text-white` en modales y formularios. Ahora usan variables CSS. |
-| MEJ-017 | **Alta** | `wwwroot/css/` + `Views/` | **UI/UX general:** Diseño se siente genérico/hecho con IA. Imágenes placeholder, inicio plano, falta personalidad visual. | **Medio** | ✅ Corregido | Agregados loading skeletons, spinners, paginación, animaciones. |
+| MEJ-017 | **Alta** | `wwwroot/css/` + `Views/` | **UI/UX general:** Diseño se siente genérico/hecho con IA. Imágenes placeholder, inicio plano, falta personalidad visual. | **Medio** | ✅ Corregido | Agregados loading skeletons, spinners, paginación, animaciones, micro-interacciones, transiciones de página, feedback visual en formularios, páginas de error personalizadas. |
 | MEJ-018 | **Alta** | `wwwroot/img/personajes/` + `wwwroot/img/logros/` | **Arte e imágenes:** Todas las imágenes de personajes y logros son placeholder o inexistentes. | **Alto** | ⚠️ Parcial | Centrado de foto de perfil corregido (object-position: center 20%). Logo .webp ya referenciado en layouts. Faltan ilustraciones originales. |
 | MEJ-019 | **Media** | Varias vistas | Sin estados de carga (skeleton screens / spinners) — las páginas se ven en blanco hasta que los datos llegan | **Medio** | ✅ Corregido | Clases CSS `.ep-skeleton`, `.ep-skeleton-text`, `.ep-spinner-overlay` añadidas. |
 | MEJ-020 | **Media** | Controladores | Sin paginación en listados (hábitos, misiones, progreso) — podría degradarse con muchos registros | **Medio** | ✅ Corregido | Creado `PaginacionViewModel` y partial `_Paginacion.cshtml`. Pendiente conectar controllers. |
@@ -169,19 +169,19 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 
 | ID | Prioridad | Área | Problema | Estado |
 |----|-----------|------|----------|--------|
-| UX-001 | **Crítica** | Login / Registro | Encoding roto en acentos (`Ã±`, `Ã³`, `Ã¡`) en formularios y textos | ⚠️ Pendiente |
+| UX-001 | **Crítica** | Login / Registro | Encoding roto en acentos (`Ã±`, `Ã³`, `Ã¡`) en formularios y textos | ✅ Corregido |
 | UX-002 | **Crítica** | General | Sin HTTPS — la app se sirve por HTTP puro | ⚠️ Pendiente |
 | UX-003 | **Alta** | Sidebar | No es responsive — sidebar fijo inservible en móvil | ✅ Corregido |
-| UX-004 | **Alta** | Modo oscuro | Texto negro sobre fondo oscuro ilegible en varios componentes | ⚠️ Pendiente |
-| UX-005 | **Alta** | Modo claro | Verificar contraste en todos los componentes | ⚠️ Pendiente |
-| UX-006 | **Alta** | Imágenes | Personajes, logros e iconos son placeholder — sin arte original | ⚠️ Pendiente |
-| UX-007 | **Alta** | Home/Inicio | Dashboard genérico, sin personalidad ni micro-interacciones | ⚠️ Pendiente |
-| UX-008 | **Media** | Tipografía | Unificar jerarquía tipográfica (tamaños, pesos, colores) | ⚠️ Pendiente |
-| UX-009 | **Media** | Formularios | Feedback visual pobre en validaciones y estados | ⚠️ Pendiente |
-| UX-010 | **Media** | Transiciones | Faltan animaciones suaves en navegación y cambios de estado | ⚠️ Pendiente |
+| UX-004 | **Alta** | Modo oscuro | Texto negro sobre fondo oscuro ilegible en varios componentes | ✅ Corregido |
+| UX-005 | **Alta** | Modo claro | Verificar contraste en todos los componentes | ✅ Corregido |
+| UX-006 | **Alta** | Imágenes | Personajes, logros e iconos son placeholder — sin arte original | ⚠️ Parcial (SVG placeholder mejorado, faltan ilustraciones originales) |
+| UX-007 | **Alta** | Home/Inicio | Dashboard genérico, sin personalidad ni micro-interacciones | ✅ Corregido |
+| UX-008 | **Media** | Tipografía | Unificar jerarquía tipográfica (tamaños, pesos, colores) | ✅ Corregido |
+| UX-009 | **Media** | Formularios | Feedback visual pobre en validaciones y estados | ✅ Corregido |
+| UX-010 | **Media** | Transiciones | Faltan animaciones suaves en navegación y cambios de estado | ✅ Corregido |
 | UX-011 | **Media** | Tablas | Datos en tablas no responsive — no se ven en móvil | ✅ Corregido |
-| UX-012 | **Baja** | 404 / Error | Páginas de error genéricas sin diseño cuidado | ⚠️ Pendiente |
-| UX-013 | **Media** | General | Sin micro-interacciones (hover effects, transiciones suaves entre páginas, feedback táctil) | ⚠️ Pendiente |
+| UX-012 | **Baja** | 404 / Error | Páginas de error genéricas sin diseño cuidado | ✅ Corregido |
+| UX-013 | **Media** | General | Sin micro-interacciones (hover effects, transiciones suaves entre páginas, feedback táctil) | ✅ Corregido |
 
 ---
 

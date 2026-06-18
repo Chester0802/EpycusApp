@@ -6,16 +6,49 @@
 
 @if (Model != null && Model.EstaAutenticado)
 {
-    <div class="mb-4">
-        <h1 class="ep-header-title d-flex align-items-center gap-2">
-            ¡Hola, @Model.NombreUsuario! <i class="bi bi-stars text-warning"></i>
-        </h1>
-        @if (!string.IsNullOrEmpty(Model.FraseMotivacional))
-        {
-            <p class="ep-header-subtitle">
-                <em>"@Model.FraseMotivacional"</em> - <strong>@Model.AutorFrase</strong>
-            </p>
-        }
+    <!-- Hero Section -->
+    <div class="dash-hero mb-4">
+        <div class="dash-hero-glow-orb"></div>
+        <div class="dash-hero-inner">
+            <div class="d-flex align-items-center gap-3 w-100">
+                <div class="dash-hero-personaje flex-shrink-0" style="width: 120px; height: 140px;">
+                    <div class="dash-personaje-aura" style="width: 130px; height: 130px;"></div>
+                    <img src="@(Model.ImagenPersonajeUrl ?? "/img/personajes/generico/masculino/placeholder.png")"
+                         alt="Personaje" class="dash-personaje-img"
+                         style="max-height: 130px; max-width: 115px;"
+                         onerror="this.src='/img/personajes/generico/masculino/placeholder.png'" />
+                    <div class="dash-personaje-sombra" style="width: 80px; height: 12px;"></div>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <h1 class="ep-header-title d-flex align-items-center gap-2 mb-0" style="font-size: 1.5rem;">
+                            ¡Hola, @Model.NombreUsuario!
+                        </h1>
+                        <span class="ep-badge-nivel" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">
+                            Nv. @Model.NivelActual
+                        </span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.FraseMotivacional))
+                    {
+                        <p class="dash-hero-quote mt-2 mb-2" style="font-size: 0.85rem;">
+                            <em>"@Model.FraseMotivacional"</em>
+                            @if (!string.IsNullOrEmpty(Model.AutorFrase))
+                            {
+                                <strong class="dash-quote-author" style="font-size: 0.75rem;">— @Model.AutorFrase</strong>
+                            }
+                        </p>
+                    }
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <div class="dash-progress-bar flex-grow-1" style="height: 6px; max-width: 200px;">
+                            <div class="dash-progress-fill" style="width: @Model.ProgresoNivel%"></div>
+                        </div>
+                        <span class="dash-progress-label" style="font-size: 0.7rem;">
+                            @Model.XpTotal XP
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- KPIs -->
@@ -49,64 +82,80 @@
                 </div>
                 <div>
                     <p class="ep-summary-value">@Model.Estadisticas.RachaActualMaxima</p>
-                    <p class="ep-summary-label text-warning">Mejor racha actual</p>
+                    <p class="ep-summary-label">Mejor racha actual</p>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <!-- Columna Izquierda: Hábitos de Hoy -->
         <div class="col-lg-7">
             <div class="ep-card mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="mb-0 fw-bold">Tus hábitos para hoy</h5>
-                    <a asp-controller="Habitos" asp-action="Index" class="btn btn-sm btn-ep-outline">Ver todos</a>
+                    <h5 class="ep-card-title mb-0">
+                        <i class="bi bi-journal-check me-1" style="color: var(--accent-primary);"></i>
+                        Tus hábitos para hoy
+                    </h5>
+                    <a asp-controller="Habitos" asp-action="Index" class="btn btn-sm btn-ep-outline">
+                        <i class="bi bi-arrow-right"></i> Ver todos
+                    </a>
                 </div>
 
                 @if (Model.HabitosHoy == null || !Model.HabitosHoy.Any())
                 {
-                    <div class="alert alert-info bg-transparent border-info text-info">
-                        No tienes hábitos programados para hoy. ¡Disfruta tu día!
+                    <div class="dash-empty-state">
+                        <i class="dash-empty-icon bi bi-emoji-smile"></i>
+                        <p class="dash-empty-text">No tienes hábitos programados para hoy. ¡Disfruta tu día libre!</p>
                     </div>
                 }
                 else
                 {
-                    @foreach (var h in Model.HabitosHoy)
-                    {
-                        <div class="ep-habit-card" data-habito-id="@h.Id">
-                            <div class="ep-habit-icon icon-blue">
-                                <i class="bi bi-journal-check"></i>
+                    <div class="dash-habits-list">
+                        @foreach (var h in Model.HabitosHoy)
+                        {
+                            <div class="dash-habit-item" data-habito-id="@h.Id">
+                                <div class="dash-habit-icon icon-blue">
+                                    <i class="bi bi-journal-check"></i>
+                                </div>
+                                <div class="dash-habit-info">
+                                    <div class="dash-habit-name">@h.Nombre</div>
+                                    <div class="dash-habit-meta">
+                                        <span class="dash-cat-badge">@h.CategoriaNombre</span>
+                                        <span class="dash-streak-badge">
+                                            <i class="bi bi-fire me-1"></i>@h.RachaActual días
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="dash-habit-action">
+                                    <button class="dash-complete-btn btn-completar" onclick="completarHabitoDashboard(@h.Id, this)" title="Completar hábito">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1 fw-bold">@h.Nombre</h6>
-                                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">@h.CategoriaNombre</span>
-                            </div>
-                            <div class="me-4 text-secondary d-none d-md-block" style="font-size: 0.85rem;">
-                                <div class="text-warning racha-cell"><i class="bi bi-fire me-1"></i>@h.RachaActual días</div>
-                            </div>
-                            <div class="ms-2">
-                                <button class="btn btn-sm btn-primary rounded-pill px-3 btn-completar" onclick="completarHabitoDashboard(@h.Id, this)">100%</button>
-                            </div>
-                        </div>
-                    }
+                        }
+                    </div>
+                    <a asp-controller="Habitos" asp-action="Crear" class="dash-add-habit-btn mt-3">
+                        <i class="bi bi-plus-circle me-1"></i> Agregar nuevo hábito
+                    </a>
                 }
             </div>
         </div>
 
-        <!-- Columna Derecha: Tabla Gráfica -->
         <div class="col-lg-5">
             <div class="ep-card h-100">
-                <h5 class="mb-3 fw-bold">Distribución por categoría</h5>
+                <h5 class="ep-card-title mb-3">
+                    <i class="bi bi-pie-chart me-1" style="color: var(--accent-primary);"></i>
+                    Distribución por categoría
+                </h5>
                 <div class="text-center" style="height: clamp(200px, 40vw, 300px); position: relative;">
                     <canvas id="graficoCategorias"
                             data-categorias='@Html.Raw(Json.Serialize(Model.Estadisticas.DistribucionPorCategoria.Keys))'
                             data-valores='@Html.Raw(Json.Serialize(Model.Estadisticas.DistribucionPorCategoria.Values))'>
                     </canvas>
                 </div>
-                <div class="mt-4 text-center text-muted small">
-                    Mantén un equilibrio en tus hábitos para un mejor estilo de vida.
-                </div>
+                <p class="dash-chart-note mt-3">
+                    <i class="bi bi-info-circle me-1"></i>Mantén un equilibrio en tus hábitos
+                </p>
             </div>
         </div>
     </div>
@@ -118,21 +167,49 @@
 }
 else
 {
-    <div class="ep-card">
-        <div class="row align-items-center g-4">
-            <div class="col-lg-7">
-                <h1 class="ep-header-title mb-3">Bienvenido a Epycus</h1>
-                <p class="ep-header-subtitle">Organiza tus hábitos, misiones y sesiones Pomodoro con un sistema visual diseñado para motivarte cada día.</p>
-                <div class="d-flex flex-wrap gap-2 mt-4">
-                    <a asp-controller="Autenticacion" asp-action="Login" class="btn btn-ep"><i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión</a>
-                    <a asp-controller="Autenticacion" asp-action="Registro" class="btn btn-ep-outline"><i class="bi bi-person-plus me-2"></i>Crear Cuenta</a>
+    <div class="dash-landing">
+        <div class="dash-landing-card">
+            <div class="row align-items-center g-4 position-relative">
+                <div class="col-lg-7">
+                    <span class="dash-landing-badge">
+                        <i class="bi bi-stars me-1"></i> Versión 1.0
+                    </span>
+                    <h1 class="dash-landing-title">
+                        Transforma tus
+                        <span class="ep-text-gradient">hábitos</span>
+                        en poder
+                    </h1>
+                    <p class="dash-landing-sub">
+                        Organiza tus hábitos, misiones y sesiones Pomodoro con un sistema visual inspirado en gamificación. Diseñado para motivarte cada día.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <a asp-controller="Autenticacion" asp-action="Login" class="btn btn-ep dash-cta-btn">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                        </a>
+                        <a asp-controller="Autenticacion" asp-action="Registro" class="btn btn-ep-outline dash-cta-btn">
+                            <i class="bi bi-person-plus me-2"></i>Crear Cuenta
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div class="col-lg-5 text-center">
-                <div class="ep-card-neon p-4">
-                    <i class="bi bi-graph-up-arrow text-primary display-4"></i>
-                    <h5 class="mt-3 mb-2">Tu progreso visible</h5>
-                    <p class="text-muted mb-0">Mide tu avance con indicadores claros y celebra cada logro.</p>
+                <div class="col-lg-5">
+                    <div class="dash-features-grid">
+                        <div class="dash-feature-item">
+                            <i class="dash-feature-icon bi bi-list-check"></i>
+                            Hábitos
+                        </div>
+                        <div class="dash-feature-item">
+                            <i class="dash-feature-icon bi bi-alarm"></i>
+                            Pomodoro
+                        </div>
+                        <div class="dash-feature-item">
+                            <i class="dash-feature-icon bi bi-clipboard-check"></i>
+                            Misiones
+                        </div>
+                        <div class="dash-feature-item">
+                            <i class="dash-feature-icon bi bi-graph-up"></i>
+                            Progreso
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

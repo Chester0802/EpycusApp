@@ -61,7 +61,7 @@
                 </div>
                 <div class="col-md-4 mb-3 mb-md-0">
                     <label class="text-secondary small mb-1 d-block">Sonido</label>
-                    <select class="form-select form-select-sm bg-transparent border-secondary text-white" id="configSonido">
+                    <select class="form-select form-select-sm bg-transparent border-secondary" id="configSonido" style="color: var(--text-primary);">
                         @if (Model?.Configuracion?.SonidoActivo == true)
                         {
                             <option value="true" selected>🎵 Campana suave</option>
@@ -76,7 +76,7 @@
                 </div>
                 <div class="col-md-4">
                     <label class="text-secondary small mb-1 d-block">Notificaciones</label>
-                    <select class="form-select form-select-sm bg-transparent border-secondary text-white" id="configNotificaciones">
+                    <select class="form-select form-select-sm bg-transparent border-secondary" id="configNotificaciones" style="color: var(--text-primary);">
                         <option value="true">Activadas</option>
                         <option value="false">Desactivadas</option>
                     </select>

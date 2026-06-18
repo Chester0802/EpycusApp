@@ -10,5 +10,12 @@ namespace EpycusApp.ViewModels
         public string AutorFrase { get; set; } = string.Empty;
         public bool EstaAutenticado { get; set; } = false;
         public string NombreUsuario { get; set; } = string.Empty;
+        public string? ImagenPersonajeUrl { get; set; }
+        public int NivelActual { get; set; }
+        public int XpTotal { get; set; }
+        public int XpRequeridoNivel { get; set; }
+        public int ProgresoNivel { get; set; }
+        public int RachaActual { get; set; }
+        public int RachaMaxima { get; set; }
     }
 }

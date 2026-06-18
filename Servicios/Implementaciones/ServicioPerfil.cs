@@ -20,7 +20,10 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public Task<Usuario?> ObtenerPerfil(int usuarioId)
         {
-            return _contexto.Usuarios.FindAsync(usuarioId).AsTask();
+            return _contexto.Usuarios
+                .Include(u => u.Progreso)
+                    .ThenInclude(p => p.NivelActual)
+                .FirstOrDefaultAsync(u => u.Id == usuarioId);
         }
 
         public async Task<PerfilViewModel?> ObtenerPerfilCompletoAsync(int usuarioId)

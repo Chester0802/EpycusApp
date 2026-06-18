@@ -209,6 +209,8 @@ public partial class Program
 
         var app = builder.Build();
 
+        app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
+
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Home/Error");

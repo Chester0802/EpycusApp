@@ -1,22 +1,69 @@
 ﻿@model ErrorViewModel
 @{
-    ViewData["Title"] = "Error";
+    var codigo = ViewBag.CodigoEstado ?? 0;
+    var es404 = codigo == 404;
+    var es403 = codigo == 403;
+    var es500 = codigo >= 500;
+
+    ViewData["Title"] = es404 ? "Página no encontrada" : es403 ? "Acceso denegado" : es500 ? "Error del servidor" : "Error";
+
+    string titulo, descripcion, icono;
+    if (es404)
+    {
+        titulo = "Página no encontrada";
+        descripcion = "La página que buscas no existe o fue movida. Revisa la URL o vuelve al inicio.";
+        icono = "bi bi-emoji-frown";
+    }
+    else if (es403)
+    {
+        titulo = "Acceso denegado";
+        descripcion = "No tienes permiso para acceder a esta página. Si crees que esto es un error, contacta al administrador.";
+        icono = "bi bi-shield-lock";
+    }
+    else if (es500)
+    {
+        titulo = "Error del servidor";
+        descripcion = "Algo salió mal en nuestro servidor. Estamos trabajando para solucionarlo. Intenta de nuevo en unos minutos.";
+        icono = "bi bi-exclamation-triangle";
+    }
+    else
+    {
+        titulo = "Ocurrió un error";
+        descripcion = "Algo no salió como esperábamos. Intenta nuevamente en unos minutos.";
+        icono = "bi bi-exclamation-triangle";
+    }
 }
 
-<div class="ep-card">
-    <div class="d-flex align-items-center gap-3 mb-3">
-        <i class="bi bi-exclamation-triangle text-danger fs-1"></i>
-        <div>
-            <h1 class="h3 fw-bold mb-1">Ocurrió un error</h1>
-            <p class="text-muted mb-0">Algo no salió como esperábamos. Intenta nuevamente en unos minutos.</p>
+<div class="min-vh-75 d-flex align-items-center justify-content-center py-5">
+    <div class="text-center" style="max-width: 480px;">
+        <div class="d-inline-flex align-items-center justify-content-center mb-4"
+             style="width: 100px; height: 100px; border-radius: 50%; background: var(--bg-elevated); color: var(--accent-primary);">
+            <i class="@icono fs-1"></i>
+        </div>
+
+        <h1 class="display-4 fw-bold mb-3" style="color: var(--text-primary);">
+            @if (es404) { <span>404</span> }
+            else if (es403) { <span>403</span> }
+            else if (es500) { <span>500</span> }
+        </h1>
+
+        <h2 class="h4 fw-bold mb-3" style="color: var(--text-primary);">@titulo</h2>
+        <p class="text-muted mb-4" style="font-size: 1.05rem; line-height: 1.6;">@descripcion</p>
+
+        @if (Model.ShowRequestId)
+        {
+            <div class="mb-3 small text-muted" style="background: var(--bg-elevated); padding: 0.5rem 1rem; border-radius: var(--radius-md); display: inline-block;">
+                ID: <code>@Model.RequestId</code>
+            </div>
+        }
+
+        <div class="d-flex flex-wrap gap-2 justify-content-center mt-4">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-ep px-4 py-2">
+                <i class="bi bi-house me-2"></i>Volver al inicio
+            </a>
+            <button onclick="history.back()" class="btn btn-ep-outline px-4 py-2">
+                <i class="bi bi-arrow-left me-2"></i>Página anterior
+            </button>
         </div>
     </div>
-
-    @if (Model.ShowRequestId)
-    {
-        <div class="text-muted small">ID de solicitud: <code>@Model.RequestId</code></div>
-    }
-
-    <div class="ep-separador"></div>
-    <a asp-controller="Home" asp-action="Index" class="btn btn-ep">Volver al inicio</a>
 </div>

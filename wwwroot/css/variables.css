@@ -41,6 +41,9 @@
     --kawaii-sky: #a8daff;
     --kawaii-lemon: #fff6b7;
 
+    /* Text on accent (for buttons/badges with accent bg) */
+    --text-on-accent: #ffffff;
+
     /* Status Colors - Versiones pasteles */
     --success: #7ed957;
     --success-hover: #6bc745;
@@ -141,6 +144,7 @@ body[data-theme="dark"] {
     --text-secondary: #a8b3cf;
     --text-tertiary: #6b7a99;
     --text-inverse: #0a0e1a;
+    --text-on-accent: #ffffff;
 
     /* Accent Colors - Púrpura intenso Solo Leveling */
     --accent-primary: #8b5cf6;

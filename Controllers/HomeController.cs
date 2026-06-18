@@ -35,12 +35,38 @@ namespace EpycusApp.Controllers
                 if (usuario != null)
                 {
                     modelo.NombreUsuario = usuario.Nombre;
+                    if (usuario.Progreso != null)
+                    {
+                        modelo.RachaActual = usuario.Progreso.RachaActual;
+                        modelo.RachaMaxima = usuario.Progreso.RachaMaxima;
+                        modelo.XpTotal = usuario.Progreso.XpTotal;
+                        if (usuario.Progreso.NivelActual != null)
+                        {
+                            modelo.NivelActual = usuario.Progreso.NivelActual.Numero;
+                            modelo.XpRequeridoNivel = usuario.Progreso.NivelActual.XpRequerido;
+                        }
+                    }
+                    var xpAnterior = modelo.XpRequeridoNivel > 0
+                        ? modelo.XpRequeridoNivel - 100
+                        : 0;
+                    var xpEnNivel = modelo.XpTotal - xpAnterior;
+                    var xpNecesario = modelo.XpRequeridoNivel - xpAnterior;
+                    modelo.ProgresoNivel = xpNecesario > 0
+                        ? Math.Clamp((int)((double)xpEnNivel / xpNecesario * 100), 0, 100)
+                        : 0;
+
+                    try
+                    {
+                        modelo.ImagenPersonajeUrl = await _servicioPerfil.ObtenerImagenPersonajeActual(usuarioId);
+                    }
+                    catch
+                    {
+                        modelo.ImagenPersonajeUrl = "/img/personajes/generico/masculino/placeholder.png";
+                    }
                 }
 
-                // Obtener datos del dashboard
                 modelo.Estadisticas = await _servicioHabitos.ObtenerDashboard(usuarioId);
 
-                // Obtener hÃ¡bitos de hoy
                 var todosLosHabitos = await _servicioHabitos.ObtenerHabitosViewModel(usuarioId);
                 var hoy = (int)DateTime.Today.DayOfWeek;
 
@@ -50,7 +76,6 @@ namespace EpycusApp.Controllers
                                  (h.DiasSemana?.Contains(hoy) == true)))
                     .ToList();
 
-                // Obtener frase motivacional
                 var frase = await _servicioBienestar.ObtenerFraseMotivacionalAleatoria();
 
                 if (frase != null)
@@ -71,8 +96,9 @@ namespace EpycusApp.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public IActionResult Error(int? statusCode = null)
         {
+            ViewBag.CodigoEstado = statusCode ?? HttpContext.Response.StatusCode;
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
