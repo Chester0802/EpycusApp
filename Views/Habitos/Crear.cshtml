@@ -1,12 +1,12 @@
 ﻿@model EpycusApp.ViewModels.CrearHabitoViewModel
 
 @{
-    ViewData["Title"] = "Crear hÃ¡bito";
+    ViewData["Title"] = "Crear hábito";
 }
 
 <div class="mb-4">
-    <h1 class="ep-header-title d-flex align-items-center gap-2">Crear hÃ¡bito <i class="bi bi-plus-circle text-primary"></i></h1>
-    <p class="ep-header-subtitle">Define un hÃ¡bito claro y fÃ¡cil de cumplir.</p>
+    <h1 class="ep-header-title d-flex align-items-center gap-2">Crear hábito <i class="bi bi-plus-circle text-primary"></i></h1>
+    <p class="ep-header-subtitle">Define un hábito claro y fácil de cumplir.</p>
 </div>
 
 <form asp-action="Crear" method="post" class="ep-card">
@@ -20,12 +20,12 @@
 
     <div class="mb-3">
         <label asp-for="Descripcion" class="form-label"></label>
-        <textarea asp-for="Descripcion" class="form-control ep-input" rows="3" placeholder="Describe cÃ³mo y cuÃ¡ndo lo harÃ¡s"></textarea>
+        <textarea asp-for="Descripcion" class="form-control ep-input" rows="3" placeholder="Describe cómo y cuándo lo harás"></textarea>
         <span asp-validation-for="Descripcion" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="CategoriaId" class="form-label">CategorÃ­a</label>
+        <label asp-for="CategoriaId" class="form-label">Categoría</label>
         @{ var categorias = ViewBag.Categorias as List<EpycusApp.Models.Entidades.Categoria> ?? new List<EpycusApp.Models.Entidades.Categoria>(); }
         <select asp-for="CategoriaId" class="form-select ep-input">
             <option value="">-- Seleccione --</option>
@@ -47,9 +47,9 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label">DÃ­as de la semana (nÃºmeros separados por comas)</label>
+        <label class="form-label">Días de la semana (números separados por comas)</label>
         <input name="DiasSemana" class="form-control ep-input" placeholder="Ej: 1,3,5" />
-        <div class="form-text text-muted">Usa 1=Lun, 2=Mar, 3=MiÃ©, 4=Jue, 5=Vie, 6=SÃ¡b, 0=Dom.</div>
+        <div class="form-text text-muted">Usa 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb, 0=Dom.</div>
     </div>
 
     <div class="form-check mb-3">
@@ -68,7 +68,7 @@
     </div>
 
     <div class="d-flex gap-2">
-        <button class="btn btn-ep">Crear hÃ¡bito</button>
+        <button class="btn btn-ep">Crear hábito</button>
         <a asp-action="Index" class="btn btn-ep-outline">Cancelar</a>
     </div>
 </form>

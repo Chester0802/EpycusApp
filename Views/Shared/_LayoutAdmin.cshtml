@@ -32,7 +32,7 @@
                 </div>
             </div>
             <div class="ep-card mb-4 p-3">
-                <div class="small text-muted">Acciones rÃ¡pidas</div>
+                <div class="small text-muted">Acciones rápidas</div>
                 <div class="d-flex gap-2 mt-2">
                     <a asp-controller="Admin" asp-action="Usuarios" class="btn btn-ep-outline btn-sm flex-grow-1">Usuarios</a>
                     <a asp-controller="Admin" asp-action="Frases" class="btn btn-ep btn-sm flex-grow-1">Frases</a>
@@ -43,12 +43,12 @@
                 <a asp-controller="Admin" asp-action="Usuarios" class="ep-nav-item"><i class="bi bi-people"></i>Usuarios</a>
                 <a asp-controller="Admin" asp-action="Frases" class="ep-nav-item"><i class="bi bi-chat-quote"></i>Frases</a>
                 <a asp-controller="Admin" asp-action="Index" class="ep-nav-item"><i class="bi bi-award"></i>Logros</a>
-                <a asp-controller="Admin" asp-action="Index" class="ep-nav-item"><i class="bi bi-gear"></i>ConfiguraciÃ³n</a>
+                <a asp-controller="Admin" asp-action="Index" class="ep-nav-item"><i class="bi bi-gear"></i>Configuración</a>
             </nav>
             <form asp-controller="Admin" asp-action="Logout" method="post" class="mt-4">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="btn w-100 text-start ep-nav-item text-danger" style="background: transparent; border: none;">
-                    <i class="bi bi-box-arrow-right text-danger"></i> Cerrar sesiÃ³n
+                    <i class="bi bi-box-arrow-right text-danger"></i> Cerrar sesión
                 </button>
             </form>
         </aside>

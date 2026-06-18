@@ -281,6 +281,12 @@ body[data-theme="dark"] {
     --ep-exito: var(--success);
     --ep-advertencia: var(--warning);
     --ep-peligro: var(--error);
+    --ep-nav-fondo: var(--sidebar-bg);
+    --ep-nav-texto: var(--sidebar-text);
+    --ep-nav-texto-activo: var(--sidebar-text-strong);
+    --ep-nav-item-hover: var(--sidebar-item-hover);
+    --ep-nav-item-activo: var(--sidebar-item-active);
+    --ep-info: var(--info);
 }
 
 [data-theme="dark"] {
@@ -315,4 +321,10 @@ body[data-theme="dark"] {
     --ep-exito: var(--success);
     --ep-advertencia: var(--warning);
     --ep-peligro: var(--error);
+    --ep-nav-fondo: var(--sidebar-bg);
+    --ep-nav-texto: var(--sidebar-text);
+    --ep-nav-texto-activo: var(--sidebar-text-strong);
+    --ep-nav-item-hover: var(--sidebar-item-hover);
+    --ep-nav-item-activo: var(--sidebar-item-active);
+    --ep-info: var(--info);
 }

@@ -64,7 +64,7 @@ Copia `appsettings.Example.json` a `appsettings.json` y configura:
 ### Datos del servidor:
 - **VPS:** 147.93.119.193 (Debian 13 Trixie)
 - **Dominio:** app.epycus.es
-- **Base de datos:** epicus_db / epicus_user
+- **Base de datos:** epycus_db / epicus_user
 - **Runtime:** ASP.NET Core 9
 - **Reverse Proxy:** Nginx → Kestrel (localhost:5000)
 - **Servicio:** systemd `epycus-web`
@@ -117,7 +117,7 @@ curl http://localhost:5000/health
 Configuración de MariaDB para producción:
 
 ```
-Base de datos: epicus_db
+Base de datos: epycus_db
 Usuario: epicus_user
 ServerVersion: 11.8.6-mariadb
 ```

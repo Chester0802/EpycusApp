@@ -10,7 +10,7 @@
 
 set -e
 
-DB_NAME="epicus_db"
+DB_NAME="epycus_db"
 DB_USER="epicus_user"
 DB_PASSWORD="CHANGE_ME_TO_A_SECURE_PASSWORD"
 DOMAIN="app.epycus.es"

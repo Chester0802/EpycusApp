@@ -15,16 +15,16 @@
     <link rel="stylesheet" href="~/css/perfil.css" asp-append-version="true" />
 }
 
-<!-- â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
 <div class="ep-header mb-4">
     <h1 class="ep-header-title">
         <i class="fas fa-user-circle" style="color: var(--accent-primary);"></i>
         Mi Perfil
     </h1>
-    <p class="ep-header-subtitle">Gestiona tu informaciÃ³n, personaje y logros</p>
+    <p class="ep-header-subtitle">Gestiona tu información, personaje y logros</p>
 </div>
 
-<!-- â”€â”€ Alertas globales â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+<!-- ── Alertas globales ───────────────────────────────────────────────────── -->
 @if (TempData["ExitoPerfil"] != null)
 {
     <div class="perfil-alerta perfil-alerta-exito mb-4">
@@ -50,12 +50,12 @@
     </div>
 }
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+<!-- ══════════════════════════════════════════════════════════════
      FILA 1: Tarjeta de identidad  +  Formularios
-     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+     ══════════════════════════════════════════════════════════════ -->
 <div class="row g-4 mb-4">
 
-    <!-- â”€â”€ Tarjeta de identidad â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <!-- ── Tarjeta de identidad ─────────────────────────────── -->
     <div class="col-12 col-lg-4">
         <div class="ep-card h-100 text-center perfil-id-card">
 
@@ -82,7 +82,7 @@
                 }
             </div>
 
-            <!-- Nombre y cÃ³digo -->
+            <!-- Nombre y código -->
             <h2 class="perfil-nombre mt-3 mb-0">@Model.Nombre</h2>
             <p class="perfil-correo mb-2">@Model.CorreoElectronico</p>
             <code class="perfil-codigo mb-3 d-block">@Model.CodigoUnico</code>
@@ -111,7 +111,7 @@
                 <div class="small mt-1" style="color: var(--text-tertiary);">@Model.XpTotal.ToString("N0") XP totales</div>
             </div>
 
-            <!-- Stats rÃ¡pidas -->
+            <!-- Stats rápidas -->
             <div class="perfil-stats-row">
                 <div class="perfil-stat">
                     <i class="fas fa-fire" style="color: var(--warning);"></i>
@@ -121,7 +121,7 @@
                 <div class="perfil-stat">
                     <i class="fas fa-trophy" style="color: var(--accent-primary);"></i>
                     <span class="perfil-stat-val">@Model.RachaMaxima</span>
-                    <span class="perfil-stat-lbl">Racha mÃ¡xima</span>
+                    <span class="perfil-stat-lbl">Racha máxima</span>
                 </div>
                 <div class="perfil-stat">
                     <i class="fas fa-medal" style="color: var(--info);"></i>
@@ -138,7 +138,7 @@
         </div>
     </div>
 
-    <!-- â”€â”€ Formularios â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <!-- ── Formularios ──────────────────────────────────────── -->
     <div class="col-12 col-lg-8">
         <div class="d-flex flex-column gap-4">
 
@@ -163,7 +163,7 @@
                                    class="perfil-input" required />
                         </div>
                         <div class="col-12 col-sm-6">
-                            <label class="perfil-label" for="genero">GÃ©nero</label>
+                            <label class="perfil-label" for="genero">Género</label>
                             <select id="genero" name="Genero" class="perfil-input" required>
                                 <option value="">-- Seleccionar --</option>
                                 <option value="Masculino" selected="@(Model.Genero == "Masculino" ? "selected" : null)">Masculino</option>
@@ -189,52 +189,52 @@
                 </form>
             </div>
 
-            <!-- Cambiar contraseÃ±a (solo si NO usa Google) -->
+            <!-- Cambiar contraseña (solo si NO usa Google) -->
             @if (!Model.UsaGoogle)
             {
                 <div class="ep-card">
                     <h5 class="perfil-seccion-titulo">
-                        <i class="fas fa-lock"></i> Cambiar contraseÃ±a
+                        <i class="fas fa-lock"></i> Cambiar contraseña
                     </h5>
                     <form asp-action="CambiarContrasena" method="post" id="form-contrasena">
                         @Html.AntiForgeryToken()
                         <div class="row g-3">
                             <div class="col-12">
-                                <label class="perfil-label" for="passActual">ContraseÃ±a actual</label>
+                                <label class="perfil-label" for="passActual">Contraseña actual</label>
                                 <div class="perfil-pass-wrap">
                                     <input type="password" id="passActual" name="ContrasenaActual"
                                            class="perfil-input" autocomplete="current-password"
-                                           placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required />
-                                    <button type="button" class="perfil-pass-toggle" onclick="togglePass('passActual', this)" aria-label="Mostrar contraseÃ±a">
+                                           placeholder="••••••••" required />
+                                    <button type="button" class="perfil-pass-toggle" onclick="togglePass('passActual', this)" aria-label="Mostrar contraseña">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6">
-                                <label class="perfil-label" for="passNueva">Nueva contraseÃ±a</label>
+                                <label class="perfil-label" for="passNueva">Nueva contraseña</label>
                                 <div class="perfil-pass-wrap">
                                     <input type="password" id="passNueva" name="NuevaContrasena"
                                            class="perfil-input" autocomplete="new-password"
-                                           placeholder="MÃ­nimo 6 caracteres" minlength="6" required />
-                                    <button type="button" class="perfil-pass-toggle" onclick="togglePass('passNueva', this)" aria-label="Mostrar contraseÃ±a">
+                                           placeholder="Mínimo 6 caracteres" minlength="6" required />
+                                    <button type="button" class="perfil-pass-toggle" onclick="togglePass('passNueva', this)" aria-label="Mostrar contraseña">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6">
-                                <label class="perfil-label" for="passConfirm">Confirmar contraseÃ±a</label>
+                                <label class="perfil-label" for="passConfirm">Confirmar contraseña</label>
                                 <div class="perfil-pass-wrap">
                                     <input type="password" id="passConfirm" name="ConfirmarContrasena"
                                            class="perfil-input" autocomplete="new-password"
-                                           placeholder="Repite la nueva contraseÃ±a" minlength="6" required />
-                                    <button type="button" class="perfil-pass-toggle" onclick="togglePass('passConfirm', this)" aria-label="Mostrar contraseÃ±a">
+                                           placeholder="Repite la nueva contraseña" minlength="6" required />
+                                    <button type="button" class="perfil-pass-toggle" onclick="togglePass('passConfirm', this)" aria-label="Mostrar contraseña">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
                             </div>
                             <div class="col-12 d-flex justify-content-end">
                                 <button type="submit" class="perfil-btn-secondary">
-                                    <i class="fas fa-key"></i> Actualizar contraseÃ±a
+                                    <i class="fas fa-key"></i> Actualizar contraseña
                                 </button>
                             </div>
                         </div>
@@ -246,7 +246,7 @@
                 <div class="ep-card d-flex align-items-center gap-3" style="border-style: dashed; opacity: 0.7;">
                     <i class="fas fa-circle-info fs-4" style="color: var(--info); flex-shrink:0;"></i>
                     <p class="mb-0 small" style="color: var(--text-secondary);">
-                        Iniciaste sesiÃ³n con Google. El cambio de contraseÃ±a se gestiona desde tu cuenta de Google.
+                        Iniciaste sesión con Google. El cambio de contraseña se gestiona desde tu cuenta de Google.
                     </p>
                 </div>
             }
@@ -255,9 +255,9 @@
     </div>
 </div>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-     FILA 2: GalerÃ­a de personajes
-     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ══════════════════════════════════════════════════════════════
+     FILA 2: Galería de personajes
+     ══════════════════════════════════════════════════════════════ -->
 <div class="ep-card mb-4">
     <h5 class="perfil-seccion-titulo mb-4">
         <i class="fas fa-wand-magic-sparkles"></i> Elige tu personaje
@@ -267,7 +267,7 @@
     {
         <p class="text-center" style="color: var(--text-secondary); padding: 2rem 0;">
             <i class="fas fa-ghost mb-2 d-block fs-1 opacity-30"></i>
-            AÃºn no hay personajes disponibles para tu carrera.
+            Aún no hay personajes disponibles para tu carrera.
         </p>
     }
     else
@@ -302,9 +302,9 @@
     }
 </div>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+<!-- ══════════════════════════════════════════════════════════════
      FILA 3: Logros desbloqueados
-     â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+     ══════════════════════════════════════════════════════════════ -->
 <div class="ep-card">
     <h5 class="perfil-seccion-titulo mb-4">
         <i class="fas fa-medal"></i> Logros desbloqueados
@@ -315,9 +315,9 @@
     {
         <div class="text-center py-4">
             <i class="fas fa-lock mb-3 d-block fs-1 opacity-20"></i>
-            <p style="color: var(--text-secondary);">AÃºn no tienes logros desbloqueados.</p>
+            <p style="color: var(--text-secondary);">Aún no tienes logros desbloqueados.</p>
             <p class="small" style="color: var(--text-tertiary);">
-                Completa hÃ¡bitos, misiones y mantÃ©n tu racha para ganarlos.
+                Completa hábitos, misiones y mantén tu racha para ganarlos.
             </p>
         </div>
     }

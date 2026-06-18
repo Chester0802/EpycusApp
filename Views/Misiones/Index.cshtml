@@ -6,8 +6,8 @@
 
 <div class="mb-4">
     <h1 class="ep-header-title d-flex align-items-center gap-2">Misiones <i class="bi bi-rocket text-primary"></i></h1>
-    <p class="ep-header-subtitle">Enfoca tu energÃ­a en objetivos claros y medibles.</p>
-    <a asp-action="Crear" class="btn btn-ep mt-3"><i class="bi bi-plus-lg me-2"></i>Nueva misiÃ³n</a>
+    <p class="ep-header-subtitle">Enfoca tu energía en objetivos claros y medibles.</p>
+    <a asp-action="Crear" class="btn btn-ep mt-3"><i class="bi bi-plus-lg me-2"></i>Nueva misión</a>
 </div>
 
     @if (TempData["Exito"] != null)
@@ -15,7 +15,7 @@
         <div class="ep-alerta mb-4">
             <i class="bi bi-check-circle-fill ep-alerta-icono"></i>
             <div>
-                <div class="ep-alerta-titulo">AcciÃ³n completada</div>
+                <div class="ep-alerta-titulo">Acción completada</div>
                 <div class="text-muted">@TempData["Exito"]</div>
             </div>
         </div>
@@ -25,7 +25,7 @@
         <div class="ep-alerta mb-4">
             <i class="bi bi-exclamation-triangle-fill ep-alerta-icono"></i>
             <div>
-                <div class="ep-alerta-titulo">OcurriÃ³ un problema</div>
+                <div class="ep-alerta-titulo">Ocurrió un problema</div>
                 <div class="text-muted">@TempData["Error"]</div>
             </div>
         </div>
@@ -62,7 +62,7 @@
                     <p class="card-text">@mision.Descripcion</p>
                     <div class="d-flex align-items-center gap-2 text-muted small mb-3">
                         <i class="bi bi-calendar-event"></i>
-                        <span>LÃ­mite: @mision.FechaLimite.ToString("dd/MM/yyyy")</span>
+                        <span>Límite: @mision.FechaLimite.ToString("dd/MM/yyyy")</span>
                     </div>
                         <div class="d-flex justify-content-between mb-2">
                         @if (mision.Estado == "Pendiente")

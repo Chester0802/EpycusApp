@@ -1,12 +1,12 @@
 ﻿@model EpycusApp.ViewModels.CrearMisionViewModel
 
 @{
-    ViewData["Title"] = "Crear MisiÃ³n";
+    ViewData["Title"] = "Crear Misión";
 }
 
 <div class="mb-4">
-    <h1 class="ep-header-title d-flex align-items-center gap-2">Nueva misiÃ³n <i class="bi bi-rocket text-primary"></i></h1>
-    <p class="ep-header-subtitle">Define una misiÃ³n concreta y alcanza tus objetivos.</p>
+    <h1 class="ep-header-title d-flex align-items-center gap-2">Nueva misión <i class="bi bi-rocket text-primary"></i></h1>
+    <p class="ep-header-subtitle">Define una misión concreta y alcanza tus objetivos.</p>
 </div>
 
 <div class="ep-card">
@@ -20,7 +20,7 @@
         </div>
 
         <div class="mb-3">
-            <label asp-for="Descripcion" class="form-label">DescripciÃ³n</label>
+            <label asp-for="Descripcion" class="form-label">Descripción</label>
             <textarea asp-for="Descripcion" class="form-control ep-input" rows="3" placeholder="Describe lo que necesitas completar"></textarea>
             <span asp-validation-for="Descripcion" class="text-danger"></span>
         </div>
@@ -28,11 +28,11 @@
         <div class="row mb-3">
             <div class="col-md-6">
                 <label asp-for="NombreCurso" class="form-label">Curso (Opcional)</label>
-                <input asp-for="NombreCurso" class="form-control ep-input" placeholder="Ej: MatemÃ¡tica" />
+                <input asp-for="NombreCurso" class="form-control ep-input" placeholder="Ej: Matemática" />
                 <span asp-validation-for="NombreCurso" class="text-danger"></span>
             </div>
             <div class="col-md-6">
-                <label asp-for="FechaLimite" class="form-label">Fecha LÃ­mite</label>
+                <label asp-for="FechaLimite" class="form-label">Fecha Límite</label>
                 <input asp-for="FechaLimite" type="date" class="form-control ep-input" />
                 <span asp-validation-for="FechaLimite" class="text-danger"></span>
             </div>
@@ -49,9 +49,9 @@
                 <span asp-validation-for="Prioridad" class="text-danger"></span>
             </div>
             <div class="col-md-6">
-                <label asp-for="CategoriaId" class="form-label">CategorÃ­a</label>
+                <label asp-for="CategoriaId" class="form-label">Categoría</label>
                 <select asp-for="CategoriaId" class="form-select ep-input" asp-items="ViewBag.Categorias">
-                    <option value="">-- Seleccione una CategorÃ­a --</option>
+                    <option value="">-- Seleccione una Categoría --</option>
                 </select>
                 <span asp-validation-for="CategoriaId" class="text-danger"></span>
             </div>
@@ -63,7 +63,7 @@
         </div>
 
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-ep">Guardar misiÃ³n</button>
+            <button type="submit" class="btn btn-ep">Guardar misión</button>
             <a asp-action="Index" class="btn btn-ep-outline">Cancelar</a>
         </div>
     </form>

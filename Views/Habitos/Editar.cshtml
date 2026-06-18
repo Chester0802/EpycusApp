@@ -1,12 +1,12 @@
 ﻿@model EpycusApp.ViewModels.EditarHabitoViewModel
 
 @{
-    ViewData["Title"] = "Editar hÃ¡bito";
+    ViewData["Title"] = "Editar hábito";
 }
 
 <div class="mb-4">
-    <h1 class="ep-header-title d-flex align-items-center gap-2">Editar hÃ¡bito <i class="bi bi-pencil-square text-primary"></i></h1>
-    <p class="ep-header-subtitle">Ajusta tu hÃ¡bito para mantener la constancia.</p>
+    <h1 class="ep-header-title d-flex align-items-center gap-2">Editar hábito <i class="bi bi-pencil-square text-primary"></i></h1>
+    <p class="ep-header-subtitle">Ajusta tu hábito para mantener la constancia.</p>
 </div>
 
 <form asp-action="Editar" method="post" class="ep-card">
@@ -25,7 +25,7 @@
     </div>
 
     <div class="mb-3">
-        <label asp-for="CategoriaId" class="form-label">CategorÃ­a</label>
+        <label asp-for="CategoriaId" class="form-label">Categoría</label>
         @{ var categorias = ViewBag.Categorias as List<EpycusApp.Models.Entidades.Categoria> ?? new List<EpycusApp.Models.Entidades.Categoria>(); }
         <select asp-for="CategoriaId" class="form-select ep-input">
             <option value="">-- Seleccione --</option>
@@ -54,9 +54,9 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label">DÃ­as de la semana (nÃºmeros separados por comas)</label>
+        <label class="form-label">Días de la semana (números separados por comas)</label>
         <input name="DiasSemana" value="@string.Join(',', Model.DiasSemana ?? new List<int>())" class="form-control ep-input" />
-        <div class="form-text text-muted">Usa 1=Lun, 2=Mar, 3=MiÃ©, 4=Jue, 5=Vie, 6=SÃ¡b, 0=Dom.</div>
+        <div class="form-text text-muted">Usa 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb, 0=Dom.</div>
     </div>
 
     <div class="form-check mb-3">
