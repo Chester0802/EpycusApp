@@ -140,6 +140,13 @@ public partial class Program
                 opt.QueueLimit = 5;
             });
 
+            options.AddFixedWindowLimiter("Gemini", opt =>
+            {
+                opt.PermitLimit = 20;
+                opt.Window = TimeSpan.FromMinutes(1);
+                opt.QueueLimit = 0;
+            });
+
             options.AddFixedWindowLimiter("DeepSeek", opt =>
             {
                 opt.PermitLimit = 2500;
@@ -183,6 +190,11 @@ public partial class Program
             });
         }
 
+        builder.Services.AddHttpClient("Gemini", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
         builder.Services.AddHttpClient("DeepSeek", client =>
         {
             client.Timeout = TimeSpan.FromSeconds(30);
@@ -198,6 +210,7 @@ public partial class Program
 
         var cadenaConexion = builder.Configuration.GetConnectionString("ConexionPrincipal")!;
         var healthChecks = builder.Services.AddHealthChecks()
+            .AddCheck<GeminiHealthCheck>("Gemini API", tags: ["api"])
             .AddCheck<DeepSeekHealthCheck>("DeepSeek API", tags: ["api"])
             .AddCheck<DiskHealthCheck>("Disco", tags: ["system"]);
 
