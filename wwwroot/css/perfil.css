@@ -33,11 +33,11 @@
 }
 
 .perfil-avatar-img {
-    width: 110px;
-    height: 110px;
+    width: 130px;
+    height: 130px;
     border-radius: 50%;
     object-fit: cover;
-    object-position: center top;   /* Muestra la cabeza del personaje, no la cintura */
+    object-position: center 20%;
     background: var(--bg-elevated);
     border: 3px solid var(--accent-primary, #8b5cf6);
     box-shadow: 0 6px 24px rgba(139, 92, 246, 0.3);

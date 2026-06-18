@@ -17,8 +17,12 @@
 </head>
 <body>
     <div class="d-flex">
-        <aside class="ep-sidebar">
+        <button id="ep-sidebar-toggle-admin" class="btn d-md-none position-fixed" style="top: 0.75rem; left: 0.75rem; z-index: 1060; background: var(--accent-primary); color: #fff; border-radius: var(--radius-md); padding: 0.5rem 0.65rem; font-size: 1.1rem;">
+            <i class="bi bi-list"></i>
+        </button>
+        <aside class="ep-sidebar" id="ep-sidebar-admin">
             <div class="d-flex align-items-center gap-2 mb-4">
+                <img src="~/img/logo.webp" alt="Epycus" style="width: 28px; height: 28px; object-fit: contain; display: none;" onerror="this.style.display='none'" />
                 <i class="bi bi-shield-lock fs-4"></i>
                 <span class="fw-semibold">Panel Admin</span>
             </div>
@@ -59,6 +63,26 @@
         </main>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var toggleBtn = document.getElementById('ep-sidebar-toggle-admin');
+            var sidebar = document.getElementById('ep-sidebar-admin');
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('open');
+                    var icon = toggleBtn.querySelector('i');
+                    icon.className = sidebar.classList.contains('open') ? 'bi bi-x-lg' : 'bi bi-list';
+                });
+                document.addEventListener('click', function(e) {
+                    if (window.innerWidth < 768 && sidebar.classList.contains('open') &&
+                        !sidebar.contains(e.target) && e.target !== toggleBtn && !toggleBtn.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                        toggleBtn.querySelector('i').className = 'bi bi-list';
+                    }
+                });
+            }
+        });
+    </script>
     <script src="~/lib/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

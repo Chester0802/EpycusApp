@@ -24,9 +24,13 @@
             var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
             var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
         }
-        <aside class="ep-sidebar">
+        <button id="ep-sidebar-toggle" class="btn d-md-none position-fixed" style="top: 0.75rem; left: 0.75rem; z-index: 1060; background: var(--accent-primary); color: #fff; border-radius: var(--radius-md); padding: 0.5rem 0.65rem; font-size: 1.1rem;">
+            <i class="bi bi-list"></i>
+        </button>
+        <aside class="ep-sidebar" id="ep-sidebar">
             <div class="d-flex align-items-center gap-2 mb-4">
-                <i class="bi bi-stars fs-4"></i>
+                <img src="~/img/logo.webp" alt="Epycus" class="ep-sidebar-logo" style="width: 32px; height: 32px; object-fit: contain; display: none;" onerror="this.style.display='none'" />
+                <i class="bi bi-stars fs-4" id="ep-sidebar-icon"></i>
                 <span class="fw-semibold">Epycus</span>
             </div>
             <nav class="d-flex flex-column gap-2 mb-auto">
@@ -62,6 +66,32 @@
         </main>
     </div>
 
+    <script>
+        // Sidebar toggle for mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            var toggleBtn = document.getElementById('ep-sidebar-toggle');
+            var sidebar = document.getElementById('ep-sidebar');
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('open');
+                    var icon = toggleBtn.querySelector('i');
+                    if (sidebar.classList.contains('open')) {
+                        icon.className = 'bi bi-x-lg';
+                    } else {
+                        icon.className = 'bi bi-list';
+                    }
+                });
+                // Close sidebar when clicking outside on mobile
+                document.addEventListener('click', function(e) {
+                    if (window.innerWidth < 768 && sidebar.classList.contains('open') &&
+                        !sidebar.contains(e.target) && e.target !== toggleBtn && !toggleBtn.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                        toggleBtn.querySelector('i').className = 'bi bi-list';
+                    }
+                });
+            }
+        });
+    </script>
     <script src="~/lib/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>

@@ -1,0 +1,40 @@
+@model EpycusApp.ViewModels.PaginacionViewModel
+
+@if (Model.TotalPaginas > 1)
+{
+    <nav aria-label="Paginación">
+        <ul class="pagination justify-content-center mt-4 mb-0" style="gap: 0.25rem;">
+            <li class="page-item @(Model.TienePaginaAnterior ? "" : "disabled")">
+                <a class="page-link" style="background: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: var(--radius-md); padding: 0.4rem 0.75rem;" href="@Url.Action(Model.Accion, Model.Controlador, new { pagina = Model.PaginaActual - 1 })" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+
+            @for (int i = 1; i <= Model.TotalPaginas; i++)
+            {
+                if (i == 1 || i == Model.TotalPaginas || (i >= Model.PaginaActual - 2 && i <= Model.PaginaActual + 2))
+                {
+                    <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+                        <a class="page-link" style="background: @(i == Model.PaginaActual ? "var(--accent-primary)" : "var(--bg-elevated)"); border: 1px solid @(i == Model.PaginaActual ? "var(--accent-primary)" : "var(--border-color)"); color: @(i == Model.PaginaActual ? "#fff" : "var(--text-primary)"); border-radius: var(--radius-md); padding: 0.4rem 0.75rem;" href="@Url.Action(Model.Accion, Model.Controlador, new { pagina = i })">@i</a>
+                    </li>
+                }
+                else if (i == Model.PaginaActual - 3 || i == Model.PaginaActual + 3)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link" style="background: transparent; border: none; color: var(--text-tertiary); padding: 0.4rem 0.25rem;">…</span>
+                    </li>
+                }
+            }
+
+            <li class="page-item @(Model.TienePaginaSiguiente ? "" : "disabled")">
+                <a class="page-link" style="background: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: var(--radius-md); padding: 0.4rem 0.75rem;" href="@Url.Action(Model.Accion, Model.Controlador, new { pagina = Model.PaginaActual + 1 })" aria-label="Siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+
+        <p class="text-center small mt-2" style="color: var(--text-tertiary);">
+            Mostrando @Model.Desde–@Model.Hasta de @Model.TotalItems resultados
+        </p>
+    </nav>
+}
