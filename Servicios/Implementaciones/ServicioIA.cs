@@ -120,7 +120,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 GenerationConfig = new GeminiConfig { Temperature = 0.75, MaxOutputTokens = 900 }
             };
 
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_modelo}:generateContent?key={_apiKey}";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_modelo}:generateContent";
 
             var maxReintentos = 2;
             for (var intento = 0; intento <= maxReintentos; intento++)
@@ -132,6 +132,7 @@ namespace EpycusApp.Servicios.Implementaciones
                     {
                         Content = JsonContent.Create(request)
                     };
+                    reqMsg.Headers.Add("x-goog-api-key", _apiKey);
 
                     var httpResp = await _httpClient.SendAsync(reqMsg, cts.Token);
                     if (!httpResp.IsSuccessStatusCode)
