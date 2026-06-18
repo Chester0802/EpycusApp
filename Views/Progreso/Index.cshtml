@@ -94,7 +94,7 @@
                 
                 <div class="col-12 col-md-6 col-xl-4">
                     <div class="ep-card d-flex gap-3 h-100 @(desbloqueado ? "ep-card-neon" : "opacity-50")" style="transition: all 0.3s ease;">
-                        <div class="d-flex align-items-center justify-content-center rounded" style="width: 64px; height: 64px; min-width: 64px; background: var(--bg-elevated);">
+                        <div class="d-flex align-items-center justify-content-center rounded" style="width: clamp(48px, 12vw, 64px); height: clamp(48px, 12vw, 64px); min-width: 48px; background: var(--bg-elevated);">
                             @if (!string.IsNullOrEmpty(logro.IconoUrl))
                             {
                                 <img src="@logro.IconoUrl" alt="@logro.Nombre" style="width: 40px; height: 40px; filter: @(desbloqueado ? "none" : "grayscale(100%)");" />
