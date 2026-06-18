@@ -39,6 +39,14 @@ Sistema multiplataforma de gamificación de hábitos profesionales inspirado en 
 
 > **IMPORTANTE:** La app en el VPS corre como servicio systemd. Siempre hay que detenerlo (`stop`) antes de publicar para evitar archivos bloqueados, e iniciarlo (`start`) después.
 
+### Últimas correcciones (2026-06-18)
+
+| Error | Causa | Solución |
+|-------|-------|----------|
+| `jQuery is not defined` | Faltaba `<script>` de `jquery.min.js` en `_ValidationScriptsPartial.cshtml` | Agregado `jquery.min.js` antes de los scripts de validación |
+| `500 — Unknown column 'f.Categoria'` | Migración `AddCategoriaToFraseMotivacional` no aplicada en BD | Ejecutado `ALTER TABLE` manual en MySQL + migración subida a GitHub |
+| `⚠` en validaciones (CSS `\26A0`) | Icono de advertencia de validación por diseño, no es un error | Confirmado como comportamiento esperado |
+
 ## Estado del Proyecto
 
 | Aspecto | Estado |
