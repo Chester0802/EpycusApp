@@ -1,0 +1,132 @@
+@startuml
+!theme plain
+skinparam defaultFontName Consolas
+skinparam defaultFontSize 10
+skinparam sequenceArrowThickness 2
+skinparam participantPadding 20
+
+title Epycus App - Flujos Clave API Mobile
+
+' ===========================================
+' FLUJO 1: REGISTRO + LOGIN
+' ===========================================
+
+== Flujo 1: Registro y Login ==
+
+actor "Usuario" as user
+participant "App Android" as app
+participant "api/auth" as auth
+participant "ServicioAutenticacion" as srv
+participant "Base de Datos" as db
+
+user -> app : Ingresa datos\nde registro
+app -> auth : POST /api/auth/registro\n{nombre, correo, contrasena,\nfechaNacimiento, genero, carreraId}
+auth -> srv : RegistrarUsuario(modelo)
+srv -> db : Crear Usuario\nCrear ProgresoUsuario\nCrear ConfigPomodoro
+srv -> db : Asignar Nivel 1\nPersonaje por defecto
+db --> srv : OK
+srv --> auth : {token, refreshToken}
+auth --> app : 200 OK\n{token, refreshToken}
+app -> app : Guardar token\nen SharedPreferences
+
+user -> app : Abre app (sesion iniciada)
+app -> auth : POST /api/auth/login\n{correo, contrasena}
+auth -> srv : Login(correo, contrasena)
+srv -> db : Validar credenciales
+db --> srv : Usuario valido
+srv --> auth : {token, refreshToken}
+auth --> app : 200 OK\n{token, refreshToken}
+app -> app : Actualizar token
+
+note over app
+  Todos los requests siguientes
+  incluyen header:
+  Authorization: Bearer {token}
+end note
+
+' ===========================================
+' FLUJO 2: DASHBOARD PRINCIPAL
+' ===========================================
+
+== Flujo 2: Carga de Dashboard Principal ==
+
+user -> app : Abre dashboard
+app -> app : Iniciar llamadas\nparalelas
+
+group Carga en paralelo
+  app -> auth : GET /api/auth/me\n(desde el token JWT)
+  app -> dash : GET /api/dashboard/resumen
+  app -> habits : GET /api/habitos/hoy
+  app -> missions : GET /api/misiones
+  app -> gamify : GET /api/gamificacion/mi-progreso
+  app -> wellness : GET /api/bienestar/frase
+  app -> mood : GET /api/estado-animo/historial?dias=7
+
+  dash --> app : {habitosPendientes, misionesPendientes, frase}
+  habits --> app : [{id, nombre, estadoHoy, xpPotencial}]
+  missions --> app : [{id, nombre, prioridad, estado, fechaLimite}]
+  gamify --> app : {xpTotal, nivel, titulo, rachaActual, porcentajeProgreso, imagenPersonaje}
+  wellness --> app : {frase: {frase, autor}}
+  mood --> app : [{fecha, estado, nota}]
+end
+
+app -> app : Renderizar dashboard\ncon datos combinados
+
+' ===========================================
+' FLUJO 3: COMPLETAR HABITO
+' ===========================================
+
+== Flujo 3: Completar Habito ==
+
+user -> app : Marca habito como completado
+app -> habits : POST /api/habitos/{id}/completar
+habits -> srv : CompletarHabito(id, usuarioId)
+srv -> db : Crear RegistroHabito\n(Estado=Completado, Fecha=hoy)
+srv -> db : Sumar XP\nActualizar racha
+srv -> db : Verificar logros
+db --> srv : OK
+srv --> habits : {xpGanado}
+habits --> app : 200 OK\n{xpGanado: 20}
+app -> app : Mostrar animacion\n+20 XP
+app -> gamify : GET /api/gamificacion/mi-progreso
+gamify --> app : {xpTotal, nivel, porcentaje}
+app -> app : Actualizar barra XP
+
+' ===========================================
+' FLUJO 4: SESION POMODORO
+' ===========================================
+
+== Flujo 4: Sesion Pomodoro Completa ==
+
+user -> app : Inicia pomodoro
+app -> pomo : POST /api/pomodoro/iniciar\n{habitoId?, misionId?}
+pomo --> app : {sesionId, fechaInicio}
+
+loop Ciclo de estudio
+  user -> app : Completa ciclo de trabajo
+  app -> pomo : POST /api/pomodoro/{sesionId}/ciclo-completado\n{ciclosCompletados: N}
+  pomo --> app : {xpGanado, sugerirDescanso, pausaActiva}
+  app -> user : Notificar:\n"Tiempo de descanso"
+end
+
+user -> app : Finaliza sesion
+app -> pomo : POST /api/pomodoro/{sesionId}/finalizar\n{ciclosCompletados: N}
+pomo --> app : {xpTotal, sesionGuardada}
+
+' ===========================================
+' FLUJO 5: REGISTRO DIARIO
+' ===========================================
+
+== Flujo 5: Registro en Diario de Animo ==
+
+user -> app : Abre diario
+app -> diary : GET /api/diario/hoy
+diary --> app : {entrada: null | {estadoAnimo, nivelEnergia, ...}}
+app -> diary : GET /api/diario/pregunta-guia
+diary --> app : {pregunta: "Que aprendiste hoy?"}
+
+user -> app : Llena formulario:\nestadoAnimo=4,\nnivelEnergia=3,\nrespuestaGuia="..."
+app -> diary : POST /api/diario\n{estadoAnimo, nivelEnergia,\nhorasSueno, nivelEstres,\nactividadFisica, diarioTexto,\nrespuestaGuia}
+diary --> app : 201 Created\n{entrada}
+
+@enduml

@@ -1,0 +1,159 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Consolas
+skinparam defaultFontSize 10
+
+title Epycus App - Endpoints API Mobile
+
+package "api/auth" {
+  class AuthController {
+    + POST login(correo, contrasena)
+    + POST refresh(refreshToken)
+    + POST logout()
+    + POST registro(nombre, correo, contrasena, fechaNacimiento, genero, carreraId, aceptoTerminos)
+    + GET verificar-correo(token)
+    + POST recuperar-contrasena(correo)
+    + POST restablecer-contrasena(token, nuevaContrasena)
+    + POST google(googleId, correo, nombre, fotoUrl)
+    + POST completar-registro-google(...)
+    + GET carreras()
+  }
+  note bottom : RateLimit: Auth (20/min)
+}
+
+package "api/habitos" {
+  class HabitosController {
+    + GET /
+    + GET /hoy
+    + GET /{id}
+    + POST /
+    + PUT /{id}
+    + DELETE /{id}
+    + POST /{id}/completar
+    + POST /{id}/fallar
+    + GET /{id}/semana
+    + GET /dashboard
+    + GET /categorias
+  }
+}
+
+package "api/misiones" {
+  class MisionesController {
+    + GET /
+    + GET /{id}
+    + POST /
+    + PUT /{id}
+    + DELETE /{id}
+    + POST /{id}/completar
+    + POST /{id}/estado
+    + GET /categorias
+  }
+}
+
+package "api/perfil" {
+  class PerfilController {
+    + GET /
+    + PUT /
+    + PUT /cambiar-contrasena
+    + PUT /personaje
+    + PUT /tema
+    + GET /personajes
+    + GET /logros
+  }
+}
+
+package "api/pomodoro" {
+  class PomodoroController {
+    + POST /iniciar
+    + POST /{sesionId}/ciclo-completado
+    + POST /{sesionId}/finalizar
+    + POST /{sesionId}/cancelar
+    + GET /configuracion
+    + PUT /configuracion
+    + GET /tip-aleatorio
+  }
+}
+
+package "api/diario" {
+  class DiarioController {
+    + GET /hoy
+    + GET /fecha?fecha=yyyy-MM-dd
+    + GET /mes?anio=&mes=
+    + POST / (crear entrada)
+    + PUT /{fecha}
+    + GET /racha
+    + GET /promedio-mes?anio=&mes=
+    + GET /pregunta-guia
+  }
+}
+
+package "api/bienestar" {
+  class BienestarController {
+    + GET /resumen
+    + GET /alertas
+    + GET /frase
+    + GET /estado-hoy
+    + GET /historial-animo?dias=30
+    + GET /habitos-pendientes
+    + GET /misiones-pendientes
+    + POST /pausa-activa
+  }
+}
+
+package "api/estado-animo" {
+  class EstadoAnimoController {
+    + POST / 
+    + GET /historial
+  }
+}
+
+package "api/progreso + gamificacion + dashboard" {
+  class ProgresoController {
+    + GET /
+    + GET /logros
+    + GET /historial-animo
+  }
+  class GamificacionController {
+    + GET /mi-progreso
+    + GET /logros
+  }
+  class DashboardController {
+    + GET /resumen
+    + GET /frase-del-dia
+  }
+}
+
+package "api/ia" {
+  class IaController {
+    + POST /chat
+    + GET /historial?conversacionId=
+    + GET /conversaciones
+    + GET /sugerencias
+    + GET /contexto-bienestar
+    + POST /feedback
+    + GET /mensajes-hoy
+  }
+}
+
+package "api/admin" {
+  class AdminController {
+    + POST /login
+    + GET /usuarios
+    + GET /usuarios/{id}
+    + POST /usuarios/{id}/suscripcion/activar
+    + POST /usuarios/{id}/suscripcion/desactivar
+    + GET /frases
+    + POST /frases
+    + DELETE /frases/{id}
+  }
+  note bottom : RateLimit: Api (300/min)
+}
+
+note top of HabitosController
+  RateLimit: Mobile (400/min)
+  aplica a todos los
+  controladores mobile
+end note
+
+@enduml

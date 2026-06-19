@@ -1,0 +1,85 @@
+@startuml
+!theme plain
+skinparam packageStyle rect
+skinparam componentStyle rectangle
+skinparam defaultFontName Consolas
+skinparam defaultFontSize 11
+
+title Epycus App - Arquitectura de API Mobile
+
+package "App Android (Java)" as mobile {
+  [Retrofit Client]
+  [Auth Manager]
+  [Local Cache]
+}
+
+package "API REST Epycus" as api {
+  [api/auth] as auth
+  [api/habitos] as habits
+  [api/misiones] as missions
+  [api/pomodoro] as pomo
+  [api/perfil] as profile
+  [api/diario] as diary
+  [api/bienestar] as wellness
+  [api/estado-animo] as mood
+  [api/progreso] as progress
+  [api/gamificacion] as gamy
+  [api/dashboard] as dash
+  [api/ia] as ia
+  [api/admin] as admin
+}
+
+package "Backend Services" as services {
+  [ServicioAutenticacion]
+  [ServicioHabitos]
+  [ServicioMisiones]
+  [ServicioPomodoro]
+  [ServicioPerfil]
+  [ServicioDiarioAnimo]
+  [ServicioBienestar]
+  [ServicioGamificacion]
+  [ServicioProgreso]
+  [ServicioIA]
+  [ServicioAdmin]
+}
+
+database "MySQL / MariaDB" as db {
+  [Usuarios]
+  [Habitos]
+  [Misiones]
+  [SesionesPomodoro]
+  [ProgresosUsuario]
+  [EstadosAnimo]
+  [EntradasDiario]
+  [MensajesIA]
+  [Logros]
+  [Personajes]
+  [Suscripciones]
+  [Temas]
+  [Categorias]
+}
+
+mobile --> api : HTTPS / JWT Bearer Token
+mobile --> auth : Login / Registro
+
+api --> services
+services --> db
+
+note right of auth
+  Rate Limit: 20 req/min
+  Anti brute force
+end note
+
+note right of api
+  Rate Limit: 400 req/min
+  Con cola de 10
+end note
+
+note left of mobile
+  Token JWT almacenado
+  en SharedPreferences
+  Envio en header:
+  Authorization: Bearer {token}
+end note
+
+@enduml
