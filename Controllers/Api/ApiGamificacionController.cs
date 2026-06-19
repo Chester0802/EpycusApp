@@ -39,7 +39,7 @@ namespace EpycusApp.Controllers.Api
                 rachaActual = progreso.RachaActual,
                 xpParaSiguienteNivel = xpParaSiguiente,
                 porcentajeProgreso = porcentaje,
-                imagenPersonaje = imagen
+                imagenPersonaje = ConvertirUrlAbsoluta(imagen)
             };
 
             return Ok(RespuestaApi<object>.Exitosa(respuesta));

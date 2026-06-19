@@ -100,7 +100,7 @@ namespace EpycusApp.Controllers.Api
         public async Task<IActionResult> ObtenerTip()
         {
             var tip = await _servicioPomodoro.ObtenerTipAleatorio();
-            return Ok(RespuestaApi<object>.Exitosa(new { tip }));
+            return Ok(RespuestaApi<object>.Exitosa(new { consejo = tip }));
         }
     }
 }

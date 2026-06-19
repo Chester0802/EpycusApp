@@ -34,7 +34,7 @@ namespace EpycusApp.Controllers.Api
                 return NotFound(RespuestaApi<object>.Fallida("Perfil no encontrado"));
             }
 
-            var imagenPersonaje = await _servicioPerfil.ObtenerImagenPersonajeActual(usuarioId);
+            var imagenPersonaje = ConvertirUrlAbsoluta(await _servicioPerfil.ObtenerImagenPersonajeActual(usuarioId));
 
             return Ok(RespuestaApi<object>.Exitosa(new
             {
@@ -88,7 +88,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             await _servicioPerfil.CambiarPersonaje(request.PersonajeId, usuarioId);
-            var nuevaImagen = await _servicioPerfil.ObtenerImagenPersonajeActual(usuarioId);
+            var nuevaImagen = ConvertirUrlAbsoluta(await _servicioPerfil.ObtenerImagenPersonajeActual(usuarioId));
 
             return Ok(RespuestaApi<object>.Exitosa(new { imagenUrl = nuevaImagen }));
         }

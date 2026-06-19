@@ -324,6 +324,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
             var habitos = await _context.Habitos
                 .Include(h => h.Registros)
+                .Include(h => h.Categoria)
                 .Where(h => h.UsuarioId == usuarioId && h.EstaActivo)
                 .ToListAsync();
 
@@ -332,7 +333,8 @@ namespace EpycusApp.Servicios.Implementaciones
                 Id = h.Id,
                 Nombre = h.Nombre,
                 EstadoHoy = h.Registros.FirstOrDefault(r => r.Fecha == hoy)?.Estado ?? "Pendiente",
-                XpPotencial = ConstantesGamificacion.XP_BASE_HABITO
+                XpPotencial = ConstantesGamificacion.XP_BASE_HABITO,
+                Categoria = h.Categoria?.Nombre ?? string.Empty
             }).ToList();
         }
 

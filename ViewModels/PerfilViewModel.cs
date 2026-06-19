@@ -23,6 +23,7 @@ namespace EpycusApp.ViewModels
         public int XpTotal { get; set; }
         public int RachaActual { get; set; }
         public int RachaMaxima { get; set; }
+        public int TotalHabitosCompletados { get; set; }
         public DateTime FechaRegistro { get; set; }
 
         // Personajes
