@@ -38,6 +38,7 @@ namespace EpycusApp.Datos
         public DbSet<DiasSemanaHabito> DiasSemanaHabito { get; set; }
  = null!;
         public DbSet<MensajeIA> MensajesIA { get; set; } = null!;
+        public DbSet<EntradaDiario> EntradasDiario { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -182,6 +183,19 @@ namespace EpycusApp.Datos
 
             modelBuilder.Entity<EstadoAnimo>()
                 .HasIndex(e => e.UsuarioId);
+
+            modelBuilder.Entity<EntradaDiario>()
+                .HasIndex(e => new { e.UsuarioId, e.Fecha })
+                .IsUnique();
+
+            modelBuilder.Entity<EntradaDiario>()
+                .HasIndex(e => e.UsuarioId);
+
+            modelBuilder.Entity<EntradaDiario>()
+                .HasOne(e => e.Usuario)
+                .WithMany()
+                .HasForeignKey(e => e.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<TokenRefresh>()
                 .HasIndex(t => t.UsuarioId);

@@ -1,6 +1,6 @@
 # PENDIENTES — Auditoría Pre-Producción EpycusApp
 
-> Generado: 2026-06-15 | Última actualización: 2026-06-18 (ARQ: +17 hallazgos | corregidos: CRITICO-008, UX-014, UX-015, UX-016, UX-017 a UX-034 | auditoría UI/UX completa: 18 hallazgos nuevos UX-017 a UX-034 | **segunda auditoría UI/UX: 12 nuevos UX-035 a UX-046, corregidos UX-019, UX-027, UX-029, UX-035 a UX-046**) | **✅ TERCERA AUDITORÍA UI/UX: 12 nuevos UX-047 a UX-054, TODOS CORREGIDOS** | **🔄 CUARTA AUDITORÍA UI/UX: 5 nuevos UX-055 a UX-059, PENDIENTES** | **✅ CORREGIDO: ARQ-001, ARQ-002, ARQ-004, ARQ-005, IA-IMP-11 (credenciales reales reemplazadas por placeholders, API key movida a header)** | **✅ VPS: VPS-007 (monitoreo), VPS-008 (rotación logs), VPS-009 (página mantenimiento) — 3 nuevos scripts/conf: `deploy/monitoreo-uptime.sh`, `deploy/journald-log-rotation.conf`, `deploy/maintenance.html`, `deploy/maintenance.sh`** | **✅ ODS 3: audit complete — B-FALTA-01 a B-FALTA-11, B-ERR-01/06/07, B-INC-01 a B-INC-05, B-UI-02 a B-UI-05 corregidos** | **✅ CRITICO-009 (jQuery), CRITICO-010 (Categoria BD), VPS-010 (sincronización GitHub↔VPS) corregidos** | **✅ GOOGLE AUTH: CRITICO-006 corregido, flujo completo de inicio de sesión y registro con Google implementado (botón en Login/Registro, callback OAuth, formulario extra de carrera para nuevos usuarios)**
+> Generado: 2026-06-15 | Última actualización: 2026-06-19 — **✅ MÓDULO DIARIO DE ÁNIMO ODS 3: implementado (entidad, servicio, controlador, vista, CSS, migración, navegación)** | (ARQ: +17 hallazgos | corregidos: CRITICO-008, UX-014, UX-015, UX-016, UX-017 a UX-034 | auditoría UI/UX completa: 18 hallazgos nuevos UX-017 a UX-034 | **segunda auditoría UI/UX: 12 nuevos UX-035 a UX-046, corregidos UX-019, UX-027, UX-029, UX-035 a UX-046**) | **✅ TERCERA AUDITORÍA UI/UX: 12 nuevos UX-047 a UX-054, TODOS CORREGIDOS** | **🔄 CUARTA AUDITORÍA UI/UX: 5 nuevos UX-055 a UX-059, PENDIENTES** | **✅ CORREGIDO: ARQ-001, ARQ-002, ARQ-004, ARQ-005, IA-IMP-11 (credenciales reales reemplazadas por placeholders, API key movida a header)** | **✅ VPS: VPS-007 (monitoreo), VPS-008 (rotación logs), VPS-009 (página mantenimiento) — 3 nuevos scripts/conf: `deploy/monitoreo-uptime.sh`, `deploy/journald-log-rotation.conf`, `deploy/maintenance.html`, `deploy/maintenance.sh`** | **✅ ODS 3: audit complete — B-FALTA-01 a B-FALTA-11, B-ERR-01/06/07, B-INC-01 a B-INC-05, B-UI-02 a B-UI-05 corregidos** | **✅ CRITICO-009 (jQuery), CRITICO-010 (Categoria BD), VPS-010 (sincronización GitHub↔VPS) corregidos** | **✅ GOOGLE AUTH: CRITICO-006 corregido, flujo completo de inicio de sesión y registro con Google implementado (botón en Login/Registro, callback OAuth, formulario extra de carrera para nuevos usuarios)**
 > Proyecto: EpycusApp (ASP.NET Core 9 + MariaDB + Gemini API) | VPS-007 ✅, VPS-008 ✅, VPS-009 ✅, VPS-010 ✅
 
 ## Flujo de trabajo (para la IA)
@@ -299,7 +299,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 
 ## 🌱 ODS 3 — BIENESTAR
 
-> Auditoría: 2026-06-18 | Última corrección: 2026-06-18 | Cobertura: Estado de ánimo, alertas, frases motivacionales, UI, API, BD, IA, Pomodoro
+> Auditoría: 2026-06-18 | Última corrección: 2026-06-19 | Cobertura: Estado de ánimo, alertas, frases motivacionales, UI, API, BD, IA, Pomodoro, **Diario de Ánimo (módulo dedicado)**
 
 ### ✅ Implementado
 
@@ -329,6 +329,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | B-OK-22 | Validación server-side en API estado ánimo (Required, StringLength, lista blanca) | `ApiEstadoAnimoController.cs` |
 | B-OK-23 | Mojibake corregido en `ServicioBienestar.cs` (re-encoding UTF-8) | `ServicioBienestar.cs` |
 | B-OK-24 | TempData unificado a clave `"Exito"` | `BienestarController.cs:43` |
+| B-OK-25 | **Módulo Diario de Ánimo ODS 3:** Entidad `EntradaDiario`, servicio con 15 preguntas psicológicas rotativas, controlador MVC, vista con formulario + calendario mensual + racha + psicología, CSS responsivo, migración EF | `Models/Entidades/EntradaDiario.cs`, `Servicios/Implementaciones/ServicioDiarioAnimo.cs`, `Controllers/DiarioAnimoController.cs`, `Views/DiarioAnimo/Index.cshtml`, `wwwroot/css/diario-animo.css` |
 
 ### ✅ CORREGIDO — Funcionalidades implementadas
 
@@ -378,6 +379,45 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | B-UI-03 | **Media** | ✅ | Círculos de historial ahora usan `EstadoColor()` y `EstadoBg()` con `var(--ep-animo-*)`. Colores hardcodeados reemplazados. |
 | B-UI-04 | **Baja** | ✅ | `EstadoColor()` y `EstadoBg()` ahora devuelven variables CSS (`var(--ep-animo-*)`) en lugar de colores hardcodeados. |
 | B-UI-05 | **Baja** | ✅ | `wwwroot/css/bienestar.css` creado. Todos los estilos inline de la vista migrados al archivo dedicado. |
+
+### 📝 NUEVO — MÓDULO DIARIO DE ÁNIMO ODS 3
+
+Módulo dedicado tipo diario donde el usuario registra su estado de ánimo diario con fundamentos psicológicos.
+
+| ID | Prioridad | Descripción | Estado |
+|----|-----------|-------------|--------|
+| B-ODS3-01 | **Alta** | **Registro diario tipo diario:** Vista dedicada (no solo el bienestar actual) donde el usuario escribe cómo se siente, con campos de: estado de ánimo (escala 1-5), nivel de energía, horas de sueño, nivel de estrés, actividad física, y un diario libre (texto). | ✅ Implementado |
+| B-ODS3-02 | **Alta** | **Psicología positiva integrada:** Al registrar el ánimo, pedir "¿Por qué te sientes así?" (autoconocimiento) y "¿Qué cosas buenas pasaron hoy?" (gratitud). Basado en terapia cognitivo-conductual y psicología positiva (Martin Seligman). | ✅ Implementado — 15 preguntas rotativas diarias basadas en psicología positiva, TCC, autocompasión, flow, etc. |
+| B-ODS3-03 | **Alta** | **Historial-calendario mensual:** Vista de calendario donde cada día tiene un color según el estado de ánimo registrado. Click en un día para ver la entrada completa. Similar a diarios de mindfulness (Daylio, Moodfit). | ✅ Implementado — Calendario mensual con puntos de color por estado, navegación entre meses, lista de entradas del mes |
+| B-ODS3-04 | **Media** | **Tendencias semanales/mensuales:** Gráficos Chart.js mostrando promedios de ánimo, energía, estrés y sueño por semana/mes. Detección de patrones (ej: "los lunes tienes más estrés"). | ⚠️ Pendiente |
+| B-ODS3-05 | **Media** | **Preguntas guía psicológicas:** Banco de preguntas rotativas diarias basadas en psicología: "¿De qué te sientes orgulloso hoy?", "¿Qué aprendiste?", "¿Cómo trataste a los demás?" (Kristin Neff — autocompasión, Carol Dweck — mentalidad de crecimiento). | ✅ Implementado — 15 preguntas en `ServicioDiarioAnimo.cs`, rotación por día del año |
+| B-ODS3-06 | **Media** | **Análisis de sentimiento con IA:** Al guardar el diario, EDY (Gemini) analiza el texto y sugiere actividades, recursos o alertas si detecta patrones de riesgo (bajo ánimo recurrente, ansiedad, soledad). | ⚠️ Pendiente |
+| B-ODS3-07 | **Media** | **Rachas y logros ODS-3:** Nuevos logros por racha de días consecutivos escribiendo en el diario (3, 7, 14, 30, 60, 90 días). Gamificación del hábito de autoconocimiento. | ✅ Parcial — Contador de racha visible en UI. Pendiente: integrar con sistema de logros |
+| B-ODS3-08 | **Media** | **Exportar diario personal:** Botón para descargar el historial completo del diario en JSON, CSV o PDF. El usuario es dueño de sus datos de bienestar. | ⚠️ Pendiente |
+| B-ODS3-09 | **Baja** | **Recordatorio diario (push/email):** Notificación push (vía Service Worker / PWA) o email diario a las 20:00 recordando escribir en el diario si no lo ha hecho hoy. | ⚠️ Pendiente |
+| B-ODS3-10 | **Baja** | **Widget en Dashboard:** En la página de inicio, mostrar un mini-resumen del último registro: "Hoy te sentiste [feliz/triste/etc.]. Llevas [X] días seguidos escribiendo." | ⚠️ Pendiente |
+
+**Archivos creados:**
+
+| Archivo | Propósito |
+|---------|-----------|
+| `Models/Entidades/EntradaDiario.cs` | Entidad EF con campos: EstadoAnimo (1-5), NivelEnergia, HorasSueno, NivelEstres, ActividadFisica, DiarioTexto, PreguntaGuia, RespuestaGuia |
+| `ViewModels/DiarioAnimoViewModel.cs` | ViewModels para la vista principal + formulario de registro + calendario |
+| `Servicios/Interfaces/IServicioDiarioAnimo.cs` | Interfaz del servicio con métodos CRUD + rachas + promedios |
+| `Servicios/Implementaciones/ServicioDiarioAnimo.cs` | Implementación con 15 preguntas psicológicas rotativas |
+| `Controllers/DiarioAnimoController.cs` | Controlador MVC con acciones Index, Registrar, NavegarMes |
+| `Views/DiarioAnimo/Index.cshtml` | Vista completa: formulario, calendario, historial, psicología |
+| `wwwroot/css/diario-animo.css` | Estilos dedicados responsivos |
+| `Migrations/20260619000237_AddEntradaDiario.cs` | Migración EF para la nueva tabla `EntradasDiario` |
+
+**Archivos modificados:**
+
+| Archivo | Cambio |
+|---------|--------|
+| `Views/Shared/_Layout.cshtml` | Enlace de navegación "Diario Ánimo" agregado junto a los demás módulos |
+| `Views/_ViewImports.cshtml` | Agregado `@using EpycusApp.ViewModels` |
+| `Datos/ContextoAplicacion.cs` | Agregado `DbSet<EntradaDiario>` + índice único (UsuarioId, Fecha) + relación |
+| `Program.cs` | Registrado `IServicioDiarioAnimo` / `ServicioDiarioAnimo` como Scoped |
 
 ---
 

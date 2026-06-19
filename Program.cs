@@ -229,6 +229,7 @@ public partial class Program
         builder.Services.AddScoped<IServicioCorreo, ServicioCorreo>();
         builder.Services.AddScoped<IServicioAdmin, ServicioAdmin>();
         builder.Services.AddScoped<IServicioBienestar, ServicioBienestar>();
+        builder.Services.AddScoped<IServicioDiarioAnimo, ServicioDiarioAnimo>();
         builder.Services.AddScoped<IServicioIA, ServicioIA>();
 
         var app = builder.Build();

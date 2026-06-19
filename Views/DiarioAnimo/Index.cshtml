@@ -1,0 +1,314 @@
+@model DiarioAnimoViewModel
+@{
+    ViewData["Title"] = "Diario de Ánimo";
+    var estadoConfig = new Dictionary<int, (string Emoji, string Label, string Color, string BgColor)>
+    {
+        [1] = ("😄", "Genial",    "var(--ep-animo-genial)",    "var(--ep-animo-genial-bg)"),
+        [2] = ("🙂", "Bien",      "var(--ep-animo-bien)",      "var(--ep-animo-bien-bg)"),
+        [3] = ("😐", "Normal",    "var(--ep-animo-normal)",    "var(--ep-animo-normal-bg)"),
+        [4] = ("😴", "Cansado",   "var(--ep-animo-cansado)",   "var(--ep-animo-cansado-bg)"),
+        [5] = ("😰", "Estresado", "var(--ep-animo-estresado)", "var(--ep-animo-estresado-bg)")
+    };
+    var energiaLabels = new Dictionary<int, string>
+    {
+        [1] = "Muy baja", [2] = "Baja", [3] = "Normal", [4] = "Alta", [5] = "Muy alta"
+    };
+    var estresLabels = new Dictionary<int, string>
+    {
+        [1] = "Nada", [2] = "Poco", [3] = "Normal", [4] = "Bastante", [5] = "Mucho"
+    };
+    var primerDiaMes = new DateOnly(Model.Año, Model.Mes, 1);
+    var ultimoDiaMes = primerDiaMes.AddMonths(1).AddDays(-1);
+    var diaSemanaInicio = (int)primerDiaMes.DayOfWeek;
+    var totalDias = ultimoDiaMes.Day;
+    var entradasPorFecha = Model.EntradasMes.ToDictionary(e => e.Fecha.Day, e => e.EstadoAnimo);
+    var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
+}
+
+<link rel="stylesheet" href="~/css/diario-animo.css" asp-append-version="true" />
+
+<div class="ep-da-container">
+    <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+        <h1 class="ep-da-titulo mb-0">
+            <i class="bi bi-book"></i> Diario de Ánimo
+        </h1>
+        <a href="https://www.un.org/sustainabledevelopment/es/health/" target="_blank" rel="noopener" class="ep-ods-badge">
+            <img src="https://ods.gal//wp-content/uploads/2018/10/S_SDG_Icons-03.jpg" alt="ODS 3" style="height: 28px; width: auto; border-radius: 4px;" />
+            ODS 3 — Salud y Bienestar
+        </a>
+    </div>
+
+    @if (Model.DiasConsecutivos > 0)
+    {
+        <div class="alert alert-info d-flex align-items-center gap-2 py-2 px-3 mb-3" style="background: var(--ep-animo-bien-bg); border: 1px solid var(--ep-animo-bien); color: var(--texto);">
+            <i class="bi bi-fire fs-5" style="color: var(--ep-animo-bien);"></i>
+            <span><strong>@Model.DiasConsecutivos día@(Model.DiasConsecutivos != 1 ? "s" : "") consecutivo@(Model.DiasConsecutivos != 1 ? "s" : "")</strong> escribiendo en tu diario. ¡Sigue así!</span>
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="ep-da-stat-card">
+                <div class="ep-da-stat-icon" style="background: var(--ep-animo-genial-bg); color: var(--ep-animo-genial);">
+                    <i class="bi bi-fire"></i>
+                </div>
+                <div class="ep-da-stat-info">
+                    <span class="ep-da-stat-value">@Model.DiasConsecutivos</span>
+                    <span class="ep-da-stat-label">Días seguidos</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="ep-da-stat-card">
+                <div class="ep-da-stat-icon" style="background: var(--ep-animo-bien-bg); color: var(--ep-animo-bien);">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="ep-da-stat-info">
+                    <span class="ep-da-stat-value">@(Model.PromedioAnimoMes.HasValue ? Model.PromedioAnimoMes.Value.ToString("F1") : "--")</span>
+                    <span class="ep-da-stat-label">Ánimo promedio</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="ep-da-stat-card">
+                <div class="ep-da-stat-icon" style="background: var(--ep-animo-normal-bg); color: var(--ep-animo-normal);">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="ep-da-stat-info">
+                    <span class="ep-da-stat-value">@Model.TotalEntradasMes</span>
+                    <span class="ep-da-stat-label">Este mes</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="ep-da-stat-card">
+                <div class="ep-da-stat-icon" style="background: var(--ep-animo-cansado-bg); color: var(--ep-animo-cansado);">
+                    <i class="bi bi-emoji-smile"></i>
+                </div>
+                <div class="ep-da-stat-info">
+                    <span class="ep-da-stat-value" id="estadoHoyLabel">@(Model.EntradaHoy != null ? estadoConfig[Model.EntradaHoy.EstadoAnimo].Label : "--")</span>
+                    <span class="ep-da-stat-label">Estado hoy</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-5">
+            <div class="ep-da-card">
+                <div class="ep-da-card-header">
+                    <i class="bi bi-pencil-square"></i>
+                    @(Model.EntradaHoy != null ? "Editar entrada de hoy" : "Nueva entrada de hoy")
+                </div>
+                <div class="ep-da-card-body">
+                    <form asp-controller="DiarioAnimo" asp-action="Registrar" method="post" id="formDiario">
+                        <label class="ep-da-label">¿Cómo te sientes?</label>
+                        <div class="ep-da-animo-grid mb-3">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                var cfg = estadoConfig[i];
+                                <button type="button" class="ep-da-animo-btn@(Model.EntradaHoy?.EstadoAnimo == i ? " activo" : "")"
+                                        data-valor="@i"
+                                        style="--btn-color: @cfg.Color; --btn-bg: @cfg.BgColor;"
+                                        onclick="seleccionarAnimo(this, @i)">
+                                    <span class="ep-da-animo-emoji">@cfg.Emoji</span>
+                                    <span class="ep-da-animo-lbl">@cfg.Label</span>
+                                </button>
+                            }
+                        </div>
+                        <input type="hidden" name="EstadoAnimo" id="EstadoAnimo" value="@(Model.EntradaHoy?.EstadoAnimo ?? 0)" />
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="ep-da-label">Energía</label>
+                                <select name="NivelEnergia" class="form-select ep-da-select">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <option value="@i" selected="@(Model.EntradaHoy?.NivelEnergia == i)">@i — @energiaLabels[i]</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="ep-da-label">Estrés</label>
+                                <select name="NivelEstres" class="form-select ep-da-select">
+                                    <option value="">--</option>
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <option value="@i" selected="@(Model.EntradaHoy?.NivelEstres == i)">@i — @estresLabels[i]</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="ep-da-label">Horas de sueño</label>
+                                <input type="number" name="HorasSueno" class="form-control ep-da-input" step="0.5" min="0" max="24"
+                                       value="@(Model.EntradaHoy?.HorasSueno?.ToString() ?? "")" placeholder="Ej: 7.5" />
+                            </div>
+                            <div class="col-6">
+                                <label class="ep-da-label">¿Actividad física?</label>
+                                <select name="ActividadFisica" class="form-select ep-da-select">
+                                    <option value="">--</option>
+                                    <option value="true" selected="@(Model.EntradaHoy?.ActividadFisica == true)">Sí</option>
+                                    <option value="false" selected="@(Model.EntradaHoy?.ActividadFisica == false)">No</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <label class="ep-da-label">¿Cómo fue tu día?</label>
+                        <textarea name="DiarioTexto" class="form-control ep-da-textarea mb-3" rows="3" placeholder="Escribe libremente cómo te sientes...">@(Model.EntradaHoy?.DiarioTexto ?? "")</textarea>
+
+                        <div class="ep-da-pregunta-card mb-3">
+                            <div class="ep-da-pregunta-icono">
+                                <i class="bi bi-question-circle"></i>
+                            </div>
+                            <div>
+                                <div class="ep-da-pregunta-texto">@Model.PreguntaGuiaHoy</div>
+                                <textarea name="RespuestaGuia" class="form-control ep-da-textarea mt-2" rows="2" placeholder="Tu reflexión...">@(Model.EntradaHoy?.RespuestaGuia ?? "")</textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn w-100 ep-da-btn-submit" id="btnGuardar" disabled="@(Model.EntradaHoy == null)">
+                            <i class="bi bi-save"></i> @(Model.EntradaHoy != null ? "Actualizar entrada" : "Guardar entrada")
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="ep-da-card mt-3">
+                <div class="ep-da-card-header">
+                    <i class="bi bi-info-circle"></i> Psicología del bienestar
+                </div>
+                <div class="ep-da-card-body">
+                    <p class="mb-2 small" style="color: var(--texto);">
+                        Llevar un diario de ánimo tiene respaldo científico: ayuda a regular emociones,
+                        reduce la rumiación mental y mejora la conciencia emocional.
+                    </p>
+                    <ul class="mb-0 small" style="color: var(--texto-secundario);">
+                        <li><strong>Autoconocimiento:</strong> Identifica patrones en tu estado de ánimo.</li>
+                        <li><strong>Regulación emocional:</strong> Escribir reduce la intensidad de emociones negativas.</li>
+                        <li><strong>Gratitud:</strong> Enfocarte en lo positivo reprograma tu cerebro (neuroplasticidad).</li>
+                        <li><strong>Prevención:</strong> Detecta señales tempranas de agotamiento o ansiedad.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="ep-da-card">
+                <div class="ep-da-card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <span><i class="bi bi-calendar3"></i> @(new DateTime(Model.Año, Model.Mes, 1).ToString("MMMM yyyy")).ToUpper()</span>
+                    <div class="d-flex gap-2">
+                        <form asp-action="NavegarMes" method="post" style="display:inline;">
+                            <input type="hidden" name="direccion" value="-1" />
+                            <button type="submit" class="btn btn-sm ep-da-btn-nav"><i class="bi bi-chevron-left"></i></button>
+                        </form>
+                        <form asp-action="Index" method="get" style="display:inline;">
+                            <button type="submit" class="btn btn-sm ep-da-btn-nav"><i class="bi bi-dot"></i> Hoy</button>
+                        </form>
+                        <form asp-action="NavegarMes" method="post" style="display:inline;">
+                            <input type="hidden" name="direccion" value="1" />
+                            <button type="submit" class="btn btn-sm ep-da-btn-nav"><i class="bi bi-chevron-right"></i></button>
+                        </form>
+                    </div>
+                </div>
+                <div class="ep-da-card-body">
+                    <div class="ep-da-calendario">
+                        <div class="ep-da-cal-header">
+                            <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+                        </div>
+                        <div class="ep-da-cal-grid">
+                            @for (int i = 0; i < diaSemanaInicio; i++)
+                            {
+                                <div class="ep-da-cal-dia ep-da-cal-dia--vacio"></div>
+                            }
+                            @for (int dia = 1; dia <= totalDias; dia++)
+                            {
+                                var fecha = new DateOnly(Model.Año, Model.Mes, dia);
+                                var tieneEntrada = entradasPorFecha.ContainsKey(dia);
+                                var esHoy = fecha == hoy;
+                                var animo = tieneEntrada ? entradasPorFecha[dia] : 0;
+                                var color = animo > 0 ? estadoConfig[animo].Color : "transparent";
+                                <div class="ep-da-cal-dia@(esHoy ? " ep-da-cal-dia--hoy" : "")@(tieneEntrada ? " ep-da-cal-dia--lleno" : "")"
+                                     style="@(tieneEntrada ? $"--ep-cal-color: {color};" : "")"
+                                     title="@(tieneEntrada ? estadoConfig[animo].Label : "")">
+                                    <span class="ep-da-cal-num">@dia</span>
+                                    @if (tieneEntrada)
+                                    {
+                                        <span class="ep-da-cal-punto" style="background: @color;"></span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ep-da-card mt-3">
+                <div class="ep-da-card-header">
+                    <i class="bi bi-list-ul"></i> Entradas de @(new DateTime(Model.Año, Model.Mes, 1).ToString("MMMM")).ToUpper()
+                </div>
+                <div class="ep-da-card-body">
+                    @if (Model.EntradasMes.Count == 0)
+                    {
+                        <p class="text-center mb-0 py-3" style="color: var(--texto-secundario);">
+                            <i class="bi bi-journal-text"></i> No hay entradas este mes. ¡Escribe tu primera entrada!
+                        </p>
+                    }
+                    else
+                    {
+                        <div class="ep-da-lista">
+                            @foreach (var entrada in Model.EntradasMes.OrderByDescending(e => e.Fecha))
+                            {
+                                var cfg = estadoConfig[entrada.EstadoAnimo];
+                                <div class="ep-da-entrada-item">
+                                    <div class="ep-da-entrada-fecha">
+                                        <span class="ep-da-entrada-dia">@entrada.Fecha.Day</span>
+                                        <span class="ep-da-entrada-mes">@entrada.Fecha.ToString("MMM")</span>
+                                    </div>
+                                    <div class="ep-da-entrada-contenido">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span style="font-size: 1.3rem;">@cfg.Emoji</span>
+                                            <span class="fw-semibold" style="color: @cfg.Color;">@cfg.Label</span>
+                                            <span class="small" style="color: var(--texto-secundario);">
+                                                Energía: @entrada.NivelEnergia/5
+                                                @if (entrada.NivelEstres.HasValue) { <span>| Estrés: @entrada.NivelEstres/5</span> }
+                                                @if (entrada.HorasSueno.HasValue) { <span>| Sueño: @entrada.HorasSueno h</span> }
+                                                @if (entrada.ActividadFisica.HasValue) { <span>| 🏃 @(entrada.ActividadFisica.Value ? "Sí" : "No")</span> }
+                                            </span>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(entrada.DiarioTexto))
+                                        {
+                                            <p class="ep-da-entrada-texto mb-1">@entrada.DiarioTexto</p>
+                                        }
+                                        @if (!string.IsNullOrEmpty(entrada.RespuestaGuia))
+                                        {
+                                            <div class="ep-da-entrada-reflexion">
+                                                <small class="text-muted">💭 @entrada.RespuestaGuia</small>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function seleccionarAnimo(btn, valor) {
+            document.querySelectorAll('.ep-da-animo-btn').forEach(b => b.classList.remove('activo'));
+            btn.classList.add('activo');
+            document.getElementById('EstadoAnimo').value = valor;
+            document.getElementById('btnGuardar').disabled = false;
+
+            var label = btn.querySelector('.ep-da-animo-lbl').textContent;
+            document.getElementById('estadoHoyLabel').textContent = label;
+        }
+    </script>
+}
