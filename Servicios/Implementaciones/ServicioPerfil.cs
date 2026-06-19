@@ -30,20 +30,32 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var usuario = await _contexto.Usuarios
                 .Include(u => u.Carrera)
+                .Include(u => u.Progreso)
+                    .ThenInclude(p => p.NivelActual)
                 .FirstOrDefaultAsync(u => u.Id == usuarioId);
 
             if (usuario == null) return null;
+
+            var totalHabitosCompletados = await _contexto.RegistrosHabito
+                .CountAsync(r => r.Habito.UsuarioId == usuarioId && r.Estado == "Completado");
 
             return new PerfilViewModel
             {
                 Usuario = usuario,
                 Nombre = usuario.Nombre,
+                CorreoElectronico = usuario.CorreoElectronico,
                 FechaNacimiento = usuario.FechaNacimiento,
                 Genero = usuario.Genero,
                 CarreraId = usuario.CarreraId,
                 CarreraNombre = usuario.Carrera?.Nombre,
                 UsaGoogle = !string.IsNullOrEmpty(usuario.GoogleId),
-                TemaActualId = usuario.TemaActualId
+                TemaActualId = usuario.TemaActualId,
+                NivelActual = usuario.Progreso?.NivelActual?.Numero ?? 1,
+                XpTotal = usuario.Progreso?.XpTotal ?? 0,
+                RachaActual = usuario.Progreso?.RachaActual ?? 0,
+                RachaMaxima = usuario.Progreso?.RachaMaxima ?? 0,
+                FechaRegistro = usuario.FechaRegistro,
+                TotalHabitosCompletados = totalHabitosCompletados
             };
         }
 

@@ -25,7 +25,15 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var misiones = await _servicioMisiones.ObtenerMisionesDeUsuario(usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(misiones));
+            var resultado = misiones.Select(m => new
+            {
+                id = m.Id,
+                nombre = m.Nombre,
+                prioridad = m.Prioridad,
+                fechaLimite = m.FechaLimite.ToString("yyyy-MM-dd"),
+                completada = m.Estado == "Completado"
+            });
+            return Ok(RespuestaApi<object>.Exitosa(resultado));
         }
 
         [HttpGet("{id}")]
