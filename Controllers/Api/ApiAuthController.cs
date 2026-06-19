@@ -1,5 +1,7 @@
 ﻿using EpycusApp.Ayudantes;
+using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -51,6 +53,117 @@ namespace EpycusApp.Controllers.Api
             return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
         }
 
+        [HttpPost("registro")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Registro([FromBody] RegistroRequestDto request)
+        {
+            var modelo = new RegistroViewModel
+            {
+                Nombre = request.Nombre,
+                CorreoElectronico = request.CorreoElectronico,
+                Contrasena = request.Contrasena,
+                ConfirmarContrasena = request.ConfirmarContrasena,
+                FechaNacimiento = request.FechaNacimiento,
+                Genero = request.Genero,
+                CarreraId = request.CarreraId,
+                AceptoTerminos = request.AceptoTerminos
+            };
+
+            var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.RegistrarUsuario(modelo);
+            if (!exito || token == null || refreshToken == null)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida(mensaje));
+            }
+
+            return Ok(RespuestaApi<object>.Exitosa(new { token, refreshToken }));
+        }
+
+        [HttpGet("verificar-correo")]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerificarCorreo([FromQuery] string token)
+        {
+            var resultado = await _servicioAutenticacion.VerificarCorreo(token);
+            if (!resultado)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida("No se pudo verificar el correo"));
+            }
+
+            return Ok(RespuestaApi<object>.Exitosa(new { mensaje = "Correo verificado exitosamente" }));
+        }
+
+        [HttpPost("recuperar-contrasena")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RecuperarContrasena([FromBody] RecuperarContrasenaDto request)
+        {
+            var resultado = await _servicioAutenticacion.EnviarCorreoRecuperacion(request.Correo);
+            if (!resultado)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida("No se pudo enviar el correo de recuperación"));
+            }
+
+            return Ok(RespuestaApi<object>.Exitosa(new { mensaje = "Correo de recuperación enviado" }));
+        }
+
+        [HttpPost("restablecer-contrasena")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RestablecerContrasena([FromBody] RestablecerContrasenaDto request)
+        {
+            var resultado = await _servicioAutenticacion.RestablecerContrasena(request.Token, request.NuevaContrasena);
+            if (!resultado)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida("No se pudo restablecer la contraseña"));
+            }
+
+            return Ok(RespuestaApi<object>.Exitosa(new { mensaje = "Contraseña restablecida exitosamente" }));
+        }
+
+        [HttpPost("google")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleAuth([FromBody] GoogleAuthDto request)
+        {
+            var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.ProcesarAutenticacionGoogleAsync(
+                request.GoogleId, request.Correo, request.Nombre, request.FotoUrl);
+            if (!exito || token == null || refreshToken == null)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida(mensaje));
+            }
+
+            return Ok(RespuestaApi<object>.Exitosa(new { token, refreshToken }));
+        }
+
+        [HttpPost("completar-registro-google")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CompletarRegistroGoogle([FromBody] CompletarRegistroGoogleDto request)
+        {
+            var modelo = new CompletarRegistroGoogleViewModel
+            {
+                Nombre = request.Nombre,
+                CorreoElectronico = request.CorreoElectronico,
+                FechaNacimiento = request.FechaNacimiento,
+                Genero = request.Genero,
+                CarreraId = request.CarreraId,
+                AceptoTerminos = request.AceptoTerminos,
+                GoogleId = request.GoogleId,
+                FotoGoogleUrl = request.FotoGoogleUrl
+            };
+
+            var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.CompletarRegistroGoogleAsync(modelo);
+            if (!exito || token == null || refreshToken == null)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida(mensaje));
+            }
+
+            return Ok(RespuestaApi<object>.Exitosa(new { token, refreshToken }));
+        }
+
+        [HttpGet("carreras")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Carreras()
+        {
+            var carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
+            return Ok(RespuestaApi<List<Carrera>>.Exitosa(carreras));
+        }
+
         public class LoginDto
         {
             public string Correo { get; set; } = string.Empty;
@@ -60,6 +173,49 @@ namespace EpycusApp.Controllers.Api
         public class RefreshDto
         {
             public string RefreshToken { get; set; } = string.Empty;
+        }
+
+        public class RegistroRequestDto
+        {
+            public string Nombre { get; set; } = string.Empty;
+            public string CorreoElectronico { get; set; } = string.Empty;
+            public string Contrasena { get; set; } = string.Empty;
+            public string ConfirmarContrasena { get; set; } = string.Empty;
+            public DateOnly FechaNacimiento { get; set; }
+            public string Genero { get; set; } = string.Empty;
+            public int CarreraId { get; set; }
+            public bool AceptoTerminos { get; set; }
+        }
+
+        public class RecuperarContrasenaDto
+        {
+            public string Correo { get; set; } = string.Empty;
+        }
+
+        public class RestablecerContrasenaDto
+        {
+            public string Token { get; set; } = string.Empty;
+            public string NuevaContrasena { get; set; } = string.Empty;
+        }
+
+        public class GoogleAuthDto
+        {
+            public string GoogleId { get; set; } = string.Empty;
+            public string Correo { get; set; } = string.Empty;
+            public string Nombre { get; set; } = string.Empty;
+            public string? FotoUrl { get; set; }
+        }
+
+        public class CompletarRegistroGoogleDto
+        {
+            public string Nombre { get; set; } = string.Empty;
+            public string CorreoElectronico { get; set; } = string.Empty;
+            public DateOnly FechaNacimiento { get; set; }
+            public string Genero { get; set; } = string.Empty;
+            public int CarreraId { get; set; }
+            public bool AceptoTerminos { get; set; }
+            public string GoogleId { get; set; } = string.Empty;
+            public string? FotoGoogleUrl { get; set; }
         }
     }
 }
