@@ -3,12 +3,14 @@ using EpycusApp.Ayudantes;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
     [Route("api/estado-animo")]
     [Authorize]
+    [EnableRateLimiting("Mobile")]
     public class ApiEstadoAnimoController : BaseApiController
     {
         private static readonly HashSet<string> EstadosPermitidos = ["Genial", "Bien", "Normal", "Cansado", "Estresado"];

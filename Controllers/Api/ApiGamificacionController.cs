@@ -2,12 +2,14 @@
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
     [Route("api/gamificacion")]
     [Authorize]
+    [EnableRateLimiting("Mobile")]
     public class ApiGamificacionController : BaseApiController
     {
         private readonly IServicioGamificacion _servicioGamificacion;

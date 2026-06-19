@@ -3,12 +3,14 @@ using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EpycusApp.Controllers.Api
 {
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
+    [EnableRateLimiting("Mobile")]
     public class ApiPomodoroController : BaseApiController
     {
         private readonly IServicioPomodoro _servicioPomodoro;

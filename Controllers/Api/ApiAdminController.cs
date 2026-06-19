@@ -2,12 +2,14 @@ using EpycusApp.Ayudantes;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
     [Route("api/admin")]
     [Authorize]
+    [EnableRateLimiting("Api")]
     public class ApiAdminController : BaseApiController
     {
         private readonly IServicioAdmin _servicioAdmin;

@@ -4,12 +4,14 @@ using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [EnableRateLimiting("Mobile")]
     public class ApiHabitosController : BaseApiController
     {
         private readonly IServicioHabitos _servicioHabitos;

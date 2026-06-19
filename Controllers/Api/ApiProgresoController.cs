@@ -2,12 +2,14 @@
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
     [Route("api/progreso")]
     [Authorize]
+    [EnableRateLimiting("Mobile")]
     public class ApiProgresoController : BaseApiController
     {
         private readonly IServicioProgreso _servicioProgreso;
