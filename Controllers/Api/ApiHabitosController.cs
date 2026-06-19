@@ -1,6 +1,7 @@
 ﻿using EpycusApp.Ayudantes;
 using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -96,5 +97,119 @@ namespace EpycusApp.Controllers.Api
 
             return Ok(RespuestaApi<object>.Exitosa(registros));
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> ObtenerPorId(int id)
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (!usuarioId.HasValue)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            var habito = await _servicioHabitos.ObtenerPorIdViewModel(id);
+            if (habito == null)
+                return NotFound(RespuestaApi<object>.Fallida("Hábito no encontrado"));
+
+            return Ok(RespuestaApi<object>.Exitosa(habito));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Crear([FromBody] CrearHabitoDto dto)
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (!usuarioId.HasValue)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            var modelo = new CrearHabitoViewModel
+            {
+                Nombre = dto.Nombre,
+                Descripcion = dto.Descripcion,
+                CategoriaId = dto.CategoriaId,
+                Frecuencia = dto.Frecuencia,
+                DiasSemana = dto.DiasSemana?.ToList(),
+                ConPomodoro = dto.ConPomodoro ?? false,
+                RecordatorioHora = dto.RecordatorioHora != null ? TimeSpan.Parse(dto.RecordatorioHora) : null,
+                EstaActivo = dto.EstaActivo ?? true
+            };
+
+            await _servicioHabitos.CrearHabito(modelo, usuarioId.Value);
+            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Editar(int id, [FromBody] EditarHabitoDto dto)
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (!usuarioId.HasValue)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            var modelo = new EditarHabitoViewModel
+            {
+                Id = id,
+                Nombre = dto.Nombre,
+                Descripcion = dto.Descripcion,
+                CategoriaId = dto.CategoriaId,
+                Frecuencia = dto.Frecuencia,
+                DiasSemana = dto.DiasSemana?.ToList(),
+                ConPomodoro = dto.ConPomodoro ?? false,
+                RecordatorioHora = dto.RecordatorioHora != null ? TimeSpan.Parse(dto.RecordatorioHora) : null,
+                EstaActivo = dto.EstaActivo ?? true
+            };
+
+            await _servicioHabitos.EditarHabito(modelo, usuarioId.Value);
+            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (!usuarioId.HasValue)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            await _servicioHabitos.EliminarHabito(id, usuarioId.Value);
+            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+        }
+
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> Dashboard()
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (!usuarioId.HasValue)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            var dashboard = await _servicioHabitos.ObtenerDashboard(usuarioId.Value);
+            return Ok(RespuestaApi<object>.Exitosa(dashboard));
+        }
+
+        [HttpGet("categorias")]
+        public async Task<IActionResult> Categorias()
+        {
+            var categorias = await _servicioHabitos.ObtenerCategoriasActivas();
+            return Ok(RespuestaApi<object>.Exitosa(categorias));
+        }
+    }
+
+    public class CrearHabitoDto
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
+        public int CategoriaId { get; set; }
+        public string Frecuencia { get; set; } = "Diaria";
+        public int[]? DiasSemana { get; set; }
+        public bool? ConPomodoro { get; set; }
+        public string? RecordatorioHora { get; set; }
+        public bool? EstaActivo { get; set; }
+    }
+
+    public class EditarHabitoDto
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
+        public int CategoriaId { get; set; }
+        public string Frecuencia { get; set; } = "Diaria";
+        public int[]? DiasSemana { get; set; }
+        public bool? ConPomodoro { get; set; }
+        public string? RecordatorioHora { get; set; }
+        public bool? EstaActivo { get; set; }
     }
 }
