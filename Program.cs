@@ -128,29 +128,52 @@ public partial class Program
             options.Filters.Add<CargarPersonajeFilter>();
         }).AddApplicationPart(typeof(Program).Assembly);
 
+        var rateLimitConfig = builder.Configuration.GetSection("RateLimiting");
+        var globalRl = rateLimitConfig.GetSection("Global");
+        var apiRl = rateLimitConfig.GetSection("Api");
+        var authRl = rateLimitConfig.GetSection("Auth");
+        var mobileRl = rateLimitConfig.GetSection("Mobile");
+        var geminiRl = rateLimitConfig.GetSection("Gemini");
+        var deepseekRl = rateLimitConfig.GetSection("DeepSeek");
+
         builder.Services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
             options.AddFixedWindowLimiter("Api", opt =>
             {
-                opt.PermitLimit = 100;
-                opt.Window = TimeSpan.FromMinutes(1);
+                opt.PermitLimit = int.Parse(apiRl["PermitLimit"] ?? "300");
+                opt.Window = TimeSpan.FromMinutes(int.Parse(apiRl["WindowMinutes"] ?? "1"));
                 opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                opt.QueueLimit = 5;
+                opt.QueueLimit = int.Parse(apiRl["QueueLimit"] ?? "10");
+            });
+
+            options.AddFixedWindowLimiter("Auth", opt =>
+            {
+                opt.PermitLimit = int.Parse(authRl["PermitLimit"] ?? "20");
+                opt.Window = TimeSpan.FromMinutes(int.Parse(authRl["WindowMinutes"] ?? "1"));
+                opt.QueueLimit = 0;
+            });
+
+            options.AddFixedWindowLimiter("Mobile", opt =>
+            {
+                opt.PermitLimit = int.Parse(mobileRl["PermitLimit"] ?? "400");
+                opt.Window = TimeSpan.FromMinutes(int.Parse(mobileRl["WindowMinutes"] ?? "1"));
+                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                opt.QueueLimit = int.Parse(mobileRl["QueueLimit"] ?? "10");
             });
 
             options.AddFixedWindowLimiter("Gemini", opt =>
             {
-                opt.PermitLimit = 20;
-                opt.Window = TimeSpan.FromMinutes(1);
+                opt.PermitLimit = int.Parse(geminiRl["PermitLimit"] ?? "20");
+                opt.Window = TimeSpan.FromMinutes(int.Parse(geminiRl["WindowMinutes"] ?? "1"));
                 opt.QueueLimit = 0;
             });
 
             options.AddFixedWindowLimiter("DeepSeek", opt =>
             {
-                opt.PermitLimit = 2500;
-                opt.Window = TimeSpan.FromMinutes(1);
+                opt.PermitLimit = int.Parse(deepseekRl["PermitLimit"] ?? "2500");
+                opt.Window = TimeSpan.FromMinutes(int.Parse(deepseekRl["WindowMinutes"] ?? "1"));
                 opt.QueueLimit = 0;
             });
 
@@ -161,8 +184,8 @@ public partial class Program
                         : "anon",
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 200,
-                        Window = TimeSpan.FromMinutes(1),
+                        PermitLimit = int.Parse(globalRl["PermitLimit"] ?? "600"),
+                        Window = TimeSpan.FromMinutes(int.Parse(globalRl["WindowMinutes"] ?? "1")),
                         QueueLimit = 0
                     }));
         });

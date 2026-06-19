@@ -2,12 +2,14 @@ using EpycusApp.Ayudantes;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
     [Route("api/bienestar")]
     [Authorize]
+    [EnableRateLimiting("Mobile")]
     public class ApiBienestarController : BaseApiController
     {
         private readonly IServicioBienestar _servicioBienestar;

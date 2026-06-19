@@ -3,12 +3,14 @@ using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
     [Route("api/misiones")]
     [Authorize]
+    [EnableRateLimiting("Mobile")]
     public class ApiMisionesController : BaseApiController
     {
         private readonly IServicioMisiones _servicioMisiones;
