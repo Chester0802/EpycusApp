@@ -56,10 +56,10 @@ namespace EpycusApp.Controllers.Api
                 Nombre = dto.Nombre,
                 Descripcion = dto.Descripcion,
                 NombreCurso = dto.NombreCurso,
-                FechaLimite = DateTime.Parse(dto.FechaLimite),
+                FechaLimite = string.IsNullOrEmpty(dto.FechaLimite) ? default : DateTime.Parse(dto.FechaLimite),
                 Prioridad = dto.Prioridad,
                 ConPomodoro = dto.ConPomodoro ?? false,
-                CategoriaId = dto.CategoriaId
+                CategoriaId = dto.CategoriaId ?? 0
             };
 
             await _servicioMisiones.CrearMision(modelo, usuarioId);
@@ -138,7 +138,7 @@ namespace EpycusApp.Controllers.Api
         public string FechaLimite { get; set; } = string.Empty;
         public string Prioridad { get; set; } = "Media";
         public bool? ConPomodoro { get; set; }
-        public int CategoriaId { get; set; }
+        public int? CategoriaId { get; set; }
     }
 
     public class EditarMisionDto
