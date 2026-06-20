@@ -1,4 +1,5 @@
-﻿using EpycusApp.Ayudantes;
+﻿using System.Linq;
+using EpycusApp.Ayudantes;
 using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/habitos")]
     [Authorize]
     [EnableRateLimiting("Mobile")]
     public class ApiHabitosController : BaseApiController
@@ -121,11 +122,20 @@ namespace EpycusApp.Controllers.Api
             if (!usuarioId.HasValue)
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
 
+            int categoriaId = dto.CategoriaId;
+            if (categoriaId <= 0 && !string.IsNullOrWhiteSpace(dto.Categoria))
+            {
+                var categorias = await _servicioHabitos.ObtenerCategoriasActivas();
+                var cat = categorias.FirstOrDefault(c =>
+                    c.Nombre.Equals(dto.Categoria, StringComparison.OrdinalIgnoreCase));
+                if (cat != null) categoriaId = cat.Id;
+            }
+
             var modelo = new CrearHabitoViewModel
             {
                 Nombre = dto.Nombre,
                 Descripcion = dto.Descripcion,
-                CategoriaId = dto.CategoriaId,
+                CategoriaId = categoriaId,
                 Frecuencia = dto.Frecuencia,
                 DiasSemana = dto.DiasSemana?.ToList(),
                 ConPomodoro = dto.ConPomodoro ?? false,
@@ -196,6 +206,7 @@ namespace EpycusApp.Controllers.Api
         public string Nombre { get; set; } = string.Empty;
         public string? Descripcion { get; set; }
         public int CategoriaId { get; set; }
+        public string? Categoria { get; set; }
         public string Frecuencia { get; set; } = "Diaria";
         public int[]? DiasSemana { get; set; }
         public bool? ConPomodoro { get; set; }

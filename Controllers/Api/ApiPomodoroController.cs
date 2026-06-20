@@ -9,7 +9,7 @@ namespace EpycusApp.Controllers.Api
 {
     [Authorize]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/pomodoro")]
     [EnableRateLimiting("Mobile")]
     public class ApiPomodoroController : BaseApiController
     {
