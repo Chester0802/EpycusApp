@@ -1,4 +1,5 @@
-﻿using EpycusApp.Ayudantes;
+﻿using System.ComponentModel.DataAnnotations;
+using EpycusApp.Ayudantes;
 using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -42,7 +43,11 @@ namespace EpycusApp.Controllers.Api
             return Ok(RespuestaApi<object>.Exitosa(new { sesionId = sesion.Id, fechaInicio = sesion.FechaInicio }));
         }
 
-        public class CicloCompletadoRequest { public int CiclosCompletados { get; set; } }
+        public class CicloCompletadoRequest
+        {
+            [Range(1, 100, ErrorMessage = "CiclosCompletados debe ser entre 1 y 100.")]
+            public int CiclosCompletados { get; set; }
+        }
 
         [HttpPost("{sesionId}/ciclo-completado")]
         public async Task<IActionResult> CicloCompletado(int sesionId, [FromBody] CicloCompletadoRequest req)

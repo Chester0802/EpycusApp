@@ -49,8 +49,8 @@ namespace EpycusApp.Servicios.Implementaciones
 
             sesion.CiclosCompletados = ciclosCompletados;
 
-            int xpGanado = ciclosCompletados * ConstantesGamificacion.XP_BASE_POMODORO;
-            sesion.XpOtorgado = xpGanado;
+            int xpGanado = ConstantesGamificacion.XP_BASE_POMODORO;
+            sesion.XpOtorgado += xpGanado;
 
             var config = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == sesion.UsuarioId);
             if (config is null)
@@ -63,7 +63,6 @@ namespace EpycusApp.Servicios.Implementaciones
 
             var pausaActiva = _servicioBienestar.RecomendacionPausaActiva(ciclosCompletados);
 
-            _context.SesionesPomodoro.Update(sesion);
             await _context.SaveChangesAsync();
 
             await _servicioGamificacion.SumarXP(sesion.UsuarioId, xpGanado);
@@ -80,13 +79,7 @@ namespace EpycusApp.Servicios.Implementaciones
             sesion.FechaFin = DateTime.UtcNow;
             sesion.FueCompletada = true;
 
-            int xpGanado = ciclosCompletados * ConstantesGamificacion.XP_BASE_POMODORO;
-            sesion.XpOtorgado = xpGanado;
-
-            _context.SesionesPomodoro.Update(sesion);
             await _context.SaveChangesAsync();
-
-            await _servicioGamificacion.SumarXP(sesion.UsuarioId, xpGanado);
         }
 
         public async Task CancelarSesion(int sesionId)
@@ -97,7 +90,6 @@ namespace EpycusApp.Servicios.Implementaciones
             sesion.FechaFin = DateTime.UtcNow;
             sesion.FueCompletada = false;
 
-            _context.SesionesPomodoro.Update(sesion);
             await _context.SaveChangesAsync();
         }
 
@@ -143,10 +135,11 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<string> ObtenerTipAleatorio()
         {
-            var count = await _context.TipsPomodoro.CountAsync(t => t.EstaActivo);
-            if (count == 0) return string.Empty;
-            var skip = Random.Shared.Next(count);
-            var tip = await _context.TipsPomodoro.Where(t => t.EstaActivo).Skip(skip).Select(t => t.Tip).FirstOrDefaultAsync();
+            var tip = await _context.TipsPomodoro
+                .Where(t => t.EstaActivo)
+                .OrderBy(t => EF.Functions.Random())
+                .Select(t => t.Tip)
+                .FirstOrDefaultAsync();
             return tip ?? string.Empty;
         }
 
@@ -157,22 +150,11 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<List<SesionPomodoro>> ObtenerSesionesHoyAsync(int usuarioId)
         {
-            var hoy = DateTime.Today;
+            var hoy = DateTime.UtcNow.Date;
             return await _context.SesionesPomodoro
                 .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= hoy)
                 .OrderByDescending(s => s.FechaInicio)
                 .ToListAsync();
-        }
-
-        public async Task<int> ObtenerMisionesCompletadasHoyAsync(int usuarioId)
-        {
-            var hoy = DateTime.Today;
-            return await _context.Misiones
-                .Where(m => m.UsuarioId == usuarioId
-                    && m.Estado == "Completado"
-                    && m.FechaCompletado != null
-                    && m.FechaCompletado.Value.Date == hoy)
-                .CountAsync();
         }
 
         public async Task<List<TareaPomodoro>> ObtenerTareasEnfoqueAsync(int usuarioId)

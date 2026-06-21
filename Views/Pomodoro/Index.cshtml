@@ -31,7 +31,7 @@
             <div class="ep-pomodoro-timer-wrapper">
                 <div class="ep-pomodoro-ring" id="timerRing">
                     <!-- Icono decorativo (como el tomate de la imagen) -->
-                    <div class="mb-2" style="font-size: 2rem;">🍅</div>
+                    <div class="mb-2" style="font-size: 2rem;"><i class="bi bi-clock"></i></div>
                     <div class="ep-pomodoro-time" id="timerDisplay">25:00</div>
                     <div class="ep-pomodoro-label" id="timerLabel">Tiempo de enfoque</div>
                 </div>
@@ -74,13 +74,7 @@
                         }
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label class="text-secondary small mb-1 d-block">Notificaciones</label>
-                    <select class="form-select form-select-sm bg-transparent border-secondary" id="configNotificaciones" style="color: var(--text-primary);">
-                        <option value="true">Activadas</option>
-                        <option value="false">Desactivadas</option>
-                    </select>
-                </div>
+                <div class="col-md-4"></div>
             </div>
 
         </div>
@@ -412,14 +406,12 @@
                         });
                         if (res.ok) {
                             const data = await res.json();
-                            timerState.xpTotal += 15; // 15 XP por ciclo
+                            timerState.xpTotal += data.datos.xpGanado;
                             document.getElementById('statXP').innerText = timerState.xpTotal;
 
-                            timerState.sesionId = null; // La sesión ya está completada
-                            
                             // Alerta ODS 3 de Salud y Bienestar
                             if (data.datos.sugerirDescanso) {
-                                Notificaciones.mostrarExito("¡Alerta de Bienestar! Has completado varios ciclos seguidos. Te sugerimos tomar un Descanso Largo ahora.");
+                                alert("¡Alerta de Bienestar! Has completado varios ciclos seguidos. Te sugerimos tomar un Descanso Largo ahora.");
                                 setMode('largo');
                                 return;
                             }
@@ -450,16 +442,35 @@
 
             const item = document.createElement('div');
             item.className = "position-relative mb-3";
-            item.innerHTML = `
-                <i class="bi ${iconClass} position-absolute" style="left: -1.35rem; top: 0px; background: var(--ep-superficie); padding-bottom: 5px;"></i>
-                <div class="d-flex justify-content-between align-items-center" style="font-size: 0.85rem;">
-                    <div>
-                        <span class="fw-bold">${tipo}</span> <span class="text-secondary ms-2">${tiempoTxt}</span>
-                    </div>
-                    <span class="badge bg-opacity-25" style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder};">${badgeText}</span>
-                </div>
-            `;
-            // Insertar al inicio
+
+            const icon = document.createElement('i');
+            icon.className = `bi ${iconClass} position-absolute`;
+            icon.style.cssText = "left: -1.35rem; top: 0px; background: var(--ep-superficie); padding-bottom: 5px;";
+            item.appendChild(icon);
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = "d-flex justify-content-between align-items-center";
+            contentDiv.style.cssText = "font-size: 0.85rem;";
+
+            const textDiv = document.createElement('div');
+            const typeSpan = document.createElement('span');
+            typeSpan.className = "fw-bold";
+            typeSpan.innerText = tipo;
+            textDiv.appendChild(typeSpan);
+            const timeSpan = document.createElement('span');
+            timeSpan.className = "text-secondary ms-2";
+            timeSpan.innerText = tiempoTxt;
+            textDiv.appendChild(timeSpan);
+            contentDiv.appendChild(textDiv);
+
+            const badge = document.createElement('span');
+            badge.className = "badge bg-opacity-25";
+            badge.style.cssText = `background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder};`;
+            badge.innerText = badgeText;
+            contentDiv.appendChild(badge);
+
+            item.appendChild(contentDiv);
+
             histList.insertBefore(item, histList.firstChild);
         }
 
