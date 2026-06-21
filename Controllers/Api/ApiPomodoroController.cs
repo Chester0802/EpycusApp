@@ -29,6 +29,11 @@ namespace EpycusApp.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida("Datos inválidos."));
+            }
+
             var sesionesHoy = await _servicioPomodoro.ObtenerSesionesHoyAsync(usuarioId.Value);
             var sesionActiva = sesionesHoy.FirstOrDefault(s => !s.FechaFin.HasValue);
             if (sesionActiva != null)
@@ -43,6 +48,11 @@ namespace EpycusApp.Controllers.Api
         [HttpPost("{sesionId}/ciclo-completado")]
         public async Task<IActionResult> CicloCompletado(int sesionId, [FromBody] CicloCompletadoRequest req)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida("CiclosCompletados debe ser entre 1 y 100."));
+            }
+
             var sesion = await _servicioPomodoro.ObtenerSesion(sesionId);
             if (sesion == null) return NotFound();
             var usuarioId = ObtenerUsuarioId();
@@ -56,6 +66,11 @@ namespace EpycusApp.Controllers.Api
         [HttpPost("{sesionId}/finalizar")]
         public async Task<IActionResult> Finalizar(int sesionId, [FromBody] CicloCompletadoRequest req)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida("CiclosCompletados debe ser entre 1 y 100."));
+            }
+
             var sesion = await _servicioPomodoro.ObtenerSesion(sesionId);
             if (sesion == null) return NotFound();
             var usuarioId = ObtenerUsuarioId();
@@ -122,6 +137,11 @@ namespace EpycusApp.Controllers.Api
                 return BadRequest(RespuestaApi<object>.Fallida("Datos inválidos."));
             }
 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida("Uno o más valores no son válidos."));
+            }
+
             await _servicioPomodoro.ActualizarConfiguracion(usuarioId.Value, dto);
             return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
         }
@@ -131,6 +151,27 @@ namespace EpycusApp.Controllers.Api
         {
             var tip = await _servicioPomodoro.ObtenerTipAleatorio();
             return Ok(RespuestaApi<object>.Exitosa(new { consejo = tip }));
+        }
+
+        [HttpGet("sesion-activa")]
+        public async Task<IActionResult> ObtenerSesionActiva()
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            var sesionesHoy = await _servicioPomodoro.ObtenerSesionesHoyAsync(usuarioId.Value);
+            var activa = sesionesHoy.FirstOrDefault(s => !s.FechaFin.HasValue);
+            if (activa == null)
+                return Ok(RespuestaApi<object>.Exitosa(new { activa = false }));
+
+            return Ok(RespuestaApi<object>.Exitosa(new
+            {
+                activa = true,
+                sesionId = activa.Id,
+                fechaInicio = activa.FechaInicio,
+                ciclosCompletados = activa.CiclosCompletados
+            }));
         }
 
         [HttpGet("historial")]

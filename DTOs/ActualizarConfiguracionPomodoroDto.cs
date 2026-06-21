@@ -2,8 +2,10 @@
 
 namespace EpycusApp.DTOs
 {
-    public class ActualizarConfiguracionPomodoroDto
+    public class ActualizarConfiguracionPomodoroDto : IValidatableObject
     {
+        private static readonly string[] SonidosPermitidos = ["campana", "digital", "naturaleza", "silencio"];
+
         [Range(1, 180, ErrorMessage = "El tiempo de estudio debe ser entre 1 y 180 minutos.")]
         public int TiempoEstudioMin { get; set; }
 
@@ -36,5 +38,36 @@ namespace EpycusApp.DTOs
 
         public bool VibracionActiva { get; set; } = true;
         public bool NotificacionDesktop { get; set; } = true;
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (!SonidosPermitidos.Contains(SonidoSeleccionado))
+            {
+                yield return new ValidationResult(
+                    $"El sonido seleccionado no es válido. Valores permitidos: {string.Join(", ", SonidosPermitidos)}.",
+                    [nameof(SonidoSeleccionado)]);
+            }
+
+            if (TiempoDescansoMin >= TiempoEstudioMin)
+            {
+                yield return new ValidationResult(
+                    "El tiempo de descanso debe ser menor que el tiempo de estudio.",
+                    [nameof(TiempoDescansoMin)]);
+            }
+
+            if (TiempoDescansoLargoMin <= TiempoDescansoMin)
+            {
+                yield return new ValidationResult(
+                    "El tiempo de descanso largo debe ser mayor que el tiempo de descanso corto.",
+                    [nameof(TiempoDescansoLargoMin)]);
+            }
+
+            if (MetaDiariaCiclos > 0 && CiclosAntesDescansoLargo <= 0)
+            {
+                yield return new ValidationResult(
+                    "Si tienes una meta diaria, los ciclos antes del descanso largo deben ser al menos 1.",
+                    [nameof(CiclosAntesDescansoLargo)]);
+            }
+        }
     }
 }

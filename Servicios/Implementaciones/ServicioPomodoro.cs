@@ -47,7 +47,7 @@ namespace EpycusApp.Servicios.Implementaciones
             if (sesion is null)
                 return (0, false, null);
 
-            if (ciclosCompletados <= sesion.CiclosCompletados)
+            if (ciclosCompletados <= 0 || ciclosCompletados <= sesion.CiclosCompletados)
                 return (0, false, null);
 
             sesion.CiclosCompletados = ciclosCompletados;
