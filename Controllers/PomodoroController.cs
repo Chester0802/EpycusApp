@@ -29,7 +29,7 @@ namespace EpycusApp.Controllers
                 modelo.Configuracion = await _servicioPomodoro.ObtenerConfiguracion(usuarioId);
 
                 var sesionesHoy = await _servicioPomodoro.ObtenerSesionesHoyAsync(usuarioId);
-                modelo.HistorialHoy = sesionesHoy;
+                modelo.HistorialHoy = sesionesHoy.Where(s => s.FueCompletada || s.CiclosCompletados > 0).ToList();
 
                 modelo.EstadisticasHoy.CiclosCompletados = 0;
                 modelo.EstadisticasHoy.XpGanado = 0;
@@ -38,8 +38,9 @@ namespace EpycusApp.Controllers
                     modelo.EstadisticasHoy.CiclosCompletados += s.CiclosCompletados;
                     modelo.EstadisticasHoy.XpGanado += s.XpOtorgado;
                 }
-                int tiempoEnfoque = modelo.Configuracion.TiempoEstudioMin;
-                modelo.EstadisticasHoy.MinutosEnfocados = modelo.EstadisticasHoy.CiclosCompletados * tiempoEnfoque;
+                modelo.EstadisticasHoy.MinutosEnfocados = sesionesHoy
+                    .Where(s => s.FueCompletada && s.FechaFin.HasValue)
+                    .Sum(s => (int)(s.FechaFin!.Value - s.FechaInicio).TotalMinutes);
 
                 modelo.EstadisticasHoy.MisionesCompletadas = await _servicioMisiones.ContarCompletadasHoyAsync(usuarioId);
                 modelo.TareasEnfoque = await _servicioPomodoro.ObtenerTareasEnfoqueAsync(usuarioId);

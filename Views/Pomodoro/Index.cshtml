@@ -20,9 +20,51 @@
         <a asp-action="Configuracion" class="btn btn-sm btn-ep-outline" title="Configuración">
             <i class="bi bi-sliders"></i>
         </a>
-        <button class="btn btn-sm btn-ep-outline" id="btnFullscreen" onclick="toggleFullscreen()" title="Pantalla completa">
+        <button class="btn btn-sm btn-ep-outline" id="btnFullscreen" onclick="alternarPantallaCompleta()" title="Pantalla completa">
             <i class="bi bi-arrows-fullscreen"></i>
         </button>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;" id="toastContainer"></div>
+
+<!-- Modal sugerencia descanso largo -->
+<div class="modal fade" id="modalDescansoLargo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--ep-superficie); color: var(--text-primary);">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="bi bi-tree text-success me-2"></i>Descanso largo recomendado</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Has completado varios ciclos seguidos. Tu cerebro necesita una pausa más larga para recuperarse y mantener la productividad.</p>
+                <p class="text-secondary small">Un descanso largo de <strong id="modalDescansoDuracion">15</strong> minutos te ayudará a recargar energías.</p>
+                <div id="pausaActivaContent" class="alert alert-info bg-transparent border-info text-info small mt-3" style="display:none;"></div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-sm btn-ep-outline" data-bs-dismiss="modal" onclick="establecerModo('corto'); if(CONFIGURACION.autoIniciarDescanso) setTimeout(function() { alternarTimer(); }, 500);">Descanso corto</button>
+                <button type="button" class="btn btn-sm btn-success" data-bs-dismiss="modal" id="btnIniciarDescansoLargo">Iniciar descanso largo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal meta cumplida -->
+<div class="modal fade" id="modalMetaCumplida" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--ep-superficie); color: var(--text-primary);">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="bi bi-trophy text-warning me-2"></i>¡Meta diaria cumplida!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center py-3" style="font-size: 1.2rem;">🎉 ¡Has alcanzado tu meta de <strong id="modalMetaNumero">0</strong> ciclos hoy!</p>
+                <p class="text-secondary text-center small">Sigue así, cada ciclo te acerca más a tus objetivos.</p>
+            </div>
+            <div class="modal-footer border-secondary justify-content-center">
+                <button type="button" class="btn btn-sm btn-success" data-bs-dismiss="modal">¡Seguir avanzando!</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -32,16 +74,16 @@
 
             <!-- Tabs de Modos -->
             <div class="ep-pomodoro-tabs mb-4" id="modeTabs">
-                <div class="ep-pomodoro-tab active" data-mode="enfoque" onclick="setMode('enfoque')">
+                <div class="ep-pomodoro-tab active" data-mode="enfoque" onclick="establecerModo('enfoque')">
                     <i class="bi bi-bullseye"></i> Enfoque
                 </div>
-                <div class="ep-pomodoro-tab" data-mode="corto" onclick="setMode('corto')">
+                <div class="ep-pomodoro-tab" data-mode="corto" onclick="establecerModo('corto')">
                     <i class="bi bi-cup-hot"></i> Descanso corto
                 </div>
-                <div class="ep-pomodoro-tab" data-mode="largo" onclick="setMode('largo')">
+                <div class="ep-pomodoro-tab" data-mode="largo" onclick="establecerModo('largo')">
                     <i class="bi bi-tree"></i> Descanso largo
                 </div>
-                <div class="ep-pomodoro-tab" data-mode="personalizado" onclick="setMode('personalizado')">
+                <div class="ep-pomodoro-tab" data-mode="personalizado" onclick="establecerModo('personalizado')">
                     <i class="bi bi-gear"></i> Personalizado
                 </div>
             </div>
@@ -64,10 +106,10 @@
 
             <!-- Controles -->
             <div class="ep-pomodoro-controls mb-5">
-                <button class="ep-btn-play" id="btnPlayPause" onclick="toggleTimer()">
+                <button class="ep-btn-play" id="btnPlayPause" onclick="alternarTimer()">
                     <i class="bi bi-play-fill me-2" id="playIcon"></i> <span id="playText">Iniciar</span>
                 </button>
-                <button class="ep-btn-icon" id="btnReset" onclick="resetTimer()" title="Reiniciar (R)">
+                <button class="ep-btn-icon" id="btnReset" onclick="reiniciarTimer()" title="Reiniciar (R)">
                     <i class="bi bi-arrow-counterclockwise"></i>
                 </button>
                 <button class="ep-btn-icon" id="btnSkip" onclick="saltarCiclo()" title="Saltar ciclo" style="display:none;">
@@ -78,7 +120,7 @@
             <!-- Controles rápidos -->
             <div class="row text-start border-top border-secondary pt-4 mt-2">
                 <div class="col-md-3 mb-3 mb-md-0">
-                    <label class="text-secondary small mb-1 d-block">Ciclos objetivo</label>
+                    <label class="text-secondary small mb-1 d-block" title="Número de Pomodoros (sesiones de enfoque) que planeas completar hoy">Meta diaria <i class="bi bi-info-circle"></i></label>
                     <div class="d-flex align-items-center bg-transparent border border-secondary rounded p-1" style="width: fit-content;">
                         <span class="px-3 fw-bold" id="ciclosDisplay">1</span>
                         <div class="d-flex gap-1">
@@ -118,7 +160,7 @@
         {
             <div class="ep-card mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold mb-0">Meta diaria</h6>
+                    <h6 class="fw-bold mb-0" title="Número de Pomodoros (sesiones de enfoque) que planeas completar hoy">Meta diaria <i class="bi bi-info-circle"></i></h6>
                     <span class="text-secondary small" id="metaText">@Model.EstadisticasHoy.CiclosCompletados / @Model.Configuracion.MetaDiariaCiclos</span>
                 </div>
                 <div class="progress" style="height: 8px; background: var(--ep-superficie-2);">
@@ -228,8 +270,8 @@
                 }
             </div>
 
-            <div class="mt-3 p-3 rounded" style="background: var(--warning-bg); border-left: 3px solid var(--warning); font-size: 0.85rem;">
-                <i class="bi bi-lightbulb text-warning me-2"></i> Consejo: Una tarea por ciclo. Concéntrate al 100%. <i class="bi bi-tree text-success"></i>
+            <div class="mt-3 p-3 rounded" style="background: var(--warning-bg); border-left: 3px solid var(--warning); font-size: 0.85rem;" id="consejoContainer">
+                <i class="bi bi-lightbulb text-warning me-2"></i> <span id="consejoTexto">Una tarea por ciclo. Concéntrate al 100%.</span> <i class="bi bi-tree text-success"></i>
             </div>
         </div>
 
@@ -246,7 +288,7 @@
                     {
                         bool esEnfoque = sesion.XpOtorgado > 0;
                         string tipo = esEnfoque ? "Enfoque" : "Descanso";
-                        string tiempoTxt = $"{(sesion.FechaFin.HasValue ? (sesion.FechaFin.Value - sesion.FechaInicio).Minutes : 0)} min";
+                        string tiempoTxt = $"{(sesion.FechaFin.HasValue ? (int)(sesion.FechaFin.Value - sesion.FechaInicio).TotalMinutes : 0)} min";
                         string iconClass = esEnfoque ? "bi-check-circle text-success" : "bi-cup-hot text-warning";
                         string badgeBg = esEnfoque ? "var(--success-bg)" : "var(--warning-bg)";
                         string badgeColor = esEnfoque ? "var(--success)" : "var(--warning)";
@@ -276,7 +318,7 @@
 
 @section Scripts {
     <script>
-        const CONFIG = {
+        const CONFIGURACION = {
             enfoque: @(Model?.Configuracion?.TiempoEstudioMin ?? 25) * 60,
             corto: @(Model?.Configuracion?.TiempoDescansoMin ?? 5) * 60,
             largo: @(Model?.Configuracion?.TiempoDescansoLargoMin ?? 15) * 60,
@@ -289,12 +331,12 @@
             notificacionDesktop: @(Model?.Configuracion?.NotificacionDesktop == true ? "true" : "false"),
         };
 
-        let timerState = {
+        let estadoTimer = {
             mode: 'enfoque',
-            timeLeft: CONFIG.enfoque,
-            totalTime: CONFIG.enfoque,
-            isRunning: false,
-            intervalId: null,
+            tiempoRestante: CONFIGURACION.enfoque,
+            tiempoTotal: CONFIGURACION.enfoque,
+            estaCorriendo: false,
+            idIntervalo: null,
             sesionId: null,
             tareaSeleccionadaId: null,
             tareaSeleccionadaTipo: null,
@@ -305,24 +347,24 @@
             enPausaActiva: false
         };
 
-        const elTimerDisplay = document.getElementById('timerDisplay');
-        const elTimerLabel = document.getElementById('timerLabel');
-        const elTimerRing = document.getElementById('timerRing');
-        const elBtnPlayPause = document.getElementById('btnPlayPause');
-        const elPlayIcon = document.getElementById('playIcon');
-        const elPlayText = document.getElementById('playText');
-        const elCiclosDisplay = document.getElementById('ciclosDisplay');
-        const elProgressCircle = document.getElementById('progressCircle');
-        const elBtnSkip = document.getElementById('btnSkip');
-        const CIRCUMFERENCE = 2 * Math.PI * 45;
+        const elDisplayTimer = document.getElementById('timerDisplay');
+        const etiquetaTimer = document.getElementById('timerLabel');
+        const anilloTimer = document.getElementById('timerRing');
+        const btnPlayPausa = document.getElementById('btnPlayPause');
+        const iconoPlay = document.getElementById('playIcon');
+        const textoPlay = document.getElementById('playText');
+        const displayCiclos = document.getElementById('ciclosDisplay');
+        const circuloProgreso = document.getElementById('progressCircle');
+        const btnSaltar = document.getElementById('btnSkip');
+        const CIRCUNFERENCIA = 2 * Math.PI * 45;
 
-        let audioContext = null;
+        let contextoAudio = null;
 
-        function getAudioContext() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        function obtenerContextoAudio() {
+            if (!contextoAudio) {
+                contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
             }
-            return audioContext;
+            return contextoAudio;
         }
 
         function reproducirSonido(tipo) {
@@ -332,7 +374,7 @@
             if (volumen === 0) return;
 
             try {
-                const ctx = getAudioContext();
+                const ctx = obtenerContextoAudio();
                 const gain = ctx.createGain();
                 gain.connect(ctx.destination);
                 gain.gain.value = volumen * 0.3;
@@ -367,39 +409,54 @@
             } catch(e) { /* fallback silencioso */ }
         }
 
-        let ticTacInterval = null;
+        let intervaloTicTac = null;
 
         function iniciarTicTac() {
             detenerTicTac();
             const ticActivo = document.getElementById('chkTicTac').checked;
-            if (!ticActivo || !timerState.isRunning) return;
+            if (!ticActivo || !estadoTimer.estaCorriendo) return;
 
-            ticTacInterval = setInterval(() => {
-                if (timerState.mode === 'enfoque') {
+            intervaloTicTac = setInterval(() => {
+                if (estadoTimer.modo === 'enfoque') {
                     reproducirSonido('tictac');
                 }
             }, 1000);
         }
 
         function detenerTicTac() {
-            if (ticTacInterval) {
-                clearInterval(ticTacInterval);
-                ticTacInterval = null;
+            if (intervaloTicTac) {
+                clearInterval(intervaloTicTac);
+                intervaloTicTac = null;
             }
         }
 
         function notificar(titulo, mensaje) {
-            if (CONFIG.notificacionDesktop && 'Notification' in window) {
+            if (CONFIGURACION.notificacionDesktop && 'Notification' in window) {
                 if (Notification.permission === 'granted') {
                     new Notification(titulo, { body: mensaje, icon: '/favicon.ico' });
                 } else if (Notification.permission !== 'denied') {
                     Notification.requestPermission();
                 }
             }
-            if (CONFIG.vibracionActiva && navigator.vibrate) {
+            if (CONFIGURACION.vibracionActiva && navigator.vibrate) {
                 navigator.vibrate(200);
             }
         }
+
+        function mostrarToast(mensaje, tipo) {
+            tipo = tipo || 'danger';
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast align-items-center text-bg-' + tipo + ' border-0 show';
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = '<div class="d-flex"><div class="toast-body">' + mensaje + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+            container.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 5000);
+        }
+
+        function mostrarError(mensaje) { mostrarToast(mensaje, 'danger'); }
+        function mostrarExito(mensaje) { mostrarToast(mensaje, 'success'); }
+        function mostrarInfo(mensaje) { mostrarToast(mensaje, 'info'); }
 
         document.addEventListener('DOMContentLoaded', function() {
             var spinner = document.getElementById('ep-spinner');
@@ -407,56 +464,77 @@
             if ('Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission();
             }
+
+            fetch('/api/pomodoro/tip-aleatorio')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.datos && data.datos.consejo) {
+                        document.getElementById('consejoTexto').innerText = data.datos.consejo;
+                    }
+                })
+                .catch(function() {});
+
+            fetch('/api/pomodoro/sesion-activa')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.datos && data.datos.activa) {
+                        estadoTimer.sesionId = data.datos.sesionId;
+                        estadoTimer.ciclosCompletados = data.datos.ciclosCompletados || 0;
+                        document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
+                        mostrarInfo("Hay una sesión activa de antes. Puedes continuar o reiniciar.");
+                    }
+                })
+                .catch(function() {});
         });
 
-        function formatTime(seconds) {
+        function formatearTiempo(seconds) {
             const m = Math.floor(seconds / 60).toString().padStart(2, '0');
             const s = (seconds % 60).toString().padStart(2, '0');
             return `${m}:${s}`;
         }
 
-        function updateTimerUI() {
-            elTimerDisplay.innerText = formatTime(timerState.timeLeft);
-            const progress = timerState.totalTime > 0 ? (timerState.timeLeft / timerState.totalTime) * CIRCUMFERENCE : 0;
-            elProgressCircle.setAttribute('stroke-dashoffset', progress);
+        function actualizarUI() {
+            elDisplayTimer.innerText = formatearTiempo(estadoTimer.tiempoRestante);
+            const progress = estadoTimer.tiempoTotal > 0 ? (estadoTimer.tiempoRestante / estadoTimer.tiempoTotal) * CIRCUNFERENCIA : 0;
+            circuloProgreso.setAttribute('stroke-dashoffset', progress);
         }
 
-        function setMode(mode) {
-            if (timerState.isRunning) {
+        function establecerModo(modo) {
+            if (estadoTimer.estaCorriendo) {
                 if (!confirm("Hay un temporizador en curso. ¿Deseas cambiar de modo y detenerlo?")) return;
-                stopTimer();
+                detenerTimer();
             }
 
-            timerState.mode = mode;
-            timerState.timeLeft = CONFIG[mode] || CONFIG.enfoque;
-            timerState.totalTime = CONFIG[mode] || CONFIG.enfoque;
-            elBtnSkip.style.display = mode === 'enfoque' ? 'inline-flex' : 'none';
-            updateTimerUI();
+            estadoTimer.modo = modo;
+            estadoTimer.tiempoRestante = CONFIGURACION[modo] || CONFIGURACION.enfoque;
+            estadoTimer.tiempoTotal = CONFIGURACION[modo] || CONFIGURACION.enfoque;
+            btnSaltar.style.display = modo === 'enfoque' ? 'inline-flex' : 'none';
+            actualizarUI();
 
             document.querySelectorAll('.ep-pomodoro-tab').forEach(tab => {
                 tab.classList.remove('active', 'descanso');
-                if (tab.dataset.mode === mode) {
+                if (tab.dataset.mode === modo) {
                     tab.classList.add('active');
-                    if (mode !== 'enfoque') tab.classList.add('descanso');
+                    if (modo !== 'enfoque') tab.classList.add('descanso');
                 }
             });
 
-            if (mode === 'enfoque' || mode === 'personalizado') {
-                elTimerRing.classList.remove('descanso');
-                elBtnPlayPause.classList.remove('descanso');
-                elTimerLabel.innerText = mode === 'personalizado' ? 'Modo personalizado' : 'Tiempo de enfoque';
+            if (modo === 'enfoque' || modo === 'personalizado') {
+                anilloTimer.classList.remove('descanso');
+                btnPlayPausa.classList.remove('descanso');
+                etiquetaTimer.innerText = modo === 'personalizado' ? 'Modo personalizado' : 'Tiempo de enfoque';
             } else {
-                elTimerRing.classList.add('descanso');
-                elBtnPlayPause.classList.add('descanso');
-                elTimerLabel.innerText = mode === 'corto' ? 'Descanso corto' : 'Descanso largo';
+                anilloTimer.classList.add('descanso');
+                btnPlayPausa.classList.add('descanso');
+                etiquetaTimer.innerText = modo === 'corto' ? 'Descanso corto' : 'Descanso largo';
             }
         }
 
         function ajustarCiclos(val) {
-            let n = timerState.ciclosObjetivo + val;
+            let n = estadoTimer.ciclosObjetivo + val;
             if (n >= 1 && n <= 10) {
-                timerState.ciclosObjetivo = n;
-                elCiclosDisplay.innerText = n;
+                estadoTimer.ciclosObjetivo = n;
+                displayCiclos.innerText = n;
             }
         }
 
@@ -473,171 +551,193 @@
                 element.style.borderColor = 'var(--ep-primario)';
                 element.style.borderWidth = '1px';
                 element.style.borderStyle = 'solid';
-                timerState.tareaSeleccionadaId = id;
-                timerState.tareaSeleccionadaTipo = tipo;
+                estadoTimer.tareaSeleccionadaId = id;
+                estadoTimer.tareaSeleccionadaTipo = tipo;
             } else {
-                timerState.tareaSeleccionadaId = null;
-                timerState.tareaSeleccionadaTipo = null;
+                estadoTimer.tareaSeleccionadaId = null;
+                estadoTimer.tareaSeleccionadaTipo = null;
             }
         }
 
-        async function toggleTimer() {
-            if (timerState.isRunning) {
-                pauseTimer();
+        async function alternarTimer() {
+            if (estadoTimer.estaCorriendo) {
+                pausarTimer();
             } else {
-                await startTimer();
+                await iniciarTimer();
             }
         }
 
-        async function startTimer() {
-            if (timerState.mode === 'enfoque' && !timerState.sesionId) {
-                let bodyParams = {};
-                if (timerState.tareaSeleccionadaId) {
-                    if (timerState.tareaSeleccionadaTipo === 'Habito') bodyParams.habitoId = timerState.tareaSeleccionadaId;
-                    else bodyParams.misionId = timerState.tareaSeleccionadaId;
+        async function iniciarTimer() {
+            if (estadoTimer.modo === 'enfoque' && !estadoTimer.sesionId) {
+                let parametrosBody = {};
+                if (estadoTimer.tareaSeleccionadaId) {
+                    if (estadoTimer.tareaSeleccionadaTipo === 'Habito') parametrosBody.habitoId = estadoTimer.tareaSeleccionadaId;
+                    else parametrosBody.misionId = estadoTimer.tareaSeleccionadaId;
                 }
                 try {
-                    const res = await fetch('/api/pomodoro/iniciar', {
+                    const respuesta = await fetch('/api/pomodoro/iniciar', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(bodyParams)
+                        body: JSON.stringify(parametrosBody)
                     });
-                    if (res.ok) {
-                        const data = await res.json();
-                        timerState.sesionId = data.datos.sesionId;
+                    if (respuesta.ok) {
+                        const data = await respuesta.json();
+                        estadoTimer.sesionId = data.datos.sesionId;
                     }
-                } catch(e) { console.error("Error al iniciar sesión en API", e); }
+                } catch(e) { mostrarError("Error al iniciar sesión. Revisa tu conexión."); }
             }
 
-            timerState.isRunning = true;
-            elTimerRing.classList.add('active');
-            elPlayIcon.classList.replace('bi-play-fill', 'bi-pause-fill');
-            elPlayText.innerText = "Pausar";
+            estadoTimer.estaCorriendo = true;
+            anilloTimer.classList.add('active');
+            iconoPlay.classList.replace('bi-play-fill', 'bi-pause-fill');
+            textoPlay.innerText = "Pausar";
             iniciarTicTac();
 
-            timerState.intervalId = setInterval(() => {
-                timerState.timeLeft--;
-                updateTimerUI();
+            estadoTimer.idIntervalo = setInterval(() => {
+                estadoTimer.tiempoRestante--;
+                actualizarUI();
 
-                if (timerState.timeLeft <= 0) {
-                    onTimerComplete();
+                if (estadoTimer.tiempoRestante <= 0) {
+                    alCompletarTimer();
                 }
             }, 1000);
         }
 
-        function pauseTimer() {
-            timerState.isRunning = false;
-            clearInterval(timerState.intervalId);
+        function pausarTimer() {
+            estadoTimer.estaCorriendo = false;
+            clearInterval(estadoTimer.idIntervalo);
             detenerTicTac();
-            elTimerRing.classList.remove('active');
-            elPlayIcon.classList.replace('bi-pause-fill', 'bi-play-fill');
-            elPlayText.innerText = "Continuar";
+            anilloTimer.classList.remove('active');
+            iconoPlay.classList.replace('bi-pause-fill', 'bi-play-fill');
+            textoPlay.innerText = "Continuar";
         }
 
-        function stopTimer() {
-            timerState.isRunning = false;
-            clearInterval(timerState.intervalId);
+        function detenerTimer() {
+            estadoTimer.estaCorriendo = false;
+            clearInterval(estadoTimer.idIntervalo);
             detenerTicTac();
-            elTimerRing.classList.remove('active');
-            elPlayIcon.classList.replace('bi-pause-fill', 'bi-play-fill');
-            elPlayText.innerText = "Iniciar";
+            anilloTimer.classList.remove('active');
+            iconoPlay.classList.replace('bi-pause-fill', 'bi-play-fill');
+            textoPlay.innerText = "Iniciar";
 
-            if (timerState.sesionId) {
-                var sid = timerState.sesionId;
-                timerState.sesionId = null;
-                fetch(`/api/pomodoro/${sid}/cancelar`, { method: 'POST' }).catch(function() {});
+            if (estadoTimer.sesionId) {
+                var idSesion = estadoTimer.sesionId;
+                estadoTimer.sesionId = null;
+                fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' }).catch(function() { mostrarError("Error al cancelar la sesión."); });
             }
         }
 
-        function resetTimer() {
-            if (timerState.isRunning) pauseTimer();
-            setMode(timerState.mode);
+        function reiniciarTimer() {
+            if (estadoTimer.estaCorriendo) pausarTimer();
+            establecerModo(estadoTimer.modo);
         }
 
         function saltarCiclo() {
             if (!confirm("¿Saltar este ciclo? No se otorgará XP.")) return;
-            timerState.timeLeft = 0;
-            pauseTimer();
-            if (timerState.sesionId) {
-                var sid = timerState.sesionId;
-                timerState.sesionId = null;
-                fetch(`/api/pomodoro/${sid}/cancelar`, { method: 'POST' }).catch(function() {});
+            estadoTimer.tiempoRestante = 0;
+            pausarTimer();
+            if (estadoTimer.sesionId) {
+                var idSesion = estadoTimer.sesionId;
+                estadoTimer.sesionId = null;
+                fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' }).catch(function() { mostrarError("Error al cancelar el ciclo."); });
             }
-            setMode('corto');
+            establecerModo('corto');
         }
 
-        function toggleFullscreen() {
+        function alternarPantallaCompleta() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(function() {});
+                document.documentElement.requestFullscreen().catch(function() { mostrarError("No se pudo activar pantalla completa."); });
             } else {
-                document.exitFullscreen().catch(function() {});
+                document.exitFullscreen().catch(function() { mostrarError("No se pudo salir de pantalla completa."); });
             }
         }
 
-        async function onTimerComplete() {
-            pauseTimer();
+        async function alCompletarTimer() {
+            pausarTimer();
             reproducirSonido('completado');
-            notificar('Pomodoro', timerState.mode === 'enfoque' ? '¡Ciclo completado! Tómate un descanso.' : '¡Descanso terminado! Vuelve al enfoque.');
+            notificar('Pomodoro', estadoTimer.modo === 'enfoque' ? '¡Ciclo completado! Tómate un descanso.' : '¡Descanso terminado! Vuelve al enfoque.');
 
-            if (timerState.mode === 'enfoque' || timerState.mode === 'personalizado') {
-                timerState.ciclosCompletados++;
-                timerState.minutosTotales += Math.floor((timerState.mode === 'personalizado' ? CONFIG.personalizado : CONFIG.enfoque) / 60);
+            if (estadoTimer.modo === 'enfoque' || estadoTimer.modo === 'personalizado') {
+                estadoTimer.ciclosCompletados++;
+                estadoTimer.minutosTotales += Math.floor((estadoTimer.modo === 'personalizado' ? CONFIGURACION.personalizado : CONFIGURACION.enfoque) / 60);
 
-                document.getElementById('statCiclos').innerText = timerState.ciclosCompletados;
-                document.getElementById('statMinutos').innerText = timerState.minutosTotales;
+                document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
+                document.getElementById('statMinutos').innerText = estadoTimer.minutosTotales;
 
-                if (CONFIG.metaDiaria > 0) {
-                    const pct = Math.min(100, (timerState.ciclosCompletados / CONFIG.metaDiaria) * 100);
+                if (CONFIGURACION.metaDiaria > 0) {
+                    const pct = Math.min(100, (estadoTimer.ciclosCompletados / CONFIGURACION.metaDiaria) * 100);
                     document.getElementById('metaBar').style.width = pct + '%';
-                    document.getElementById('metaText').innerText = timerState.ciclosCompletados + ' / ' + CONFIG.metaDiaria;
-                    if (timerState.ciclosCompletados >= CONFIG.metaDiaria) {
-                        notificar('¡Meta diaria cumplida!', 'Has alcanzado tu meta de ' + CONFIG.metaDiaria + ' ciclos.');
+                    document.getElementById('metaText').innerText = estadoTimer.ciclosCompletados + ' / ' + CONFIGURACION.metaDiaria;
+                    if (estadoTimer.ciclosCompletados >= CONFIGURACION.metaDiaria) {
+                        notificar('¡Meta diaria cumplida!', 'Has alcanzado tu meta de ' + CONFIGURACION.metaDiaria + ' ciclos.');
                     }
                 }
 
-                agregarHistorial("Enfoque", formatTime(timerState.totalTime), true);
+                agregarHistorial("Enfoque", formatearTiempo(estadoTimer.tiempoTotal), true);
 
-                if (timerState.sesionId) {
+                if (estadoTimer.sesionId) {
                     try {
-                        const res = await fetch(`/api/pomodoro/${timerState.sesionId}/ciclo-completado`, {
+                        const respuesta = await fetch(`/api/pomodoro/${estadoTimer.sesionId}/ciclo-completado`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ciclosCompletados: timerState.ciclosCompletados })
+                            body: JSON.stringify({ ciclosCompletados: estadoTimer.ciclosCompletados })
                         });
-                        if (res.ok) {
-                            const data = await res.json();
-                            timerState.xpTotal += data.datos.xpGanado;
-                            document.getElementById('statXP').innerText = timerState.xpTotal;
+                        if (respuesta.ok) {
+                            const data = await respuesta.json();
+                            estadoTimer.xpTotal += data.datos.xpGanado;
+                            document.getElementById('statXP').innerText = estadoTimer.xpTotal;
                             actualizarGraficoSemanal();
 
                             if (data.datos.sugerirDescanso) {
-                                alert("¡Has completado varios ciclos seguidos! Te sugerimos tomar un Descanso Largo ahora.");
                                 notificar('Descanso largo', 'Es momento de un descanso largo. ¡Recupérate!');
-                                setMode('largo');
-                                if (CONFIG.autoIniciarEnfoque) {
-                                    setTimeout(function() { toggleTimer(); }, 500);
+                                if (data.datos.pausaActiva && data.datos.pausaActiva !== 'corta' && data.datos.pausaActiva !== 'larga') {
+                                    document.getElementById('pausaActivaContent').innerHTML = '<i class="bi bi-info-circle me-2"></i>' + data.datos.pausaActiva;
+                                    document.getElementById('pausaActivaContent').style.display = 'block';
+                                } else {
+                                    document.getElementById('pausaActivaContent').style.display = 'none';
                                 }
+                                document.getElementById('modalDescansoDuracion').innerText = CONFIGURACION.largo / 60;
+                                document.getElementById('btnIniciarDescansoLargo').onclick = function() {
+                                    var modal = bootstrap.Modal.getInstance(document.getElementById('modalDescansoLargo'));
+                                    modal.hide();
+                                    establecerModo('largo');
+                                    if (CONFIGURACION.autoIniciarDescanso) {
+                                        setTimeout(function() { alternarTimer(); }, 500);
+                                    }
+                                };
+                                var modalLargo = new bootstrap.Modal(document.getElementById('modalDescansoLargo'));
+                                modalLargo.show();
                                 return;
                             }
+
+                            if (data.datos.pausaActiva && data.datos.pausaActiva !== 'corta' && data.datos.pausaActiva !== 'larga') {
+                                mostrarInfo(data.datos.pausaActiva);
+                            }
                         }
-                    } catch(e) { console.error("Error API ciclo completado"); }
+                    } catch(e) { mostrarError("Error al registrar el ciclo. Intenta de nuevo."); }
                 }
 
-                if (timerState.ciclosCompletados >= timerState.ciclosObjetivo) {
-                    alert("¡Has completado todos los ciclos objetivo! Finaliza la sesión o continúa.");
-                    notificar('Metas', 'Has completado ' + timerState.ciclosObjetivo + ' ciclos. ¡Buen trabajo!');
+                if (estadoTimer.ciclosCompletados >= estadoTimer.ciclosObjetivo) {
+                    notificar('Metas', 'Has completado ' + estadoTimer.ciclosObjetivo + ' ciclos. ¡Buen trabajo!');
+                    if (CONFIGURACION.metaDiaria > 0 && estadoTimer.ciclosCompletados >= CONFIGURACION.metaDiaria) {
+                        document.getElementById('modalMetaNumero').innerText = CONFIGURACION.metaDiaria;
+                        var modalMeta = new bootstrap.Modal(document.getElementById('modalMetaCumplida'));
+                        modalMeta.show();
+                    } else {
+                        mostrarExito('¡Has completado ' + estadoTimer.ciclosObjetivo + ' ciclos!');
+                    }
                 }
 
-                setMode('corto');
-                if (CONFIG.autoIniciarDescanso) {
-                    setTimeout(function() { toggleTimer(); }, 500);
+                establecerModo('corto');
+                if (CONFIGURACION.autoIniciarDescanso) {
+                    setTimeout(function() { alternarTimer(); }, 500);
                 }
 
             } else {
-                agregarHistorial(timerState.mode === 'corto' ? 'Descanso corto' : 'Descanso largo', formatTime(timerState.totalTime), false);
-                setMode('enfoque');
-                if (CONFIG.autoIniciarEnfoque) {
-                    setTimeout(function() { toggleTimer(); }, 500);
+                agregarHistorial(estadoTimer.modo === 'corto' ? 'Descanso corto' : 'Descanso largo', formatearTiempo(estadoTimer.tiempoTotal), false);
+                establecerModo('enfoque');
+                if (CONFIGURACION.autoIniciarEnfoque) {
+                    setTimeout(function() { alternarTimer(); }, 500);
                 }
             }
         }
@@ -650,7 +750,7 @@
                         document.querySelector('.badge.bg-warning')?.remove();
                     }
                 })
-                .catch(function() {});
+                .catch(function() { mostrarError("Error al actualizar estadísticas."); });
         }
 
         function agregarHistorial(tipo, tiempoTxt, esEnfoque) {
@@ -701,44 +801,44 @@
             switch(e.key) {
                 case ' ':
                     e.preventDefault();
-                    toggleTimer();
+                    alternarTimer();
                     break;
                 case 'r':
                 case 'R':
-                    resetTimer();
+                    reiniciarTimer();
                     break;
                 case '1':
-                    setMode('enfoque');
+                    establecerModo('enfoque');
                     break;
                 case '2':
-                    setMode('corto');
+                    establecerModo('corto');
                     break;
                 case '3':
-                    setMode('largo');
+                    establecerModo('largo');
                     break;
                 case '4':
-                    setMode('personalizado');
+                    establecerModo('personalizado');
                     break;
                 case 'f':
                 case 'F':
-                    toggleFullscreen();
+                    alternarPantallaCompleta();
                     break;
                 case 's':
                 case 'S':
-                    if (timerState.mode === 'enfoque') saltarCiclo();
+                    if (estadoTimer.modo === 'enfoque') saltarCiclo();
                     break;
             }
         });
 
         document.addEventListener('visibilitychange', function() {
-            if (document.hidden && timerState.isRunning) {
-                document.title = formatTime(timerState.timeLeft) + ' - Pomodoro';
+            if (document.hidden && estadoTimer.estaCorriendo) {
+                document.title = formatearTiempo(estadoTimer.tiempoRestante) + ' - Pomodoro';
             } else {
                 document.title = 'Pomodoro - EpycusApp';
             }
         });
 
-        setMode('enfoque');
-        updateTimerUI();
+        establecerModo('enfoque');
+        actualizarUI();
     </script>
 }
