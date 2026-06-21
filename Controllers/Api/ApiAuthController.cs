@@ -1,4 +1,5 @@
 ﻿using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
@@ -27,10 +28,10 @@ namespace EpycusApp.Controllers.Api
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.Login(request.Correo, request.Contrasena);
             if (!exito || token == null || refreshToken == null)
             {
-                return BadRequest(RespuestaApi<object>.Fallida(mensaje));
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(mensaje));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { token, refreshToken }));
+            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken }));
         }
 
         [HttpPost("refresh")]
@@ -40,10 +41,10 @@ namespace EpycusApp.Controllers.Api
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.RenovarToken(request.RefreshToken);
             if (!exito || token == null || refreshToken == null)
             {
-                return BadRequest(RespuestaApi<object>.Fallida(mensaje));
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(mensaje));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { token, refreshToken }));
+            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken }));
         }
 
         [HttpPost("logout")]
@@ -52,7 +53,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             await _servicioAutenticacion.CerrarSesion(usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpPost("registro")]
@@ -74,10 +75,10 @@ namespace EpycusApp.Controllers.Api
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.RegistrarUsuario(modelo);
             if (!exito || token == null || refreshToken == null)
             {
-                return BadRequest(RespuestaApi<object>.Fallida(mensaje));
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(mensaje));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { token, refreshToken }));
+            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken }));
         }
 
         [HttpGet("verificar-correo")]
@@ -87,10 +88,10 @@ namespace EpycusApp.Controllers.Api
             var resultado = await _servicioAutenticacion.VerificarCorreo(token);
             if (!resultado)
             {
-                return BadRequest(RespuestaApi<object>.Fallida("No se pudo verificar el correo"));
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("No se pudo verificar el correo"));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { mensaje = "Correo verificado exitosamente" }));
+            return Ok(RespuestaApi<MensajeResponseDto>.Exitosa(new MensajeResponseDto { Mensaje = "Correo verificado exitosamente" }));
         }
 
         [HttpPost("recuperar-contrasena")]
@@ -100,10 +101,10 @@ namespace EpycusApp.Controllers.Api
             var resultado = await _servicioAutenticacion.EnviarCorreoRecuperacion(request.Correo);
             if (!resultado)
             {
-                return BadRequest(RespuestaApi<object>.Fallida("No se pudo enviar el correo de recuperación"));
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("No se pudo enviar el correo de recuperación"));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { mensaje = "Correo de recuperación enviado" }));
+            return Ok(RespuestaApi<MensajeResponseDto>.Exitosa(new MensajeResponseDto { Mensaje = "Correo de recuperación enviado" }));
         }
 
         [HttpPost("restablecer-contrasena")]
@@ -113,10 +114,10 @@ namespace EpycusApp.Controllers.Api
             var resultado = await _servicioAutenticacion.RestablecerContrasena(request.Token, request.NuevaContrasena);
             if (!resultado)
             {
-                return BadRequest(RespuestaApi<object>.Fallida("No se pudo restablecer la contraseña"));
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("No se pudo restablecer la contraseña"));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { mensaje = "Contraseña restablecida exitosamente" }));
+            return Ok(RespuestaApi<MensajeResponseDto>.Exitosa(new MensajeResponseDto { Mensaje = "Contraseña restablecida exitosamente" }));
         }
 
         [HttpPost("google")]
@@ -130,7 +131,7 @@ namespace EpycusApp.Controllers.Api
                 return BadRequest(RespuestaApi<object>.Fallida(mensaje));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { token, refreshToken }));
+            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken }));
         }
 
         [HttpPost("completar-registro-google")]
@@ -152,10 +153,10 @@ namespace EpycusApp.Controllers.Api
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.CompletarRegistroGoogleAsync(modelo);
             if (!exito || token == null || refreshToken == null)
             {
-                return BadRequest(RespuestaApi<object>.Fallida(mensaje));
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(mensaje));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { token, refreshToken }));
+            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken }));
         }
 
         [HttpGet("carreras")]

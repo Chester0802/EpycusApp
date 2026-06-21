@@ -1,4 +1,5 @@
 ﻿using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,23 +29,23 @@ namespace EpycusApp.Controllers.Api
             var misionesPendientes = await _servicioBienestar.ObtenerMisionesPendientesAsync(usuarioId);
             var frase = await _servicioBienestar.ObtenerFraseMotivacionalAleatoria();
 
-            var respuesta = new
+            var respuesta = new DashboardResumenResponse
             {
-                kpis = new { habitosPendientes, misionesPendientes },
-                habitosPendientes,
-                misionesPendientes,
-                frase = frase == null ? null : new { frase = frase.Frase, autor = frase.Autor }
+                Kpis = new DashboardKpis { HabitosPendientes = habitosPendientes, MisionesPendientes = misionesPendientes },
+                HabitosPendientes = habitosPendientes,
+                MisionesPendientes = misionesPendientes,
+                Frase = frase == null ? null : new FraseResponseDto { Frase = frase.Frase, Autor = frase.Autor }
             };
 
-            return Ok(RespuestaApi<object>.Exitosa(respuesta));
+            return Ok(RespuestaApi<DashboardResumenResponse>.Exitosa(respuesta));
         }
 
         [HttpGet("frase-del-dia")]
         public async Task<IActionResult> FraseDelDia()
         {
             var frase = await _servicioBienestar.ObtenerFraseMotivacionalAleatoria();
-            var resultado = frase == null ? null : new { frase = frase.Frase, autor = frase.Autor };
-            return Ok(RespuestaApi<object?>.Exitosa(resultado));
+            FraseResponseDto? resultado = frase == null ? null : new FraseResponseDto { Frase = frase.Frase, Autor = frase.Autor };
+            return Ok(RespuestaApi<FraseResponseDto?>.Exitosa(resultado));
         }
     }
 }

@@ -42,7 +42,7 @@ namespace EpycusApp.Controllers.Api
             }
 
             var sesion = await _servicioPomodoro.IniciarSesion(usuarioId.Value, req?.HabitoId, req?.MisionId);
-            return Ok(RespuestaApi<object>.Exitosa(new { sesionId = sesion.Id, fechaInicio = sesion.FechaInicio }));
+            return Ok(RespuestaApi<PomodoroIniciarResponse>.Exitosa(new PomodoroIniciarResponse { SesionId = sesion.Id, FechaInicio = sesion.FechaInicio }));
         }
 
         [HttpPost("{sesionId}/ciclo-completado")]
@@ -60,7 +60,7 @@ namespace EpycusApp.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autorizado"));
 
             var resultado = await _servicioPomodoro.RegistrarCiclo(sesionId, req?.CiclosCompletados ?? 0);
-            return Ok(RespuestaApi<object>.Exitosa(new { xpGanado = resultado.XpGanado, sugerirDescanso = resultado.SugerirDescanso, pausaActiva = resultado.PausaActiva }));
+            return Ok(RespuestaApi<PomodoroCicloCompletadoResponse>.Exitosa(new PomodoroCicloCompletadoResponse { XpGanado = resultado.XpGanado, SugerirDescanso = resultado.SugerirDescanso, PausaActiva = resultado.PausaActiva }));
         }
 
         [HttpPost("{sesionId}/finalizar")]
@@ -80,7 +80,7 @@ namespace EpycusApp.Controllers.Api
             await _servicioPomodoro.FinalizarSesion(sesionId, req?.CiclosCompletados ?? 0);
 
             var sesionActualizada = await _servicioPomodoro.ObtenerSesion(sesionId);
-            return Ok(RespuestaApi<object>.Exitosa(new { xpTotal = sesionActualizada?.XpOtorgado ?? 0, sesionGuardada = true }));
+            return Ok(RespuestaApi<PomodoroFinalizarResponse>.Exitosa(new PomodoroFinalizarResponse { XpTotal = sesionActualizada?.XpOtorgado ?? 0, SesionGuardada = true }));
         }
 
         [HttpPost("{sesionId}/cancelar")]
@@ -93,7 +93,7 @@ namespace EpycusApp.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autorizado"));
 
             await _servicioPomodoro.CancelarSesion(sesionId);
-            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpGet("configuracion")]
@@ -105,21 +105,22 @@ namespace EpycusApp.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
             var config = await _servicioPomodoro.ObtenerConfiguracion(usuarioId.Value);
-            return Ok(RespuestaApi<object>.Exitosa(new {
-                tiempoEstudio = config.TiempoEstudioMin,
-                tiempoDescanso = config.TiempoDescansoMin,
-                tiempoDescansoLargo = config.TiempoDescansoLargoMin,
-                ciclosAntesDescansoLargo = config.CiclosAntesDescansoLargo,
-                sonidoActivo = config.SonidoActivo,
-                sonidoSeleccionado = config.SonidoSeleccionado,
-                volumen = config.Volumen,
-                autoIniciarDescanso = config.AutoIniciarDescanso,
-                autoIniciarEnfoque = config.AutoIniciarEnfoque,
-                ticTacActivo = config.TicTacActivo,
-                metaDiariaCiclos = config.MetaDiariaCiclos,
-                modoPersonalizadoMinutos = config.ModoPersonalizadoMinutos,
-                vibracionActiva = config.VibracionActiva,
-                notificacionDesktop = config.NotificacionDesktop
+            return Ok(RespuestaApi<PomodoroConfiguracionResponse>.Exitosa(new PomodoroConfiguracionResponse
+            {
+                TiempoEstudio = config.TiempoEstudioMin,
+                TiempoDescanso = config.TiempoDescansoMin,
+                TiempoDescansoLargo = config.TiempoDescansoLargoMin,
+                CiclosAntesDescansoLargo = config.CiclosAntesDescansoLargo,
+                SonidoActivo = config.SonidoActivo,
+                SonidoSeleccionado = config.SonidoSeleccionado,
+                Volumen = config.Volumen,
+                AutoIniciarDescanso = config.AutoIniciarDescanso,
+                AutoIniciarEnfoque = config.AutoIniciarEnfoque,
+                TicTacActivo = config.TicTacActivo,
+                MetaDiariaCiclos = config.MetaDiariaCiclos,
+                ModoPersonalizadoMinutos = config.ModoPersonalizadoMinutos,
+                VibracionActiva = config.VibracionActiva,
+                NotificacionDesktop = config.NotificacionDesktop
             }));
         }
 
@@ -143,14 +144,14 @@ namespace EpycusApp.Controllers.Api
             }
 
             await _servicioPomodoro.ActualizarConfiguracion(usuarioId.Value, dto);
-            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpGet("tip-aleatorio")]
         public async Task<IActionResult> ObtenerTip()
         {
             var tip = await _servicioPomodoro.ObtenerTipAleatorio();
-            return Ok(RespuestaApi<object>.Exitosa(new { consejo = tip }));
+            return Ok(RespuestaApi<PomodoroTipResponse>.Exitosa(new PomodoroTipResponse { Consejo = tip }));
         }
 
         [HttpGet("sesion-activa")]
@@ -163,14 +164,14 @@ namespace EpycusApp.Controllers.Api
             var sesionesHoy = await _servicioPomodoro.ObtenerSesionesHoyAsync(usuarioId.Value);
             var activa = sesionesHoy.FirstOrDefault(s => !s.FechaFin.HasValue);
             if (activa == null)
-                return Ok(RespuestaApi<object>.Exitosa(new { activa = false }));
+                return Ok(RespuestaApi<PomodoroSesionActivaResponse>.Exitosa(new PomodoroSesionActivaResponse { Activa = false }));
 
-            return Ok(RespuestaApi<object>.Exitosa(new
+            return Ok(RespuestaApi<PomodoroSesionActivaResponse>.Exitosa(new PomodoroSesionActivaResponse
             {
-                activa = true,
-                sesionId = activa.Id,
-                fechaInicio = activa.FechaInicio,
-                ciclosCompletados = activa.CiclosCompletados
+                Activa = true,
+                SesionId = activa.Id,
+                FechaInicio = activa.FechaInicio,
+                CiclosCompletados = activa.CiclosCompletados
             }));
         }
 
@@ -186,7 +187,7 @@ namespace EpycusApp.Controllers.Api
             tamano = Math.Clamp(tamano, 1, 100);
 
             var historial = await _servicioPomodoro.ObtenerHistorialAsync(usuarioId.Value, desdeDate, hastaDate, pagina, tamano);
-            return Ok(RespuestaApi<object>.Exitosa(new { historial, pagina, tamano }));
+            return Ok(RespuestaApi<PomodoroHistorialResponse>.Exitosa(new PomodoroHistorialResponse { Historial = historial, Pagina = pagina, Tamano = tamano }));
         }
 
         [HttpGet("racha")]
@@ -197,7 +198,7 @@ namespace EpycusApp.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
 
             var racha = await _servicioPomodoro.ObtenerRachaActualAsync(usuarioId.Value);
-            return Ok(RespuestaApi<object>.Exitosa(new { racha }));
+            return Ok(RespuestaApi<PomodoroRachaResponse>.Exitosa(new PomodoroRachaResponse { Racha = racha }));
         }
 
         [HttpGet("estadisticas")]

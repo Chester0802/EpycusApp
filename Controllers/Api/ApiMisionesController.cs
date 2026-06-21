@@ -1,4 +1,5 @@
 ﻿using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -25,15 +26,20 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var misiones = await _servicioMisiones.ObtenerMisionesDeUsuario(usuarioId);
-            var resultado = misiones.Select(m => new
+            var resultado = misiones.Select(m => new MisionListaItemResponse
             {
-                id = m.Id,
-                nombre = m.Nombre,
-                prioridad = m.Prioridad,
-                fechaLimite = m.FechaLimite.ToString("yyyy-MM-dd"),
-                completada = m.Estado == "Completado"
-            });
-            return Ok(RespuestaApi<object>.Exitosa(resultado));
+                Id = m.Id,
+                Nombre = m.Nombre,
+                Descripcion = m.Descripcion,
+                NombreCurso = m.NombreCurso,
+                Prioridad = m.Prioridad,
+                Estado = m.Estado,
+                FechaLimite = m.FechaLimite.ToString("yyyy-MM-dd"),
+                XpOtorgado = m.XpOtorgado,
+                FechaCreacion = m.FechaCreacion,
+                CategoriaId = m.CategoriaId
+            }).ToList();
+            return Ok(RespuestaApi<List<MisionListaItemResponse>>.Exitosa(resultado));
         }
 
         [HttpGet("{id}")]
@@ -63,7 +69,7 @@ namespace EpycusApp.Controllers.Api
             };
 
             await _servicioMisiones.CrearMision(modelo, usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpPut("{id}")]
@@ -84,7 +90,7 @@ namespace EpycusApp.Controllers.Api
             };
 
             await _servicioMisiones.EditarMision(modelo, usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpDelete("{id}")]
@@ -92,7 +98,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             await _servicioMisiones.EliminarMision(id, usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpPost("{id}/completar")]
@@ -106,7 +112,7 @@ namespace EpycusApp.Controllers.Api
                 return BadRequest(RespuestaApi<object>.Fallida("No se pudo completar la misión"));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { xpGanado = resultado.XpGanado }));
+            return Ok(RespuestaApi<MisionCompletarResponse>.Exitosa(new MisionCompletarResponse { XpGanado = resultado.XpGanado }));
         }
 
         [HttpPost("{id}/estado")]
@@ -114,7 +120,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             await _servicioMisiones.CambiarEstado(id, dto.Estado, usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpGet("categorias")]

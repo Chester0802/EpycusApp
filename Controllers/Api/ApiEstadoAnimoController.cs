@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

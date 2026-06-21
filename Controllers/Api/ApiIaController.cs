@@ -1,4 +1,5 @@
 using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +28,7 @@ namespace EpycusApp.Controllers.Api
                 ? _servicioIA.NuevaConversacionId()
                 : request.ConversacionId;
             var respuesta = await _servicioIA.ChatAsync(usuarioId, request.Mensaje, conversacionId);
-            return Ok(RespuestaApi<object>.Exitosa(new { respuesta, conversacionId }));
+            return Ok(RespuestaApi<IaChatResponseDto>.Exitosa(new IaChatResponseDto { Respuesta = respuesta, ConversacionId = conversacionId }));
         }
 
         [HttpGet("historial")]
@@ -35,7 +36,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var historial = await _servicioIA.ObtenerHistorialAsync(usuarioId, conversacionId);
-            return Ok(RespuestaApi<object>.Exitosa(historial));
+            return Ok(RespuestaApi<IaHistorialResponse>.Exitosa(new IaHistorialResponse { Historial = historial }));
         }
 
         [HttpGet("conversaciones")]
@@ -43,7 +44,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var conversaciones = await _servicioIA.ObtenerConversacionesAsync(usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(conversaciones));
+            return Ok(RespuestaApi<IaConversacionesResponse>.Exitosa(new IaConversacionesResponse { Conversaciones = conversaciones }));
         }
 
         [HttpGet("sugerencias")]
@@ -51,7 +52,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var sugerencias = await _servicioIA.ObtenerSugerenciasPersonalizadasAsync(usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(sugerencias));
+            return Ok(RespuestaApi<IaSugerenciasResponse>.Exitosa(new IaSugerenciasResponse { Sugerencias = sugerencias }));
         }
 
         [HttpGet("contexto-bienestar")]
@@ -67,7 +68,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             await _servicioIA.RegistrarFeedbackAsync(usuarioId, request.MensajeId, request.Util);
-            return Ok(RespuestaApi<object>.Exitosa(new { }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpGet("mensajes-hoy")]
@@ -75,7 +76,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var cantidad = await _servicioIA.ObtenerMensajesHoyAsync(usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(new { cantidad }));
+            return Ok(RespuestaApi<IaMensajesHoyResponse>.Exitosa(new IaMensajesHoyResponse { Cantidad = cantidad }));
         }
     }
 

@@ -1,4 +1,5 @@
 using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,9 +29,9 @@ namespace EpycusApp.Controllers.Api
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.Login(request.Correo, request.Contrasena);
 
             if (!exito)
-                return Ok(RespuestaApi<object>.Fallida(mensaje));
+                return Ok(RespuestaApi<MensajeResponseDto>.Fallida(mensaje));
 
-            return Ok(RespuestaApi<object>.Exitosa(new { token, refreshToken, mensaje }));
+            return Ok(RespuestaApi<AdminLoginResponseDto>.Exitosa(new AdminLoginResponseDto { Token = token!, RefreshToken = refreshToken!, Mensaje = mensaje }));
         }
 
         [HttpGet("usuarios")]
@@ -45,7 +46,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuario = await _servicioAdmin.ObtenerUsuarioPorId(id);
             if (usuario == null)
-                return NotFound(RespuestaApi<object>.Fallida("Usuario no encontrado"));
+                return NotFound(RespuestaApi<MensajeResponseDto>.Fallida("Usuario no encontrado"));
             return Ok(RespuestaApi<object>.Exitosa(usuario));
         }
 
@@ -54,14 +55,14 @@ namespace EpycusApp.Controllers.Api
         {
             var adminId = ObtenerUsuarioId()!.Value;
             await _servicioAdmin.ActivarSuscripcion(usuarioId, adminId);
-            return Ok(RespuestaApi<object>.Exitosa(new { }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpPost("usuarios/{usuarioId}/suscripcion/desactivar")]
         public async Task<IActionResult> DesactivarSuscripcion(int usuarioId)
         {
             await _servicioAdmin.DesactivarSuscripcion(usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(new { }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpGet("frases")]
@@ -75,14 +76,14 @@ namespace EpycusApp.Controllers.Api
         public async Task<IActionResult> CrearFrase([FromBody] CrearFraseRequest request)
         {
             await _servicioAdmin.CrearFrase(request.Frase, request.Autor ?? "Anonimo");
-            return Created(string.Empty, RespuestaApi<object>.Exitosa(new { }));
+            return Created(string.Empty, RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpDelete("frases/{id}")]
         public async Task<IActionResult> EliminarFrase(int id)
         {
             await _servicioAdmin.EliminarFrase(id);
-            return Ok(RespuestaApi<object>.Exitosa(new { }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
     }
 
