@@ -144,7 +144,7 @@
                             <div class="col-6">
                                 <label class="ep-da-label">Horas de sueño</label>
                                 <input type="number" name="HorasSueno" class="form-control ep-da-input" step="0.5" min="0" max="24"
-                                       value="@(Model.EntradaHoy?.HorasSueno?.ToString() ?? "")" placeholder="Ej: 7.5" />
+                                       value="@(Model.EntradaHoy?.HorasSueno.HasValue == true ? Model.EntradaHoy.HorasSueno.Value.ToString("0.#") : "")" placeholder="Ej: 7.5" />
                             </div>
                             <div class="col-6">
                                 <label class="ep-da-label">¿Actividad física?</label>
@@ -274,7 +274,7 @@
                                             <span class="small" style="color: var(--texto-secundario);">
                                                 Energía: @entrada.NivelEnergia/5
                                                 @if (entrada.NivelEstres.HasValue) { <span>| Estrés: @entrada.NivelEstres/5</span> }
-                                                @if (entrada.HorasSueno.HasValue) { <span>| Sueño: @entrada.HorasSueno h</span> }
+                                                @if (entrada.HorasSueno.HasValue) { <span>| Sueño: @entrada.HorasSueno.Value.ToString("0.#") h</span> }
                                                 @if (entrada.ActividadFisica.HasValue) { <span>| 🏃 @(entrada.ActividadFisica.Value ? "Sí" : "No")</span> }
                                             </span>
                                         </div>

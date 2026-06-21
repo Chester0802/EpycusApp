@@ -68,7 +68,7 @@ namespace EpycusApp.Servicios.Implementaciones
             {
                 existente.EstadoAnimo = model.EstadoAnimo;
                 existente.NivelEnergia = model.NivelEnergia;
-                existente.HorasSueno = model.HorasSueno;
+                existente.HorasSueno = model.HorasSueno.HasValue ? Math.Round(model.HorasSueno.Value, 1) : null;
                 existente.NivelEstres = model.NivelEstres;
                 existente.ActividadFisica = model.ActividadFisica;
                 existente.DiarioTexto = model.DiarioTexto;
@@ -84,7 +84,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 Fecha = hoy,
                 EstadoAnimo = model.EstadoAnimo,
                 NivelEnergia = model.NivelEnergia,
-                HorasSueno = model.HorasSueno,
+                HorasSueno = model.HorasSueno.HasValue ? Math.Round(model.HorasSueno.Value, 1) : null,
                 NivelEstres = model.NivelEstres,
                 ActividadFisica = model.ActividadFisica,
                 DiarioTexto = model.DiarioTexto,
@@ -111,7 +111,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
             entrada.EstadoAnimo = model.EstadoAnimo;
             entrada.NivelEnergia = model.NivelEnergia;
-            entrada.HorasSueno = model.HorasSueno;
+            entrada.HorasSueno = model.HorasSueno.HasValue ? Math.Round(model.HorasSueno.Value, 1) : null;
             entrada.NivelEstres = model.NivelEstres;
             entrada.ActividadFisica = model.ActividadFisica;
             entrada.DiarioTexto = model.DiarioTexto;
