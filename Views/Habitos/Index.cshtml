@@ -132,7 +132,14 @@
                             </div>
                             
                             <div>
-                                <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="completarHabito(@h.Id, this)">100%</button>
+                                @if (h.EstadoHoy == "Completado")
+                                {
+                                    <span class="btn btn-sm btn-success rounded-pill px-3" style="cursor: default;"><i class="bi bi-check2"></i> Completado</span>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="completarHabito(@h.Id, this)">100%</button>
+                                }
                             </div>
                             
                             <div class="dropdown">
