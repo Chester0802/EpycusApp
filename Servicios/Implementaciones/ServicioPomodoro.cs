@@ -47,6 +47,9 @@ namespace EpycusApp.Servicios.Implementaciones
             if (sesion is null)
                 return (0, false, null);
 
+            if (ciclosCompletados <= sesion.CiclosCompletados)
+                return (0, false, null);
+
             sesion.CiclosCompletados = ciclosCompletados;
 
             int xpGanado = ConstantesGamificacion.XP_BASE_POMODORO;
@@ -118,6 +121,15 @@ namespace EpycusApp.Servicios.Implementaciones
                     TiempoDescansoLargoMin = dto.TiempoDescansoLargoMin,
                     CiclosAntesDescansoLargo = dto.CiclosAntesDescansoLargo,
                     SonidoActivo = dto.SonidoActivo,
+                    SonidoSeleccionado = dto.SonidoSeleccionado,
+                    Volumen = dto.Volumen,
+                    AutoIniciarDescanso = dto.AutoIniciarDescanso,
+                    AutoIniciarEnfoque = dto.AutoIniciarEnfoque,
+                    TicTacActivo = dto.TicTacActivo,
+                    MetaDiariaCiclos = dto.MetaDiariaCiclos,
+                    ModoPersonalizadoMinutos = dto.ModoPersonalizadoMinutos,
+                    VibracionActiva = dto.VibracionActiva,
+                    NotificacionDesktop = dto.NotificacionDesktop,
                     FechaActualizacion = DateTime.UtcNow
                 });
             }
@@ -128,6 +140,15 @@ namespace EpycusApp.Servicios.Implementaciones
                 existente.TiempoDescansoLargoMin = dto.TiempoDescansoLargoMin;
                 existente.CiclosAntesDescansoLargo = dto.CiclosAntesDescansoLargo;
                 existente.SonidoActivo = dto.SonidoActivo;
+                existente.SonidoSeleccionado = dto.SonidoSeleccionado;
+                existente.Volumen = dto.Volumen;
+                existente.AutoIniciarDescanso = dto.AutoIniciarDescanso;
+                existente.AutoIniciarEnfoque = dto.AutoIniciarEnfoque;
+                existente.TicTacActivo = dto.TicTacActivo;
+                existente.MetaDiariaCiclos = dto.MetaDiariaCiclos;
+                existente.ModoPersonalizadoMinutos = dto.ModoPersonalizadoMinutos;
+                existente.VibracionActiva = dto.VibracionActiva;
+                existente.NotificacionDesktop = dto.NotificacionDesktop;
                 existente.FechaActualizacion = DateTime.UtcNow;
             }
             await _context.SaveChangesAsync();
@@ -155,6 +176,59 @@ namespace EpycusApp.Servicios.Implementaciones
                 .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= hoy)
                 .OrderByDescending(s => s.FechaInicio)
                 .ToListAsync();
+        }
+
+        public async Task<List<SesionPomodoro>> ObtenerHistorialAsync(int usuarioId, DateTime desde, DateTime hasta, int pagina = 1, int tamano = 20)
+        {
+            return await _context.SesionesPomodoro
+                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta)
+                .OrderByDescending(s => s.FechaInicio)
+                .Skip((pagina - 1) * tamano)
+                .Take(tamano)
+                .ToListAsync();
+        }
+
+        public async Task<int> ObtenerRachaActualAsync(int usuarioId)
+        {
+            var sesiones = await _context.SesionesPomodoro
+                .Where(s => s.UsuarioId == usuarioId && s.FueCompletada)
+                .OrderByDescending(s => s.FechaInicio)
+                .Select(s => s.FechaInicio.Date)
+                .Distinct()
+                .ToListAsync();
+
+            if (sesiones.Count == 0) return 0;
+
+            var hoy = DateTime.UtcNow.Date;
+            var ayer = hoy.AddDays(-1);
+
+            if (sesiones[0] != hoy && sesiones[0] != ayer)
+                return 0;
+
+            int racha = 1;
+            for (int i = 1; i < sesiones.Count; i++)
+            {
+                if ((sesiones[i - 1] - sesiones[i]).Days == 1)
+                    racha++;
+                else
+                    break;
+            }
+            return racha;
+        }
+
+        public async Task<EstadisticasPomodoroPeriodo> ObtenerEstadisticasPeriodoAsync(int usuarioId, DateTime desde, DateTime hasta)
+        {
+            var sesiones = await _context.SesionesPomodoro
+                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta)
+                .ToListAsync();
+
+            return new EstadisticasPomodoroPeriodo
+            {
+                Fecha = desde.ToString("yyyy-MM-dd"),
+                Ciclos = sesiones.Sum(s => s.CiclosCompletados),
+                Minutos = sesiones.Where(s => s.FueCompletada).Sum(s => (int)((s.FechaFin ?? s.FechaInicio) - s.FechaInicio).TotalMinutes),
+                Xp = sesiones.Sum(s => s.XpOtorgado)
+            };
         }
 
         public async Task<List<TareaPomodoro>> ObtenerTareasEnfoqueAsync(int usuarioId)

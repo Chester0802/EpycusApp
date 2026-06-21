@@ -9,6 +9,8 @@ namespace EpycusApp.ViewModels
         public EstadisticasPomodoroHoy EstadisticasHoy { get; set; } = new EstadisticasPomodoroHoy();
         public List<TareaPomodoro> TareasEnfoque { get; set; } = new List<TareaPomodoro>();
         public List<SesionPomodoro> HistorialHoy { get; set; } = new List<SesionPomodoro>();
+        public int RachaActual { get; set; }
+        public List<EstadisticasPomodoroPeriodo> EstadisticasSemanales { get; set; } = new List<EstadisticasPomodoroPeriodo>();
     }
 
     public class EstadisticasPomodoroHoy
@@ -24,6 +26,14 @@ namespace EpycusApp.ViewModels
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public string CategoriaNombre { get; set; } = string.Empty;
-        public string Tipo { get; set; } = string.Empty; // "Habito" o "Mision"
+        public string Tipo { get; set; } = string.Empty;
+    }
+
+    public class EstadisticasPomodoroPeriodo
+    {
+        public string Fecha { get; set; } = string.Empty;
+        public int Ciclos { get; set; }
+        public int Minutos { get; set; }
+        public int Xp { get; set; }
     }
 }

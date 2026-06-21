@@ -156,7 +156,16 @@ public class ServicioPomodoroTests
             TiempoDescansoMin = 10,
             TiempoDescansoLargoMin = 20,
             CiclosAntesDescansoLargo = 6,
-            SonidoActivo = false
+            SonidoActivo = false,
+            SonidoSeleccionado = "digital",
+            Volumen = 80,
+            AutoIniciarDescanso = true,
+            AutoIniciarEnfoque = false,
+            TicTacActivo = true,
+            MetaDiariaCiclos = 8,
+            ModoPersonalizadoMinutos = 30,
+            VibracionActiva = false,
+            NotificacionDesktop = true
         };
 
         await _servicio.ActualizarConfiguracion(usuarioId, dto);
@@ -165,6 +174,28 @@ public class ServicioPomodoroTests
         config.TiempoEstudioMin.Should().Be(50);
         config.TiempoDescansoMin.Should().Be(10);
         config.SonidoActivo.Should().BeFalse();
+        config.SonidoSeleccionado.Should().Be("digital");
+        config.Volumen.Should().Be(80);
+        config.AutoIniciarDescanso.Should().BeTrue();
+        config.TicTacActivo.Should().BeTrue();
+        config.MetaDiariaCiclos.Should().Be(8);
+        config.ModoPersonalizadoMinutos.Should().Be(30);
+    }
+
+    [Fact]
+    public async Task RegistrarCiclo_CiclosNoDecrecientes_NoOtorgaXP()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var sesion = await _servicio.IniciarSesion(usuarioId, null, null);
+        _contexto.ConfiguracionesPomodoro.Add(new ConfiguracionPomodoro { UsuarioId = usuarioId, CiclosAntesDescansoLargo = 4 });
+        await _contexto.SaveChangesAsync();
+
+        await _servicio.RegistrarCiclo(sesion.Id, 3);
+
+        var (xp, _, _) = await _servicio.RegistrarCiclo(sesion.Id, 2);
+
+        xp.Should().Be(0);
+        _gamificacionMock.Verify(g => g.SumarXP(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
     }
 
     [Fact]

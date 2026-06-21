@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using EpycusApp.Ayudantes;
+﻿using EpycusApp.Ayudantes;
 using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -21,8 +20,6 @@ namespace EpycusApp.Controllers.Api
             _servicioPomodoro = servicioPomodoro;
         }
 
-        public class IniciarRequest { public int? HabitoId { get; set; } public int? MisionId { get; set; } }
-
         [HttpPost("iniciar")]
         public async Task<IActionResult> Iniciar([FromBody] IniciarRequest req)
         {
@@ -41,12 +38,6 @@ namespace EpycusApp.Controllers.Api
 
             var sesion = await _servicioPomodoro.IniciarSesion(usuarioId.Value, req?.HabitoId, req?.MisionId);
             return Ok(RespuestaApi<object>.Exitosa(new { sesionId = sesion.Id, fechaInicio = sesion.FechaInicio }));
-        }
-
-        public class CicloCompletadoRequest
-        {
-            [Range(1, 100, ErrorMessage = "CiclosCompletados debe ser entre 1 y 100.")]
-            public int CiclosCompletados { get; set; }
         }
 
         [HttpPost("{sesionId}/ciclo-completado")]
@@ -72,8 +63,7 @@ namespace EpycusApp.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autorizado"));
 
             await _servicioPomodoro.FinalizarSesion(sesionId, req?.CiclosCompletados ?? 0);
-            
-            // Recalcular xpTotal de la sesión para devolverlo (o leerlo de base de datos)
+
             var sesionActualizada = await _servicioPomodoro.ObtenerSesion(sesionId);
             return Ok(RespuestaApi<object>.Exitosa(new { xpTotal = sesionActualizada?.XpOtorgado ?? 0, sesionGuardada = true }));
         }
@@ -105,7 +95,16 @@ namespace EpycusApp.Controllers.Api
                 tiempoDescanso = config.TiempoDescansoMin,
                 tiempoDescansoLargo = config.TiempoDescansoLargoMin,
                 ciclosAntesDescansoLargo = config.CiclosAntesDescansoLargo,
-                sonidoActivo = config.SonidoActivo
+                sonidoActivo = config.SonidoActivo,
+                sonidoSeleccionado = config.SonidoSeleccionado,
+                volumen = config.Volumen,
+                autoIniciarDescanso = config.AutoIniciarDescanso,
+                autoIniciarEnfoque = config.AutoIniciarEnfoque,
+                ticTacActivo = config.TicTacActivo,
+                metaDiariaCiclos = config.MetaDiariaCiclos,
+                modoPersonalizadoMinutos = config.ModoPersonalizadoMinutos,
+                vibracionActiva = config.VibracionActiva,
+                notificacionDesktop = config.NotificacionDesktop
             }));
         }
 
@@ -132,6 +131,46 @@ namespace EpycusApp.Controllers.Api
         {
             var tip = await _servicioPomodoro.ObtenerTipAleatorio();
             return Ok(RespuestaApi<object>.Exitosa(new { consejo = tip }));
+        }
+
+        [HttpGet("historial")]
+        public async Task<IActionResult> ObtenerHistorial([FromQuery] DateTime? desde, [FromQuery] DateTime? hasta, [FromQuery] int pagina = 1, [FromQuery] int tamano = 20)
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            var desdeDate = desde ?? DateTime.UtcNow.AddDays(-30);
+            var hastaDate = hasta ?? DateTime.UtcNow;
+            tamano = Math.Clamp(tamano, 1, 100);
+
+            var historial = await _servicioPomodoro.ObtenerHistorialAsync(usuarioId.Value, desdeDate, hastaDate, pagina, tamano);
+            return Ok(RespuestaApi<object>.Exitosa(new { historial, pagina, tamano }));
+        }
+
+        [HttpGet("racha")]
+        public async Task<IActionResult> ObtenerRacha()
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            var racha = await _servicioPomodoro.ObtenerRachaActualAsync(usuarioId.Value);
+            return Ok(RespuestaApi<object>.Exitosa(new { racha }));
+        }
+
+        [HttpGet("estadisticas")]
+        public async Task<IActionResult> ObtenerEstadisticas([FromQuery] DateTime? desde, [FromQuery] DateTime? hasta)
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            var desdeDate = desde ?? DateTime.UtcNow.AddDays(-7);
+            var hastaDate = hasta ?? DateTime.UtcNow;
+
+            var stats = await _servicioPomodoro.ObtenerEstadisticasPeriodoAsync(usuarioId.Value, desdeDate, hastaDate);
+            return Ok(RespuestaApi<object>.Exitosa(stats));
         }
     }
 }
