@@ -49,6 +49,25 @@
     </div>
 </div>
 
+<!-- Modal sesion activa -->
+<div class="modal fade" id="modalSesionActiva" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--ep-superficie); color: var(--text-primary);">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="bi bi-clock-history text-primary me-2"></i>Sesión activa</h5>
+            </div>
+            <div class="modal-body">
+                <p>Tienes una sesión de Pomodoro sin finalizar. ¿Qué deseas hacer?</p>
+                <p class="text-secondary small" id="modalSesionInfo"></p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-sm btn-danger" id="btnSesionReiniciar" onclick="reiniciarSesionActiva()">Reiniciar</button>
+                <button type="button" class="btn btn-sm btn-success" id="btnSesionContinuar" onclick="continuarSesionActiva()">Continuar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal meta cumplida -->
 <div class="modal fade" id="modalMetaCumplida" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -458,7 +477,32 @@
         function mostrarExito(mensaje) { mostrarToast(mensaje, 'success'); }
         function mostrarInfo(mensaje) { mostrarToast(mensaje, 'info'); }
 
-        function guardarEstadoTimer() {
+        function reiniciarSesionActiva() {
+            if (estadoTimer.sesionId) {
+                var idSesion = estadoTimer.sesionId;
+                estadoTimer.sesionId = null;
+                fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' }).catch(function() {});
+            }
+            var modal = bootstrap.Modal.getInstance(document.getElementById('modalSesionActiva'));
+            if (modal) modal.hide();
+            estadoTimer.ciclosCompletados = 0;
+            estadoTimer.minutosTotales = 0;
+            estadoTimer.xpTotal = 0;
+            document.getElementById('statCiclos').innerText = '0';
+            document.getElementById('statMinutos').innerText = '0';
+            document.getElementById('statXP').innerText = '0';
+            establecerModo('enfoque');
+            mostrarExito('Sesión reiniciada. ¡Nuevo comienzo!');
+        }
+
+        function continuarSesionActiva() {
+            var modal = bootstrap.Modal.getInstance(document.getElementById('modalSesionActiva'));
+            if (modal) modal.hide();
+            if (estadoTimer.ciclosCompletados > 0) {
+                document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
+            }
+            mostrarExito('Sesión restaurada. Puedes continuar.');
+        }
             try {
                 var estado = {
                     mode: estadoTimer.modo,
@@ -548,7 +592,11 @@
                             estadoTimer.sesionId = data.datos.sesionId;
                             estadoTimer.ciclosCompletados = data.datos.ciclosCompletados || 0;
                             document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
-                            mostrarInfo("Hay una sesión activa de antes. Puedes continuar o reiniciar.");
+                            document.getElementById('modalSesionInfo').innerText = estadoTimer.ciclosCompletados > 0
+                                ? estadoTimer.ciclosCompletados + ' ciclo(s) completado(s) en la sesión anterior.'
+                                : 'Sesión iniciada pero sin ciclos completados aún.';
+                            var modalActiva = new bootstrap.Modal(document.getElementById('modalSesionActiva'));
+                            modalActiva.show();
                         }
                     })
                     .catch(function() {});
