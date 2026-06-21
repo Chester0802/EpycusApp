@@ -26,8 +26,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 
 | ID | Prioridad | Archivo | Problema | Riesgo | Estado | Solución |
 |----|-----------|---------|----------|--------|--------|----------|
-| CRITICO-003 | Alta | `deploy/epycus-web.service` | Placeholder de credenciales en archivo de servicio | **Alto** | ⚠️ Mitigado | Archivo en `.gitignore`. Usar `.example` como template. |
-| CRITICO-007 | **Muy Alta** | `appsettings.json` | Servicio de correo: `Correo:Contrasena` es placeholder (`CHANGE_ME_GMAIL_APP_PASSWORD`) | **Muy Alto** | ⚠️ Pendiente | Generar App Password de Gmail y configurarlo como variable de entorno. Sin esto, registro, recuperación y verificación de correo no funcionan. |
+
 
 ---
 
@@ -35,7 +34,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 
 | ID | Prioridad | Archivo | Problema | Riesgo | Estado | Solución |
 |----|-----------|---------|----------|--------|--------|----------|
-| IMP-015 | **Muy Alta** | `Program.cs` | **Nginx sin HTTPS.** `CookieSecurePolicy` está en `SameAsRequest` como workaround. La app no puede volver a `Always` hasta que nginx tenga SSL | **Alto** | ⚠️ Pendiente | Configurar Certbot/Let's Encrypt en nginx, luego revertir a `CookieSecurePolicy.Always` en producción. |
+
 
 ---
 
@@ -45,7 +44,6 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 |----|-----------|---------|----------|--------|--------|----------|
 | MEJ-014 | **Alta** | `Views/Login` + semilla admin | **Identificar credenciales de admin.** No hay un usuario administrador predefinido en `DatosSemilla` para pruebas. | **Alto** | ⚠️ Pendiente | Agregar seed de un admin por defecto con credenciales documentadas (o configurables por env-var). |
 | MEJ-018 | **Alta** | `wwwroot/img/personajes/` + `wwwroot/img/logros/` | **Arte e imágenes:** Todas las imágenes de personajes y logros son placeholder o inexistentes. | **Alto** | ⚠️ Parcial | Logo (`logo.webp`), favicon (`favicon.ico`) e imagen de login (`login-hero.webp`) ya agregados con la marca Epycus. Personajes de Ing. Sistemas y Medicina tienen PNG reales. Faltan ilustraciones originales para el resto de carreras y logros. |
-| MEJ-021 | **Baja** | `wwwroot/` | Sin soporte PWA (manifest.json, service worker, offline) | **Baja** | ⚠️ Pendiente | Convertir en PWA para instalación en móvil y soporte offline parcial |
 
 ---
 
@@ -94,24 +92,7 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 
 | ID | Prioridad | Área | Problema | Estado |
 |----|-----------|------|----------|--------|
-| UX-002 | **Crítica** | General | Sin HTTPS — la app se sirve por HTTP puro | ⚠️ Pendiente |
 | UX-006 | **Alta** | Imágenes | Personajes, logros e iconos son placeholder — sin arte original | ⚠️ Parcial |
-| UX-058 | **Media** | `Ajustes/Index.cshtml` | Hardcode de color `rgba(239,68,68,...)` en zona de peligro | ⚠️ Pendiente |
-| UX-060 | **Alta** | `epycus-modern.css` | `.ep-stat-icon` usa `linear-gradient()` con hex fijos | ⚠️ Pendiente |
-| UX-061 | **Alta** | `dashboard.js` | Chart.js doughnut usa colores `rgba()` hardcodeados | ⚠️ Pendiente |
-| UX-062 | **Alta** | `notificaciones.css` | Toasts notificaciones usan `rgba()` fijos | ⚠️ Pendiente |
-| UX-063 | **Alta** | `ia.css` | Avatar EDY usa gradiente púrpura fijo | ⚠️ Pendiente |
-| UX-064 | **Media** | `ia.css` | EDY box-shadows con rgba fijos | ⚠️ Pendiente |
-| UX-065 | **Media** | `site.css` | Shimmer casi invisible en tema claro | ⚠️ Pendiente |
-| UX-066 | **Media** | `perfil.css` | Fondos con rgba() hardcodeados | ⚠️ Pendiente |
-| UX-067 | **Alta** | `dashboard.js` | Usa `alert()` nativo en catch de errores AJAX | ⚠️ Pendiente |
-| UX-068 | **Alta** | `variables.css` | Faltan overrides de Bootstrap para alert-, table-, list-group-, etc. | ⚠️ Pendiente |
-| UX-069 | **Alta** | Multiple vistas (sidebar) | Faltan `aria-label` en controles interactivos | ⚠️ Pendiente |
-| UX-070 | **Alta** | `auth.css` | `.auth-form-side` con `min-width: 480px` fijo — overflow en <480px | ⚠️ Pendiente |
-| UX-071 | **Media** | `variables.css` | Tema Sakura: contraste 3.3:1 en texto terciario ❌ WCAG AA | ⚠️ Pendiente |
-| UX-072 | **Media** | `variables.css` | Tema Sakura: contraste 3.5:1 en accent ❌ WCAG AA | ⚠️ Pendiente |
-| UX-073 | **Media** | `variables.css` | Tema oscuro: contraste 2.5:1 en bordes ❌ WCAG AA | ⚠️ Pendiente |
-| UX-074 | **Baja** | `RestablecerContrasena.cshtml` | Fortaleza de contraseña aplicada inline por JS | ⚠️ Pendiente |
 
 ---
 
@@ -146,7 +127,6 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 | MOB-007 | **Alta** | App | Crear proyecto base con autenticación (login/registro JWT), navegación y manejo de sesión | ⚠️ Pendiente |
 | MOB-008 | **Alta** | App | Implementar módulos: Hábitos, Pomodoro, Misiones, Progreso, Dashboard — consumiendo API existente | ⚠️ Pendiente |
 | MOB-009 | **Media** | App | Sincronización offline: caché local de datos y cola de comandos pendientes para cuando no hay conexión | ⚠️ Pendiente |
-| MOB-010 | **Media** | App | Push notifications con Firebase Cloud Messaging (FCM) para recordatorios de hábitos y Pomodoro | ⚠️ Pendiente |
 | MOB-011 | **Media** | App | Diseño UI/UX móvil nativo (Material Design 3 o Human Interface Guidelines) — no una copia de la web | ⚠️ Pendiente |
 | MOB-012 | **Media** | Play Store | Crear cuenta de desarrollador en Google Play ($25 única vez) | ⚠️ Pendiente |
 | MOB-013 | **Baja** | Play Store | Preparar assets: ícono, screenshots, descripción, política de privacidad para la ficha de Play Store | ⚠️ Pendiente |
@@ -163,7 +143,6 @@ Este proyecto se desarrolla localmente en Windows y se despliega en un VPS Debia
 |----|-----------|--------|-------------|
 | B-FALTA-02 | **Alta** | ⚠️ Pendiente | SignalR/WebSocket para alertas en tiempo real (actualmente se muestran al cargar página) |
 | B-FALTA-03 | **Alta** | ⚠️ Parcial | `RecomendacionPausaActiva` no considera historial de ánimo ni IA |
-| B-FALTA-05 | **Media** | ⚠️ Pendiente | Integración Pomodoro-bienestar no implementada |
 | B-FALTA-06 | **Baja** | ⚠️ Pendiente | Analytics/gráficos Chart.js no implementados |
 | B-INC-06 | **Media** | ⚠️ Pendiente | Solo 5 estados de ánimo se mantienen. Requiere análisis de impacto antes de expandir |
 | B-ODS3-04 | **Media** | ⚠️ Pendiente | Tendencias semanales/mensuales con Chart.js |
