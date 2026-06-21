@@ -61,14 +61,12 @@ namespace EpycusApp.Servicios.Implementaciones
             bool sugerir = config.CiclosAntesDescansoLargo > 0 && (ciclosCompletados % config.CiclosAntesDescansoLargo == 0);
             var pausa = sugerir ? "larga" : "corta";
 
-            var pausaActiva = _servicioBienestar is ServicioBienestar bienestar
-                ? bienestar.RecomendacionPausaActiva(ciclosCompletados)
-                : null;
+            var pausaActiva = _servicioBienestar.RecomendacionPausaActiva(ciclosCompletados);
 
             _context.SesionesPomodoro.Update(sesion);
             await _context.SaveChangesAsync();
 
-            await _servicioGamificacion.SumarXP(sesion.UsuarioId, ConstantesGamificacion.XP_BASE_POMODORO);
+            await _servicioGamificacion.SumarXP(sesion.UsuarioId, xpGanado);
 
             return (xpGanado, sugerir, pausaActiva?.Descripcion ?? pausa);
         }
@@ -82,8 +80,13 @@ namespace EpycusApp.Servicios.Implementaciones
             sesion.FechaFin = DateTime.UtcNow;
             sesion.FueCompletada = true;
 
+            int xpGanado = ciclosCompletados * ConstantesGamificacion.XP_BASE_POMODORO;
+            sesion.XpOtorgado = xpGanado;
+
             _context.SesionesPomodoro.Update(sesion);
             await _context.SaveChangesAsync();
+
+            await _servicioGamificacion.SumarXP(sesion.UsuarioId, xpGanado);
         }
 
         public async Task CancelarSesion(int sesionId)
@@ -140,7 +143,10 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<string> ObtenerTipAleatorio()
         {
-            var tip = await _context.TipsPomodoro.Where(t => t.EstaActivo).OrderBy(t => Guid.NewGuid()).Select(t => t.Tip).FirstOrDefaultAsync();
+            var count = await _context.TipsPomodoro.CountAsync(t => t.EstaActivo);
+            if (count == 0) return string.Empty;
+            var skip = Random.Shared.Next(count);
+            var tip = await _context.TipsPomodoro.Where(t => t.EstaActivo).Skip(skip).Select(t => t.Tip).FirstOrDefaultAsync();
             return tip ?? string.Empty;
         }
 

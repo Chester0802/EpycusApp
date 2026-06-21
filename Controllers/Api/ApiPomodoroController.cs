@@ -30,6 +30,14 @@ namespace EpycusApp.Controllers.Api
             {
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
+
+            var sesionesHoy = await _servicioPomodoro.ObtenerSesionesHoyAsync(usuarioId.Value);
+            var sesionActiva = sesionesHoy.FirstOrDefault(s => !s.FechaFin.HasValue);
+            if (sesionActiva != null)
+            {
+                return Conflict(RespuestaApi<object>.Fallida("Ya tienes una sesión activa. Finalízala o cancélala antes de iniciar una nueva."));
+            }
+
             var sesion = await _servicioPomodoro.IniciarSesion(usuarioId.Value, req?.HabitoId, req?.MisionId);
             return Ok(RespuestaApi<object>.Exitosa(new { sesionId = sesion.Id, fechaInicio = sesion.FechaInicio }));
         }
@@ -39,6 +47,12 @@ namespace EpycusApp.Controllers.Api
         [HttpPost("{sesionId}/ciclo-completado")]
         public async Task<IActionResult> CicloCompletado(int sesionId, [FromBody] CicloCompletadoRequest req)
         {
+            var sesion = await _servicioPomodoro.ObtenerSesion(sesionId);
+            if (sesion == null) return NotFound();
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null || sesion.UsuarioId != usuarioId.Value)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autorizado"));
+
             var resultado = await _servicioPomodoro.RegistrarCiclo(sesionId, req?.CiclosCompletados ?? 0);
             return Ok(RespuestaApi<object>.Exitosa(new { xpGanado = resultado.XpGanado, sugerirDescanso = resultado.SugerirDescanso, pausaActiva = resultado.PausaActiva }));
         }
@@ -46,16 +60,28 @@ namespace EpycusApp.Controllers.Api
         [HttpPost("{sesionId}/finalizar")]
         public async Task<IActionResult> Finalizar(int sesionId, [FromBody] CicloCompletadoRequest req)
         {
+            var sesion = await _servicioPomodoro.ObtenerSesion(sesionId);
+            if (sesion == null) return NotFound();
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null || sesion.UsuarioId != usuarioId.Value)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autorizado"));
+
             await _servicioPomodoro.FinalizarSesion(sesionId, req?.CiclosCompletados ?? 0);
             
             // Recalcular xpTotal de la sesión para devolverlo (o leerlo de base de datos)
-            var sesion = await _servicioPomodoro.ObtenerSesion(sesionId);
-            return Ok(RespuestaApi<object>.Exitosa(new { xpTotal = sesion?.XpOtorgado ?? 0, sesionGuardada = true }));
+            var sesionActualizada = await _servicioPomodoro.ObtenerSesion(sesionId);
+            return Ok(RespuestaApi<object>.Exitosa(new { xpTotal = sesionActualizada?.XpOtorgado ?? 0, sesionGuardada = true }));
         }
 
         [HttpPost("{sesionId}/cancelar")]
         public async Task<IActionResult> Cancelar(int sesionId)
         {
+            var sesion = await _servicioPomodoro.ObtenerSesion(sesionId);
+            if (sesion == null) return NotFound();
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null || sesion.UsuarioId != usuarioId.Value)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autorizado"));
+
             await _servicioPomodoro.CancelarSesion(sesionId);
             return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
         }
