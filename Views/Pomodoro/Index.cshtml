@@ -327,7 +327,7 @@
                     else bodyParams.misionId = timerState.tareaSeleccionadaId;
                 }
                 try {
-                    const res = await fetch('/api/apipomodoro/iniciar', {
+                    const res = await fetch('/api/pomodoro/iniciar', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(bodyParams)
@@ -371,8 +371,9 @@
             
             // Cancelar sesión en API
             if (timerState.sesionId) {
-                fetch(`/api/apipomodoro/${timerState.sesionId}/cancelar`, { method: 'POST' });
+                var sid = timerState.sesionId;
                 timerState.sesionId = null;
+                fetch(`/api/pomodoro/${sid}/cancelar`, { method: 'POST' }).catch(function() {});
             }
         }
 
@@ -388,7 +389,6 @@
             // Sonido de campana si está activado
             const sonidoActivo = document.getElementById('configSonido').value === 'true';
             if (sonidoActivo) {
-                console.log("¡Ding!");
                 // Aquí se podría reproducir un archivo de audio real
             }
 
@@ -405,7 +405,7 @@
                 // Llamada API Ciclo Completado
                 if (timerState.sesionId) {
                     try {
-                        const res = await fetch(`/api/apipomodoro/${timerState.sesionId}/ciclo-completado`, {
+                        const res = await fetch(`/api/pomodoro/${timerState.sesionId}/ciclo-completado`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ ciclosCompletados: timerState.ciclosCompletados })
