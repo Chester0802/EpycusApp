@@ -26,10 +26,8 @@ namespace EpycusApp.Controllers
             var usuarioId = ObtenerUsuarioId();
             if (usuarioId != 0)
             {
-                // Configuración
                 modelo.Configuracion = await _servicioPomodoro.ObtenerConfiguracion(usuarioId);
 
-                // Estadísticas e Historial de Hoy
                 var sesionesHoy = await _servicioPomodoro.ObtenerSesionesHoyAsync(usuarioId);
                 modelo.HistorialHoy = sesionesHoy;
 
@@ -45,6 +43,17 @@ namespace EpycusApp.Controllers
 
                 modelo.EstadisticasHoy.MisionesCompletadas = await _servicioMisiones.ContarCompletadasHoyAsync(usuarioId);
                 modelo.TareasEnfoque = await _servicioPomodoro.ObtenerTareasEnfoqueAsync(usuarioId);
+                modelo.RachaActual = await _servicioPomodoro.ObtenerRachaActualAsync(usuarioId);
+
+                var estadisticasSemanales = new List<EstadisticasPomodoroPeriodo>();
+                for (int i = 6; i >= 0; i--)
+                {
+                    var dia = DateTime.UtcNow.Date.AddDays(-i);
+                    var stats = await _servicioPomodoro.ObtenerEstadisticasPeriodoAsync(usuarioId, dia, dia.AddDays(1).AddTicks(-1));
+                    stats.Fecha = dia.ToString("ddd");
+                    estadisticasSemanales.Add(stats);
+                }
+                modelo.EstadisticasSemanales = estadisticasSemanales;
             }
 
             return View(modelo);
@@ -62,7 +71,16 @@ namespace EpycusApp.Controllers
                 TiempoDescansoMin = config.TiempoDescansoMin,
                 TiempoDescansoLargoMin = config.TiempoDescansoLargoMin,
                 CiclosAntesDescansoLargo = config.CiclosAntesDescansoLargo,
-                SonidoActivo = config.SonidoActivo
+                SonidoActivo = config.SonidoActivo,
+                SonidoSeleccionado = config.SonidoSeleccionado,
+                Volumen = config.Volumen,
+                AutoIniciarDescanso = config.AutoIniciarDescanso,
+                AutoIniciarEnfoque = config.AutoIniciarEnfoque,
+                TicTacActivo = config.TicTacActivo,
+                MetaDiariaCiclos = config.MetaDiariaCiclos,
+                ModoPersonalizadoMinutos = config.ModoPersonalizadoMinutos,
+                VibracionActiva = config.VibracionActiva,
+                NotificacionDesktop = config.NotificacionDesktop
             };
             return View(dto);
         }

@@ -983,6 +983,7 @@ textarea:focus-visible {
   justify-content: center;
   position: relative;
   transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 .ep-pomodoro-ring.active {
@@ -1046,6 +1047,53 @@ textarea:focus-visible {
 
 .ep-pomodoro-tab.active.descanso {
   color: var(--ep-exito);
+}
+
+.ep-pomodoro-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ep-pomodoro-svg-bg {
+  fill: none;
+  stroke: var(--ep-superficie-2);
+  stroke-width: 8;
+}
+
+.ep-pomodoro-svg-progress {
+  fill: none;
+  stroke: var(--ep-acento);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.ep-pomodoro-ring.descanso .ep-pomodoro-svg-progress {
+  stroke: var(--ep-exito);
+}
+
+.ep-pomodoro-ring.active .ep-pomodoro-svg-progress {
+  filter: drop-shadow(0 0 6px var(--ep-acento));
+}
+
+.ep-pomodoro-ring.descanso.active .ep-pomodoro-svg-progress {
+  filter: drop-shadow(0 0 6px var(--ep-exito));
+}
+
+.ep-pomodoro-ring-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .ep-pomodoro-controls {

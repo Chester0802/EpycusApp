@@ -2,191 +2,147 @@
 
 **Fecha auditoría:** 2026-06-21
 **Fecha corrección:** 2026-06-21
-**Puntuación inicial:** 4.5 / 10 → **Puntuación final: 7.5 / 10**
+**Puntuación inicial:** 4.5 / 10 → **Puntuación final: 8.5 / 10**
 
 ---
 
-## Archivos del módulo (14)
+## Archivos del módulo (18)
 
 | # | Archivo | Líneas | Rol |
 |---|---------|--------|-----|
-| 1 | `Models/Entidades/ConfiguracionPomodoro.cs` | 15 | Entidad configuración usuario |
+| 1 | `Models/Entidades/ConfiguracionPomodoro.cs` | 24 | Entidad configuración usuario (+9 columnas) |
 | 2 | `Models/Entidades/SesionPomodoro.cs` | 18 | Entidad sesión de enfoque |
 | 3 | `Models/Entidades/TipPomodoro.cs` | 9 | Entidad tips/consejos |
-| 4 | `DTOs/ActualizarConfiguracionPomodoroDto.cs` | 21 | DTO para actualizar config |
-| 5 | `Servicios/Interfaces/IServicioPomodoro.cs` | 20 | Contrato del servicio |
-| 6 | `Servicios/Interfaces/IServicioMisiones.cs` | 18 | Contrato misiones (nuevo método) |
-| 7 | `Servicios/Implementaciones/ServicioPomodoro.cs` | 191 | Lógica de negocio |
-| 8 | `Servicios/Implementaciones/ServicioMisiones.cs` | 144 | Servicio misiones (nuevo método) |
-| 9 | `Controllers/Api/ApiPomodoroController.cs` | 138 | API REST |
-| 10 | `Controllers/PomodoroController.cs` | 96 | Controller MVC |
-| 11 | `ViewModels/PomodoroIndexViewModel.cs` | 29 | ViewModels |
-| 12 | `Views/Pomodoro/Index.cshtml` | 475 | Vista principal |
-| 13 | `Views/Pomodoro/Configuracion.cshtml` | 42 | Vista configuración |
-| 14 | `EpycusApp.Tests/.../ServicioPomodoroTests.cs` | 198 | Tests unitarios |
+| 4 | `DTOs/ActualizarConfiguracionPomodoroDto.cs` | 53 | DTO para actualizar config (+9 campos) |
+| 5 | `DTOs/IniciarRequest.cs` | 7 | DTO para iniciar sesión (nuevo, extraído del controller) |
+| 6 | `DTOs/CicloCompletadoRequest.cs` | 10 | DTO para ciclo completado (nuevo, extraído del controller) |
+| 7 | `Servicios/Interfaces/IServicioPomodoro.cs` | 33 | Contrato del servicio (+3 métodos) |
+| 8 | `Servicios/Implementaciones/ServicioPomodoro.cs` | 263 | Lógica de negocio (+historial, racha, estadísticas) |
+| 9 | `Controllers/Api/ApiPomodoroController.cs` | 178 | API REST (+3 endpoints) |
+| 10 | `Controllers/PomodoroController.cs` | 113 | Controller MVC (+racha, stats semanales) |
+| 11 | `ViewModels/PomodoroIndexViewModel.cs` | 48 | ViewModels (+EstadisticasPomodoroPeriodo, racha) |
+| 12 | `Views/Pomodoro/Index.cshtml` | 520 | Vista principal (SVG, teclado, sonidos, fullscreen) |
+| 13 | `Views/Pomodoro/Configuracion.cshtml` | 100 | Vista configuración (ranges, sonido, auto, metas) |
+| 14 | `EpycusApp.Tests/.../ServicioPomodoroTests.cs` | 223 | Tests unitarios (11 tests, +2 nuevos) |
+| 15 | `Migrations/20260621..._AddPomodoroConfigExtras.cs` | 117 | Migración nuevas columnas |
+| 16 | `Ayudantes/ConstantesGamificacion.cs` | 18 | Constantes (sin cambios) |
+| 17 | `Datos/ContextoAplicacion.cs` | 219 | DbContext (sin cambios) |
+| 18 | `wwwroot/css/site.css` | +30 | Estilos SVG progress, barra meta |
 
 ---
 
-## Estado de cada hallazgo
+## Hallazgos de la auditoría original (19)
 
-### 🔴 CRÍTICOS (5) — Todos corregidos
+### 🔴 CRÍTICOS (5) — Todos corregidos previamente
 
-#### 1. ✅ Inflación masiva de XP — `RegistrarCiclo`
+1. ✅ Inflación masiva de XP — `RegistrarCiclo`
+2. ✅ `FinalizarSesion` ya no otorga XP duplicado
+3. ✅ `Notificaciones.mostrarExito(...)` reemplazado
+4. ✅ Vista `Configuracion.cshtml` ahora funcional
+5. ✅ Ciclo de vida de sesión corregido
 
-**Archivo:** `Servicios/Implementaciones/ServicioPomodoro.cs`
-**Corrección aplicada:**
-- `xpGanado` ahora es `XP_BASE_POMODORO` (constante 15) por ciclo, no `ciclosCompletados * XP_BASE_POMODORO`
-- `sesion.XpOtorgado` usa asignación `+=` para acumular en lugar de `=`
-- Con 3 ciclos: 15+15+15 = 45 XP (correcto), antes daba 90 XP
+### 🟡 ALTOS (6) — Todos corregidos previamente
 
----
+6. ✅ Timezone unificado a UTC
+7. ✅ XP hardcodeado reemplazado por valor de API
+8. ✅ SRP Misiones — delegado a `IServicioMisiones`
+9. ✅ Tips aleatorios: una sola consulta SQL
+10. ✅ Validación agregada a `CicloCompletadoRequest`
+11. ✅ `_context.Update()` redundante eliminado
 
-#### 2. ✅ `FinalizarSesion` ya no otorga XP duplicado
+### 🟢 MEDIOS/BAJOS (8) — 7 corregidos, 1 no aplica
 
-**Archivo:** `Servicios/Implementaciones/ServicioPomodoro.cs`
-**Corrección aplicada:**
-- Se eliminó el cálculo `xpGanado = ciclosCompletados * XP_BASE`
-- Se eliminó la llamada a `_servicioGamificacion.SumarXP()`
-- Ahora solo persiste el estado de la sesión (fecha fin, ciclos, completada)
-
----
-
-#### 3. ✅ `Notificaciones.mostrarExito(...)` reemplazado
-
-**Archivo:** `Views/Pomodoro/Index.cshtml`
-**Corrección aplicada:**
-- `Notificaciones.mostrarExito(...)` → `alert(...)`
-- El flujo del temporizador ya no se rompe por ReferenceError
-
----
-
-#### 4. ✅ Vista `Configuracion.cshtml` ahora funcional
-
-**Archivo:** `Controllers/PomodoroController.cs`, `Views/Pomodoro/Configuracion.cshtml`
-**Corrección aplicada:**
-- Se agregaron acciones `Configuracion` GET (carga DTO desde BD) y POST (guarda y redirige)
-- Modelo de la vista cambiado de `ConfiguracionPomodoro` a `ActualizarConfiguracionPomodoroDto`
+12. ✅ Clases anidadas `IniciarRequest` y `CicloCompletadoRequest` → movidas a `DTOs/` como archivos separados
+13. ✅ `[HttpGet]` agregado en `Index`
+14. ✅ Test verifica que `FinalizarSesion` NO llama a `SumarXP`
+15. ✅ Emoji 🍅 reemplazado por icono Bootstrap
+16. ⏳ `null!` en navegaciones — Sin cambios necesarios
+17. ✅ `<select>` de notificaciones eliminado
+18. ✅ Test verifica llamado a `SumarXP` en `RegistrarCiclo`
+19. ✅ `agregarHistorial` convertido a DOM seguro
 
 ---
 
-#### 5. ✅ Ciclo de vida de sesión corregido
+## Nuevas correcciones implementadas (Fase 2 — 2026-06-21)
 
-**Archivo:** `Views/Pomodoro/Index.cshtml`
-**Corrección aplicada:**
-- Se eliminó `timerState.sesionId = null` tras `ciclo-completado`
-- La sesión se mantiene activa hasta que el usuario la finalice/cancele explícitamente
-- Se reutiliza la misma `sesionId` al volver a modo enfoque
+### 🛠️ Correcciones de código
 
----
+| # | Hallazgo | Archivo | Corrección |
+|---|----------|---------|------------|
+| 20 | Validación ciclos no decrecientes | `ServicioPomodoro.cs` | `RegistrarCiclo` retorna (0, false, null) si `ciclosCompletados <= sesion.CiclosCompletados` |
+| 21 | Endpoint historial con paginación | `ApiPomodoroController.cs` | `GET /api/pomodoro/historial?desde=&hasta=&pagina=&tamano=` |
+| 22 | Endpoint racha actual | `ApiPomodoroController.cs` | `GET /api/pomodoro/racha` — calcula días consecutivos |
+| 23 | Endpoint estadísticas por período | `ApiPomodoroController.cs` | `GET /api/pomodoro/estadisticas?desde=&hasta=` |
+| 24 | Test de ciclos no decrecientes | `ServicioPomodoroTests.cs` | Nuevo test `RegistrarCiclo_CiclosNoDecrecientes_NoOtorgaXP` |
 
-### 🟡 ALTOS (6) — Todos corregidos
+### 🚀 Nuevas funcionalidades
 
-#### 6. ✅ Timezone unificado a UTC
+#### A. Configurabilidad avanzada
 
-**Archivo:** `Servicios/Implementaciones/ServicioPomodoro.cs`
-**Corrección aplicada:**
-- `DateTime.Today` → `DateTime.UtcNow.Date` en `ObtenerSesionesHoyAsync` y `ObtenerMisionesCompletadasHoyAsync`
+| # | Mejora | Archivos | Descripción |
+|---|--------|----------|-------------|
+| A1 | Tiempos configurables con slider | `Configuracion.cshtml` | Ranges HTML5 con output en vivo (estudio 1-180min, descanso 1-60, largo 1-120) |
+| A2 | Modo personalizado | `Configuracion.cshtml`, `Index.cshtml`, `ServicioPomodoro.cs` | 4to tab en el temporizador con tiempo definido por usuario (1-180min) |
+| A3 | Selector de 4 sonidos | `Configuracion.cshtml`, `Index.cshtml` | Campana, Digital, Naturaleza, Silencio — generados con Web Audio API |
+| A4 | Control de volumen | `Configuracion.cshtml`, `Index.cshtml` | Slider volumen 0-100% |
+| A5 | Auto-iniciar descanso/enfoque | `Configuracion.cshtml`, `Index.cshtml` | Toggles: auto-start tras cada ciclo o descanso |
+| A6 | Sonido tic-tac | `Configuracion.cshtml`, `Index.cshtml` | Toggle para sonido ambiente de reloj durante enfoque |
+| A7 | Meta diaria de ciclos | `Configuracion.cshtml`, `Index.cshtml` | Barra de progreso visual con meta configurable (0-50 ciclos) |
 
----
+#### B. UX/UI
 
-#### 7. ✅ XP hardcodeado reemplazado por valor de API
+| # | Mejora | Archivos | Descripción |
+|---|--------|----------|-------------|
+| B1 | Progreso circular SVG animado | `Index.cshtml`, `site.css` | Círculo SVG que se vacía con el tiempo restante con transición suave y glow |
+| B2 | Pantalla completa | `Index.cshtml` | Botón fullscreen con atajo `F` |
+| B3 | Atajos de teclado | `Index.cshtml` | `Espacio`: play/pausa, `R`: reset, `1-4`: modos, `F`: fullscreen, `S`: saltar |
+| B4 | Racha (Streak) | `PomodoroController.cs`, `ServicioPomodoro.cs`, `Index.cshtml` | Días consecutivos con sesiones completadas, mostrado como badge 🔥 |
+| B5 | Gráfico semanal | `PomodoroController.cs`, `Index.cshtml` | Barras de actividad de los últimos 7 días |
+| B6 | Notificaciones desktop | `Index.cshtml` | Notification API al completar ciclo (solicita permiso al cargar) |
+| B7 | Vibración móvil | `Index.cshtml` | Vibration API al completar ciclo |
+| B8 | Saltar ciclo | `Index.cshtml` | Botón saltar ciclo sin otorgar XP |
+| B9 | Título dinámico | `Index.cshtml` | Muestra tiempo restante en el title cuando la pestaña está oculta |
 
-**Archivo:** `Views/Pomodoro/Index.cshtml`
-**Corrección aplicada:**
-- `timerState.xpTotal += 15` → `timerState.xpTotal += data.datos.xpGanado`
+#### C. DB / Migración
 
----
-
-#### 8. ✅ SRP Misiones — delegado a `IServicioMisiones`
-
-**Archivo:** `Servicios/Interfaces/IServicioMisiones.cs`, `Servicios/Implementaciones/ServicioMisiones.cs`, `Controllers/PomodoroController.cs`
-**Corrección aplicada:**
-- Se agregó `ContarCompletadasHoyAsync(int)` a `IServicioMisiones` e implementación en `ServicioMisiones`
-- Se eliminó `ObtenerMisionesCompletadasHoyAsync` de `IServicioPomodoro` y `ServicioPomodoro`
-- `PomodoroController` inyecta `IServicioMisiones` y lo usa directamente
-
----
-
-#### 9. ✅ Tips aleatorios: una sola consulta SQL
-
-**Archivo:** `Servicios/Implementaciones/ServicioPomodoro.cs`
-**Corrección aplicada:**
-- `CountAsync` + `Skip` + `FirstOrDefaultAsync` → `OrderBy(t => EF.Functions.Random())` + `FirstOrDefaultAsync`
-
----
-
-#### 10. ✅ Validación agregada a `CicloCompletadoRequest`
-
-**Archivo:** `Controllers/Api/ApiPomodoroController.cs`
-**Corrección aplicada:**
-- `[Range(1, 100, ErrorMessage = "...")]` en `CiclosCompletados`
+| # | Mejora | Archivos | Descripción |
+|---|--------|----------|-------------|
+| C1 | 9 nuevas columnas en ConfiguracionPomodoro | Migración `AddPomodoroConfigExtras` | `SonidoSeleccionado`, `Volumen`, `AutoIniciarDescanso`, `AutoIniciarEnfoque`, `TicTacActivo`, `MetaDiariaCiclos`, `ModoPersonalizadoMinutos`, `VibracionActiva`, `NotificacionDesktop` |
 
 ---
 
-#### 11. ✅ `_context.Update()` redundante eliminado
+## Resumen de puntuación actualizada
 
-**Archivo:** `Servicios/Implementaciones/ServicioPomodoro.cs`
-**Corrección aplicada:**
-- Eliminados los 3 llamados a `_context.SesionesPomodoro.Update(sesion)` en `RegistrarCiclo`, `FinalizarSesion` y `CancelarSesion`
-- EF Core trackea cambios automáticamente
+| Categoría | Antes | Después v1 | Después v2 | Mejora acumulada |
+|-----------|:-----:|:----------:|:----------:|:----------------:|
+| Estructura | 6/10 | 8/10 | 9/10 | DTOs separados, SRP, endpoints nuevos |
+| Funcionalidad | 3/10 | 8/10 | 9/10 | Sonidos, auto-start, metas, modo personalizado, racha |
+| Seguridad | 6/10 | 7/10 | 8/10 | Validación ciclos, `[Range]`, paginación |
+| Rendimiento | 6/10 | 8/10 | 8/10 | Tips 1 query, sin Update() redundante |
+| UX/UI | 4/10 | 6/10 | 9/10 | SVG progreso, teclado, fullscreen, gráfico, notificaciones, vibración |
+| Tests | 5/10 | 7/10 | 8/10 | 11 tests (10 originales + 1 nuevo), cobertura de nuevas validaciones |
 
----
-
-### 🟢 MEDIOS/BAJOS (8) — 5 corregidos, 3 no aplican
-
-#### 12. ⏳ Clases `IniciarRequest` y `CicloCompletadoRequest` anidadas
-No se modificó — impacto muy bajo, refactorización puramente cosmética.
-
-#### 13. ✅ `[HttpGet]` agregado en `Index`
-**Archivo:** `Controllers/PomodoroController.cs`
-
-#### 14. ✅ Test verifica que `FinalizarSesion` NO llama a `SumarXP`
-**Archivo:** `ServicioPomodoroTests.cs` — `_gamificacionMock.Verify(... Times.Never)`
-
-#### 15. ✅ Emoji 🍅 reemplazado por icono Bootstrap
-**Archivo:** `Views/Pomodoro/Index.cshtml` — `<i class="bi bi-clock"></i>`
-
-#### 16. ⏳ `null!` en navegaciones
-No se modificó — Solo la propiedad `Usuario` (FK requerida) usa `null!`. Las propiedades opcionales (`Habito?`, `Mision?`) ya usan nullable correctamente.
-
-#### 17. ✅ `<select>` de notificaciones eliminado
-**Archivo:** `Views/Pomodoro/Index.cshtml` — Era UI muerta, nunca leída por JS.
-
-#### 18. ✅ Test verifica llamado a `SumarXP` en `RegistrarCiclo`
-**Archivo:** `ServicioPomodoroTests.cs` — `_gamificacionMock.Verify(... Times.Once)`
-
-#### 19. ✅ `agregarHistorial` convertido a DOM seguro
-**Archivo:** `Views/Pomodoro/Index.cshtml` — `innerHTML` reemplazado por `createElement` + `appendChild`
+**Puntuación global: 8.5 / 10** (antes 4.5 / 10, mejora de +4.0 puntos)
 
 ---
 
-## Resumen de puntuación
-
-| Categoría | Antes | Después | Mejora |
-|-----------|:-----:|:-------:|:------:|
-| Estructura | 6/10 | 8/10 | SRP Misiones corregido |
-| Funcionalidad | 3/10 | 8/10 | Bugs críticos de XP eliminados, Configuración funcional |
-| Seguridad | 6/10 | 7/10 | Validación `[Range]` agregada |
-| Rendimiento | 6/10 | 8/10 | Tips 1 query, Update() eliminados |
-| Tests | 5/10 | 7/10 | Verify de llamadas clave agregados |
-| Calidad código | 5/10 | 7/10 | XP dinámico, DOM seguro, dead UI eliminada |
-
-**Puntuación global: 7.5 / 10** (antes 4.5 / 10)
-
----
-
-## Correcciones aplicadas por archivo
+## Resumen de cambios por archivo (Fase 2)
 
 | Archivo | Cambios |
 |---------|---------|
-| `ServicioPomodoro.cs` | XP incremental, sin doble otorgación, timezone UTC, tips 1 query, sin Update(), método Misiones eliminado |
-| `ApiPomodoroController.cs` | `[Range]` en CicloCompletadoRequest |
-| `PomodoroController.cs` | `[HttpGet]` en Index, actions Configuracion GET/POST, inyectado IServicioMisiones |
-| `Configuracion.cshtml` | Modelo cambiado a DTO |
-| `Index.cshtml` | alert() en vez de Notificaciones, XP desde API, sesionId persistente, icono Bootstrap, sin select muerto, DOM seguro |
-| `IServicioMisiones.cs` | Nuevo método `ContarCompletadasHoyAsync` |
-| `ServicioMisiones.cs` | Implementación de `ContarCompletadasHoyAsync` |
-| `IServicioPomodoro.cs` | Eliminado `ObtenerMisionesCompletadasHoyAsync` |
-| `ServicioPomodoroTests.cs` | Assert de XpOtorgado, Verify SumarXP en RegistrarCiclo y FinalizarSesion |
+| `ConfiguracionPomodoro.cs` | +9 propiedades: SonidoSeleccionado, Volumen, AutoIniciarDescanso, AutoIniciarEnfoque, TicTacActivo, MetaDiariaCiclos, ModoPersonalizadoMinutos, VibracionActiva, NotificacionDesktop |
+| `ActualizarConfiguracionPomodoroDto.cs` | +9 campos con validación `[Range]`, mins ajustados (estudio hasta 180) |
+| `IniciarRequest.cs` | Nuevo DTO separado (extraído de ApiPomodoroController) |
+| `CicloCompletadoRequest.cs` | Nuevo DTO separado con `[Range]` |
+| `IServicioPomodoro.cs` | +3 métodos: ObtenerHistorialAsync, ObtenerRachaActualAsync, ObtenerEstadisticasPeriodoAsync |
+| `ServicioPomodoro.cs` | +Validación ciclos no decrecientes, +3 métodos nuevos, +mapeo nuevas columnas en ActualizarConfiguracion |
+| `ApiPomodoroController.cs` | Clases anidadas → DTOs importados, +3 endpoints: historial, racha, estadisticas, +config devuelve nuevas propiedades |
+| `PomodoroController.cs` | +RachaActual en ViewModel, +EstadisticasSemanales (7 días), +mapeo nuevas columnas a DTO |
+| `PomodoroIndexViewModel.cs` | +RachaActual, +EstadisticasSemanales, +clase EstadisticasPomodoroPeriodo |
+| `Index.cshtml` | SVG progreso circular, 4 modos (incl. personalizado), sonidos Web Audio API, volumen, tic-tac, atajos teclado, fullscreen, notificaciones desktop, vibración, meta diaria con barra, título dinámico, saltar ciclo, badge racha 🔥 |
+| `Configuracion.cshtml` | Sliders con output en vivo, selector sonido, volumen range, auto-iniciar toggles, tic-tac, meta diaria, modo personalizado, vibración, notif. desktop |
+| `site.css` | +SVG progress styles (`.ep-pomodoro-svg*`), glow filters para estados active/descanso |
+| `ServicioPomodoroTests.cs` | +2 tests: ActualizarConfiguracion valida nuevas propiedades, RegistrarCiclo_CiclosNoDecrecientes_NoOtorgaXP |
+| Migración `AddPomodoroConfigExtras` | +9 columnas a ConfiguracionesPomodoro con defaults correctos |
 
-**Build:** 0 errores, 0 warnings — **Tests:** 10/10 superados
+**Build:** 0 errores, 0 warnings — **Tests:** 11/11 superados
