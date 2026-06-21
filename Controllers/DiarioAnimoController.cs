@@ -57,7 +57,7 @@ namespace EpycusApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> NavegarMes(int direccion)
+        public IActionResult NavegarMes(int direccion)
         {
             var ahora = DateTime.UtcNow;
             var fechaActual = new DateTime(ahora.Year, ahora.Month, 1).AddMonths(direccion);
