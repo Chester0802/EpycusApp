@@ -15,7 +15,6 @@ namespace EpycusApp.Servicios.Interfaces
         Task<string> ObtenerTipAleatorio();
         Task<SesionPomodoro?> ObtenerSesion(int sesionId);
         Task<List<SesionPomodoro>> ObtenerSesionesHoyAsync(int usuarioId);
-        Task<int> ObtenerMisionesCompletadasHoyAsync(int usuarioId);
         Task<List<TareaPomodoro>> ObtenerTareasEnfoqueAsync(int usuarioId);
     }
 }

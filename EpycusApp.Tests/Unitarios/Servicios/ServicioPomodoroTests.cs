@@ -77,11 +77,14 @@ public class ServicioPomodoroTests
 
         var (xp, sugerirDescanso, _) = await _servicio.RegistrarCiclo(sesion.Id, 2);
 
-        xp.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO * 2);
+        xp.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO);
         sugerirDescanso.Should().BeFalse();
 
         var sesionDb = await _contexto.SesionesPomodoro.FirstAsync(s => s.Id == sesion.Id);
         sesionDb.CiclosCompletados.Should().Be(2);
+        sesionDb.XpOtorgado.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO);
+
+        _gamificacionMock.Verify(g => g.SumarXP(usuarioId, ConstantesGamificacion.XP_BASE_POMODORO), Times.Once);
     }
 
     [Fact]
@@ -98,6 +101,8 @@ public class ServicioPomodoroTests
         var (_, sugerirDescanso, pausaActiva) = await _servicio.RegistrarCiclo(sesion.Id, 4);
 
         sugerirDescanso.Should().BeTrue();
+
+        _gamificacionMock.Verify(g => g.SumarXP(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
     }
 
     [Fact]
@@ -112,6 +117,8 @@ public class ServicioPomodoroTests
         sesionDb.FueCompletada.Should().BeTrue();
         sesionDb.CiclosCompletados.Should().Be(3);
         sesionDb.FechaFin.Should().NotBeNull();
+
+        _gamificacionMock.Verify(g => g.SumarXP(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
 
     [Fact]

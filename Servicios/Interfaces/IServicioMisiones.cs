@@ -13,5 +13,6 @@ namespace EpycusApp.Servicios.Interfaces
         Task<(bool Exito, int XpGanado)> CompletarMision(int id, int usuarioId);
         Task CambiarEstado(int id, string estado, int usuarioId);
         Task<List<Categoria>> ObtenerCategoriasMisionAsync();
+        Task<int> ContarCompletadasHoyAsync(int usuarioId);
     }
 }

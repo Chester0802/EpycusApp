@@ -128,5 +128,16 @@ namespace EpycusApp.Servicios.Implementaciones
                 .Where(c => c.Tipo == "Mision" || c.Tipo == "Ambos")
                 .ToListAsync();
         }
+
+        public async Task<int> ContarCompletadasHoyAsync(int usuarioId)
+        {
+            var hoy = DateTime.UtcNow.Date;
+            return await _contexto.Misiones
+                .Where(m => m.UsuarioId == usuarioId
+                    && m.Estado == "Completado"
+                    && m.FechaCompletado != null
+                    && m.FechaCompletado.Value.Date == hoy)
+                .CountAsync();
+        }
     }
 }
