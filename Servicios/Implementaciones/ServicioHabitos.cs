@@ -81,9 +81,11 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<List<EpycusApp.ViewModels.HabitoViewModel>> ObtenerHabitosViewModel(int usuarioId)
         {
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
             var habitos = await _context.Habitos
                 .Include(h => h.Categoria)
                 .Include(h => h.DiasSemana)
+                .Include(h => h.Registros)
                 .Where(h => h.UsuarioId == usuarioId)
                 .ToListAsync();
 
@@ -101,7 +103,8 @@ namespace EpycusApp.Servicios.Implementaciones
                 EstaActivo = h.EstaActivo,
                 FechaCreacion = h.FechaCreacion,
                 CategoriaId = h.CategoriaId,
-                CategoriaNombre = h.Categoria?.Nombre ?? string.Empty
+                CategoriaNombre = h.Categoria?.Nombre ?? string.Empty,
+                EstadoHoy = h.Registros.FirstOrDefault(r => r.Fecha == hoy)?.Estado ?? "Pendiente"
             }).ToList();
         }
 
