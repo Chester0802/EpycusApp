@@ -29,15 +29,13 @@ Sistema multiplataforma de gamificación de hábitos profesionales inspirado en 
                           ↓
 [SSH desde cmd]  cd /tmp/epycus-build
                  git pull origin main
-                 sudo systemctl stop epycus-web
-                 dotnet publish -c Release -o /var/www/epycus-web
-                 sudo chown -R www-data:www-data /var/www/epycus-web
-                 sudo systemctl start epycus-web
+                 dotnet publish EpycusApp.csproj -c Release -o /var/www/epycus-web
+                 sudo systemctl restart epycus-web
                           ↓
                  curl http://localhost:5000/health ✅
 ```
 
-> **IMPORTANTE:** La app en el VPS corre como servicio systemd. Siempre hay que detenerlo (`stop`) antes de publicar para evitar archivos bloqueados, e iniciarlo (`start`) después.
+> **NOTA:** No es necesario detener el servicio antes de publicar. `dotnet publish` sobrescribe los archivos y `systemctl restart` recarga la app limpia.
 
 ### Últimas correcciones (2026-06-18)
 
@@ -141,10 +139,8 @@ El pipeline en `.github/workflows/ci-cd.yml` se ejecuta al hacer push a `main`:
 # En el VPS
 cd /tmp/epycus-build
 git pull origin main
-sudo systemctl stop epycus-web
 dotnet publish EpycusApp.csproj -c Release -o /var/www/epycus-web
-sudo chown -R www-data:www-data /var/www/epycus-web
-sudo systemctl start epycus-web
+sudo systemctl restart epycus-web
 
 # Verificar
 sudo systemctl status epycus-web
