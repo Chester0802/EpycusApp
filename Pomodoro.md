@@ -534,3 +534,19 @@ var timerState = {
 
 *Auditoría generada el 2026-06-21 basada en el código fuente completo de EpycusApp.*  
 *23 archivos analizados del módulo Pomodoro (controladores, servicio, vistas, JS, CSS, DTOs, entidades, tests, seed data)*
+
+---
+
+## Historial de Correcciones
+
+### 2026-06-21
+- **C-1 a C-7**: Bugs críticos corregidos (duración historial, auto-iniciar descanso, pausa activa, ModelState, ciclos negativos, endpoint sesion-activa, toasts)
+- **L-1, L-4**: Bugs de lógica (MinutosEnfocados desde sesiones reales, historial filtra completadas)
+- **UX**: Tips aleatorios, "Meta diaria" renombrado, sliders con IDs explícitos, modals Bootstrap, tareas deseleccionables
+- **V-1 a V-3**: Validaciones (descanso<estudio, sonidos permitidos, meta diaria requiere ciclos)
+- **N-1**: Nombres JS unificados a español
+- **Persistencia timer**: localStorage + sesion-activa endpoint
+- **Sliders**: Configuración con document.getElementById en vez de nextElementSibling
+- **Modal reanudación**: Modal con botones Continuar/Reiniciar al detectar sesión activa
+- **Fullscreen**: Ahora solo afecta al card del Pomodoro, no al documento completo
+- **Tabs**: Contenedor movido a la izquierda con margin-left negativo
