@@ -16,17 +16,17 @@
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <label class="form-label">Estudio (min)</label>
-            <input asp-for="TiempoEstudioMin" class="form-control ep-input" type="range" min="1" max="180" step="1" oninput="this.nextElementSibling.value = this.value" />
+            <input asp-for="TiempoEstudioMin" class="form-range" type="range" min="1" max="180" step="1" oninput="this.nextElementSibling.textContent = this.value" />
             <output class="ms-2 fw-bold">@Model.TiempoEstudioMin</output>
         </div>
         <div class="col-md-4">
             <label class="form-label">Descanso corto (min)</label>
-            <input asp-for="TiempoDescansoMin" class="form-control ep-input" type="range" min="1" max="60" step="1" oninput="this.nextElementSibling.value = this.value" />
+            <input asp-for="TiempoDescansoMin" class="form-range" type="range" min="1" max="60" step="1" oninput="this.nextElementSibling.textContent = this.value" />
             <output class="ms-2 fw-bold">@Model.TiempoDescansoMin</output>
         </div>
         <div class="col-md-4">
             <label class="form-label">Descanso largo (min)</label>
-            <input asp-for="TiempoDescansoLargoMin" class="form-control ep-input" type="range" min="1" max="120" step="1" oninput="this.nextElementSibling.value = this.value" />
+            <input asp-for="TiempoDescansoLargoMin" class="form-range" type="range" min="1" max="120" step="1" oninput="this.nextElementSibling.textContent = this.value" />
             <output class="ms-2 fw-bold">@Model.TiempoDescansoLargoMin</output>
         </div>
     </div>
@@ -34,12 +34,12 @@
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <label class="form-label">Ciclos antes de descanso largo</label>
-            <input asp-for="CiclosAntesDescansoLargo" class="form-control ep-input" type="range" min="1" max="20" step="1" oninput="this.nextElementSibling.value = this.value" />
+            <input asp-for="CiclosAntesDescansoLargo" class="form-range" type="range" min="1" max="20" step="1" oninput="this.nextElementSibling.textContent = this.value" />
             <output class="ms-2 fw-bold">@Model.CiclosAntesDescansoLargo</output>
         </div>
         <div class="col-md-6">
             <label class="form-label">Modo personalizado (min)</label>
-            <input asp-for="ModoPersonalizadoMinutos" class="form-control ep-input" type="range" min="1" max="180" step="1" oninput="this.nextElementSibling.value = this.value" />
+            <input asp-for="ModoPersonalizadoMinutos" class="form-range" type="range" min="1" max="180" step="1" oninput="this.nextElementSibling.textContent = this.value" />
             <output class="ms-2 fw-bold">@Model.ModoPersonalizadoMinutos</output>
         </div>
     </div>
@@ -59,7 +59,7 @@
         </div>
         <div class="col-md-4">
             <label class="form-label">Volumen</label>
-            <input asp-for="Volumen" class="form-control ep-input" type="range" min="0" max="100" step="5" oninput="this.nextElementSibling.value = this.value + '%'" />
+            <input asp-for="Volumen" class="form-range" type="range" min="0" max="100" step="5" oninput="this.nextElementSibling.textContent = this.value + '%'" />
             <output class="ms-2 fw-bold">@Model.Volumen%</output>
         </div>
         <div class="col-md-4 d-flex align-items-end pb-2">
@@ -94,7 +94,7 @@
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <label class="form-label">Meta diaria de ciclos (0 = sin meta)</label>
-            <input asp-for="MetaDiariaCiclos" class="form-control ep-input" type="range" min="0" max="50" step="1" oninput="this.nextElementSibling.value = this.value" />
+            <input asp-for="MetaDiariaCiclos" class="form-range" type="range" min="0" max="50" step="1" oninput="this.nextElementSibling.textContent = this.value" />
             <output class="ms-2 fw-bold">@Model.MetaDiariaCiclos</output>
         </div>
     </div>

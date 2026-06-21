@@ -458,12 +458,78 @@
         function mostrarExito(mensaje) { mostrarToast(mensaje, 'success'); }
         function mostrarInfo(mensaje) { mostrarToast(mensaje, 'info'); }
 
+        function guardarEstadoTimer() {
+            try {
+                var estado = {
+                    mode: estadoTimer.modo,
+                    sesionId: estadoTimer.sesionId,
+                    tareaSeleccionadaId: estadoTimer.tareaSeleccionadaId,
+                    tareaSeleccionadaTipo: estadoTimer.tareaSeleccionadaTipo,
+                    ciclosCompletados: estadoTimer.ciclosCompletados,
+                    minutosTotales: estadoTimer.minutosTotales,
+                    xpTotal: estadoTimer.xpTotal,
+                    ciclosObjetivo: estadoTimer.ciclosObjetivo,
+                    tiempoRestante: estadoTimer.tiempoRestante,
+                    tiempoTotal: estadoTimer.tiempoTotal,
+                    estaCorriendo: estadoTimer.estaCorriendo
+                };
+                if (estadoTimer.estaCorriendo) {
+                    estado.endTime = Date.now() + estadoTimer.tiempoRestante * 1000;
+                }
+                localStorage.setItem('epycus_pomodoro', JSON.stringify(estado));
+            } catch(e) {}
+        }
+
+        function restaurarEstadoTimer() {
+            try {
+                var saved = localStorage.getItem('epycus_pomodoro');
+                if (!saved) return;
+                var estado = JSON.parse(saved);
+                if (!estado || !estado.mode) return;
+
+                estadoTimer.modo = estado.mode;
+                estadoTimer.tiempoTotal = estado.tiempoTotal || CONFIGURACION[estado.mode] || CONFIGURACION.enfoque;
+                estadoTimer.sesionId = estado.sesionId || null;
+                estadoTimer.tareaSeleccionadaId = estado.tareaSeleccionadaId || null;
+                estadoTimer.tareaSeleccionadaTipo = estado.tareaSeleccionadaTipo || null;
+                estadoTimer.ciclosCompletados = estado.ciclosCompletados || 0;
+                estadoTimer.minutosTotales = estado.minutosTotales || 0;
+                estadoTimer.xpTotal = estado.xpTotal || 0;
+                estadoTimer.ciclosObjetivo = estado.ciclosObjetivo || 1;
+
+                if (estado.estaCorriendo && estado.endTime) {
+                    var remaining = Math.max(0, Math.floor((estado.endTime - Date.now()) / 1000));
+                    estadoTimer.tiempoRestante = remaining;
+                    estadoTimer.tiempoTotal = estado.tiempoTotal || estadoTimer.tiempoRestante;
+                    if (remaining > 0) {
+                        setTimeout(function() { alternarTimer(); }, 300);
+                    }
+                } else {
+                    estadoTimer.tiempoRestante = estado.tiempoRestante || estadoTimer.tiempoTotal;
+                }
+
+                document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
+                document.getElementById('statMinutos').innerText = estadoTimer.minutosTotales;
+                document.getElementById('statXP').innerText = estadoTimer.xpTotal;
+                displayCiclos.innerText = estadoTimer.ciclosObjetivo;
+                if (estado.mode) establecerModo(estado.mode);
+
+                localStorage.removeItem('epycus_pomodoro');
+            } catch(e) {}
+        }
+
+        document.addEventListener('beforeunload', function() {
+            guardarEstadoTimer();
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             var spinner = document.getElementById('ep-spinner');
             if (spinner) spinner.style.display = 'none';
             if ('Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission();
             }
+
+            restaurarEstadoTimer();
 
             fetch('/api/pomodoro/tip-aleatorio')
                 .then(function(r) { return r.json(); })
@@ -474,17 +540,19 @@
                 })
                 .catch(function() {});
 
-            fetch('/api/pomodoro/sesion-activa')
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data && data.datos && data.datos.activa) {
-                        estadoTimer.sesionId = data.datos.sesionId;
-                        estadoTimer.ciclosCompletados = data.datos.ciclosCompletados || 0;
-                        document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
-                        mostrarInfo("Hay una sesión activa de antes. Puedes continuar o reiniciar.");
-                    }
-                })
-                .catch(function() {});
+            if (!estadoTimer.sesionId) {
+                fetch('/api/pomodoro/sesion-activa')
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data && data.datos && data.datos.activa) {
+                            estadoTimer.sesionId = data.datos.sesionId;
+                            estadoTimer.ciclosCompletados = data.datos.ciclosCompletados || 0;
+                            document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
+                            mostrarInfo("Hay una sesión activa de antes. Puedes continuar o reiniciar.");
+                        }
+                    })
+                    .catch(function() {});
+            }
         });
 
         function formatearTiempo(seconds) {
@@ -539,6 +607,16 @@
         }
 
         function seleccionarTarea(element, id, tipo) {
+            if (element && estadoTimer.tareaSeleccionadaId === id && estadoTimer.tareaSeleccionadaTipo === tipo) {
+                element.querySelector('.ep-task-check').classList.remove('checked');
+                element.style.borderColor = 'transparent';
+                element.style.borderWidth = '0';
+                element.style.borderStyle = 'none';
+                estadoTimer.tareaSeleccionadaId = null;
+                estadoTimer.tareaSeleccionadaTipo = null;
+                return;
+            }
+
             document.querySelectorAll('.ep-task-check').forEach(el => el.classList.remove('checked'));
             document.querySelectorAll('.ep-task-item').forEach(el => {
                 el.style.borderColor = 'transparent';
