@@ -1,4 +1,5 @@
 using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,16 +33,16 @@ namespace EpycusApp.Controllers.Api
 
             await Task.WhenAll(alertasTask, fraseTask, estadoHoyTask, habitosTask, misionesTask);
 
-            var resultado = new
+            var resultado = new BienestarResumenResponse
             {
-                alertas = alertasTask.Result,
-                frase = fraseTask.Result,
-                estadoHoy = estadoHoyTask.Result,
-                habitosPendientes = habitosTask.Result,
-                misionesPendientes = misionesTask.Result
+                Alertas = alertasTask.Result,
+                Frase = fraseTask.Result,
+                EstadoHoy = estadoHoyTask.Result,
+                HabitosPendientes = habitosTask.Result,
+                MisionesPendientes = misionesTask.Result
             };
 
-            return Ok(RespuestaApi<object>.Exitosa(resultado));
+            return Ok(RespuestaApi<BienestarResumenResponse>.Exitosa(resultado));
         }
 
         [HttpGet("alertas")]
@@ -49,7 +50,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var alertas = await _servicioBienestar.ObtenerAlertasActivas(usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(new { alertas }));
+            return Ok(RespuestaApi<AlertasResponse>.Exitosa(new AlertasResponse { Alertas = alertas }));
         }
 
         [HttpGet("frase")]
@@ -64,7 +65,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var estado = await _servicioBienestar.ObtenerEstadoHoy(usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(new { estado }));
+            return Ok(RespuestaApi<EstadoHoyResponse>.Exitosa(new EstadoHoyResponse { Estado = estado }));
         }
 
         [HttpGet("historial-animo")]
@@ -72,7 +73,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var historial = await _servicioBienestar.ObtenerHistorialAnimo(usuarioId, dias);
-            return Ok(RespuestaApi<object>.Exitosa(new { historial }));
+            return Ok(RespuestaApi<HistorialAnimoResponse>.Exitosa(new HistorialAnimoResponse { Historial = historial }));
         }
 
         [HttpGet("habitos-pendientes")]
@@ -80,7 +81,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var cantidad = await _servicioBienestar.ObtenerHabitosPendientesAsync(usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(new { cantidad }));
+            return Ok(RespuestaApi<CantidadResponse>.Exitosa(new CantidadResponse { Cantidad = cantidad }));
         }
 
         [HttpGet("misiones-pendientes")]
@@ -88,7 +89,7 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var cantidad = await _servicioBienestar.ObtenerMisionesPendientesAsync(usuarioId);
-            return Ok(RespuestaApi<object>.Exitosa(new { cantidad }));
+            return Ok(RespuestaApi<CantidadResponse>.Exitosa(new CantidadResponse { Cantidad = cantidad }));
         }
 
         [HttpPost("pausa-activa")]
@@ -98,7 +99,7 @@ namespace EpycusApp.Controllers.Api
                 return BadRequest(RespuestaApi<object>.Fallida("Datos inválidos"));
 
             var recomendacion = _servicioBienestar.RecomendacionPausaActiva(dto.CiclosCompletados);
-            return Ok(RespuestaApi<object>.Exitosa(new { recomendacion }));
+            return Ok(RespuestaApi<PausaActivaResponse>.Exitosa(new PausaActivaResponse { Recomendacion = recomendacion }));
         }
 
         public class PausaActivaDto

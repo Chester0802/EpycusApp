@@ -1,4 +1,5 @@
 ﻿using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,12 +29,12 @@ namespace EpycusApp.Controllers.Api
             var xpParaSiguiente = CalculadorXP.XpParaSiguienteNivel(progreso.NivelActual.Numero);
             var porcentaje = CalculadorXP.PorcentajeProgreso(progreso.XpTotal, progreso.NivelActual.Numero);
 
-            return Ok(RespuestaApi<object>.Exitosa(new
+            return Ok(RespuestaApi<ProgresoResponseDto>.Exitosa(new ProgresoResponseDto
             {
-                progreso,
-                nivelSiguiente,
-                xpParaSiguiente,
-                porcentaje
+                Progreso = progreso,
+                NivelSiguiente = nivelSiguiente,
+                XpParaSiguiente = xpParaSiguiente,
+                Porcentaje = (double)porcentaje
             }));
         }
 

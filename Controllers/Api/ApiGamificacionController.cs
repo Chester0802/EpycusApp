@@ -1,4 +1,5 @@
 ﻿using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,18 +32,18 @@ namespace EpycusApp.Controllers.Api
             var xpParaSiguiente = CalculadorXP.XpParaSiguienteNivel(nivelActual.Numero);
             var imagen = await _servicioProgreso.ObtenerImagenPersonaje(usuarioId, nivelActual.Numero);
 
-            var respuesta = new
+            var respuesta = new GamificacionProgresoResponse
             {
-                xpTotal = progreso.XpTotal,
-                nivel = nivelActual.Numero,
-                titulo = nivelActual.Titulo,
-                rachaActual = progreso.RachaActual,
-                xpParaSiguienteNivel = xpParaSiguiente,
-                porcentajeProgreso = porcentaje,
-                imagenPersonaje = ConvertirUrlAbsoluta(imagen)
+                XpTotal = progreso.XpTotal,
+                Nivel = nivelActual.Numero,
+                Titulo = nivelActual.Titulo,
+                RachaActual = progreso.RachaActual,
+                XpParaSiguienteNivel = xpParaSiguiente,
+                PorcentajeProgreso = (double)porcentaje,
+                ImagenPersonaje = ConvertirUrlAbsoluta(imagen)
             };
 
-            return Ok(RespuestaApi<object>.Exitosa(respuesta));
+            return Ok(RespuestaApi<GamificacionProgresoResponse>.Exitosa(respuesta));
         }
 
         [HttpGet("logros")]
@@ -52,15 +53,15 @@ namespace EpycusApp.Controllers.Api
             var logros = await _servicioProgreso.ObtenerTodosLosLogros();
             var desbloqueados = await _servicioProgreso.ObtenerLogrosUsuario(usuarioId);
 
-            var respuesta = logros.Select(l => new
+            var respuesta = logros.Select(l => new LogroConProgresoResponse
             {
-                logro = l,
-                desbloqueado = desbloqueados.Any(d => d.LogroId == l.Id),
-                progreso = 0,
-                meta = l.CondicionValor
-            });
+                Logro = l,
+                Desbloqueado = desbloqueados.Any(d => d.LogroId == l.Id),
+                Progreso = 0,
+                Meta = l.CondicionValor
+            }).ToList();
 
-            return Ok(RespuestaApi<object>.Exitosa(respuesta));
+            return Ok(RespuestaApi<List<LogroConProgresoResponse>>.Exitosa(respuesta));
         }
     }
 }

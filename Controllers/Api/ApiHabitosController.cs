@@ -118,7 +118,7 @@ namespace EpycusApp.Controllers.Api
 
             var habito = await _servicioHabitos.ObtenerPorIdViewModel(id);
             if (habito == null)
-                return NotFound(RespuestaApi<object>.Fallida("Hábito no encontrado"));
+                return NotFound(RespuestaApi<MensajeResponseDto>.Fallida("Hábito no encontrado"));
 
             return Ok(RespuestaApi<object>.Exitosa(habito));
         }
@@ -152,7 +152,7 @@ namespace EpycusApp.Controllers.Api
             };
 
             await _servicioHabitos.CrearHabito(modelo, usuarioId.Value);
-            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpPut("{id}")]
@@ -176,7 +176,7 @@ namespace EpycusApp.Controllers.Api
             };
 
             await _servicioHabitos.EditarHabito(modelo, usuarioId.Value);
-            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpDelete("{id}")]
@@ -187,7 +187,7 @@ namespace EpycusApp.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
 
             await _servicioHabitos.EliminarHabito(id, usuarioId.Value);
-            return Ok(RespuestaApi<object>.Exitosa(new { success = true }));
+            return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpGet("dashboard")]

@@ -1,4 +1,5 @@
 using EpycusApp.Ayudantes;
+using EpycusApp.DTOs;
 using EpycusApp.Models.DTOs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
@@ -31,7 +32,7 @@ namespace EpycusApp.Controllers.Api
             var perfil = await _servicioPerfil.ObtenerPerfilCompletoAsync(usuarioId);
             if (perfil == null)
             {
-                return NotFound(RespuestaApi<object>.Fallida("Perfil no encontrado"));
+                return NotFound(RespuestaApi<MensajeResponseDto>.Fallida("Perfil no encontrado"));
             }
 
             var imagenPersonaje = ConvertirUrlAbsoluta(await _servicioPerfil.ObtenerImagenPersonajeActual(usuarioId));
@@ -57,10 +58,10 @@ namespace EpycusApp.Controllers.Api
             var resultado = await _servicioPerfil.ActualizarPerfilAsync(usuarioId, modelo);
             if (!resultado.EsExitoso)
             {
-                return BadRequest(RespuestaApi<object>.Fallida(resultado.Mensaje ?? "Error al actualizar perfil"));
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(resultado.Mensaje ?? "Error al actualizar perfil"));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { mensaje = resultado.Mensaje ?? "Perfil actualizado" }));
+            return Ok(RespuestaApi<MensajeResponseDto>.Exitosa(new MensajeResponseDto { Mensaje = resultado.Mensaje ?? "Perfil actualizado" }));
         }
 
         [HttpPut("cambiar-contrasena")]
@@ -70,17 +71,17 @@ namespace EpycusApp.Controllers.Api
             var perfil = await _servicioPerfil.ObtenerPerfil(usuarioId);
             if (perfil == null)
             {
-                return NotFound(RespuestaApi<object>.Fallida("Usuario no encontrado"));
+                return NotFound(RespuestaApi<MensajeResponseDto>.Fallida("Usuario no encontrado"));
             }
 
             var (exito, mensaje) = await _servicioAutenticacion.CambiarContrasenaAsync(
                 perfil.CorreoElectronico, request.ContrasenaActual, request.NuevaContrasena);
             if (!exito)
             {
-                return BadRequest(RespuestaApi<object>.Fallida(mensaje ?? "Error al cambiar contraseña"));
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(mensaje ?? "Error al cambiar contraseña"));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { mensaje }));
+            return Ok(RespuestaApi<MensajeResponseDto>.Exitosa(new MensajeResponseDto { Mensaje = mensaje ?? "Contraseña cambiada exitosamente" }));
         }
 
         [HttpPut("personaje")]
@@ -100,10 +101,10 @@ namespace EpycusApp.Controllers.Api
             var resultado = await _servicioPerfil.CambiarTemaAsync(usuarioId, request.TemaId);
             if (!resultado.EsExitoso)
             {
-                return BadRequest(RespuestaApi<object>.Fallida(resultado.Mensaje ?? "Error al cambiar tema"));
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(resultado.Mensaje ?? "Error al cambiar tema"));
             }
 
-            return Ok(RespuestaApi<object>.Exitosa(new { mensaje = resultado.Mensaje }));
+            return Ok(RespuestaApi<MensajeResponseDto>.Exitosa(new MensajeResponseDto { Mensaje = resultado.Mensaje ?? "Tema actualizado" }));
         }
 
         [HttpGet("personajes")]
