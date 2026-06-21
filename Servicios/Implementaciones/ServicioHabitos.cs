@@ -214,12 +214,18 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var habito = await _context.Habitos.Include(h => h.Registros).FirstOrDefaultAsync(h => h.Id == id && h.UsuarioId == usuarioId);
             if (habito is null)
-                return (false, 0);
+            {
+                _logger.LogWarning("CompletarHabito: habito {HabitoId} no encontrado para usuario {UsuarioId}", id, usuarioId);
+                return (false, -1);
+            }
 
             // Evitar completar dos veces el mismo día
             var hoy = DateOnly.FromDateTime(DateTime.Today);
             if (habito.Registros.Any(r => r.Fecha == hoy && r.Estado == "Completado"))
-                return (false, 0);
+            {
+                _logger.LogWarning("CompletarHabito: habito {HabitoId} ya completado hoy {Fecha} para usuario {UsuarioId}", id, hoy, usuarioId);
+                return (false, -2);
+            }
 
             int xpGanado = ConstantesGamificacion.XP_BASE_HABITO;
 
