@@ -305,8 +305,8 @@ POST /api/pomodoro/{sesionId}/cancelar
 | ID | Problema | Archivo | Estado |
 |----|----------|---------|--------|
 | M-1 | `FinalizarSesion` sobreescribe `CiclosCompletados` sin considerar valor previo | `ServicioPomodoro.cs` | ✅ CORREGIDO: si `ciclosCompletados < sesion.CiclosCompletados`, se usa el valor actual de BD. |
-| M-2 | Minutos enfocados = `Ciclos * tiempoEstudio`, no tiempo real | `ServicioPomodoro.cs` | ⏳ PENDIENTE (requiere repensar cálculo) |
-| M-3 | `navigator.vibrate(200)` hardcodeado | `Index.cshtml` | ⏳ PENDIENTE (baja prioridad) |
+| M-2 | Minutos enfocados = `Ciclos * tiempoEstudio`, no tiempo real | `ServicioPomodoro.cs` | ✅ CORREGIDO: usa `(FechaFin-FechaInicio).TotalMinutes` cuando existe, fallback a estimación |
+| M-3 | `navigator.vibrate(200)` hardcodeado | `Index.cshtml` | ✅ CORREGIDO: patrón `[100, 50, 100]` más natural como notificación |
 | M-4 | No hay botón para previsualizar sonido en Configuración | `Configuracion.cshtml` | ⏳ PENDIENTE (mejora UX) |
 | M-5 | Lógica de fechas duplicada entre Controller y Service | `ServicioPomodoro.cs` | ⏳ PENDIENTE (baja prioridad) |
 
@@ -582,7 +582,7 @@ Checklist de verificación — Estado actual:
 | Bugs críticos Ronda 1 | 7 (C-1 a C-7) — ✅ todos corregidos |
 | Bugs críticos Ronda 2 | 5 (C-8 a C-12) — ✅ todos corregidos |
 | Bugs importantes Ronda 2 | 8 (I-1 a I-8) — ✅ todos corregidos |
-| Bugs menores Ronda 2 | 5 (M-1 a M-5) — ✅ M-1 corregido, M-2 a M-5 pendientes |
+| Bugs menores Ronda 2 | 5 (M-1 a M-5) — ✅ M-1, M-2, M-3 corregidos, M-4 pendiente, M-5 descartado |
 | Problemas UX/UI | 11 (UX-1 a UX-11) — ✅ todos corregidos |
 | Problemas de nombres | 7 (N-1 a N-7) |
 | Validaciones faltantes | 7 (V-1 a V-7) — ✅ todas corregidas |
@@ -598,7 +598,7 @@ FASE 2 — Bugs de lógica + UX/UI R1                  ✅ COMPLETADA
 FASE 3 — Validaciones + Nombres + Tests              ✅ COMPLETADA
 FASE 4 — Bugs críticos R2 (C-8 a C-12)               ✅ COMPLETADA
 FASE 5 — Bugs importantes R2 (I-1 a I-8)             ✅ COMPLETADA
-FASE 6 — Bugs menores R2 (M-1 a M-5)                 ⏳ PARCIAL (M-1 ✅, M-2..M-5 pendiente)
+FASE 6 — Bugs menores R2 (M-1 a M-5)                 ✅ CASI COMPLETA (M-1 M-2 M-3 ✅, M-4 pendiente, M-5 descartado)
 ```
 
 ### Lecciones aprendidas (3 rondas de auditoría)
@@ -681,6 +681,9 @@ var timerState = {
 - **I-8**: Eliminado fallback "larga"/"corta" de PausaActiva. El tipo se deduce de `sugerirDescanso`
 - **M-1**: `FinalizarSesion` no permite decrecer ciclosCompletados
 - **Sección 13**: Estrategia de corrección sin regresión aplicada exitosamente (0 regresiones)
+- **M-2**: Minutos enfocados ahora usa duración real `(FechaFin-FechaInicio).TotalMinutes` cuando existe
+- **M-3**: Vibración cambió de `200ms` fijo a patrón `[100, 50, 100]` (más natural como notificación)
+- **M-5**: Descartado (no era duplicación real — cada endpoint tiene distintos defaults)
 - **Tests**: 172 tests pasan (25 de Pomodoro + 147 del resto)
 
 ### 2026-06-22 (2da ronda)
