@@ -88,6 +88,20 @@ namespace EpycusApp.Controllers.Api
             return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
+        [HttpPost("descanso")]
+        public async Task<IActionResult> RegistrarDescanso([FromBody] PomodoroDescansoRequest req)
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            if (req == null || string.IsNullOrEmpty(req.Tipo))
+                return BadRequest(RespuestaApi<object>.Fallida("Tipo de descanso requerido"));
+
+            var sesion = await _servicioPomodoro.CrearSesionDescanso(usuarioId.Value, req.Tipo, req.Segundos);
+            return Ok(RespuestaApi<PomodoroIniciarResponse>.Exitosa(new PomodoroIniciarResponse { SesionId = sesion.Id, FechaInicio = sesion.FechaInicio }));
+        }
+
         [HttpGet("configuracion")]
         public async Task<IActionResult> ObtenerConfiguracion()
         {

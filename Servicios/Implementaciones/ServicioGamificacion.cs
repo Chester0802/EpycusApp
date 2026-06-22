@@ -143,6 +143,7 @@ namespace EpycusApp.Servicios.Implementaciones
             }
             else if (diferencia == 2 && !progreso.DiaDeGraciaUsado)
             {
+                progreso.FechaUltimaActividad = DateTime.Today;
                 progreso.DiaDeGraciaUsado = true;
             }
             else if (diferencia > 1)

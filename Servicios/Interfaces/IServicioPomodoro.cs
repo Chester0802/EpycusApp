@@ -11,6 +11,7 @@ namespace EpycusApp.Servicios.Interfaces
         Task<(int XpGanado, bool SugerirDescanso, string? PausaActiva)> RegistrarCiclo(int sesionId, int ciclosCompletados, int usuarioId);
         Task<(int XpTotal, int XpBonus)> FinalizarSesion(int sesionId, int ciclosCompletados, int usuarioId);
         Task CancelarSesion(int sesionId, int usuarioId);
+        Task<SesionPomodoro> CrearSesionDescanso(int usuarioId, string tipoDescanso, int segundos);
         Task<ConfiguracionPomodoro> ObtenerConfiguracion(int usuarioId);
         Task ActualizarConfiguracion(int usuarioId, ActualizarConfiguracionPomodoroDto dto);
         Task<string> ObtenerTipAleatorio();
