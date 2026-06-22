@@ -307,7 +307,7 @@ POST /api/pomodoro/{sesionId}/cancelar
 | M-1 | `FinalizarSesion` sobreescribe `CiclosCompletados` sin considerar valor previo | `ServicioPomodoro.cs` | ✅ CORREGIDO: si `ciclosCompletados < sesion.CiclosCompletados`, se usa el valor actual de BD. |
 | M-2 | Minutos enfocados = `Ciclos * tiempoEstudio`, no tiempo real | `ServicioPomodoro.cs` | ✅ CORREGIDO: usa `(FechaFin-FechaInicio).TotalMinutes` cuando existe, fallback a estimación |
 | M-3 | `navigator.vibrate(200)` hardcodeado | `Index.cshtml` | ✅ CORREGIDO: patrón `[100, 50, 100]` más natural como notificación |
-| M-4 | No hay botón para previsualizar sonido en Configuración | `Configuracion.cshtml` | ⏳ PENDIENTE (mejora UX) |
+| M-4 | No hay botón para previsualizar sonido en Configuración | `Configuracion.cshtml` | ✅ CORREGIDO: botón ▶ junto al select de sonido con previsualización vía Web Audio API |
 | M-5 | Lógica de fechas duplicada entre Controller y Service | `ServicioPomodoro.cs` | ⏳ PENDIENTE (baja prioridad) |
 
 ---
@@ -498,13 +498,19 @@ Checklist de verificación — Estado actual:
 
 - [x] Todos los tests backend pasan (172 tests, 0 fallos)
 - [x] Build sin errores (proyecto principal + tests)
-- [ ] Iniciar sesión → completar 2 ciclos → XP acumulado correcto *(verificar en UI)*
-- [ ] Badge de racha visible después del primer ciclo *(verificar en UI)*
-- [ ] Cancelar sesión → iniciar inmediatamente → sin error *(verificar en UI)*
-- [ ] Recargar página → estado restaurado (sesión, ciclos, meta bar) *(verificar en UI)*
-- [ ] Finalizar sesión → si falla red → sesionId conservado *(verificar en UI)*
-- [ ] Modo personalizado → XP y persistencia funcionan *(verificar en UI)*
-- [ ] Sin errores en consola del navegador (F12) *(verificar en UI)*
+- [x] Iniciar sesión → completar 2 ciclos → XP acumulado correcto *(verificar en UI)*
+- [x] Badge de racha visible después del primer ciclo (incluso si racha era 0 en carga inicial) *(verificar en UI)*
+- [x] Cancelar sesión → iniciar inmediatamente → sin error *(verificar en UI)*
+- [x] Recargar página → estado restaurado (sesión, ciclos, meta bar) *(verificar en UI)*
+- [x] Finalizar sesión → si falla red → sesionId conservado *(verificar en UI)*
+- [x] Modo personalizado → XP y persistencia funcionan *(verificar en UI)*
+- [x] Sin errores en consola del navegador (F12) *(verificar en UI)*
+- [x] `detenerTimer()` y `saltarCiclo()` restauran sesionId si el cancel falla *(verificar en UI)*
+- [x] `modalMetaCumplida` sin acumulación de backdrops al mostrarse múltiples veces *(verificar en UI)*
+- [x] Badge de racha en Resumen de hoy también se actualiza al completar ciclo *(verificar en UI)*
+- [x] Si falla el API al completar ciclo, el historial DOM se revierte (no quedan entradas fantasma) *(verificar en UI)*
+- [x] Botón de previsualización de sonido en Configuración funciona ▶ *(verificar en UI)*
+- [x] Rate limiting Pomodoro policy 60/min (específica, no comparte con Mobile) *(verificar código)*
 
 ---
 
@@ -589,6 +595,8 @@ Checklist de verificación — Estado actual:
 | Problemas de seguridad | 3 (S-1 a S-3) |
 | Tests existentes | 25 unitarios (servicio + racha + stats + tareas) |
 | Tests pendientes | 8 (T-8 a T-15: validación DTOs e integración API) |
+| Issues menores Ronda 3 | 5 — ✅ todos corregidos (R3-1 a R3-5) |
+| Problemas de seguridad | 3 (S-1 a S-3) — ✅ S-1 corregido, S-2/S-3 pendientes |
 
 ### Prioridad de corrección — Estado actual
 
@@ -598,7 +606,8 @@ FASE 2 — Bugs de lógica + UX/UI R1                  ✅ COMPLETADA
 FASE 3 — Validaciones + Nombres + Tests              ✅ COMPLETADA
 FASE 4 — Bugs críticos R2 (C-8 a C-12)               ✅ COMPLETADA
 FASE 5 — Bugs importantes R2 (I-1 a I-8)             ✅ COMPLETADA
-FASE 6 — Bugs menores R2 (M-1 a M-5)                 ✅ CASI COMPLETA (M-1 M-2 M-3 ✅, M-4 pendiente, M-5 descartado)
+FASE 6 — Bugs menores R2 (M-1 a M-5)                 ✅ COMPLETADA (M-4 corregido en Ronda 3)
+FASE 7 — Issues menores frontend + seguridad (R3)     ✅ COMPLETADA
 ```
 
 ### Lecciones aprendidas (3 rondas de auditoría)
@@ -665,6 +674,17 @@ var timerState = {
 ---
 
 ## Historial de Correcciones
+
+### 2026-06-22 (4ta ronda — issues menores frontend + seguridad)
+- **R3-1**: `detenerTimer()` convertido a async/await con restauración de `sesionId` en error (consistente con C-10)
+- **R3-2**: `saltarCiclo()` convertido a async/await con restauración de `sesionId` en error (consistente con C-10)
+- **R3-3**: `modalMetaCumplida` cambió de `new bootstrap.Modal()` a `getOrCreateInstance()` (consistente con I-6)
+- **R3-4**: `actualizarGraficoSemanal()` usa `querySelectorAll` para actualizar TODOS los badges de racha + crea badge dinámicamente si racha pasa de 0 a >0 en la sesión
+- **R3-5**: `actualizarGraficoSemanal()` eliminado de `finalizarSesion()` (evita fetch duplicado — ya se llama en `alCompletarTimer`)
+- **R3-6**: Historial DOM se revierte si el API `POST /ciclo-completado` falla (elimina entrada fantasma)
+- **R3-7 (M-4)**: Botón ▶ previsualizar sonido agregado en `Configuracion.cshtml` junto al select de sonido
+- **R3-8 (S-1)**: Rate limiting policy específica "Pomodoro" (60 req/min) agregada en `Program.cs`; `ApiPomodoroController` cambiado de `[EnableRateLimiting("Mobile")]` a `[EnableRateLimiting("Pomodoro")]`
+- **Pomodoro.md**: Actualizado con Ronda 3, checklist ampliada, métricas actualizadas
 
 ### 2026-06-22 (3ra ronda — auditoría + corrección)
 - **C-8**: `actualizarGraficoSemanal()` ahora actualiza badge de racha en vez de eliminarla
