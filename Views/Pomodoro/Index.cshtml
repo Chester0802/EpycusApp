@@ -20,8 +20,11 @@
         <a asp-action="Configuracion" class="btn btn-sm btn-ep-outline" title="Configuración">
             <i class="bi bi-sliders"></i>
         </a>
-        <button class="btn btn-sm btn-ep-outline" id="btnFullscreen" onclick="alternarPantallaCompleta()" title="Pantalla completa">
+        <button class="btn btn-sm btn-ep-outline" id="btnFullscreen" onclick="alternarPantallaCompleta()" title="Pantalla completa (F)">
             <i class="bi bi-arrows-fullscreen"></i>
+        </button>
+        <button class="btn btn-sm btn-ep-outline" onclick="mostrarAyudaAtajos()" title="Atajos de teclado">
+            <i class="bi bi-question-circle"></i>
         </button>
     </div>
 </div>
@@ -115,8 +118,11 @@
                         <circle class="ep-pomodoro-svg-progress" id="progressCircle" cx="50" cy="50" r="45"
                             stroke-dasharray="282.74" stroke-dashoffset="0" />
                     </svg>
-                    <div class="ep-pomodoro-ring-content">
+                    <div class="ep-pomodoro-ring-content" style="position:relative;">
                         <div class="mb-2" style="font-size: 1.5rem;"><i class="bi bi-clock"></i></div>
+                        <div class="position-absolute top-0 end-0" id="dndIndicator" style="display:none;">
+                            <span class="badge bg-danger bg-opacity-75" style="font-size:0.55rem;"><i class="bi bi-moon"></i> No molestar</span>
+                        </div>
                         <div class="ep-pomodoro-time" id="timerDisplay">25:00</div>
                         <div class="ep-pomodoro-label" id="timerLabel">Tiempo de enfoque</div>
                     </div>
@@ -221,8 +227,8 @@
                 <div class="col-6">
                     <div class="border border-secondary rounded p-3 text-center" style="background: var(--ep-superficie-2);">
                         <i class="bi bi-graph-up-arrow text-success fs-4"></i>
-                        <h4 class="fw-bold mt-1 mb-0" id="statXP">@(Model?.EstadisticasHoy.XpGanado ?? 0)</h4>
-                        <small class="text-secondary" style="font-size:0.7rem;">XP Ganado</small>
+                        <h4 class="fw-bold mt-1 mb-0" id="statXpGanado">@(Model?.EstadisticasHoy.XpGanado ?? 0)</h4>
+                        <small class="text-secondary" style="font-size:0.7rem;">XP ganado</small>
                     </div>
                 </div>
                 <div class="col-6">
@@ -338,6 +344,25 @@
     </div>
 </div>
 
+<!-- Modal atajos teclado -->
+<div class="modal fade" id="modalAtajos" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="background: var(--ep-superficie); color: var(--text-primary);">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="bi bi-keyboard me-2"></i>Atajos de teclado</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between mb-2"><span>Espacio</span><kbd class="bg-dark text-light px-2 rounded">Play / Pausa</kbd></div>
+                <div class="d-flex justify-content-between mb-2"><span>R</span><kbd class="bg-dark text-light px-2 rounded">Reiniciar</kbd></div>
+                <div class="d-flex justify-content-between mb-2"><span>1-4</span><kbd class="bg-dark text-light px-2 rounded">Cambiar modo</kbd></div>
+                <div class="d-flex justify-content-between mb-2"><span>F</span><kbd class="bg-dark text-light px-2 rounded">Pantalla completa</kbd></div>
+                <div class="d-flex justify-content-between"><span>S</span><kbd class="bg-dark text-light px-2 rounded">Saltar ciclo</kbd></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         const CONFIGURACION = {
@@ -364,9 +389,8 @@
             tareaSeleccionadaTipo: null,
             ciclosCompletados: parseInt(document.getElementById('statCiclos').innerText) || 0,
             minutosTotales: parseInt(document.getElementById('statMinutos').innerText) || 0,
-            xpTotal: parseInt(document.getElementById('statXP').innerText) || 0,
-            ciclosObjetivo: 1,
-            enPausaActiva: false
+            xpTotal: parseInt(document.getElementById('statXpGanado').innerText) || 0,
+            ciclosObjetivo: CONFIGURACION.metaDiaria || 1
         };
 
         const elDisplayTimer = document.getElementById('timerDisplay');
@@ -493,7 +517,7 @@
             estadoTimer.xpTotal = 0;
             document.getElementById('statCiclos').innerText = '0';
             document.getElementById('statMinutos').innerText = '0';
-            document.getElementById('statXP').innerText = '0';
+            document.getElementById('statXpGanado').innerText = '0';
             establecerModo('enfoque');
             mostrarExito('Sesión reiniciada. ¡Nuevo comienzo!');
         }
@@ -544,7 +568,7 @@
                 estadoTimer.ciclosCompletados = estado.ciclosCompletados || 0;
                 estadoTimer.minutosTotales = estado.minutosTotales || 0;
                 estadoTimer.xpTotal = estado.xpTotal || 0;
-                estadoTimer.ciclosObjetivo = estado.ciclosObjetivo || 1;
+                estadoTimer.ciclosObjetivo = estado.ciclosObjetivo || CONFIGURACION.metaDiaria || 1;
 
                 if (estado.estaCorriendo && estado.finEn) {
                     var remaining = Math.max(0, Math.floor((estado.finEn - Date.now()) / 1000));
@@ -559,7 +583,7 @@
 
                 document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
                 document.getElementById('statMinutos').innerText = estadoTimer.minutosTotales;
-                document.getElementById('statXP').innerText = estadoTimer.xpTotal;
+                document.getElementById('statXpGanado').innerText = estadoTimer.xpTotal;
                 displayCiclos.innerText = estadoTimer.ciclosObjetivo;
                 if (estado.modo) establecerModo(estado.modo);
 
@@ -570,6 +594,11 @@
         document.addEventListener('beforeunload', function() {
             guardarEstadoTimer();
         });
+
+        setTimeout(function() {
+            var sp = document.getElementById('ep-spinner');
+            if (sp && sp.style.display !== 'none') { sp.style.display = 'none'; }
+        }, 8000);
 
         document.addEventListener('DOMContentLoaded', function() {
             var spinner = document.getElementById('ep-spinner');
@@ -588,6 +617,13 @@
                     }
                 })
                 .catch(function() {});
+
+            var volSlider = document.getElementById('configVolumen');
+            var volGuardado = localStorage.getItem('epycus_pomodoro_volumen');
+            if (volGuardado !== null) { volSlider.value = volGuardado; }
+            volSlider.addEventListener('change', function() {
+                localStorage.setItem('epycus_pomodoro_volumen', this.value);
+            });
 
             if (!estadoTimer.sesionId) {
                 fetch('/api/pomodoro/sesion-activa')
@@ -698,6 +734,12 @@
             }
         }
 
+        function actualizarIndicadorDND() {
+            var dnd = document.getElementById('dndIndicator');
+            if (!dnd) return;
+            dnd.style.display = (estadoTimer.estaCorriendo && estadoTimer.modo === 'enfoque') ? 'block' : 'none';
+        }
+
         async function iniciarTimer() {
             if (estadoTimer.modo === 'enfoque' && !estadoTimer.sesionId) {
                 let parametrosBody = {};
@@ -723,6 +765,7 @@
             iconoPlay.classList.replace('bi-play-fill', 'bi-pause-fill');
             textoPlay.innerText = "Pausar";
             iniciarTicTac();
+            actualizarIndicadorDND();
 
             estadoTimer.idIntervalo = setInterval(() => {
                 estadoTimer.tiempoRestante--;
@@ -741,6 +784,7 @@
             anilloTimer.classList.remove('active');
             iconoPlay.classList.replace('bi-pause-fill', 'bi-play-fill');
             textoPlay.innerText = "Continuar";
+            actualizarIndicadorDND();
         }
 
         function detenerTimer() {
@@ -775,6 +819,11 @@
             establecerModo('corto');
         }
 
+        function mostrarAyudaAtajos() {
+            var modal = new bootstrap.Modal(document.getElementById('modalAtajos'));
+            modal.show();
+        }
+
         function alternarPantallaCompleta() {
             var card = document.getElementById('pomodoroCard');
             if (!card) return;
@@ -784,6 +833,20 @@
                 document.exitFullscreen().catch(function() { mostrarError("No se pudo salir de pantalla completa."); });
             }
         }
+
+        function actualizarIconoFullscreen() {
+            var icon = document.querySelector('#btnFullscreen i');
+            if (!icon) return;
+            if (document.fullscreenElement) {
+                icon.className = 'bi bi-fullscreen-exit';
+                document.getElementById('btnFullscreen').title = 'Salir de pantalla completa (F)';
+            } else {
+                icon.className = 'bi bi-arrows-fullscreen';
+                document.getElementById('btnFullscreen').title = 'Pantalla completa (F)';
+            }
+        }
+
+        document.addEventListener('fullscreenchange', actualizarIconoFullscreen);
 
         async function alCompletarTimer() {
             pausarTimer();
@@ -818,7 +881,7 @@
                         if (respuesta.ok) {
                             const data = await respuesta.json();
                             estadoTimer.xpTotal += data.datos.xpGanado;
-                            document.getElementById('statXP').innerText = estadoTimer.xpTotal;
+                            document.getElementById('statXpGanado').innerText = estadoTimer.xpTotal;
                             actualizarGraficoSemanal();
 
                             if (data.datos.sugerirDescanso) {
