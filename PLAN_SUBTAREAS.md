@@ -1,51 +1,65 @@
 # Plan de Integración: Sistema de Sub-tareas + Tiempo de Enfoque en Misiones y Pomodoro
 
-## Estado Actual: ✅ COMPLETADO (22/06/2026)
+## Estado Actual: ✅ COMPLETADO + MEJORAS (22/06/2026)
 
 | Fase | Estado |
 |------|--------|
 | Fase 1 — Backend: Entidades y Migración | ✅ Completado |
 | Fase 2 — Backend: Servicios y Lógica de Negocio | ✅ Completado |
 | Fase 3 — Backend: DTOs y API Endpoints | ✅ Completado |
-| Fase 4 — Frontend: Vistas MVC de Misiones | ✅ Completado |
-| Fase 5 — Frontend: Integración en Pomodoro | ✅ Completado |
+| Fase 4 — Frontend: Vistas MVC de Misiones | ✅ Mejorado |
+| Fase 5 — Frontend: Integración en Pomodoro | ✅ Mejorado |
 | Fase 6 — Lógica de Tiempo de Enfoque | ✅ Completado |
 | Fase 7 — Verificación de Consistencia y Tests | ✅ Completado |
+| Fase 8 — Mejoras post-auditoría | ✅ Completado |
 
 **Build:** 0 errores, 0 warnings
-**Tests:** 225/225 pasan (10 nuevos tests de sub-tareas)
+**Tests:** 225/225 pasan (10 tests de sub-tareas)
 
 ---
 
-## Resumen de Archivos Creados vs Modificados
+## Mejoras Post-Auditoría (Fase 8)
 
-### Crear
+### Revertir misión completada
+- Nuevo método `RevertirMision` en `IServicioMisiones` / `ServicioMisiones`
+- Revierte estado a "EnProgreso", limpia `FechaCompletado` y `XpOtorgado`
+- También desmarca todas las sub-tareas completadas
+- Nuevo endpoint `POST /Misiones/Revertir/{id}` en `MisionesController`
+- Botón "Revertir" visible en tarjetas de misiones completadas
 
-| Archivo | Propósito |
-|---------|-----------|
-| `Models/Entidades/SubTarea.cs` | Entidad SubTarea |
-| `DTOs/SubTareaDto.cs` | DTOs de respuesta/request |
-| `Ayudantes/FormateadorTiempo.cs` | Helper de formato de tiempo |
-| `EpycusApp.Tests/Unitarios/Servicios/ServicioSubTareasTests.cs` | 10 tests unitarios de sub-tareas |
-| `Migrations/20260622214253_AddSubTareas.cs` | Migración EF Core |
+### Colores de prioridad mejorados
+- Alta: danger (rojo) con icono `bi-flag-fill`
+- Media: primary (azul) con icono `bi-flag`
+- Baja: secondary (gris) con icono `bi-flag`
 
-### Modificar
+### Historial de misiones completadas
+- Las misiones activas (Pendiente/EnProgreso) se muestran primero
+- Las completadas/fallidas se agrupan abajo en un colapso expandible
+- Se puede revertir una misión completada desde su tarjeta
 
-| Archivo | Cambio |
-|---------|--------|
-| `Models/Entidades/SesionPomodoro.cs` | + `SubTareaId`, `SubTarea` nav prop |
-| `Models/Entidades/Mision.cs` | + `SubTareas` collection nav prop |
-| `Datos/ContextoAplicacion.cs` | + `DbSet<SubTarea>`, config relaciones, índices |
-| `Servicios/Interfaces/IServicioMisiones.cs` | + 10 métodos de sub-tareas |
-| `Servicios/Implementaciones/ServicioMisiones.cs` | + Implementación completa + lógica de completado automático + `Include(m => m.SubTareas)` en queries |
-| `Servicios/Interfaces/IServicioPomodoro.cs` | + `subTareaId` en `IniciarSesion`, + `ObtenerSubTareasDisponibles` |
-| `Servicios/Implementaciones/ServicioPomodoro.cs` | + Lógica de vinculación y acumulación de tiempo en `RegistrarCiclo` y `FinalizarSesion` |
-| `DTOs/IniciarRequest.cs` | + `SubTareaId` |
-| `DTOs/RespuestasApi.cs` | + `SubTareasCount`, `SubTareasCompletadas`, `TiempoEnfoqueSegundos` en `MisionListaItemResponse` |
-| `Controllers/Api/ApiMisionesController.cs` | + 7 endpoints CRUD sub-tareas |
-| `Controllers/Api/ApiPomodoroController.cs` | + `SubTareaId` en Iniciar, + endpoint `GET mision/{id}/sub-tareas` |
-| `Views/Misiones/Index.cshtml` | + Expandible con sub-tareas, checkboxes, tiempo, crear inline |
-| `Views/Pomodoro/Index.cshtml` | + Dropdown de sub-tareas al seleccionar misión, envío de subTareaId |
+### UI/UX de sub-tareas mejorada
+- **Edición inline**: Doble click en el nombre para editar (Enter guarda, Escape cancela)
+- **Progreso visual**: Barra de progreso debajo del contador de sub-tareas
+- **Estilo mejorado**: Checkbox con mejor contraste, hover highlight, iconos
+- **Confirmación** antes de eliminar sub-tarea
+- **Info de tiempo**: Tooltip con segundos exactos de enfoque
+- **Tarjeta extraída** a partial view `_TarjetaMision.cshtml`
+
+### Editar misión mejorado
+- Selector de **Estado** visible en el formulario de edición (Pendiente/EnProgreso/Completado/Fallido)
+- `EditarMisionViewModel` ahora incluye `Estado`
+- `ServicioMisiones.EditarMision` procesa cambios de estado correctamente
+- Se permite cambiar a Completado desde editar (llama a `CompletarMision` internamente)
+
+### Pomodoro con info de sub-tarea
+- El timer muestra el nombre de la tarea y sub-tarea seleccionada debajo del contador
+- `subTareaNombre` se guarda/restaura en `localStorage`
+- Selector de sub-tareas muestra checkmark en las completadas
+
+### Confirmación al completar
+- Antes de completar una misión, aparece un confirm dialog
+- Al revertir también hay confirmación
+- Los botones tienen iconos más descriptivos
 
 ---
 
