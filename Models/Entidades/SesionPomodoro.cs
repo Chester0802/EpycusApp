@@ -8,6 +8,7 @@
         public int CiclosCompletados { get; set; } = 0;
         public int XpOtorgado { get; set; } = 0;
         public bool FueCompletada { get; set; } = false;
+        public string Tipo { get; set; } = "Enfoque";
         public int UsuarioId { get; set; }
         public int? HabitoId { get; set; }
         public int? MisionId { get; set; }

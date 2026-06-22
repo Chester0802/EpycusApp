@@ -208,6 +208,12 @@ public class PomodoroHistorialResponse
     public int Tamano { get; set; }
 }
 
+public class PomodoroDescansoRequest
+{
+    public string Tipo { get; set; } = "DescansoCorto";
+    public int Segundos { get; set; }
+}
+
 public class PomodoroRachaResponse
 {
     public int Racha { get; set; }

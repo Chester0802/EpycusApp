@@ -105,6 +105,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
             await _contexto.SaveChangesAsync();
             await _servicioGamificacion.SumarXP(usuarioId, xp);
+            await _servicioGamificacion.ActualizarRacha(usuarioId);
 
             return (true, xp);
         }

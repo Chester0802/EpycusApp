@@ -268,6 +268,15 @@ namespace EpycusApp.Servicios.Implementaciones
                 _logger.LogError(ex, "Error al sumar XP para usuario {UsuarioId}", usuarioId);
             }
 
+            try
+            {
+                await _servicioGamificacion.ActualizarRacha(usuarioId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar racha para usuario {UsuarioId}", usuarioId);
+            }
+
             return (true, xpGanado);
         }
 

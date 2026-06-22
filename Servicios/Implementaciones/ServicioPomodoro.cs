@@ -57,7 +57,8 @@ namespace EpycusApp.Servicios.Implementaciones
                 MisionId = misionId,
                 CiclosCompletados = 0,
                 XpOtorgado = 0,
-                FueCompletada = false
+                FueCompletada = false,
+                Tipo = "Enfoque"
             };
 
             _context.SesionesPomodoro.Add(sesion);
@@ -112,6 +113,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
             await _servicioGamificacion.SumarXP(sesion.UsuarioId, xpGanado);
             await _servicioGamificacion.VerificarYOtorgarLogros(sesion.UsuarioId);
+            await _servicioGamificacion.ActualizarRacha(sesion.UsuarioId);
 
             return (xpGanado, sugerir, pausaActiva?.Descripcion);
         }
@@ -139,7 +141,27 @@ namespace EpycusApp.Servicios.Implementaciones
                 await _servicioGamificacion.VerificarYOtorgarLogros(sesion.UsuarioId);
             }
 
+            await _servicioGamificacion.ActualizarRacha(sesion.UsuarioId);
+
             return (sesion.XpOtorgado, xpBonus);
+        }
+
+        public async Task<SesionPomodoro> CrearSesionDescanso(int usuarioId, string tipoDescanso, int segundos)
+        {
+            var sesion = new SesionPomodoro
+            {
+                FechaInicio = DateTime.UtcNow,
+                FechaFin = DateTime.UtcNow,
+                UsuarioId = usuarioId,
+                CiclosCompletados = 0,
+                XpOtorgado = 0,
+                FueCompletada = true,
+                Tipo = tipoDescanso
+            };
+
+            _context.SesionesPomodoro.Add(sesion);
+            await _context.SaveChangesAsync();
+            return sesion;
         }
 
         public async Task CancelarSesion(int sesionId, int usuarioId)
