@@ -12,7 +12,7 @@
         public const int XP_MISION_BAJA = 30;
         public const int XP_MISION_MEDIA = 50;
         public const int XP_MISION_ALTA = 80;
-        public const int XP_BASE_POMODORO = 15;
+        public const int XpBasePomodoro = 15;
         public const int NIVEL_MAXIMO = 20;
     }
 }

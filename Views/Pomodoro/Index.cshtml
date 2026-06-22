@@ -372,7 +372,7 @@
             enfoque: @(Model?.Configuracion?.TiempoEstudioMin ?? 25) * 60,
             corto: @(Model?.Configuracion?.TiempoDescansoMin ?? 5) * 60,
             largo: @(Model?.Configuracion?.TiempoDescansoLargoMin ?? 15) * 60,
-            personalizado: @(Model?.Configuracion?.ModoPersonalizadoMinutos ?? 25) * 60,
+            personalizado: @(Model?.Configuracion?.ModoPersonalizadoMin ?? 25) * 60,
             ciclosAntesLargo: @(Model?.Configuracion?.CiclosAntesDescansoLargo ?? 4),
             metaDiaria: @(Model?.Configuracion?.MetaDiariaCiclos ?? 0),
             autoIniciarDescanso: @(Model?.Configuracion?.AutoIniciarDescanso == true ? "true" : "false"),
@@ -600,9 +600,13 @@
                 document.getElementById('statXpGanado').innerText = estadoTimer.xpTotal;
                 displayCiclos.innerText = estadoTimer.ciclosObjetivo;
                 if (CONFIGURACION.metaDiaria > 0) {
-                    var pctRestore = Math.min(100, (estadoTimer.ciclosCompletados / CONFIGURACION.metaDiaria) * 100);
-                    document.getElementById('metaBar').style.width = pctRestore + '%';
-                    document.getElementById('metaText').innerText = estadoTimer.ciclosCompletados + ' / ' + CONFIGURACION.metaDiaria;
+                    var metaBarEl = document.getElementById('metaBar');
+                    var metaTextEl = document.getElementById('metaText');
+                    if (metaBarEl && metaTextEl) {
+                        var pctRestore = Math.min(100, (estadoTimer.ciclosCompletados / CONFIGURACION.metaDiaria) * 100);
+                        metaBarEl.style.width = pctRestore + '%';
+                        metaTextEl.innerText = estadoTimer.ciclosCompletados + ' / ' + CONFIGURACION.metaDiaria;
+                    }
                 }
                 if (estado.modo) establecerModo(estado.modo);
 
@@ -642,6 +646,14 @@
             if (volGuardado !== null) { volSlider.value = volGuardado; }
             volSlider.addEventListener('change', function() {
                 localStorage.setItem('epycus_pomodoro_volumen', this.value);
+            });
+
+            document.getElementById('chkTicTac').addEventListener('change', function() {
+                if (!this.checked && intervaloTicTac) {
+                    detenerTicTac();
+                } else if (this.checked && estadoTimer.estaCorriendo && estadoTimer.modo === 'enfoque') {
+                    iniciarTicTac();
+                }
             });
 
             if (!estadoTimer.sesionId) {
@@ -845,7 +857,6 @@
 
         async function saltarCiclo() {
             if (!confirm("¿Saltar este ciclo? No se otorgará XP.")) return;
-            estadoTimer.tiempoRestante = 0;
             pausarTimer();
             if (estadoTimer.sesionId) {
                 var idSesion = estadoTimer.sesionId;
@@ -855,12 +866,15 @@
                     if (!respuesta.ok) {
                         estadoTimer.sesionId = idSesion;
                         mostrarError("Error al cancelar el ciclo.");
+                        return;
                     }
                 } catch(e) {
                     estadoTimer.sesionId = idSesion;
                     mostrarError("Error de conexión al cancelar el ciclo.");
+                    return;
                 }
             }
+            estadoTimer.tiempoRestante = 0;
             ocultarBotonFinalizar();
             establecerModo('corto');
         }

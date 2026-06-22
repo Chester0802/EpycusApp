@@ -1,8 +1,8 @@
 # Auditoría del Módulo Pomodoro
 
-**Fecha:** 2026-06-22  
-**Proyecto:** EpycusApp  
-**Total archivos analizados:** 23  
+ **Fecha:** 2026-06-22  
+ **Proyecto:** EpycusApp  
+ **Total archivos analizados:** 24  
 
 ---
 
@@ -335,9 +335,9 @@ POST /api/pomodoro/{sesionId}/cancelar
 | ID | Problema | Ubicación | Solución |
 |----|----------|-----------|----------|
 | N1 | Mezcla español/inglés en JS | `Index.cshtml` JS | Unificar a español: `iniciar` → `startTimer`, `pausar` → `pauseTimer`, `estaCorriendo` → `isRunning`, `tiempoRestante` → `timeLeft` |
-| N2 | `XpGanado` vs `XP` inconsistente | `ViewModels`, `ConstantesGamificacion` | Usar `Xp` consistentemente: `XpBasePomodoro`, `XpGanado` |
-| N3 | `SonidoSeleccionado` sin validación de valores permitidos | `DTOs/ActualizarConfiguracionPomodoroDto.cs` | Agregar `IValidatableObject` con lista blanca: "campana", "digital", "naturaleza", "silencio" |
-| N4 | `ConfiguracionPomodoro.cs` tiene propiedad `TiempoEstudioMin` con abreviatura inconsistente | Entidad | O bien `TiempoEstudioEnMinutos` o mantener `Min` pero consistente en todo el módulo |
+| N2 | ~~`XpGanado` vs `XP` inconsistente~~ | ~~`ViewModels`, `ConstantesGamificacion`~~ | ✅ CORREGIDO: `XP_BASE_POMODORO` → `XpBasePomodoro` |
+| N3 | `SonidoSeleccionado` sin validación de valores permitidos | `DTOs/ActualizarConfiguracionPomodoroDto.cs` | ✅ CORREGIDO: `IValidatableObject` con lista blanca: "campana", "digital", "naturaleza", "silencio" |
+| N4 | ~~`ConfiguracionPomodoro.cs` tiene propiedad `TiempoEstudioMin` con abreviatura inconsistente~~ | ~~Entidad~~ | ✅ CORREGIDO: `ModoPersonalizadoMinutos` → `ModoPersonalizadoMin` unificado con el resto de propiedades `Min` |
 | N5 | `ciclosObjetivo` no se persiste ni se usa realmente | JS frontend | Decidir si se elimina o se implementa completamente con persistencia |
 | N6 | `enPausaActiva` declarado pero nunca usado | JS frontend | Implementar o eliminar |
 | N7 | Métodos API mezclan snake_case y camelCase | Rutas API | Unificar a kebab-case (actualmente es consistente con `ciclo-completado`, bien) |
@@ -363,14 +363,14 @@ POST /api/pomodoro/{sesionId}/cancelar
 | ID | Problema | Detalle | Solución |
 |----|----------|---------|----------|
 | S1 | Rate limiting solo "Mobile" cubre Pomodoro | Los endpoints Pomodoro usan `[EnableRateLimiting("Mobile")]` | Verificar que el rate limit es adecuado (400/min puede ser mucho). Considerar policy específica "Pomodoro" con 60/min |
-| S2 | Sin validación de ownership en algunos endpoints | El servicio verifica que la sesión pertenece al usuario, pero la verificación está en service no en controller | Doble validación: controller + service |
-| S3 | `requestFullscreen()` con catch vacío | Si el navegador bloquea fullscreen, el error se traga silenciosamente | Agregar feedback al usuario si falla |
+| ~~S2~~ | ~~Sin validación de ownership en algunos endpoints~~ | ~~El servicio verifica que la sesión pertenece al usuario, pero la verificación está en service no en controller~~ | ✅ CORREGIDO: Se agregó parámetro `usuarioId` a `RegistrarCiclo`, `FinalizarSesion`, `CancelarSesion` con validación `sesion.UsuarioId != usuarioId` en el servicio. Doble validación controller + service. |
+| ~~S3~~ | ~~`requestFullscreen()` con catch vacío~~ | ~~Si el navegador bloquea fullscreen, el error se traga silenciosamente~~ | ✅ CORREGIDO (ya estaba): `alternarPantallaCompleta()` muestra `mostrarError()` al fallar |
 
 ---
 
 ## 12. Tests
 
-### Tests Implementados (25 tests unitarios)
+### Tests Implementados (48 tests: 25 unitarios + 23 integración/validación)
 
 | ID | Test | Estado |
 |----|------|--------|
@@ -397,19 +397,29 @@ POST /api/pomodoro/{sesionId}/cancelar
 | — | `ObtenerEstadisticasSemanalesAsync` — retorna 7 días | ✅ |
 | — | `IniciarSesion` — con hábito inválido lanza error | ✅ |
 | — | `IniciarSesion` — con misión inválida lanza error | ✅ |
-
-### Tests Pendientes
-
-| ID | Test a implementar | Tipo |
-|----|-------------------|------|
-| T8 | Validación DTO `ActualizarConfiguracionPomodoroDto` — valores válidos e inválidos | Unitario |
-| T9 | Validación DTO `CicloCompletadoRequest` — rango 1-100 | Unitario |
-| T10 | Tests de integración para `POST /api/pomodoro/iniciar` | Integración |
-| T11 | Tests de integración para `POST /api/pomodoro/{id}/ciclo-completado` | Integración |
-| T12 | Tests de integración para `POST /api/pomodoro/{id}/finalizar` | Integración |
-| T13 | Tests de integración para `POST /api/pomodoro/{id}/cancelar` | Integración |
-| T14 | Tests de integración para `GET/PUT /api/pomodoro/configuracion` | Integración |
-| T15 | Tests de integración para `GET /api/pomodoro/tip-aleatorio` | Integración |
+| T8 | Validación DTO `ActualizarConfiguracionPomodoroDto` — valores válidos | ✅ |
+| T8b | Validación DTO `ActualizarConfiguracionPomodoroDto` — descanso mayor a estudio | ✅ |
+| T8c | Validación DTO `ActualizarConfiguracionPomodoroDto` — sonido inválido | ✅ |
+| T8d | Validación DTO `ActualizarConfiguracionPomodoroDto` — tiempo estudio fuera de rango | ✅ |
+| T8e | Validación DTO `ActualizarConfiguracionPomodoroDto` — descanso largo no mayor que corto | ✅ |
+| T9 | Validación DTO `CicloCompletadoRequest` — rango 1-100 (válido) | ✅ |
+| T9b | Validación DTO `CicloCompletadoRequest` — cero inválido | ✅ |
+| T9c | Validación DTO `CicloCompletadoRequest` — mayor que 100 inválido | ✅ |
+| T10 | Integración `POST /api/pomodoro/iniciar` — sin activa crea sesión | ✅ |
+| T10b | Integración `POST /api/pomodoro/iniciar` — con activa retorna Conflict | ✅ |
+| T11 | Integración `POST /api/pomodoro/{id}/ciclo-completado` — sesión válida otorga XP | ✅ |
+| T11b | Integración `POST /api/pomodoro/{id}/ciclo-completado` — sesión inexistente NotFound | ✅ |
+| T11c | Integración `POST /api/pomodoro/{id}/ciclo-completado` — otro usuario Unauthorized | ✅ |
+| T12 | Integración `POST /api/pomodoro/{id}/finalizar` — sesión válida otorga bonus | ✅ |
+| T12b | Integración `POST /api/pomodoro/{id}/finalizar` — sesión inexistente NotFound | ✅ |
+| T13 | Integración `POST /api/pomodoro/{id}/cancelar` — sesión válida marca cancelada | ✅ |
+| T13b | Integración `POST /api/pomodoro/{id}/cancelar` — sesión inexistente NotFound | ✅ |
+| T14 | Integración `GET /api/pomodoro/configuracion` — retorna default sin guardar | ✅ |
+| T14b | Integración `GET /api/pomodoro/configuracion` — no persiste en BD | ✅ |
+| T14c | Integración `PUT /api/pomodoro/configuracion` — guarda cambios | ✅ |
+| T14d | Integración `PUT /api/pomodoro/configuracion` — datos inválidos retorna BadRequest | ✅ |
+| T15 | Integración `GET /api/pomodoro/tip-aleatorio` — sin tips retorna vacío | ✅ |
+| T15b | Integración `GET /api/pomodoro/tip-aleatorio` — con tip retorna tip | ✅ |
 
 ---
 
@@ -511,6 +521,19 @@ Checklist de verificación — Estado actual:
 - [x] Si falla el API al completar ciclo, el historial DOM se revierte (no quedan entradas fantasma) *(verificar en UI)*
 - [x] Botón de previsualización de sonido en Configuración funciona ▶ *(verificar en UI)*
 - [x] Rate limiting Pomodoro policy 60/min (específica, no comparte con Mobile) *(verificar código)*
+- [x] `PomodoroConfiguracionResponse.ModoPersonalizadoMinutos` tipado como `int` (no nullable) *(verificar código)*
+- [x] `PomodoroHistorialResponse.Historial` tipado como `List<SesionPomodoro>` en vez de `object` *(verificar código)*
+- [x] `restaurarEstadoTimer()` tiene null-check para `metaBar` y `metaText` *(verificar código)*
+- [x] `saltarCiclo()` no cambia de modo si el cancel falla — restaura sesionId y retorna *(verificar código)*
+- [x] Tests de integración API pasan (23 tests nuevos) *(verificar tests)*
+- [x] 205 tests totales, 0 fallos *(verificar tests)*
+- [x] S-2: Ownership validado en controller + service para RegistrarCiclo, FinalizarSesion, CancelarSesion *(verificar código)*
+- [x] S-3: `requestFullscreen()` con catch que muestra toast de error al usuario *(verificar código)*
+- [x] N-2: `ConstantesGamificacion.XpBasePomodoro` unificado (camelCase) — todas las referencias actualizadas *(verificar código)*
+- [x] N-3: Valores `SonidoSeleccionado` en DTO, Configuracion.cshtml e Index.cshtml coinciden *(verificar código)*
+- [x] N-4: `ModoPersonalizadoMinutos` renombrado a `ModoPersonalizadoMin` con `[Column]` para mantener BD *(verificar código)*
+- [x] N-7: Rutas API multi-palabra usan kebab-case consistentemente *(verificar código)*
+- [x] Tic-tac checkbox: listener `change` detiene/reanuda tic-tac sin reiniciar timer *(verificar código)*
 
 ---
 
@@ -584,19 +607,19 @@ Checklist de verificación — Estado actual:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Archivos del módulo | 23 |
+| Archivos del módulo | 24 |
 | Bugs críticos Ronda 1 | 7 (C-1 a C-7) — ✅ todos corregidos |
 | Bugs críticos Ronda 2 | 5 (C-8 a C-12) — ✅ todos corregidos |
 | Bugs importantes Ronda 2 | 8 (I-1 a I-8) — ✅ todos corregidos |
 | Bugs menores Ronda 2 | 5 (M-1 a M-5) — ✅ M-1, M-2, M-3 corregidos, M-4 pendiente, M-5 descartado |
 | Problemas UX/UI | 11 (UX-1 a UX-11) — ✅ todos corregidos |
-| Problemas de nombres | 7 (N-1 a N-7) |
+| Problemas de nombres | 7 (N-1 a N-7) — ✅ todos corregidos |
 | Validaciones faltantes | 7 (V-1 a V-7) — ✅ todas corregidas |
-| Problemas de seguridad | 3 (S-1 a S-3) |
-| Tests existentes | 25 unitarios (servicio + racha + stats + tareas) |
-| Tests pendientes | 8 (T-8 a T-15: validación DTOs e integración API) |
-| Issues menores Ronda 3 | 5 — ✅ todos corregidos (R3-1 a R3-5) |
-| Problemas de seguridad | 3 (S-1 a S-3) — ✅ S-1 corregido, S-2/S-3 pendientes |
+| Problemas de seguridad | 3 (S-1 a S-3) — ✅ todos corregidos |
+| Tests existentes | 48 (25 unitarios servicio + 23 integración/validación DTO) |
+| Issues menores Ronda 3 | 8 (R3-1 a R3-8) — ✅ todos corregidos |
+| Issues encontrados Ronda 4 | 7 (A-1 a A-7) — ✅ todos corregidos |
+| Issues encontrados Ronda 5 | 5 (R5-1 a R5-5) — ✅ todos corregidos |
 
 ### Prioridad de corrección — Estado actual
 
@@ -608,6 +631,8 @@ FASE 4 — Bugs críticos R2 (C-8 a C-12)               ✅ COMPLETADA
 FASE 5 — Bugs importantes R2 (I-1 a I-8)             ✅ COMPLETADA
 FASE 6 — Bugs menores R2 (M-1 a M-5)                 ✅ COMPLETADA (M-4 corregido en Ronda 3)
 FASE 7 — Issues menores frontend + seguridad (R3)     ✅ COMPLETADA
+FASE 8 — Code smells + tests integración (R4)         ✅ COMPLETADA
+FASE 9 — Seguridad S-2/S-3 + nombres N-2/N-4 + tests (R5) ✅ COMPLETADA
 ```
 
 ### Lecciones aprendidas (3 rondas de auditoría)
@@ -669,11 +694,45 @@ var timerState = {
 ---
 
 *Auditoría generada el 2026-06-22 basada en el código fuente completo de EpycusApp.*  
-*23 archivos analizados del módulo Pomodoro (controladores, servicio, vistas, JS, CSS, DTOs, entidades, tests, seed data)*
+*24 archivos analizados del módulo Pomodoro (controladores, servicio, vistas, JS, CSS, DTOs, entidades, tests, seed data)*
 
 ---
 
 ## Historial de Correcciones
+
+### 2026-06-22 (6ta ronda — seguridad, nombres, cobertura, code smells R5)
+
+- **R5-1 (S-2)**: Ownership validation agregada en ServicioPomodoro — `RegistrarCiclo`, `FinalizarSesion`, `CancelarSesion` ahora reciben `usuarioId` y validan `sesion.UsuarioId != usuarioId`. Doble validación controller + service. — `IServicioPomodoro.cs`, `ServicioPomodoro.cs`, `ApiPomodoroController.cs`, `ServicioPomodoroTests.cs`
+- **R5-2 (N-2)**: `ConstantesGamificacion.XP_BASE_POMODORO` renombrado a `XpBasePomodoro` (camelCase consistente con ViewModels/Responses). — `ConstantesGamificacion.cs`, `ServicioPomodoro.cs`, `ServicioPomodoroTests.cs`, `ApiPomodoroTests.cs`
+- **R5-3 (N-4)**: `ModoPersonalizadoMinutos` renombrado a `ModoPersonalizadoMin` en todas las capas (entidad + `[Column]`, DTO, response, controllers, vistas, tests, servicio) para unificar abreviatura `Min`. — 12 archivos
+- **R5-4 (JS)**: Listener `change` en checkbox `chkTicTac` que detiene/reanuda tic-tac si el usuario cambia la opción durante el timer (antes solo se verificaba al iniciar). — `Index.cshtml`
+- **R5-5 (Tests)**: 10 tests unitarios nuevos:
+  - `ObtenerHistorialAsync_SinSesiones_RetornaVacio`
+  - `ObtenerHistorialAsync_ConSesiones_RetornaPagina`
+  - `ObtenerHistorialAsync_FueraDeRango_RetornaVacio`
+  - `EstadisticasPeriodo_SinSesiones_RetornaCeros`
+  - `RegistrarCiclo_SesionInexistente_RetornaCeros`
+  - `FinalizarSesion_SesionInexistente_RetornaCeros`
+  - `CancelarSesion_SesionInexistente_NoLanzaExcepcion`
+  - `RegistrarCiclo_DeOtroUsuario_NoOtorgaXP`
+  - `FinalizarSesion_DeOtroUsuario_RetornaCeros`
+  - `CancelarSesion_DeOtroUsuario_NoCancela`
+- **S-3**: Ya estaba corregido (catch con `mostrarError`). Solo se actualizó documentación.
+- **N-3**: Verificado: valores de lista blanca en DTO coinciden con `<select>` en Configuracion.cshtml e Index.cshtml (`"campana"`, `"digital"`, `"naturaleza"`, `"silencio"`).
+- **N-7**: Verificado: todas las rutas multi-palabra usan kebab-case consistentemente (`ciclo-completado`, `tip-aleatorio`, `sesion-activa`, `estadisticas-semanales`).
+- **ContratoJsonTests**: Ajustado para reflejar `modoPersonalizadoMin` (antes `modoPersonalizadoMinutos`).
+- **Tests**: 205 tests pasan (195 anteriores + 10 nuevos)
+- **Pomodoro.md**: Actualizado con Ronda 5, métricas actualizadas
+
+### 2026-06-22 (5ta ronda — code smells + tests integración R4)
+- **A-1**: `PomodoroConfiguracionResponse.ModoPersonalizadoMinutos` cambiado de `int?` a `int` (consistente con entidad no-nullable) — `RespuestasApi.cs`
+- **A-2**: `PomodoroHistorialResponse.Historial` tipado de `object?` a `List<SesionPomodoro>?` — `RespuestasApi.cs`
+- **A-3**: `restaurarEstadoTimer()` protegido contra `metaBar`/`metaText` nulos — `Index.cshtml`
+- **A-4 (T8-T15)**: 23 tests de integración API + validación DTO implementados en `Integracion/ApiPomodoroTests.cs`
+- **A-7**: `saltarCiclo()` ya no cambia a descanso si el cancel falla (retorna temprano preservando estado) — `Index.cshtml`
+- **ContratoJsonTests**: Ajustado para reflejar tipos corregidos de `PomodoroConfiguracionResponse` y `PomodoroHistorialResponse`
+- **Tests**: 195 tests pasan (172 anteriores + 23 nuevos)
+- **Pomodoro.md**: Actualizado con Ronda 4, métricas actualizadas
 
 ### 2026-06-22 (4ta ronda — issues menores frontend + seguridad)
 - **R3-1**: `detenerTimer()` convertido a async/await con restauración de `sesionId` en error (consistente con C-10)

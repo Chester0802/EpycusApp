@@ -53,7 +53,7 @@ namespace EpycusApp.Controllers.Api
             if (usuarioId == null || sesion.UsuarioId != usuarioId.Value)
                 return Unauthorized(RespuestaApi<object>.Fallida("No autorizado"));
 
-            var resultado = await _servicioPomodoro.RegistrarCiclo(sesionId, req?.CiclosCompletados ?? 0);
+            var resultado = await _servicioPomodoro.RegistrarCiclo(sesionId, req?.CiclosCompletados ?? 0, usuarioId.Value);
             return Ok(RespuestaApi<PomodoroCicloCompletadoResponse>.Exitosa(new PomodoroCicloCompletadoResponse { XpGanado = resultado.XpGanado, SugerirDescanso = resultado.SugerirDescanso, PausaActiva = resultado.PausaActiva }));
         }
 
@@ -71,7 +71,7 @@ namespace EpycusApp.Controllers.Api
             if (usuarioId == null || sesion.UsuarioId != usuarioId.Value)
                 return Unauthorized(RespuestaApi<object>.Fallida("No autorizado"));
 
-            var (xpTotal, xpBonus) = await _servicioPomodoro.FinalizarSesion(sesionId, req?.CiclosCompletados ?? 0);
+            var (xpTotal, xpBonus) = await _servicioPomodoro.FinalizarSesion(sesionId, req?.CiclosCompletados ?? 0, usuarioId.Value);
             return Ok(RespuestaApi<PomodoroFinalizarResponse>.Exitosa(new PomodoroFinalizarResponse { XpTotal = xpTotal, SesionGuardada = true, XpBonus = xpBonus }));
         }
 
@@ -84,7 +84,7 @@ namespace EpycusApp.Controllers.Api
             if (usuarioId == null || sesion.UsuarioId != usuarioId.Value)
                 return Unauthorized(RespuestaApi<object>.Fallida("No autorizado"));
 
-            await _servicioPomodoro.CancelarSesion(sesionId);
+            await _servicioPomodoro.CancelarSesion(sesionId, usuarioId.Value);
             return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
@@ -110,7 +110,7 @@ namespace EpycusApp.Controllers.Api
                 AutoIniciarEnfoque = config.AutoIniciarEnfoque,
                 TicTacActivo = config.TicTacActivo,
                 MetaDiariaCiclos = config.MetaDiariaCiclos,
-                ModoPersonalizadoMinutos = config.ModoPersonalizadoMinutos,
+                ModoPersonalizadoMin = config.ModoPersonalizadoMin,
                 VibracionActiva = config.VibracionActiva,
                 NotificacionDesktop = config.NotificacionDesktop
             }));

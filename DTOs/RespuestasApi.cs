@@ -1,3 +1,5 @@
+using EpycusApp.Models.Entidades;
+
 namespace EpycusApp.DTOs;
 
 // ── Auth ──
@@ -180,7 +182,7 @@ public class PomodoroConfiguracionResponse
     public bool AutoIniciarEnfoque { get; set; }
     public bool TicTacActivo { get; set; }
     public int MetaDiariaCiclos { get; set; }
-    public int? ModoPersonalizadoMinutos { get; set; }
+    public int ModoPersonalizadoMin { get; set; }
     public bool VibracionActiva { get; set; }
     public bool NotificacionDesktop { get; set; }
 }
@@ -200,7 +202,7 @@ public class PomodoroSesionActivaResponse
 
 public class PomodoroHistorialResponse
 {
-    public object? Historial { get; set; }
+    public List<SesionPomodoro>? Historial { get; set; }
     public int Pagina { get; set; }
     public int Tamano { get; set; }
 }

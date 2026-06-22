@@ -1,4 +1,6 @@
-﻿namespace EpycusApp.Models.Entidades
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace EpycusApp.Models.Entidades
 {
     public class ConfiguracionPomodoro
     {
@@ -14,7 +16,8 @@
         public bool AutoIniciarEnfoque { get; set; } = false;
         public bool TicTacActivo { get; set; } = false;
         public int MetaDiariaCiclos { get; set; } = 0;
-        public int ModoPersonalizadoMinutos { get; set; } = 25;
+        [Column("ModoPersonalizadoMinutos")]
+        public int ModoPersonalizadoMin { get; set; } = 25;
         public bool VibracionActiva { get; set; } = true;
         public bool NotificacionDesktop { get; set; } = true;
         public DateTime FechaActualizacion { get; set; } = DateTime.UtcNow;

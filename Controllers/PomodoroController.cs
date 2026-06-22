@@ -71,7 +71,7 @@ namespace EpycusApp.Controllers
                 AutoIniciarEnfoque = config.AutoIniciarEnfoque,
                 TicTacActivo = config.TicTacActivo,
                 MetaDiariaCiclos = config.MetaDiariaCiclos,
-                ModoPersonalizadoMinutos = config.ModoPersonalizadoMinutos,
+                ModoPersonalizadoMin = config.ModoPersonalizadoMin,
                 VibracionActiva = config.VibracionActiva,
                 NotificacionDesktop = config.NotificacionDesktop
             };
