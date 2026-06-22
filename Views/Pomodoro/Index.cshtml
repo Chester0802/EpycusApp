@@ -381,6 +381,8 @@
             notificacionDesktop: @(Model?.Configuracion?.NotificacionDesktop == true ? "true" : "false"),
         };
 
+        let metaDiariaValue = CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : 4;
+
         let estadoTimer = {
             modo: 'enfoque',
             tiempoRestante: CONFIGURACION.enfoque,
@@ -393,7 +395,6 @@
             ciclosCompletados: parseInt(document.getElementById('statCiclos').innerText) || 0,
             minutosTotales: parseInt(document.getElementById('statMinutos').innerText) || 0,
             xpTotal: parseInt(document.getElementById('statXpGanado').innerText) || 0,
-            ciclosObjetivo: CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : 1,
             ultimoTick: null
         };
 
@@ -556,7 +557,7 @@
                     ciclosCompletados: estadoTimer.ciclosCompletados,
                     minutosTotales: estadoTimer.minutosTotales,
                     xpTotal: estadoTimer.xpTotal,
-                    ciclosObjetivo: estadoTimer.ciclosObjetivo,
+                    metaDiaria: metaDiariaValue,
                     tiempoRestante: estadoTimer.tiempoRestante,
                     tiempoTotal: estadoTimer.tiempoTotal,
                     estaCorriendo: estadoTimer.estaCorriendo
@@ -583,7 +584,7 @@
                 estadoTimer.ciclosCompletados = estado.ciclosCompletados || 0;
                 estadoTimer.minutosTotales = estado.minutosTotales || 0;
                 estadoTimer.xpTotal = estado.xpTotal || 0;
-                estadoTimer.ciclosObjetivo = estado.ciclosObjetivo || (CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : 1);
+                metaDiariaValue = estado.metaDiaria || (CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : 4);
 
                 if (estado.estaCorriendo && estado.finEn) {
                     var remaining = Math.max(0, Math.floor((estado.finEn - Date.now()) / 1000));
@@ -599,7 +600,7 @@
                 document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
                 document.getElementById('statMinutos').innerText = estadoTimer.minutosTotales;
                 document.getElementById('statXpGanado').innerText = estadoTimer.xpTotal;
-                displayCiclos.innerText = estadoTimer.ciclosObjetivo;
+                displayCiclos.innerText = metaDiariaValue;
                 if (CONFIGURACION.metaDiaria > 0) {
                     var metaBarEl = document.getElementById('metaBar');
                     var metaTextEl = document.getElementById('metaText');
@@ -632,6 +633,44 @@
             }
 
             restaurarEstadoTimer();
+
+            // NF-20: Sincronización entre pestañas vía BroadcastChannel
+            try {
+                var bc = new BroadcastChannel('epycus_pomodoro');
+                bc.onmessage = function(ev) {
+                    var msg = ev.data;
+                    if (!msg || !msg.type) return;
+                    switch (msg.type) {
+                        case 'timer_start':
+                        case 'timer_pause':
+                            if (msg.modo) estadoTimer.modo = msg.modo;
+                            estadoTimer.tiempoRestante = msg.tiempoRestante;
+                            estadoTimer.tiempoTotal = msg.tiempoTotal;
+                            estadoTimer.ciclosCompletados = msg.ciclos;
+                            if (msg.type === 'timer_start' && !estadoTimer.estaCorriendo) {
+                                estadoTimer.estaCorriendo = true;
+                            } else if (msg.type === 'timer_pause' && estadoTimer.estaCorriendo) {
+                                estadoTimer.estaCorriendo = false;
+                            }
+                            actualizarUI();
+                            break;
+                        case 'timer_complete':
+                            estadoTimer.ciclosCompletados = msg.ciclos;
+                            document.getElementById('statCiclos').innerText = msg.ciclos;
+                            actualizarUI();
+                            break;
+                        case 'mode_change':
+                            estadoTimer.modo = msg.modo;
+                            estadoTimer.tiempoRestante = msg.tiempoRestante;
+                            estadoTimer.tiempoTotal = msg.tiempoTotal;
+                            estadoTimer.estaCorriendo = false;
+                            if (msg.ciclos !== undefined) estadoTimer.ciclosCompletados = msg.ciclos;
+                            establecerModo(msg.modo);
+                            break;
+                    }
+                };
+                window._broadcastChannel = bc;
+            } catch(e) { /* BroadcastChannel no soportado */ }
 
             fetch('/api/pomodoro/tip-aleatorio')
                 .then(function(r) { return r.json(); })
@@ -688,6 +727,14 @@
             circuloProgreso.setAttribute('stroke-dashoffset', progress);
         }
 
+        function broadcastMensaje(tipo, datos) {
+            try {
+                if (window._broadcastChannel) {
+                    window._broadcastChannel.postMessage(Object.assign({ type: tipo }, datos));
+                }
+            } catch(e) {}
+        }
+
         function establecerModo(modo) {
             if (estadoTimer.estaCorriendo) {
                 if (!confirm("Hay un temporizador en curso. ¿Deseas cambiar de modo y detenerlo?")) return;
@@ -700,6 +747,10 @@
             btnSaltar.style.display = (modo === 'enfoque' || modo === 'personalizado') ? 'inline-flex' : 'none';
             document.getElementById('btnFinalizar').style.display = ((modo === 'enfoque' || modo === 'personalizado') && estadoTimer.sesionId) ? 'inline-flex' : 'none';
             actualizarUI();
+
+            if (estadoTimer.estaCorriendo) {
+                broadcastMensaje('mode_change', { modo: modo, tiempoRestante: estadoTimer.tiempoRestante, tiempoTotal: estadoTimer.tiempoTotal, ciclos: estadoTimer.ciclosCompletados });
+            }
 
             document.querySelectorAll('.ep-pomodoro-tab').forEach(tab => {
                 tab.classList.remove('active', 'descanso');
@@ -721,9 +772,9 @@
         }
 
         function ajustarCiclos(val) {
-            let n = estadoTimer.ciclosObjetivo + val;
-            if (n >= 1 && n <= 10) {
-                estadoTimer.ciclosObjetivo = n;
+            let n = metaDiariaValue + val;
+            if (n >= 1 && n <= 50) {
+                metaDiariaValue = n;
                 displayCiclos.innerText = n;
             }
         }
@@ -807,6 +858,7 @@
             actualizarIndicadorDND();
 
             estadoTimer.ultimoTick = Date.now();
+            broadcastMensaje('timer_start', { modo: estadoTimer.modo, tiempoRestante: estadoTimer.tiempoRestante, tiempoTotal: estadoTimer.tiempoTotal, ciclos: estadoTimer.ciclosCompletados });
             estadoTimer.idIntervalo = setInterval(() => {
                 estadoTimer.ultimoTick = Date.now();
                 estadoTimer.tiempoRestante--;
@@ -826,6 +878,7 @@
             iconoPlay.classList.replace('bi-pause-fill', 'bi-play-fill');
             textoPlay.innerText = "Continuar";
             actualizarIndicadorDND();
+            broadcastMensaje('timer_pause', { modo: estadoTimer.modo, tiempoRestante: estadoTimer.tiempoRestante, tiempoTotal: estadoTimer.tiempoTotal, ciclos: estadoTimer.ciclosCompletados });
         }
 
         async function detenerTimer() {
@@ -954,6 +1007,7 @@
                 estadoTimer.minutosTotales += Math.floor((estadoTimer.modo === 'personalizado' ? CONFIGURACION.personalizado : CONFIGURACION.enfoque) / 60);
 
                 document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
+                broadcastMensaje('timer_complete', { ciclos: estadoTimer.ciclosCompletados, xp: estadoTimer.xpTotal });
                 document.getElementById('statMinutos').innerText = estadoTimer.minutosTotales;
 
                 if (CONFIGURACION.metaDiaria > 0) {
@@ -1053,8 +1107,8 @@
                     }
                 }
 
-                if (estadoTimer.ciclosObjetivo && estadoTimer.ciclosCompletados >= estadoTimer.ciclosObjetivo) {
-                    notificar('Metas', 'Has completado ' + estadoTimer.ciclosObjetivo + ' ciclos. ¡Buen trabajo!');
+                if (metaDiariaValue && estadoTimer.ciclosCompletados >= metaDiariaValue) {
+                    notificar('Metas', 'Has completado ' + metaDiariaValue + ' ciclos. ¡Buen trabajo!');
                     if (estadoTimer.sesionId) {
                         var idFinalizar = estadoTimer.sesionId;
                         estadoTimer.sesionId = null;
@@ -1079,7 +1133,7 @@
                         modalMeta.show();
                         mostrarExito('¡Meta diaria cumplida! Sesión finalizada con XP bonus.');
                     } else {
-                        mostrarExito('¡Has completado ' + estadoTimer.ciclosObjetivo + ' ciclos! Sesión finalizada.');
+                        mostrarExito('¡Has completado ' + metaDiariaValue + ' ciclos! Sesión finalizada.');
                     }
                 }
 

@@ -168,7 +168,7 @@ namespace EpycusApp.Controllers.Api
         }
 
         [HttpGet("historial")]
-        public async Task<IActionResult> ObtenerHistorial([FromQuery] DateTime? desde, [FromQuery] DateTime? hasta, [FromQuery] int pagina = 1, [FromQuery] int tamano = 20)
+        public async Task<IActionResult> ObtenerHistorial([FromQuery] DateTime? desde, [FromQuery] DateTime? hasta, [FromQuery] int pagina = 1, [FromQuery] int tamano = 20, [FromQuery] bool? completada = null, [FromQuery] bool? conXp = null)
         {
             var usuarioId = ObtenerUsuarioId();
             if (usuarioId == null)
@@ -178,7 +178,7 @@ namespace EpycusApp.Controllers.Api
             var hastaDate = hasta ?? DateTime.UtcNow;
             tamano = Math.Clamp(tamano, 1, 100);
 
-            var historial = await _servicioPomodoro.ObtenerHistorialAsync(usuarioId.Value, desdeDate, hastaDate, pagina, tamano);
+            var historial = await _servicioPomodoro.ObtenerHistorialAsync(usuarioId.Value, desdeDate, hastaDate, pagina, tamano, completada, conXp);
             return Ok(RespuestaApi<PomodoroHistorialResponse>.Exitosa(new PomodoroHistorialResponse { Historial = historial, Pagina = pagina, Tamano = tamano }));
         }
 
@@ -216,6 +216,20 @@ namespace EpycusApp.Controllers.Api
 
             var stats = await _servicioPomodoro.ObtenerEstadisticasSemanalesAsync(usuarioId.Value);
             return Ok(RespuestaApi<List<EstadisticasPomodoroPeriodo>>.Exitosa(stats));
+        }
+
+        [HttpGet("estadisticas-avanzadas")]
+        public async Task<IActionResult> ObtenerEstadisticasAvanzadas([FromQuery] DateTime? desde, [FromQuery] DateTime? hasta)
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            var desdeDate = desde ?? DateTime.UtcNow.AddMonths(-1);
+            var hastaDate = hasta ?? DateTime.UtcNow;
+
+            var stats = await _servicioPomodoro.ObtenerEstadisticasAvanzadasAsync(usuarioId.Value, desdeDate, hastaDate);
+            return Ok(RespuestaApi<PomodoroEstadisticasAvanzadasResponse>.Exitosa(stats));
         }
     }
 }

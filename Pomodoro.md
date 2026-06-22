@@ -2,7 +2,7 @@
 
  **Fecha:** 2026-06-22  
  **Proyecto:** EpycusApp  
- **Total archivos analizados:** 24  
+ **Total archivos analizados:** 27  
 
 ---
 
@@ -622,6 +622,7 @@ Checklist de verificación — Estado actual:
 | Issues encontrados Ronda 4 | 7 (A-1 a A-7) — ✅ todos corregidos |
 | Issues encontrados Ronda 5 | 5 (R5-1 a R5-5) — ✅ todos corregidos |
 | Nueva funcionalidad Ronda 6 | 1 (NF-21) — Pomodoro en segundo plano |
+| Nueva funcionalidad Ronda 7 | 4 (N-5, NF-20, NF-22, NF-6) — Meta diaria unificada, BroadcastChannel, filtros historial, estadísticas avanzadas |
 
 ### Prioridad de corrección — Estado actual
 
@@ -636,6 +637,7 @@ FASE 7 — Issues menores frontend + seguridad (R3)     ✅ COMPLETADA
 FASE 8 — Code smells + tests integración (R4)         ✅ COMPLETADA
 FASE 9 — Seguridad S-2/S-3 + nombres N-2/N-4 + tests (R5) ✅ COMPLETADA
 FASE 10 — NF-21 Pomodoro en segundo plano (R6)              ✅ COMPLETADA
+FASE 11 — N-5 + NF-20 + NF-22 + NF-6 (R7)                  ✅ COMPLETADA
 ```
 
 ### Lecciones aprendidas (3 rondas de auditoría)
@@ -702,6 +704,15 @@ var timerState = {
 ---
 
 ## Historial de Correcciones
+
+### 2026-06-22 (8va ronda — N-5, NF-20, NF-22, NF-6)
+
+- **N-5**: Se eliminó `ciclosObjetivo` del `timerState` frontend. Ahora se usa `metaDiariaValue` (inicializado desde `CONFIGURACION.metaDiaria`) como única fuente de verdad para la meta diaria. El ajuste manual via ± botones actualiza `metaDiariaValue` local (rango 1-50). Se guarda/restaura en `localStorage` como `metaDiaria`. — `Index.cshtml`
+- **NF-20**: Sincronización entre pestañas vía `BroadcastChannel` (canal `epycus_pomodoro`). Al iniciar/pausar el timer, completar ciclo o cambiar modo, se transmite el estado a otras pestañas. Las pestañas receptoras sincronizan `modo`, `tiempoRestante`, `tiempoTotal`, `estaCorriendo` y `ciclosCompletados`. Compatibilidad: fallback silencioso si el navegador no soporta BroadcastChannel. — `Index.cshtml`
+- **NF-22**: Historial con filtros mejorado. `GET /api/pomodoro/historial` ahora acepta `completada` (bool?) y `conXp` (bool?) como query params. `ServicioPomodoro.ObtenerHistorialAsync` filtra por `FueCompletada` y `XpOtorgado > 0` respectivamente. — `ApiPomodoroController.cs`, `IServicioPomodoro.cs`, `ServicioPomodoro.cs`
+- **NF-6**: Nuevo endpoint `GET /api/pomodoro/estadisticas-avanzadas` con parámetros `desde`/`hasta`. Retorna `PomodoroEstadisticasAvanzadasResponse` con: `promedioCiclosPorDia`, `totalCiclos`, `totalMinutos`, `totalXp`, `porMes` (agrupación mensual) y `heatmapHoras` (distribución por hora del día, 24 slots). — `RespuestasApi.cs`, `IServicioPomodoro.cs`, `ServicioPomodoro.cs`, `ApiPomodoroController.cs`
+- **Tests**: 10 tests nuevos (5 unitarios + 3 integración para filtros historial, 2 unitarios para estadísticas avanzadas). Total: 215 tests.
+- **Pomodoro.md**: Actualizado con Ronda 7, métricas actualizadas.
 
 ### 2026-06-22 (7ma ronda — NF-21 Pomodoro en segundo plano)
 
