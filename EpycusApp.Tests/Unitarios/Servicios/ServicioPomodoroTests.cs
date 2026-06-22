@@ -171,19 +171,40 @@ public class ServicioPomodoroTests
         _contexto.ConfiguracionesPomodoro.Add(new ConfiguracionPomodoro { UsuarioId = usuarioId, CiclosAntesDescansoLargo = 4 });
         await _contexto.SaveChangesAsync();
 
-        _gamificacionMock.Setup(g => g.SumarXP(usuarioId, ConstantesGamificacion.XP_BASE_POMODORO))
-            .ReturnsAsync((ConstantesGamificacion.XP_BASE_POMODORO, false, 1));
+        _gamificacionMock.Setup(g => g.SumarXP(usuarioId, ConstantesGamificacion.XP_BASE_POMODORO * 2))
+            .ReturnsAsync((ConstantesGamificacion.XP_BASE_POMODORO * 2, false, 1));
 
         var (xp, sugerirDescanso, _) = await _servicio.RegistrarCiclo(sesion.Id, 2);
 
-        xp.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO);
+        xp.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO * 2);
         sugerirDescanso.Should().BeFalse();
 
         var sesionDb = await _contexto.SesionesPomodoro.FirstAsync(s => s.Id == sesion.Id);
         sesionDb.CiclosCompletados.Should().Be(2);
-        sesionDb.XpOtorgado.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO);
+        sesionDb.XpOtorgado.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO * 2);
 
-        _gamificacionMock.Verify(g => g.SumarXP(usuarioId, ConstantesGamificacion.XP_BASE_POMODORO), Times.Once);
+        _gamificacionMock.Verify(g => g.SumarXP(usuarioId, ConstantesGamificacion.XP_BASE_POMODORO * 2), Times.Once);
+    }
+
+    [Fact]
+    public async Task RegistrarCiclo_XpPorDeltaDeCiclos_CuandoMultipleLlamadas()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var sesion = await _servicio.IniciarSesion(usuarioId, null, null);
+        _contexto.ConfiguracionesPomodoro.Add(new ConfiguracionPomodoro { UsuarioId = usuarioId, CiclosAntesDescansoLargo = 4 });
+        await _contexto.SaveChangesAsync();
+
+        _gamificacionMock.Setup(g => g.SumarXP(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync((15, false, 1));
+
+        await _servicio.RegistrarCiclo(sesion.Id, 2);
+        var (xp, _, _) = await _servicio.RegistrarCiclo(sesion.Id, 4);
+
+        xp.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO * 2);
+
+        var sesionDb = await _contexto.SesionesPomodoro.FirstAsync(s => s.Id == sesion.Id);
+        sesionDb.CiclosCompletados.Should().Be(4);
+        sesionDb.XpOtorgado.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO * 4);
     }
 
     [Fact]
@@ -256,7 +277,7 @@ public class ServicioPomodoroTests
     }
 
     [Fact]
-    public async Task ObtenerConfiguracion_SinConfig_CreaDefault()
+    public async Task ObtenerConfiguracion_SinConfig_RetornaDefaultSinGuardar()
     {
         var usuarioId = await SeedUsuarioAsync();
 
@@ -265,6 +286,9 @@ public class ServicioPomodoroTests
         config.Should().NotBeNull();
         config.TiempoEstudioMin.Should().Be(25);
         config.TiempoDescansoMin.Should().Be(5);
+
+        var countEnDb = await _contexto.ConfiguracionesPomodoro.CountAsync();
+        countEnDb.Should().Be(0);
     }
 
     [Fact]

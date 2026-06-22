@@ -60,6 +60,11 @@ namespace EpycusApp.Controllers.Api
         [HttpPost("{sesionId}/finalizar")]
         public async Task<IActionResult> Finalizar(int sesionId, [FromBody] CicloCompletadoRequest req)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida("CiclosCompletados debe ser entre 1 y 100."));
+            }
+
             var sesion = await _servicioPomodoro.ObtenerSesion(sesionId);
             if (sesion == null) return NotFound();
             var usuarioId = ObtenerUsuarioId();
