@@ -42,7 +42,7 @@
                 <div id="pausaActivaContent" class="alert alert-info bg-transparent border-info text-info small mt-3" style="display:none;"></div>
             </div>
             <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-sm btn-ep-outline" data-bs-dismiss="modal" onclick="establecerModo('corto'); if(CONFIGURACION.autoIniciarDescanso) setTimeout(function() { alternarTimer(); }, 500);">Descanso corto</button>
+                <button type="button" class="btn btn-sm btn-ep-outline" data-bs-dismiss="modal" onclick="window._modalHandled=true; establecerModo('corto'); alternarTimer();">Descanso corto</button>
                 <button type="button" class="btn btn-sm btn-success" data-bs-dismiss="modal" id="btnIniciarDescansoLargo">Iniciar descanso largo</button>
             </div>
         </div>
@@ -307,7 +307,10 @@
                     {
                         bool esEnfoque = sesion.XpOtorgado > 0;
                         string tipo = esEnfoque ? "Enfoque" : "Descanso";
-                        string tiempoTxt = $"{(sesion.FechaFin.HasValue ? (int)(sesion.FechaFin.Value - sesion.FechaInicio).TotalMinutes : 0)} min";
+                        var tEstudio = Model?.Configuracion?.TiempoEstudioMin ?? 25;
+                        string tiempoTxt = sesion.CiclosCompletados > 0
+                            ? $"{sesion.CiclosCompletados * tEstudio} min"
+                            : (sesion.FechaFin.HasValue ? $"{(int)(sesion.FechaFin.Value - sesion.FechaInicio).TotalMinutes} min" : "0 min");
                         string iconClass = esEnfoque ? "bi-check-circle text-success" : "bi-cup-hot text-warning";
                         string badgeBg = esEnfoque ? "var(--success-bg)" : "var(--warning-bg)";
                         string badgeColor = esEnfoque ? "var(--success)" : "var(--warning)";
@@ -351,7 +354,7 @@
         };
 
         let estadoTimer = {
-            mode: 'enfoque',
+            modo: 'enfoque',
             tiempoRestante: CONFIGURACION.enfoque,
             tiempoTotal: CONFIGURACION.enfoque,
             estaCorriendo: false,
@@ -481,7 +484,7 @@
             if (estadoTimer.sesionId) {
                 var idSesion = estadoTimer.sesionId;
                 estadoTimer.sesionId = null;
-                fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' }).catch(function() {});
+                fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' }).catch(function() { mostrarError("Error al cancelar la sesión anterior."); });
             }
             var modal = bootstrap.Modal.getInstance(document.getElementById('modalSesionActiva'));
             if (modal) modal.hide();
@@ -507,7 +510,7 @@
         function guardarEstadoTimer() {
             try {
                 var estado = {
-                    mode: estadoTimer.modo,
+                    modo: estadoTimer.modo,
                     sesionId: estadoTimer.sesionId,
                     tareaSeleccionadaId: estadoTimer.tareaSeleccionadaId,
                     tareaSeleccionadaTipo: estadoTimer.tareaSeleccionadaTipo,
@@ -520,7 +523,7 @@
                     estaCorriendo: estadoTimer.estaCorriendo
                 };
                 if (estadoTimer.estaCorriendo) {
-                    estado.endTime = Date.now() + estadoTimer.tiempoRestante * 1000;
+                    estado.finEn = Date.now() + estadoTimer.tiempoRestante * 1000;
                 }
                 localStorage.setItem('epycus_pomodoro', JSON.stringify(estado));
             } catch(e) {}
@@ -531,10 +534,10 @@
                 var saved = localStorage.getItem('epycus_pomodoro');
                 if (!saved) return;
                 var estado = JSON.parse(saved);
-                if (!estado || !estado.mode) return;
+                if (!estado || !estado.modo) return;
 
-                estadoTimer.modo = estado.mode;
-                estadoTimer.tiempoTotal = estado.tiempoTotal || CONFIGURACION[estado.mode] || CONFIGURACION.enfoque;
+                estadoTimer.modo = estado.modo;
+                estadoTimer.tiempoTotal = estado.tiempoTotal || CONFIGURACION[estado.modo] || CONFIGURACION.enfoque;
                 estadoTimer.sesionId = estado.sesionId || null;
                 estadoTimer.tareaSeleccionadaId = estado.tareaSeleccionadaId || null;
                 estadoTimer.tareaSeleccionadaTipo = estado.tareaSeleccionadaTipo || null;
@@ -543,8 +546,8 @@
                 estadoTimer.xpTotal = estado.xpTotal || 0;
                 estadoTimer.ciclosObjetivo = estado.ciclosObjetivo || 1;
 
-                if (estado.estaCorriendo && estado.endTime) {
-                    var remaining = Math.max(0, Math.floor((estado.endTime - Date.now()) / 1000));
+                if (estado.estaCorriendo && estado.finEn) {
+                    var remaining = Math.max(0, Math.floor((estado.finEn - Date.now()) / 1000));
                     estadoTimer.tiempoRestante = remaining;
                     estadoTimer.tiempoTotal = estado.tiempoTotal || estadoTimer.tiempoRestante;
                     if (remaining > 0) {
@@ -558,7 +561,7 @@
                 document.getElementById('statMinutos').innerText = estadoTimer.minutosTotales;
                 document.getElementById('statXP').innerText = estadoTimer.xpTotal;
                 displayCiclos.innerText = estadoTimer.ciclosObjetivo;
-                if (estado.mode) establecerModo(estado.mode);
+                if (estado.modo) establecerModo(estado.modo);
 
                 localStorage.removeItem('epycus_pomodoro');
             } catch(e) {}
@@ -828,14 +831,24 @@
                                 }
                                 document.getElementById('modalDescansoDuracion').innerText = CONFIGURACION.largo / 60;
                                 document.getElementById('btnIniciarDescansoLargo').onclick = function() {
+                                    window._modalHandled = true;
                                     var modal = bootstrap.Modal.getInstance(document.getElementById('modalDescansoLargo'));
                                     modal.hide();
                                     establecerModo('largo');
-                                    if (CONFIGURACION.autoIniciarDescanso) {
-                                        setTimeout(function() { alternarTimer(); }, 500);
-                                    }
+                                    alternarTimer();
                                 };
-                                var modalLargo = new bootstrap.Modal(document.getElementById('modalDescansoLargo'));
+                                var modalLargoEl = document.getElementById('modalDescansoLargo');
+                                modalLargoEl.addEventListener('hidden.bs.modal', function() {
+                                    if (!window._modalHandled) {
+                                        establecerModo('corto');
+                                        if (CONFIGURACION.autoIniciarDescanso) {
+                                            setTimeout(function() { alternarTimer(); }, 500);
+                                        }
+                                    }
+                                    window._modalHandled = false;
+                                }, { once: true });
+                                window._modalHandled = false;
+                                var modalLargo = new bootstrap.Modal(modalLargoEl);
                                 modalLargo.show();
                                 return;
                             }
@@ -877,10 +890,11 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data && data.datos && data.datos.racha > 0) {
-                        document.querySelector('.badge.bg-warning')?.remove();
+                        var badge = document.querySelector('.badge.bg-warning');
+                        if (badge) badge.remove();
                     }
                 })
-                .catch(function() { mostrarError("Error al actualizar estadísticas."); });
+                .catch(function() {});
         }
 
         function agregarHistorial(tipo, tiempoTxt, esEnfoque) {
