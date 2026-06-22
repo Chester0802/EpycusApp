@@ -330,10 +330,9 @@
                             "DescansoLargo" => "Descanso largo",
                             _ => sesion.XpOtorgado > 0 ? "Enfoque" : "Descanso"
                         };
-                        var tEstudio = Model?.Configuracion?.TiempoEstudioMin ?? 25;
-                        string tiempoTxt = sesion.CiclosCompletados > 0
-                            ? $"{sesion.CiclosCompletados * tEstudio} min"
-                            : (sesion.FechaFin.HasValue ? $"{(int)(sesion.FechaFin.Value - sesion.FechaInicio).TotalMinutes} min" : "0 min");
+                        string tiempoTxt = sesion.FechaFin.HasValue
+                            ? $"{(int)(sesion.FechaFin.Value - sesion.FechaInicio).TotalMinutes} min"
+                            : "0 min";
                         string iconClass = esEnfoque ? "bi-check-circle text-success" : "bi-cup-hot text-warning";
                         string badgeBg = esEnfoque ? "var(--success-bg)" : "var(--warning-bg)";
                         string badgeColor = esEnfoque ? "var(--success)" : "var(--warning)";
