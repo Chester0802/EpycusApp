@@ -344,25 +344,19 @@ namespace EpycusApp.Servicios.Implementaciones
                 .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta)
                 .ToListAsync();
 
-            var config = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
-            var tiempoEstudio = config?.TiempoEstudioMin ?? 25;
-
             return new EstadisticasPomodoroPeriodo
             {
                 Fecha = desde.ToString("yyyy-MM-dd"),
                 Ciclos = sesiones.Sum(s => s.CiclosCompletados),
                 Minutos = sesiones.Sum(s => s.FechaFin.HasValue
                     ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
-                    : s.CiclosCompletados * tiempoEstudio),
+                    : 0),
                 Xp = sesiones.Sum(s => s.XpOtorgado)
             };
         }
 
         public async Task<List<EstadisticasPomodoroPeriodo>> ObtenerEstadisticasSemanalesAsync(int usuarioId)
         {
-            var config = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
-            var tiempoEstudio = config?.TiempoEstudioMin ?? 25;
-
             var hoy = DateTime.UtcNow.Date;
             var hace7 = hoy.AddDays(-6);
 
@@ -385,7 +379,7 @@ namespace EpycusApp.Servicios.Implementaciones
                     Ciclos = delDia.Sum(s => s.CiclosCompletados),
                     Minutos = delDia.Sum(s => s.FechaFin.HasValue
                         ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
-                        : s.CiclosCompletados * tiempoEstudio),
+                        : 0),
                     Xp = delDia.Sum(s => s.XpOtorgado)
                 });
             }
@@ -399,14 +393,11 @@ namespace EpycusApp.Servicios.Implementaciones
                 .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta)
                 .ToListAsync();
 
-            var config = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
-            var tiempoEstudio = config?.TiempoEstudioMin ?? 25;
-
             var diasEnRango = Math.Max(1, (hasta.Date - desde.Date).Days + 1);
             var totalCiclos = sesiones.Sum(s => s.CiclosCompletados);
             var totalMinutos = sesiones.Sum(s => s.FechaFin.HasValue
                 ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
-                : s.CiclosCompletados * tiempoEstudio);
+                : 0);
             var totalXp = sesiones.Sum(s => s.XpOtorgado);
 
             var heatmap = Enumerable.Range(0, 24).Select(h => new HeatmapPorHora { Hora = h, Ciclos = 0 }).ToList();
@@ -425,7 +416,7 @@ namespace EpycusApp.Servicios.Implementaciones
                     Ciclos = g.Sum(s => s.CiclosCompletados),
                     Minutos = g.Sum(s => s.FechaFin.HasValue
                         ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
-                        : s.CiclosCompletados * tiempoEstudio),
+                        : 0),
                     Xp = g.Sum(s => s.XpOtorgado)
                 }).ToList();
 

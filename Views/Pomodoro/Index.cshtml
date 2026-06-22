@@ -125,7 +125,6 @@
                         </div>
                         <div class="ep-pomodoro-time" id="timerDisplay">25:00</div>
                         <div class="ep-pomodoro-label" id="timerLabel">Tiempo de enfoque</div>
-                        <div class="small text-secondary mt-1" id="timerTaskInfo" style="font-size:0.7rem; min-height:1.2em;"></div>
                     </div>
                 </div>
             </div>
@@ -854,17 +853,6 @@
         }
 
         function actualizarInfoTarea() {
-            var info = document.getElementById('timerTaskInfo');
-            if (!info) return;
-            if (estadoTimer.tareaSeleccionadaId) {
-                var txt = estadoTimer.tareaSeleccionadaNombre;
-                if (estadoTimer.subTareaId && estadoTimer.subTareaNombre) {
-                    txt += ' > ' + estadoTimer.subTareaNombre;
-                }
-                info.textContent = txt;
-            } else {
-                info.textContent = '';
-            }
         }
 
         function cargarSubTareasDeMision(misionId) {

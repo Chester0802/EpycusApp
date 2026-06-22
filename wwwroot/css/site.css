@@ -406,7 +406,7 @@ textarea:focus-visible {
 
   .ep-pomodoro-timer-wrapper { width: min(220px, 70vw); height: min(220px, 70vw); }
   .ep-pomodoro-time { font-size: 3rem; }
-  .ep-pomodoro-tabs { flex-wrap: wrap; justify-content: center; }
+  .ep-pomodoro-tabs { flex-wrap: wrap; justify-content: flex-start; }
   .ep-pagination { gap: 0.15rem !important; }
   .ep-pagination .page-link { padding: 0.3rem 0.5rem !important; font-size: 0.8rem !important; }
   .ep-pagination .page-item { margin: 0.1rem; }
@@ -1014,18 +1014,18 @@ textarea:focus-visible {
 
 .ep-pomodoro-tabs {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
+  justify-content: flex-start;
+  gap: 0.5rem;
   background: var(--ep-superficie-2);
   padding: 0.5rem;
   border-radius: var(--ep-radio);
-  width: fit-content;
+  width: 100%;
   margin: 0;
-  margin-left: 0;
+  flex-wrap: wrap;
 }
 
 .ep-pomodoro-tab {
-  padding: 0.5rem 1.5rem;
+  padding: 0.4rem 1rem;
   border-radius: var(--ep-radio-sm);
   color: var(--ep-texto-secundario);
   cursor: pointer;
@@ -1033,7 +1033,9 @@ textarea:focus-visible {
   transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .ep-pomodoro-tab:hover {
