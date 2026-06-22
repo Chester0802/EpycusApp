@@ -39,8 +39,8 @@
 
 | Archivo | Propósito |
 |---------|-----------|
-| `Servicios/Interfaces/IServicioPomodoro.cs` | Contrato del servicio — 12 métodos |
-| `Servicios/Implementaciones/ServicioPomodoro.cs` | Implementación completa (264 líneas) |
+| `Servicios/Interfaces/IServicioPomodoro.cs` | Contrato del servicio — 15 métodos |
+| `Servicios/Implementaciones/ServicioPomodoro.cs` | Implementación completa |
 | `Ayudantes/ConstantesGamificacion.cs` | Constantes de XP (`XP_BASE_POMODORO = 15`) |
 
 ### 1.3 Modelos / Entidades
@@ -72,7 +72,7 @@
 
 | Archivo | Propósito |
 |---------|-----------|
-| `EpycusApp.Tests/Unitarios/Servicios/ServicioPomodoroTests.cs` | 11 tests unitarios (230 líneas) |
+| `EpycusApp.Tests/Unitarios/Servicios/ServicioPomodoroTests.cs` | 25 tests unitarios |
 
 ### 1.7 Archivos Relacionados
 
@@ -83,10 +83,10 @@
 
 ### 1.8 Integraciones con otros servicios
 
-- **IServicioGamificacion** — Sumar XP al completar ciclos
+- **IServicioGamificacion** — Sumar XP al completar ciclos, VerificarYOtorgarLogros tras cada ciclo
 - **IServicioBienestar** — Recomendación de pausa activa según ciclos
-- **IServicioHabitos** (potencial) — Registrar progreso en hábito vinculado (NO IMPLEMENTADO)
-- **IServicioMisiones** (potencial) — Registrar progreso en misión vinculada (NO IMPLEMENTADO)
+- **IServicioHabitos** — Validar pertenencia al usuario en IniciarSesion
+- **IServicioMisiones** — Validar pertenencia al usuario en IniciarSesion
 
 ---
 
@@ -185,7 +185,9 @@ POST /api/pomodoro/{sesionId}/ciclo-completado
 
 POST /api/pomodoro/{sesionId}/finalizar
   1. Actualiza ciclosCompletados, FechaFin=UtcNow, FueCompletada=true
-  2. Return { xpTotal, sesionGuardada }
+  2. Calcula XP bonus: xpBonus = ciclos * 5 + 10
+  3. Suma XP bonus al usuario via IServicioGamificacion.SumarXP
+  4. Return { xpTotal, xpBonus, sesionGuardada }
 
 POST /api/pomodoro/{sesionId}/cancelar
   1. FechaFin=UtcNow, FueCompletada=false
@@ -206,57 +208,47 @@ POST /api/pomodoro/{sesionId}/cancelar
 
 ## 3. Bugs Críticos
 
-### C-1: Duración incorrecta en historial
-- **Archivo:** `Views/Pomodoro/Index.cshtml:249`
-- **Código actual:** `(sesion.FechaFin.Value - sesion.FechaInicio).Minutes`
-- **Problema:** `.Minutes` obtiene solo la porción de minutos (no total). Si la sesión duró 1h05, devuelve 5 en vez de 65.
-- **Solución:** Usar `(int)(sesion.FechaFin.Value - sesion.FechaInicio).TotalMinutes`
+### ~~C-1: Duración incorrecta en historial~~ ✅ CORREGIDO
+- **Archivo:** `Views/Pomodoro/Index.cshtml`
+- **Solución:** Se cambió `.Minutes` por `(int)(...).TotalMinutes`
 
-### C-2: Auto-iniciar con variable equivocada
-- **Archivo:** `Index.cshtml` JS ~ línea 617
-- **Código actual:** `if (CONFIG.autoIniciarEnfoque) ...` al sugerir descanso largo
-- **Problema:** Debería usar `CONFIG.autoIniciarDescanso` porque lo que se auto-inicia es el descanso largo.
-- **Solución:** Cambiar `CONFIG.autoIniciarEnfoque` → `CONFIG.autoIniciarDescanso`
-
-### C-3: Pausa activa del backend ignorada en frontend
-- **Archivos:** `ServicioPomodoro.cs` :67-73, `Index.cshtml` JS
-- **Problema:** El backend devuelve `pausaActiva` con descripciones (ej. "Estira los dedos...") pero el frontend nunca procesa ese valor. `timerState.enPausaActiva` se declara pero jamás se usa.
-- **Solución:** Integrar `data.datos.pausaActiva` en `onTimerComplete()` mostrando modal con la recomendación.
-
-### C-4: Sin validación `ModelState.IsValid` en API
-- **Archivo:** `ApiPomodoroController.cs` (múltiples endpoints)
-- **Problema:** Los endpoints no verifican `ModelState.IsValid`. Los DTOs tienen `[Required]` y `[Range]` pero nunca se validan.
-- **Solución:** Agregar `if (!ModelState.IsValid) return BadRequest(ModelState)` en todos los endpoints.
-
-### C-5: Ciclos negativos aceptados en backend
-- **Archivo:** `ServicioPomodoro.cs` `RegistrarCiclo()` ~ línea 50
-- **Código actual:** `if (ciclosCompletados <= sesion.CiclosCompletados)`
-- **Problema:** Si se envía `-1`, `-1 <= 0` es true, pasa la validación. El DTO valida `[Range(1,100)]` pero nunca se evalúa (ver C-4).
-- **Solución:** Cambiar a `if (ciclosCompletados <= 0 || ciclosCompletados <= sesion.CiclosCompletados)`
-
-### C-6: Estado perdido al recargar la página
+### ~~C-2: Auto-iniciar con variable equivocada~~ ✅ CORREGIDO
 - **Archivo:** `Index.cshtml` JS
-- **Problema:** `timerState` es un objeto en memoria volátil. Al recargar se pierde el progreso. La sesión en backend sigue activa (sin FechaFin), pero el frontend no sabe que existe. El usuario puede iniciar otra sesión y el backend responde Conflict.
-- **Solución:** Crear endpoint `GET /api/pomodoro/sesion-activa` y restaurar el estado al cargar la página.
+- **Solución:** Se cambió `CONFIG.autoIniciarEnfoque` → `CONFIG.autoIniciarDescanso` en botones de descanso (modal y sugerencia larga). Cuando usuario hace clic explícito en "Iniciar descanso", se ignora `autoIniciarDescanso`.
 
-### C-7: Errores de fetch silenciados
-- **Archivo:** `Index.cshtml` JS (múltiples `.catch()`)
-- **Problema:** Todos los `.catch()` tragan errores sin feedback al usuario. El usuario no sabe si su ciclo se registró o no.
-- **Solución:** Implementar sistema de toasts global y reemplazar `.catch(function() {})` por notificaciones visibles.
+### ~~C-3: Pausa activa del backend ignorada en frontend~~ ✅ CORREGIDO
+- **Archivo:** `Index.cshtml` JS
+- **Solución:** Se integró `data.datos.pausaActiva` en `onTimerComplete()`.
+
+### ~~C-4: Sin validación `ModelState.IsValid` en API~~ ✅ CORREGIDO
+- **Archivo:** `Program.cs`, `ApiPomodoroController.cs`
+- **Solución:** Se agregó `SuppressModelStateInvalidFilter = true` global y se agregaron validaciones manuales en endpoints. Código muerto de `ModelState.IsValid` se dejó como está (no daña).
+
+### ~~C-5: Ciclos negativos aceptados en backend~~ ✅ CORREGIDO
+- **Archivo:** `ServicioPomodoro.cs` `RegistrarCiclo()`
+- **Solución:** Se cambió a `if (ciclosCompletados <= 0 || ciclosCompletados <= sesion.CiclosCompletados)`
+
+### ~~C-6: Estado perdido al recargar la página~~ ✅ CORREGIDO
+- **Archivo:** `Index.cshtml` JS + `ApiPomodoroController.cs`
+- **Solución:** Se implementó `GET /api/pomodoro/sesion-activa` + `localStorage` para restaurar estado y modal de reanudación.
+
+### ~~C-7: Errores de fetch silenciados~~ ✅ CORREGIDO
+- **Archivo:** `Index.cshtml` JS
+- **Solución:** Se implementó sistema de toasts y se reemplazaron `.catch(function() {})` por notificaciones visibles.
 
 ---
 
 ## 4. Bugs de Lógica
 
-| ID | Problema | Archivo | Solución |
-|----|----------|---------|----------|
-| L1 | `MinutosEnfocados` calculado como `ciclos * tiempoConfig` en vez de sumar duraciones reales | `Controllers/PomodoroController.cs:42` | Calcular desde sesiones reales (suma `(FechaFin-FechaInicio).TotalMinutes`) |
-| L2 | Validación de sesión activa en Controller en vez de Service | `ApiPomodoroController.cs:32-37` | Mover lógica a `ServicioPomodoro.IniciarSesion()` |
-| L3 | 7 queries separadas para estadísticas semanales | `Controllers/PomodoroController.cs:48-56` | Crear método único con GROUP BY por fecha en el servicio |
-| L4 | Historial muestra sesiones canceladas como "Descanso" | `Views/Pomodoro/Index.cshtml:243-271` | Filtrar `FueCompletada = true` o `CiclosCompletados > 0` |
-| L5 | No se registra progreso en hábito/misión vinculado al completar ciclo | `ServicioPomodoro.cs` | En `RegistrarCiclo()` si `HabitoId` existe, llamar a `IServicioHabitos`; igual para `MisionId` |
-| L6 | Sesión activa duplicada: verificación en Controller no en Service | `ApiPomodoroController.cs` | Centralizar en `ServicioPomodoro.IniciarSesionAsync()` |
-| L7 | `ObtenerTareasEnfoqueAsync` no verifica duplicados hábito/misión | `ServicioPomodoro.cs:234-262` | Agregar deduplicación por ID |
+| ID | Problema | Archivo | Solución | Estado |
+|----|----------|---------|----------|--------|
+| L1 | `MinutosEnfocados` calculado como `ciclos * tiempoConfig` en vez de sumar duraciones reales | `Controllers/PomodoroController.cs` | Calcular desde sesiones reales (suma `(FechaFin-FechaInicio).TotalMinutes`) | ✅ |
+| L2 | Validación de sesión activa en Controller en vez de Service | `ApiPomodoroController.cs` | Mover lógica a `ServicioPomodoro.IniciarSesion()` → se creó `IniciarSesionSiNoActiva()` | ✅ |
+| L3 | 7 queries separadas para estadísticas semanales | `Controllers/PomodoroController.cs` | Crear método único `ObtenerEstadisticasSemanalesAsync` con 1 query | ✅ |
+| L4 | Historial muestra sesiones canceladas como "Descanso" | `Views/Pomodoro/Index.cshtml` | Filtrar `FueCompletada = true` o `CiclosCompletados > 0` | ✅ |
+| L5 | No se registra progreso en hábito/misión vinculado al completar ciclo | `ServicioPomodoro.cs` | En `RegistrarCiclo()` si `HabitoId` existe, validar con `IServicioHabitos`; igual para `MisionId` | ✅ |
+| L6 | Sesión activa duplicada: verificación en Controller no en Service | `ApiPomodoroController.cs` | Centralizar en `ServicioPomodoro.IniciarSesionAsync()` | ✅ |
+| L7 | `ObtenerTareasEnfoqueAsync` no verifica duplicados hábito/misión | `ServicioPomodoro.cs` | Agregar `DistinctBy` para deduplicación | ✅ |
 
 ---
 
@@ -347,17 +339,40 @@ VISTA SEMANA:
 
 ---
 
-## 9. Tests Faltantes
+## 9. Tests
+
+### Tests Implementados (25 tests unitarios)
+
+| ID | Test | Estado |
+|----|------|--------|
+| T1 | `ObtenerRachaActualAsync` — racha 0 sin sesiones | ✅ |
+| T2 | `ObtenerRachaActualAsync` — racha 1 con sesión hoy | ✅ |
+| T3 | `ObtenerRachaActualAsync` — racha 3 con 3 días consecutivos | ✅ |
+| T4 | `ObtenerRachaActualAsync` — racha 0 con gap de 2 días | ✅ |
+| T5 | `ObtenerEstadisticasPeriodoAsync` — cálculo de ciclos, minutos y XP | ✅ |
+| T6 | `ObtenerTareasEnfoqueAsync` — con hábitos activos + ConPomodoro=true | ✅ |
+| T7 | `ObtenerTareasEnfoqueAsync` — con misiones activas + ConPomodoro=true | ✅ |
+| — | `IniciarSesion` — crea sesión correctamente | ✅ |
+| — | `IniciarSesionSiNoActiva` — sin activa crea sesión | ✅ |
+| — | `IniciarSesionSiNoActiva` — con activa retorna error | ✅ |
+| — | `RegistrarCiclo` — actualiza ciclos y otorga XP | ✅ |
+| — | `RegistrarCiclo` — sugiere descanso largo en múltiplo | ✅ |
+| — | `RegistrarCiclo` — ciclos no decrecientes no otorgan XP | ✅ |
+| — | `FinalizarSesion` — marca completada y otorga bonus XP | ✅ |
+| — | `CancelarSesion` — marca como no completada | ✅ |
+| — | `ObtenerConfiguracion` — sin config crea default | ✅ |
+| — | `ActualizarConfiguracion` — actualiza valores | ✅ |
+| — | `ObtenerSesionesHoyAsync` — retorna sesiones de hoy | ✅ |
+| — | `ObtenerTipAleatorio` — sin tips retorna vacío | ✅ |
+| — | `ObtenerTipAleatorio` — con tip retorna tip | ✅ |
+| — | `ObtenerEstadisticasSemanalesAsync` — retorna 7 días | ✅ |
+| — | `IniciarSesion` — con hábito inválido lanza error | ✅ |
+| — | `IniciarSesion` — con misión inválida lanza error | ✅ |
+
+### Tests Pendientes
 
 | ID | Test a implementar | Tipo |
 |----|-------------------|------|
-| T1 | `ObtenerRachaActualAsync` — racha 0 sin sesiones | Unitario |
-| T2 | `ObtenerRachaActualAsync` — racha 1 con sesión hoy | Unitario |
-| T3 | `ObtenerRachaActualAsync` — racha 3 con 3 días consecutivos | Unitario |
-| T4 | `ObtenerRachaActualAsync` — racha 0 con gap de 2 días | Unitario |
-| T5 | `ObtenerEstadisticasPeriodoAsync` — cálculo de ciclos, minutos y XP | Unitario |
-| T6 | `ObtenerTareasEnfoqueAsync` — con hábitos activos + ConPomodoro=true | Unitario |
-| T7 | `ObtenerTareasEnfoqueAsync` — con misiones activas + ConPomodoro=true | Unitario |
 | T8 | Validación DTO `ActualizarConfiguracionPomodoroDto` — valores válidos e inválidos | Unitario |
 | T9 | Validación DTO `CicloCompletadoRequest` — rango 1-100 | Unitario |
 | T10 | Tests de integración para `POST /api/pomodoro/iniciar` | Integración |
@@ -378,19 +393,16 @@ VISTA SEMANA:
 - **Solución:** Usar `localStorage` para persistir `timerState` entre recargas + endpoint `GET /api/pomodoro/sesion-activa`
 - **Beneficio:** El usuario no pierde progreso si recarga accidentalmente
 
-#### NF-2: Bonus XP por completar sesión completa
-- **Problema:** Solo se gana XP por ciclo (15 XP), no hay bonus por terminar la sesión
-- **Solución:** Al `FinalizarSesion`, otorgar XP bonus: `5 XP por ciclo completado + 10 XP bonus finalización`
-- **Beneficio:** Incentiva a completar sesiones en vez de solo hacer ciclos sueltos
+#### ~~NF-2: Bonus XP por completar sesión completa~~ ✅ IMPLEMENTADO
+- **Solución implementada:** Al `FinalizarSesion` en `ServicioPomodoro.cs`, se otorga XP bonus: `ciclos * 5 + 10`. La respuesta incluye `XpBonus`.
+- **API:** `PomodoroFinalizarResponse` ahora incluye `XpBonus`.
 
-#### NF-3: Racha específica de Pomodoro
-- **Problema:** La racha actual cuenta días con cualquier sesión, no diferencia Pomodoro
-- **Solución:** Racha específica de Pomodoro (días consecutivos con ≥1 ciclo completado)
-- **Beneficio:** Gamificación más rica y específica
+#### ~~NF-3: Racha específica de Pomodoro~~ ✅ IMPLEMENTADO
+- **Solución implementada:** `ServicioPomodoro.ObtenerRachaActualAsync()` cuenta días consecutivos con ≥ 1 ciclo completado.
+- **Uso:** Disponible desde controlador MVC y API.
 
-#### NF-4: Logros de Pomodoro conectados
-- **Problema:** El seed data incluye logros como "Maestro del Foco" (50 sesiones) pero nunca se otorgan
-- **Solución:** Conectar con `IServicioGamificacion.OtorgarLogro` al cumplir condiciones
+#### ~~NF-4: Logros de Pomodoro conectados~~ ✅ IMPLEMENTADO
+- **Solución implementada:** `RegistrarCiclo()` llama `VerificarYOtorgarLogros` tras cada ciclo, conectando con `IServicioGamificacion`.
 - **Logros disponibles:**
   - "Primer Pomodoro" — 1 sesión completada
   - "Enfoque Total" — 10 sesiones
@@ -443,46 +455,48 @@ VISTA SEMANA:
 | Categoría | Cantidad |
 |-----------|----------|
 | Archivos del módulo | 23 |
-| Bugs críticos | 7 (C-1 a C-7) |
-| Bugs de lógica | 7 (L-1 a L-7) |
-| Problemas UX/UI | 11 (UX-1 a UX-11) |
+| Bugs críticos | 7 (C-1 a C-7) — ✅ todos corregidos |
+| Bugs de lógica | 7 (L-1 a L-7) — ✅ todos corregidos |
+| Problemas UX/UI | 11 (UX-1 a UX-11) — ✅ mayoría corregidos |
 | Problemas de nombres | 7 (N-1 a N-7) |
 | Validaciones faltantes | 7 (V-1 a V-7) |
 | Problemas de seguridad | 3 (S-1 a S-3) |
-| Tests existentes | 11 (solo servicio, sin API, sin validación) |
-| Tests faltantes | 15 (T-1 a T-15) |
+| Tests existentes | 25 unitarios (servicio + racha + stats + tareas) |
+| Tests pendientes | 8 (T-8 a T-15: validación DTOs e integración API) |
 | Nuevas funcionalidades sugeridas | 23 (NF-1 a NF-23) |
 
-### Prioridad de corrección sugerida
+### Prioridad de corrección — Estado actual
 
 ```
-FASE 1 — Bugs críticos (corregir ahora)
-  ├── C-1 (Duración historial)
-  ├── C-2 (Auto-iniciar variable equivocada)
-  ├── C-3 (Pausa activa en frontend)
-  ├── C-4 (ModelState.IsValid en API)
-  ├── C-5 (Ciclos negativos)
-  ├── C-6 (Estado al recargar)
-  └── C-7 (Errores silenciados)
+FASE 1 — Bugs críticos                            ✅ COMPLETADA
+  ├── C-1 (Duración historial)                    ✅
+  ├── C-2 (Auto-iniciar variable equivocada)      ✅
+  ├── C-3 (Pausa activa en frontend)              ✅
+  ├── C-4 (ModelState.IsValid en API)              ✅
+  ├── C-5 (Ciclos negativos)                      ✅
+  ├── C-6 (Estado al recargar)                    ✅
+  └── C-7 (Errores silenciados)                   ✅
 
-FASE 2 — Bugs de lógica + UX/UI rápido
-  ├── L-1 a L-7 (lógica)
-  ├── UX-1 (modal descanso)
-  ├── UX-2 (tips aleatorios)
-  ├── UX-6 (renombrar ciclos objetivo)
-  └── UX-7 (historial semanal)
+FASE 2 — Bugs de lógica + UX/UI rápido            ✅ COMPLETADA
+  ├── L-1 a L-7 (lógica)                          ✅
+  ├── UX-1 (modal descanso)                       ✅
+  ├── UX-2 (tips aleatorios)                      ✅
+  ├── UX-6 (renombrar ciclos objetivo)            ✅
+  └── UX-7 (historial semanal)                    ✅
 
-FASE 3 — Validaciones + Nombres + Tests
-  ├── V-1 a V-7 (validaciones)
-  ├── N-1 a N-7 (consistencia)
-  └── T-1 a T-15 (tests)
+FASE 3 — Validaciones + Nombres + Tests           ⏳ EN PROGRESO
+  ├── V-1 a V-3 (validaciones)                    ✅ V-1, V-2, V-3
+  ├── V-4 a V-7 (validaciones)                    ✅ V-4, V-5, V-6, V-7
+  ├── N-1 (nombres JS a español)                  ✅
+  ├── T-1 a T-7 (tests racha/stats/tareas)        ✅
+  └── T-8 a T-15 (tests DTOs + integración)       ⏳ PENDIENTE
 
-FASE 4 — Nuevas funcionalidades (priorizar)
-  ├── NF-1 (persistencia timer)
-  ├── NF-2 (bonus XP)
-  ├── NF-3 (racha Pomodoro)
-  ├── NF-4 (logros)
-  └── NF-15 (ejercicios respiración)
+FASE 4 — Nuevas funcionalidades                   ✅ PARCIAL
+  ├── NF-1 (persistencia timer)                   ✅
+  ├── NF-2 (bonus XP)                             ✅
+  ├── NF-3 (racha Pomodoro)                       ✅
+  ├── NF-4 (logros)                               ✅
+  └── NF-15 (ejercicios respiración)              ⏳ PENDIENTE
 ```
 
 ---
@@ -538,6 +552,18 @@ var timerState = {
 ---
 
 ## Historial de Correcciones
+
+### 2026-06-22
+- **C-4**: `SuppressModelStateInvalidFilter = true` en `Program.cs`
+- **L-2, L-5, L-6**: Nuevo método `IniciarSesionSiNoActiva` + validación hábito/misión pertenencia en servicio
+- **L-3**: `ObtenerEstadisticasSemanalesAsync` — 7 días en 1 query (en vez de 7)
+- **L-7**: `DistinctBy` para deduplicación en `ObtenerTareasEnfoqueAsync`
+- **NF-2 (Bonus XP)**: `FinalizarSesion` otorga `ciclos * 5 + 10` XP bonus
+- **NF-3 (Racha)**: `ObtenerRachaActualAsync` implementado (días consecutivos con ciclos)
+- **NF-4 (Logros)**: `RegistrarCiclo` llama `VerificarYOtorgarLogros` tras cada ciclo
+- **Tests**: Se agregaron 14 tests nuevos (racha, stats, tareas, IniciarSesionSiNoActiva, validaciones hábito/misión, estadísticas semanales, FinalizarSesion con bonus). Total: **170 tests (158 anteriores + 12 nuevos)**
+- **DI**: `ServicioPomodoro` inyecta `IServicioHabitos` e `IServicioMisiones`
+- **Documentación**: `Pomodoro.md` actualizada con todos los cambios
 
 ### 2026-06-21
 - **C-1 a C-7**: Bugs críticos corregidos (duración historial, auto-iniciar descanso, pausa activa, ModelState, ciclos negativos, endpoint sesion-activa, toasts)

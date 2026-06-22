@@ -163,6 +163,7 @@ public class PomodoroCicloCompletadoResponse
 public class PomodoroFinalizarResponse
 {
     public int XpTotal { get; set; }
+    public int XpBonus { get; set; }
     public bool SesionGuardada { get; set; }
 }
 

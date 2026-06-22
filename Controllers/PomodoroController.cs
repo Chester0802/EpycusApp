@@ -46,15 +46,7 @@ namespace EpycusApp.Controllers
                 modelo.TareasEnfoque = await _servicioPomodoro.ObtenerTareasEnfoqueAsync(usuarioId);
                 modelo.RachaActual = await _servicioPomodoro.ObtenerRachaActualAsync(usuarioId);
 
-                var estadisticasSemanales = new List<EstadisticasPomodoroPeriodo>();
-                for (int i = 6; i >= 0; i--)
-                {
-                    var dia = DateTime.UtcNow.Date.AddDays(-i);
-                    var stats = await _servicioPomodoro.ObtenerEstadisticasPeriodoAsync(usuarioId, dia, dia.AddDays(1).AddTicks(-1));
-                    stats.Fecha = dia.ToString("ddd");
-                    estadisticasSemanales.Add(stats);
-                }
-                modelo.EstadisticasSemanales = estadisticasSemanales;
+                modelo.EstadisticasSemanales = await _servicioPomodoro.ObtenerEstadisticasSemanalesAsync(usuarioId);
             }
 
             return View(modelo);
