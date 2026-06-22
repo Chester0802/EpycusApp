@@ -393,7 +393,8 @@
             ciclosCompletados: parseInt(document.getElementById('statCiclos').innerText) || 0,
             minutosTotales: parseInt(document.getElementById('statMinutos').innerText) || 0,
             xpTotal: parseInt(document.getElementById('statXpGanado').innerText) || 0,
-            ciclosObjetivo: CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : 1
+            ciclosObjetivo: CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : 1,
+            ultimoTick: null
         };
 
         const elDisplayTimer = document.getElementById('timerDisplay');
@@ -805,7 +806,9 @@
             iniciarTicTac();
             actualizarIndicadorDND();
 
+            estadoTimer.ultimoTick = Date.now();
             estadoTimer.idIntervalo = setInterval(() => {
+                estadoTimer.ultimoTick = Date.now();
                 estadoTimer.tiempoRestante--;
                 actualizarUI();
 
@@ -1221,10 +1224,24 @@
         });
 
         document.addEventListener('visibilitychange', function() {
-            if (document.hidden && estadoTimer.estaCorriendo) {
-                document.title = formatearTiempo(estadoTimer.tiempoRestante) + ' - Pomodoro';
+            if (document.hidden) {
+                if (estadoTimer.estaCorriendo) {
+                    document.title = formatearTiempo(estadoTimer.tiempoRestante) + ' - Pomodoro';
+                    estadoTimer.ultimoTick = Date.now();
+                }
             } else {
                 document.title = 'Pomodoro - EpycusApp';
+                if (estadoTimer.estaCorriendo && estadoTimer.ultimoTick) {
+                    var elapsed = Math.max(0, Math.floor((Date.now() - estadoTimer.ultimoTick) / 1000));
+                    if (elapsed > 1) {
+                        estadoTimer.tiempoRestante = Math.max(0, estadoTimer.tiempoRestante - elapsed);
+                        estadoTimer.ultimoTick = Date.now();
+                        actualizarUI();
+                        if (estadoTimer.tiempoRestante <= 0) {
+                            alCompletarTimer();
+                        }
+                    }
+                }
             }
         });
 
