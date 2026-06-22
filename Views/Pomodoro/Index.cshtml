@@ -298,6 +298,13 @@
                 }
             </div>
 
+            <div id="subtareaSelector" class="mt-2 mb-2" style="display:none;">
+                <label class="text-secondary small mb-1">Sub-tarea (opcional):</label>
+                <select class="form-select form-select-sm bg-transparent border-secondary" id="subtareaSelect" style="color: var(--text-primary);">
+                    <option value="">-- Sin sub-tarea --</option>
+                </select>
+            </div>
+
             <div class="mt-3 p-3 rounded" style="background: var(--warning-bg); border-left: 3px solid var(--warning); font-size: 0.85rem;" id="consejoContainer">
                 <i class="bi bi-lightbulb text-warning me-2"></i> <span id="consejoTexto">Una tarea por ciclo. Concéntrate al 100%.</span> <i class="bi bi-tree text-success"></i>
             </div>
@@ -794,6 +801,8 @@
                 element.style.borderStyle = 'none';
                 estadoTimer.tareaSeleccionadaId = null;
                 estadoTimer.tareaSeleccionadaTipo = null;
+                estadoTimer.subTareaId = null;
+                ocultarSelectorSubTarea();
                 return;
             }
 
@@ -811,11 +820,52 @@
                 element.style.borderStyle = 'solid';
                 estadoTimer.tareaSeleccionadaId = id;
                 estadoTimer.tareaSeleccionadaTipo = tipo;
+                estadoTimer.subTareaId = null;
+
+                if (tipo === 'Mision') {
+                    cargarSubTareasDeMision(id);
+                } else {
+                    ocultarSelectorSubTarea();
+                }
             } else {
                 estadoTimer.tareaSeleccionadaId = null;
                 estadoTimer.tareaSeleccionadaTipo = null;
+                estadoTimer.subTareaId = null;
+                ocultarSelectorSubTarea();
             }
         }
+
+        function cargarSubTareasDeMision(misionId) {
+            fetch('/api/pomodoro/mision/' + misionId + '/sub-tareas')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var select = document.getElementById('subtareaSelect');
+                    var container = document.getElementById('subtareaSelector');
+                    if (!select || !container) return;
+                    select.innerHTML = '<option value="">-- Sin sub-tarea --</option>';
+                    if (data && data.datos) {
+                        data.datos.forEach(function(st) {
+                            var opt = document.createElement('option');
+                            opt.value = st.id;
+                            opt.textContent = st.nombre;
+                            select.appendChild(opt);
+                        });
+                    }
+                    container.style.display = 'block';
+                })
+                .catch(function() {});
+        }
+
+        function ocultarSelectorSubTarea() {
+            var container = document.getElementById('subtareaSelector');
+            if (container) container.style.display = 'none';
+        }
+
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.id === 'subtareaSelect') {
+                estadoTimer.subTareaId = e.target.value ? parseInt(e.target.value) : null;
+            }
+        });
 
         async function alternarTimer() {
             if (estadoTimer.estaCorriendo) {
@@ -841,7 +891,10 @@
                 let parametrosBody = {};
                 if (estadoTimer.tareaSeleccionadaId) {
                     if (estadoTimer.tareaSeleccionadaTipo === 'Habito') parametrosBody.habitoId = estadoTimer.tareaSeleccionadaId;
-                    else parametrosBody.misionId = estadoTimer.tareaSeleccionadaId;
+                    else {
+                        parametrosBody.misionId = estadoTimer.tareaSeleccionadaId;
+                        if (estadoTimer.subTareaId) parametrosBody.subTareaId = estadoTimer.subTareaId;
+                    }
                 }
                 try {
                     const respuesta = await fetch('/api/pomodoro/iniciar', {

@@ -18,5 +18,6 @@
         public Usuario Usuario { get; set; } = null!;
         public Categoria Categoria { get; set; } = null!;
         public ICollection<SesionPomodoro> SesionesPomodoro { get; set; } = new List<SesionPomodoro>();
+        public ICollection<SubTarea> SubTareas { get; set; } = new List<SubTarea>();
     }
 }

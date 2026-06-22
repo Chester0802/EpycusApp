@@ -4,5 +4,6 @@ namespace EpycusApp.DTOs
     {
         public int? HabitoId { get; set; }
         public int? MisionId { get; set; }
+        public int? SubTareaId { get; set; }
     }
 }

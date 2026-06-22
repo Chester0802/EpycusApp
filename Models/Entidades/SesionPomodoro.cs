@@ -12,8 +12,10 @@
         public int UsuarioId { get; set; }
         public int? HabitoId { get; set; }
         public int? MisionId { get; set; }
+        public int? SubTareaId { get; set; }
         public Usuario Usuario { get; set; } = null!;
         public Habito? Habito { get; set; }
         public Mision? Mision { get; set; }
+        public SubTarea? SubTarea { get; set; }
     }
 }

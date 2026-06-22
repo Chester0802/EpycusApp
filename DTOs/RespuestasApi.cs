@@ -248,6 +248,9 @@ public class MisionListaItemResponse
     public int XpOtorgado { get; set; }
     public DateTime FechaCreacion { get; set; }
     public int? CategoriaId { get; set; }
+    public int SubTareasCount { get; set; }
+    public int SubTareasCompletadas { get; set; }
+    public int TiempoEnfoqueSegundos { get; set; }
 }
 
 public class MisionCompletarResponse

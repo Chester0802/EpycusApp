@@ -39,6 +39,7 @@ namespace EpycusApp.Datos
  = null!;
         public DbSet<MensajeIA> MensajesIA { get; set; } = null!;
         public DbSet<EntradaDiario> EntradasDiario { get; set; } = null!;
+        public DbSet<SubTarea> SubTareas { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -205,6 +206,25 @@ namespace EpycusApp.Datos
 
             modelBuilder.Entity<RecuperacionContrasena>()
                 .HasIndex(r => r.UsuarioId);
+
+            modelBuilder.Entity<SubTarea>()
+                .HasOne(st => st.Mision)
+                .WithMany(m => m.SubTareas)
+                .HasForeignKey(st => st.MisionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SesionPomodoro>()
+                .HasOne(s => s.SubTarea)
+                .WithMany(st => st.SesionesPomodoro)
+                .HasForeignKey(s => s.SubTareaId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+
+            modelBuilder.Entity<SubTarea>()
+                .HasIndex(st => st.MisionId);
+
+            modelBuilder.Entity<SesionPomodoro>()
+                .HasIndex(s => s.SubTareaId);
 
             modelBuilder.Entity<SesionPomodoro>()
                 .HasIndex(s => s.UsuarioId);
