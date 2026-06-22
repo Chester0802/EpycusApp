@@ -92,9 +92,10 @@ namespace EpycusApp.Servicios.Implementaciones
             if (ciclosCompletados <= 0 || ciclosCompletados <= sesion.CiclosCompletados)
                 return (0, false, null);
 
+            int nuevosCiclos = ciclosCompletados - sesion.CiclosCompletados;
             sesion.CiclosCompletados = ciclosCompletados;
 
-            int xpGanado = ConstantesGamificacion.XP_BASE_POMODORO;
+            int xpGanado = ConstantesGamificacion.XP_BASE_POMODORO * nuevosCiclos;
             sesion.XpOtorgado += xpGanado;
 
             var config = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == sesion.UsuarioId);
@@ -104,7 +105,6 @@ namespace EpycusApp.Servicios.Implementaciones
             }
 
             bool sugerir = config.CiclosAntesDescansoLargo > 0 && (ciclosCompletados % config.CiclosAntesDescansoLargo == 0);
-            var pausa = sugerir ? "larga" : "corta";
 
             var pausaActiva = _servicioBienestar.RecomendacionPausaActiva(ciclosCompletados);
 
@@ -113,13 +113,16 @@ namespace EpycusApp.Servicios.Implementaciones
             await _servicioGamificacion.SumarXP(sesion.UsuarioId, xpGanado);
             await _servicioGamificacion.VerificarYOtorgarLogros(sesion.UsuarioId);
 
-            return (xpGanado, sugerir, pausaActiva?.Descripcion ?? pausa);
+            return (xpGanado, sugerir, pausaActiva?.Descripcion);
         }
 
         public async Task<(int XpTotal, int XpBonus)> FinalizarSesion(int sesionId, int ciclosCompletados)
         {
             var sesion = await _context.SesionesPomodoro.FirstOrDefaultAsync(s => s.Id == sesionId);
             if (sesion is null) return (0, 0);
+
+            if (ciclosCompletados < sesion.CiclosCompletados)
+                ciclosCompletados = sesion.CiclosCompletados;
 
             sesion.CiclosCompletados = ciclosCompletados;
             sesion.FechaFin = DateTime.UtcNow;
@@ -156,8 +159,6 @@ namespace EpycusApp.Servicios.Implementaciones
             if (cfg is null)
             {
                 cfg = new ConfiguracionPomodoro { UsuarioId = usuarioId };
-                _context.ConfiguracionesPomodoro.Add(cfg);
-                await _context.SaveChangesAsync();
             }
             return cfg;
         }

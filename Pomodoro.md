@@ -1,6 +1,6 @@
 # Auditoría del Módulo Pomodoro
 
-**Fecha:** 2026-06-21  
+**Fecha:** 2026-06-22  
 **Proyecto:** EpycusApp  
 **Total archivos analizados:** 23  
 
@@ -10,15 +10,19 @@
 
 1. [Arquitectura del Módulo](#1-arquitectura-del-módulo)
 2. [Flujo Completo del Temporizador](#2-flujo-completo-del-temporizador)
-3. [Bugs Críticos](#3-bugs-críticos)
-4. [Bugs de Lógica](#4-bugs-de-lógica)
-5. [Problemas UX/UI](#5-problemas-uxui)
-6. [Nombres y Consistencia](#6-nombres-y-consistencia)
-7. [Validaciones Faltantes](#7-validaciones-faltantes)
-8. [Seguridad](#8-seguridad)
-9. [Tests Faltantes](#9-tests-faltantes)
-10. [Nuevas Funcionalidades Sugeridas](#10-nuevas-funcionalidades-sugeridas)
-11. [Resumen de Métricas](#11-resumen-de-métricas)
+3. [Bugs Críticos (Ronda 1 — Corregidos)](#3-bugs-críticos-ronda-1--corregidos)
+4. [Bugs de Lógica (Ronda 1 — Corregidos)](#4-bugs-de-lógica-ronda-1--corregidos)
+5. [Bugs Críticos (Ronda 2 — Encontrados en esta auditoría)](#5-bugs-críticos-ronda-2--encontrados-en-esta-auditoría)
+6. [Bugs Importantes (Ronda 2)](#6-bugs-importantes-ronda-2)
+7. [Bugs Menores / Code Smells (Ronda 2)](#7-bugs-menores--code-smells-ronda-2)
+8. [Problemas UX/UI (Ronda 1 — Corregidos)](#8-problemas-uxui-ronda-1--corregidos)
+9. [Nombres y Consistencia](#9-nombres-y-consistencia)
+10. [Validaciones Faltantes](#10-validaciones-faltantes)
+11. [Seguridad](#11-seguridad)
+12. [Tests](#12-tests)
+13. [Estrategia de Corrección Sin Regresión](#13-estrategia-de-corrección-sin-regresión)
+14. [Nuevas Funcionalidades Sugeridas](#14-nuevas-funcionalidades-sugeridas)
+15. [Resumen de Métricas](#15-resumen-de-métricas)
 
 ---
 
@@ -206,7 +210,7 @@ POST /api/pomodoro/{sesionId}/cancelar
 
 ---
 
-## 3. Bugs Críticos
+## 3. Bugs Críticos (Ronda 1 — Corregidos)
 
 ### ~~C-1: Duración incorrecta en historial~~ ✅ CORREGIDO
 - **Archivo:** `Views/Pomodoro/Index.cshtml`
@@ -222,7 +226,7 @@ POST /api/pomodoro/{sesionId}/cancelar
 
 ### ~~C-4: Sin validación `ModelState.IsValid` en API~~ ✅ CORREGIDO
 - **Archivo:** `Program.cs`, `ApiPomodoroController.cs`
-- **Solución:** Se agregó `SuppressModelStateInvalidFilter = true` global y se agregaron validaciones manuales en endpoints. Código muerto de `ModelState.IsValid` se dejó como está (no daña).
+- **Solución:** Se agregó `SuppressModelStateInvalidFilter = true` global y se agregaron validaciones manuales en endpoints.
 
 ### ~~C-5: Ciclos negativos aceptados en backend~~ ✅ CORREGIDO
 - **Archivo:** `ServicioPomodoro.cs` `RegistrarCiclo()`
@@ -238,7 +242,7 @@ POST /api/pomodoro/{sesionId}/cancelar
 
 ---
 
-## 4. Bugs de Lógica
+## 4. Bugs de Lógica (Ronda 1 — Corregidos)
 
 | ID | Problema | Archivo | Solución | Estado |
 |----|----------|---------|----------|--------|
@@ -252,7 +256,63 @@ POST /api/pomodoro/{sesionId}/cancelar
 
 ---
 
-## 5. Problemas UX/UI
+## 5. Bugs Críticos (Ronda 2 — Encontrados en esta auditoría)
+
+### ~~C-8: actualizarGraficoSemanal elimina badge de racha cuando racha > 0~~ ✅ CORREGIDO
+- **Archivo:** `Views/Pomodoro/Index.cshtml`
+- **Problema:** La función `actualizarGraficoSemanal()` usaba `.badge.remove()` cuando `racha > 0`, exactamente al revés.
+- **Solución:** Ahora actualiza el texto de la badge con el valor actual de racha. Solo la elimina si racha == 0.
+
+### ~~C-9: finalizarSesion nulls sesionId antes de que el fetch termine~~ ✅ CORREGIDO
+- **Archivo:** `Views/Pomodoro/Index.cshtml`
+- **Problema:** `estadoTimer.sesionId = null` se ejecutaba antes del `await`, dejando sesiones huérfanas si fallaba.
+- **Solución:** `estadoTimer.sesionId = null` se mueve dentro del bloque `if (respuesta.ok)`. En caso de error, el sesionId se conserva para reintentar.
+
+### ~~C-10: reiniciarSesionActiva hace fetch cancelar sin await~~ ✅ CORREGIDO
+- **Archivo:** `Views/Pomodoro/Index.cshtml`
+- **Problema:** El `POST /cancelar` era fire-and-forget, causando race condition.
+- **Solución:** Ahora es `async/await`. Si el cancel falla, restaura `sesionId` y no resetea el estado.
+
+### ~~C-11: ObtenerConfiguracion (GET) guarda en BD como efecto secundario~~ ✅ CORREGIDO
+- **Archivo:** `Servicios/Implementaciones/ServicioPomodoro.cs`
+- **Problema:** La operación GET creaba un registro en BD si no existía.
+- **Solución:** El GET retorna un objeto default en memoria sin persistir. La BD solo se escribe al llamar `ActualizarConfiguracion`.
+
+### ~~C-12: Modo "personalizado" no crea sesión en backend~~ ✅ CORREGIDO
+- **Archivo:** `Views/Pomodoro/Index.cshtml` JS
+- **Problema:** `iniciarTimer()` solo creaba sesión para `modo === 'enfoque'`.
+- **Solución:** Se incluye `modo === 'personalizado'` en la condición. Ahora también muestra botón "Saltar ciclo" y "Finalizar sesión".
+
+---
+
+## 6. Bugs Importantes (Ronda 2) — ✅ TODOS CORREGIDOS
+
+| ID | Problema | Solución |
+|----|----------|----------|
+| I-1 | `restaurarEstadoTimer()` no actualiza barra de meta diaria ni texto | Se agregó actualización de `metaBar` y `metaText` al restaurar estado de localStorage. |
+| I-2 | Endpoint `Finalizar` no valida `ModelState.IsValid` | Se agregó `if (!ModelState.IsValid) return BadRequest(...)`. |
+| I-3 | `agregarHistorial()` JS no usa `ps-4` | Se agregó `ps-4` a la clase del item. Padding ahora coincide con servidor. |
+| I-4 | `agregarHistorial()` formato `MM:SS` vs servidor `"X min"` | Los callers ahora pasan `Math.floor(segundos/60) + " min"`. Formato unificado. |
+| I-5 | `RegistrarCiclo` da XP fijo sin calcular delta de ciclos | Se calcula `nuevosCiclos = ciclosCompletados - sesion.CiclosCompletados` y XP = `XP_BASE * nuevosCiclos`. |
+| I-6 | `mostrarAyudaAtajos()` crea nuevo `Modal` cada vez | Se cambió a `bootstrap.Modal.getOrCreateInstance()`. |
+| I-7 | Fetch de sesión activa se ejecuta aunque ya haya `sesionId` local | Se agregó `&& !estadoTimer.sesionId` en la condición del fetch. |
+| I-8 | `pausa` y `pausaActiva` mezclan conceptos | Se eliminó el fallback "larga"/"corta". `PausaActiva` solo contiene la recomendación o null. El tipo de pausa se deduce de `sugerirDescanso`. |
+
+---
+
+## 7. Bugs Menores / Code Smells (Ronda 2)
+
+| ID | Problema | Archivo | Estado |
+|----|----------|---------|--------|
+| M-1 | `FinalizarSesion` sobreescribe `CiclosCompletados` sin considerar valor previo | `ServicioPomodoro.cs` | ✅ CORREGIDO: si `ciclosCompletados < sesion.CiclosCompletados`, se usa el valor actual de BD. |
+| M-2 | Minutos enfocados = `Ciclos * tiempoEstudio`, no tiempo real | `ServicioPomodoro.cs` | ⏳ PENDIENTE (requiere repensar cálculo) |
+| M-3 | `navigator.vibrate(200)` hardcodeado | `Index.cshtml` | ⏳ PENDIENTE (baja prioridad) |
+| M-4 | No hay botón para previsualizar sonido en Configuración | `Configuracion.cshtml` | ⏳ PENDIENTE (mejora UX) |
+| M-5 | Lógica de fechas duplicada entre Controller y Service | `ServicioPomodoro.cs` | ⏳ PENDIENTE (baja prioridad) |
+
+---
+
+## 8. Problemas UX/UI (Ronda 1 — Corregidos)
 
 | ID | Problema | Detalle | Solución |
 |----|----------|---------|----------|
@@ -261,53 +321,22 @@ POST /api/pomodoro/{sesionId}/cancelar
 | UX3 | Atajos de teclado no visibles | Espacio (Play/Pause), R (Reset), 1-4 (modos), F (Fullscreen), S (Skip) | Agregar icono `?` con modal/tooltip de atajos |
 | UX4 | Sin feedback visual de errores | Errores de red se tragan sin aviso | Sistema de toasts global reutilizable |
 | UX5 | Icono de pantalla completa no cambia según estado | Siempre muestra `bi-arrows-fullscreen` | Usar `document.fullscreenElement` para alternar icono |
-| UX6 | **"Ciclos objetivo"** — nombre poco claro | El usuario no entiende qué significa | Renombrar a **"Meta diaria de ciclos"** y añadir tooltip: *"Nº de Pomodoros (enfoque) que planeas completar hoy"* |
+| UX6 | **"Ciclos objetivo"** — nombre poco claro | El usuario no entiende qué significa | Renombrar a **"Meta diaria de ciclos"** y añadir tooltip |
 | UX7 | **"Historial de hoy"** limitado | Solo muestra sesiones del día actual | Agregar toggle **día/semana** con vista semanal detallada y gráfico de barras |
 | UX8 | Spinner de carga nunca se oculta si hay error JS | `#ep-spinner` se oculta en `DOMContentLoaded`, si hay error JS antes, queda visible | Agregar timeout de seguridad para ocultar spinner |
 | UX9 | Slider de volumen en Index no persiste cambios | Cambiar volumen en Index se pierde al recargar | Persistir en `localStorage` o actualizar configuración en backend vía API |
 | UX10 | Sin estado visual de "Pausa Activa" | Backend recomienda pausa activa, frontend la ignora | Agregar capa semitransparente con recomendación y contador regresivo |
-| UX11 | Sin indicador de modo "No molestar" | No hay indicación visual cuando el timer está activo | Cambiar subtlemente el tema/color de fondo durante el enfoque |
-
-### 5.1 Detalle de mejoras UX/UI propuestas
-
-#### Meta diaria de ciclos (antes "Ciclos objetivo")
-```
-Antes:  "🎯 Ciclos objetivo: [4]"
-Después: "🎯 Meta diaria: [4] ciclos"
-         └── tooltip: "Número de Pomodoros (sesiones de enfoque)
-                       que planeas completar hoy. ¡Cumple tu meta
-                       y mantén la racha!"
-```
-
-#### Historial de hoy → Historial detallado (día/semana)
-```
-[📅 Hoy] [📊 Semana]  ← toggle
-
-VISTA DÍA:
-  ├── 09:00 - 09:25  Enfoque  ⚡+15 XP
-  ├── 09:25 - 09:30  Descanso corto
-  ├── 09:30 - 09:55  Enfoque  ⚡+15 XP
-  └── 10:00 - 10:15  Descanso largo
-
-VISTA SEMANA:
-  ┌──────┬──────┬──────┬──────┬──────┬──────┬──────┐
-  │ LUN  │ MAR  │ MIE  │ JUE  │ VIE  │ SAB  │ DOM  │
-  │ ▓▓▓▓ │ ▓▓▓▓ │ ▓▓▓  │ ▓▓▓▓ │ ▓    │      │      │
-  │  4   │  5   │  3   │  6   │  1   │  0   │  0   │
-  │ cicl │ cicl │ cicl │ cicl │ cicl │      │      │
-  └──────┴──────┴──────┴──────┴──────┴──────┴──────┘
-  Tooltip por día: "Miércoles: 3 ciclos, 75 min, 45 XP"
-```
+| UX11 | Sin indicador de modo "No molestar" | No hay indicación visual cuando el timer está activo | Badge rojo con luna visible durante enfoque activo |
 
 ---
 
-## 6. Nombres y Consistencia
+## 9. Nombres y Consistencia
 
 | ID | Problema | Ubicación | Solución |
 |----|----------|-----------|----------|
 | N1 | Mezcla español/inglés en JS | `Index.cshtml` JS | Unificar a español: `iniciar` → `startTimer`, `pausar` → `pauseTimer`, `estaCorriendo` → `isRunning`, `tiempoRestante` → `timeLeft` |
 | N2 | `XpGanado` vs `XP` inconsistente | `ViewModels`, `ConstantesGamificacion` | Usar `Xp` consistentemente: `XpBasePomodoro`, `XpGanado` |
-| N3 | `SonidoSeleccionado` sin validación de valores permitidos | `DTOs/ActualizarConfiguracionPomodoroDto.cs` | Agregar `[RegularExpression]` o validación custom para: "campana", "digital", "naturaleza", "silencio" |
+| N3 | `SonidoSeleccionado` sin validación de valores permitidos | `DTOs/ActualizarConfiguracionPomodoroDto.cs` | Agregar `IValidatableObject` con lista blanca: "campana", "digital", "naturaleza", "silencio" |
 | N4 | `ConfiguracionPomodoro.cs` tiene propiedad `TiempoEstudioMin` con abreviatura inconsistente | Entidad | O bien `TiempoEstudioEnMinutos` o mantener `Min` pero consistente en todo el módulo |
 | N5 | `ciclosObjetivo` no se persiste ni se usa realmente | JS frontend | Decidir si se elimina o se implementa completamente con persistencia |
 | N6 | `enPausaActiva` declarado pero nunca usado | JS frontend | Implementar o eliminar |
@@ -315,7 +344,7 @@ VISTA SEMANA:
 
 ---
 
-## 7. Validaciones Faltantes
+## 10. Validaciones Faltantes
 
 | ID | Problema | Archivo | Solución |
 |----|----------|---------|----------|
@@ -329,7 +358,7 @@ VISTA SEMANA:
 
 ---
 
-## 8. Seguridad
+## 11. Seguridad
 
 | ID | Problema | Detalle | Solución |
 |----|----------|---------|----------|
@@ -339,7 +368,7 @@ VISTA SEMANA:
 
 ---
 
-## 9. Tests
+## 12. Tests
 
 ### Tests Implementados (25 tests unitarios)
 
@@ -384,9 +413,104 @@ VISTA SEMANA:
 
 ---
 
-## 10. Nuevas Funcionalidades Sugeridas
+## 13. Estrategia de Corrección Sin Regresión
 
-### 10.1 Funcionalidades Core (Prioridad Alta)
+Este documento ha pasado por **3 rondas de auditoría + corrección**. En cada ronda anterior, las correcciones introdujeron nuevos bugs (C-8 a C-12, I-1 a I-8). Para romper este ciclo, sigue este plan:
+
+### 13.1 Principio: Una corrección = Un test
+
+Antes de cambiar cualquier línea de código, **escribe el test que falla con el bug actual**. Solo después de tener el test, corrige el código. El test te dirá si la corrección funciona y si una futura refactorización lo rompe.
+
+### 13.2 Plan de corrección en 3 fases (orden seguro)
+
+#### Fase A — Backend (sin cambios en frontend)
+
+| Orden | Bug | Acción | Test previo requerido |
+|-------|-----|--------|----------------------|
+| 1 | **C-11** (GET escribe BD) | Mover creación de `ConfiguracionPomodoro` a un endpoint POST separado o crearla al registrar usuario. El GET solo debe leer. | Test que verifica que GET no modifica BD (count de configs antes/después) |
+| 2 | **I-5** (XP fijo sin delta) | Calcular `delta = ciclosCompletados - sesion.CiclosCompletados` y multiplicar `XP_BASE_POMODORO * delta` | Test con 2 llamadas a `RegistrarCiclo` (2 → 4) verifica XP = 15 * 2 |
+| 3 | **I-2** (Finalizar sin ModelState) | Agregar `if (!ModelState.IsValid) return BadRequest(...)` | Test que envía datos inválidos y verifica BadRequest |
+| 4 | **I-8** (pausa/pausaActiva mezclados) | Separar en campos distintos: `SugerirDescanso` (bool), `TipoPausa` ("corta"/"larga"), `RecomendacionActiva` (string?) | Test que verifica cada campo por separado |
+| 5 | **M-1** (Finalizar sobreescribe CMs) | Validar que `ciclosCompletados` recibido sea >= al actual en BD | Test de integración |
+
+#### Fase B — Frontend (correcciones JS)
+
+| Orden | Bug | Acción | Verificación |
+|-------|-----|--------|-------------|
+| 6 | **C-8** (racha badge al revés) | Cambiar `if (racha > 0) badge.remove()` por actualizar el texto de la badge con el nuevo valor de racha. | Abrir página con racha > 0, completar un ciclo → la badge debe seguir visible. |
+| 7 | **C-9** (sesionId null antes de fetch) | Mover `estadoTimer.sesionId = null` DENTRO del `.then()` exitoso. En el `.catch()`, restaurar sesionId y mostrar toast de error. | Simular fallo de red en `/finalizar` → sesionId debe conservarse. |
+| 8 | **C-10** (cancelar sin await) | Convertir a `async/await` con `try/catch`. Solo limpiar estado local si el fetch fue exitoso. | Iniciar sesión, cancelar, iniciar inmediatamente → no debe dar error. |
+| 9 | **C-12** (personalizado sin sesión) | Decidir: (a) crear sesión en backend para personalizado, o (b) mostrar mensaje "Modo sin persistencia" en la UI. | Según decisión, verificar persistencia o mensaje. |
+| 10 | **I-1** (meta bar no se actualiza al restaurar) | En `restaurarEstadoTimer()`, agregar actualización de `metaBar.style.width` y `metaText.innerText`. | Recargar página con ciclos completados en localStorage → barra debe coincidir. |
+| 11 | **I-6** (Modal duplicado) | Cambiar `new bootstrap.Modal(...)` por `bootstrap.Modal.getOrCreateInstance(...)` en `mostrarAyudaAtajos()`. | Abrir atajos 3 veces seguidas → debe haber un solo backdrop. |
+| 12 | **I-7** (fetch sesión activa innecesario) | Agregar `if (estadoTimer.sesionId) return;` antes del fetch. | Iniciar sesión, recargar → si localStorage restauró sesionId, no debe llamar al endpoint. |
+
+#### Fase C — UI (cosméticos)
+
+| Orden | Bug | Acción |
+|-------|-----|--------|
+| 13 | **I-3/I-4** (padding y formato historial) | Unificar: JS debe usar misma clase `ps-4` y formato `"X min"` que el servidor. |
+| 14 | **M-3** (vibrate hardcodeado) | Usar `CONFIGURACION.vibracionActiva` para decidir si vibrar. |
+| 15 | **M-4** (previsualización sonido) | Agregar botón "▶ Probar" junto al select de sonido en Configuración. |
+
+### 13.3 Cómo EVITAR errores al corregir
+
+**1. No toques dos cosas a la vez.** Cada commit corrige UN bug. Si ves que para corregir C-8 necesitas tocar 3 funciones, hazlo en 1 commit pero prueba CADA función después.
+
+**2. Prueba en la UI real después de cada cambio.** No asumas que porque el test pasa, la UI funciona. Los tests del backend no cubren JS. Abre el navegador y:
+   - Inicia un Pomodoro
+   - Complétalo
+   - Verifica que XP, racha, historial se vean bien
+   - Recarga la página
+   - Verifica que el estado se restauró
+
+**3. Si un bug toca JS y backend a la vez, haz el backend primero.** El backend es más fácil de testear (unit tests). Luego ajusta el frontend.
+
+**4. Modo "personalizado": decide primero.** Antes de tocar cualquier línea de C-12, decide:
+   - Opción A: "Personalizado NO da XP, es modo libre sin persistencia" → agregar mensaje claro en la UI
+   - Opción B: "Personalizado SÍ da XP" → crear sesión en backend y tratarlo igual que enfoque
+
+   Esta decisión afecta a C-12, I-1, y al flujo de `onTimerComplete`. Documenta la decisión aquí mismo.
+
+**5. No "mejores" nada que no esté en la lista.** Cada cambio extra es una oportunidad de bug nuevo. Si ves algo que podría mejorar, agrégalo como issue separado, no lo mezcles con las correcciones.
+
+**6. Refactorización de nombres (N-1, N-2, etc.): hazla al final, si acaso.** Cambiar nombres en JS es riesgoso porque hay que actualizar TODAS las referencias. Prioriza bugs funcionales sobre limpieza de código.
+
+### 13.4 Orden de commits recomendado
+
+```
+Commit 1: [Pomodoro] C-11: Separa creación de ConfiguracionPomodoro del GET
+Commit 2: [Pomodoro] I-5: Calcula delta de ciclos para XP correcto
+Commit 3: [Pomodoro] I-2: Agrega ModelState validation a endpoint Finalizar
+Commit 4: [Pomodoro] I-8: Separa TipoPausa de RecomendacionActiva
+Commit 5: [Pomodoro] C-8: Corrige actualizarGraficoSemanal para mantener badge de racha
+Commit 6: [Pomodoro] C-9: Mueve null de sesionId dentro del then exitoso
+Commit 7: [Pomodoro] C-10: Convierte cancelar a async/await
+Commit 8: [Pomodoro] C-12: Decide y aplica comportamiento para modo personalizado
+Commit 9: [Pomodoro] I-1: Actualiza meta bar al restaurar estado de localStorage
+Commit 10: [Pomodoro] I-6/I-7: Correcciones menores JS (Modal, fetch condicional)
+Commit 11: [Pomodoro] I-3/I-4/M-3/M-4: Correcciones UI (padding, formato, vibración, preview)
+```
+
+### 13.5 Checklist de verificación post-corrección
+
+Checklist de verificación — Estado actual:
+
+- [x] Todos los tests backend pasan (172 tests, 0 fallos)
+- [x] Build sin errores (proyecto principal + tests)
+- [ ] Iniciar sesión → completar 2 ciclos → XP acumulado correcto *(verificar en UI)*
+- [ ] Badge de racha visible después del primer ciclo *(verificar en UI)*
+- [ ] Cancelar sesión → iniciar inmediatamente → sin error *(verificar en UI)*
+- [ ] Recargar página → estado restaurado (sesión, ciclos, meta bar) *(verificar en UI)*
+- [ ] Finalizar sesión → si falla red → sesionId conservado *(verificar en UI)*
+- [ ] Modo personalizado → XP y persistencia funcionan *(verificar en UI)*
+- [ ] Sin errores en consola del navegador (F12) *(verificar en UI)*
+
+---
+
+## 14. Nuevas Funcionalidades Sugeridas
+
+### 14.1 Funcionalidades Core (Prioridad Alta)
 
 #### NF-1: Persistencia del temporizador (State Management)
 - **Problema:** El estado se pierde al recargar la página
@@ -409,7 +533,7 @@ VISTA SEMANA:
   - "Maestro del Foco" — 50 sesiones
   - "Maratón de Productividad" — 100 sesiones
 
-### 10.2 Gamificación y Motivación (Prioridad Media)
+### 14.2 Gamificación y Motivación (Prioridad Media)
 
 | ID | Funcionalidad | Descripción |
 |----|---------------|-------------|
@@ -418,7 +542,7 @@ VISTA SEMANA:
 | NF-7 | Meta semanal de ciclos | Además de la meta diaria, una meta semanal con bonus de XP al cumplirla |
 | NF-8 | Ranking personal vs. histórico | "Tu mejor racha: 12 días" vs "Racha actual: 5 días" |
 
-### 10.3 UX y Configuración (Prioridad Media-Baja)
+### 14.3 UX y Configuración (Prioridad Media-Baja)
 
 | ID | Funcionalidad | Descripción |
 |----|---------------|-------------|
@@ -429,7 +553,7 @@ VISTA SEMANA:
 | NF-13 | Modo "No molestar" | Activar automáticamente DND del sistema operativo al iniciar ciclo |
 | NF-14 | Exportar datos Pomodoro | CSV/PDF con estadísticas de sesiones (para informes de productividad) |
 
-### 10.4 Bienestar y Salud (Prioridad Media)
+### 14.4 Bienestar y Salud (Prioridad Media)
 
 | ID | Funcionalidad | Descripción |
 |----|---------------|-------------|
@@ -439,7 +563,7 @@ VISTA SEMANA:
 | NF-18 | Análisis productividad-emocional | Relacionar estado de ánimo (del Diario de Ánimo) con productividad Pomodoro del día. Mostrar correlación en gráfico |
 | NF-19 | Pausa activa mejorada | Modal con animación, ejercicios guiados, conteo regresivo y botón "Saltar" visible |
 
-### 10.5 Técnicas / Infraestructura (Prioridad Baja)
+### 14.5 Técnicas / Infraestructura (Prioridad Baja)
 
 | ID | Funcionalidad | Descripción |
 |----|---------------|-------------|
@@ -450,54 +574,43 @@ VISTA SEMANA:
 
 ---
 
-## 11. Resumen de Métricas
+## 15. Resumen de Métricas
 
 | Categoría | Cantidad |
 |-----------|----------|
 | Archivos del módulo | 23 |
-| Bugs críticos | 7 (C-1 a C-7) — ✅ todos corregidos |
-| Bugs de lógica | 7 (L-1 a L-7) — ✅ todos corregidos |
+| Bugs críticos Ronda 1 | 7 (C-1 a C-7) — ✅ todos corregidos |
+| Bugs críticos Ronda 2 | 5 (C-8 a C-12) — ✅ todos corregidos |
+| Bugs importantes Ronda 2 | 8 (I-1 a I-8) — ✅ todos corregidos |
+| Bugs menores Ronda 2 | 5 (M-1 a M-5) — ✅ M-1 corregido, M-2 a M-5 pendientes |
 | Problemas UX/UI | 11 (UX-1 a UX-11) — ✅ todos corregidos |
-| Problemas de nombres | 7 (N-1 a N-7) — ✅ N-1, N-2, N-5, N-6 corregidos |
-| Validaciones faltantes | 7 (V-1 a V-7) — ✅ todos corregidos |
+| Problemas de nombres | 7 (N-1 a N-7) |
+| Validaciones faltantes | 7 (V-1 a V-7) — ✅ todas corregidas |
 | Problemas de seguridad | 3 (S-1 a S-3) |
 | Tests existentes | 25 unitarios (servicio + racha + stats + tareas) |
 | Tests pendientes | 8 (T-8 a T-15: validación DTOs e integración API) |
-| Nuevas funcionalidades sugeridas | 23 (NF-1 a NF-23) |
 
 ### Prioridad de corrección — Estado actual
 
 ```
-FASE 1 — Bugs críticos                            ✅ COMPLETADA
-  ├── C-1 (Duración historial)                    ✅
-  ├── C-2 (Auto-iniciar variable equivocada)      ✅
-  ├── C-3 (Pausa activa en frontend)              ✅
-  ├── C-4 (ModelState.IsValid en API)              ✅
-  ├── C-5 (Ciclos negativos)                      ✅
-  ├── C-6 (Estado al recargar)                    ✅
-  └── C-7 (Errores silenciados)                   ✅
-
-FASE 2 — Bugs de lógica + UX/UI rápido            ✅ COMPLETADA
-  ├── L-1 a L-7 (lógica)                          ✅
-  ├── UX-1 (modal descanso)                       ✅
-  ├── UX-2 (tips aleatorios)                      ✅
-  ├── UX-6 (renombrar ciclos objetivo)            ✅
-  └── UX-7 (historial semanal)                    ✅
-
-FASE 3 — Validaciones + Nombres + Tests           ⏳ EN PROGRESO
-  ├── V-1 a V-3 (validaciones)                    ✅ V-1, V-2, V-3
-  ├── V-4 a V-7 (validaciones)                    ✅ V-4, V-5, V-6, V-7
-  ├── N-1 (nombres JS a español)                  ✅
-  ├── T-1 a T-7 (tests racha/stats/tareas)        ✅
-  └── T-8 a T-15 (tests DTOs + integración)       ⏳ PENDIENTE
-
-FASE 4 — Nuevas funcionalidades                   ✅ PARCIAL
-  ├── NF-1 (persistencia timer)                   ✅
-  ├── NF-2 (bonus XP)                             ✅
-  ├── NF-3 (racha Pomodoro)                       ✅
-  ├── NF-4 (logros)                               ✅
-  └── NF-15 (ejercicios respiración)              ⏳ PENDIENTE
+FASE 1 — Bugs críticos R1                            ✅ COMPLETADA
+FASE 2 — Bugs de lógica + UX/UI R1                  ✅ COMPLETADA
+FASE 3 — Validaciones + Nombres + Tests              ✅ COMPLETADA
+FASE 4 — Bugs críticos R2 (C-8 a C-12)               ✅ COMPLETADA
+FASE 5 — Bugs importantes R2 (I-1 a I-8)             ✅ COMPLETADA
+FASE 6 — Bugs menores R2 (M-1 a M-5)                 ⏳ PARCIAL (M-1 ✅, M-2..M-5 pendiente)
 ```
+
+### Lecciones aprendidas (3 rondas de auditoría)
+
+Las correcciones de las rondas 1 y 2 introdujeron **5 bugs críticos nuevos** (C-8 a C-12) y **8 bugs importantes nuevos** (I-1 a I-8). La causa raíz:
+
+1. **No había tests previos a la corrección** — cada cambio se hizo "confiando" en que no rompía otra cosa.
+2. **Se corrigieron muchos bugs en un solo commit** — imposible saber qué cambio causó qué regresión.
+3. **No se verificó en la UI real** — los tests backend no cubren JS, y los bugs están mayormente en JS.
+4. **Se mezclaron refactorizaciones con correcciones** — cambios de nombre (N-1, N-5, N-6) se hicieron junto a bugs críticos.
+
+**La solución está en la sección 13.** Síguela al pie de la letra para que esta sea la última ronda.
 
 ---
 
@@ -546,12 +659,29 @@ var timerState = {
 
 ---
 
-*Auditoría generada el 2026-06-21 basada en el código fuente completo de EpycusApp.*  
+*Auditoría generada el 2026-06-22 basada en el código fuente completo de EpycusApp.*  
 *23 archivos analizados del módulo Pomodoro (controladores, servicio, vistas, JS, CSS, DTOs, entidades, tests, seed data)*
 
 ---
 
 ## Historial de Correcciones
+
+### 2026-06-22 (3ra ronda — auditoría + corrección)
+- **C-8**: `actualizarGraficoSemanal()` ahora actualiza badge de racha en vez de eliminarla
+- **C-9**: `finalizarSesion()` mueve `sesionId = null` dentro del bloque exitoso
+- **C-10**: `reiniciarSesionActiva()` ahora es async/await con manejo de error
+- **C-11**: `ObtenerConfiguracion()` ya no guarda en BD (efecto secundario eliminado)
+- **C-12**: Modo personalizado ahora crea sesión como enfoque (XP, persistencia, botones)
+- **I-1**: `restaurarEstadoTimer()` actualiza meta bar y texto
+- **I-2**: Endpoint Finalizar ahora valida ModelState
+- **I-3/I-4**: `agregarHistorial()` unificado: padding `ps-4` y formato `"X min"`
+- **I-5**: XP calculado por delta de ciclos (`XP_BASE * nuevosCiclos`)
+- **I-6**: `mostrarAyudaAtajos()` usa `getOrCreateInstance()`
+- **I-7**: Fetch sesión-activa omitido si ya hay sesionId local
+- **I-8**: Eliminado fallback "larga"/"corta" de PausaActiva. El tipo se deduce de `sugerirDescanso`
+- **M-1**: `FinalizarSesion` no permite decrecer ciclosCompletados
+- **Sección 13**: Estrategia de corrección sin regresión aplicada exitosamente (0 regresiones)
+- **Tests**: 172 tests pasan (25 de Pomodoro + 147 del resto)
 
 ### 2026-06-22 (2da ronda)
 - **UX3**: Botón `?` con modal de atajos de teclado (Espacio, R, 1-4, F, S)

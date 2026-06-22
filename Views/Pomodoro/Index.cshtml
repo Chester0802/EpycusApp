@@ -507,11 +507,22 @@
         function mostrarExito(mensaje) { mostrarToast(mensaje, 'success'); }
         function mostrarInfo(mensaje) { mostrarToast(mensaje, 'info'); }
 
-        function reiniciarSesionActiva() {
+        async function reiniciarSesionActiva() {
             if (estadoTimer.sesionId) {
                 var idSesion = estadoTimer.sesionId;
                 estadoTimer.sesionId = null;
-                fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' }).catch(function() { mostrarError("Error al cancelar la sesión anterior."); });
+                try {
+                    var resp = await fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' });
+                    if (!resp.ok) {
+                        estadoTimer.sesionId = idSesion;
+                        mostrarError("No se pudo cancelar la sesión anterior.");
+                        return;
+                    }
+                } catch(e) {
+                    estadoTimer.sesionId = idSesion;
+                    mostrarError("Error de conexión al cancelar la sesión.");
+                    return;
+                }
             }
             var modal = bootstrap.Modal.getInstance(document.getElementById('modalSesionActiva'));
             if (modal) modal.hide();
@@ -588,6 +599,11 @@
                 document.getElementById('statMinutos').innerText = estadoTimer.minutosTotales;
                 document.getElementById('statXpGanado').innerText = estadoTimer.xpTotal;
                 displayCiclos.innerText = estadoTimer.ciclosObjetivo;
+                if (CONFIGURACION.metaDiaria > 0) {
+                    var pctRestore = Math.min(100, (estadoTimer.ciclosCompletados / CONFIGURACION.metaDiaria) * 100);
+                    document.getElementById('metaBar').style.width = pctRestore + '%';
+                    document.getElementById('metaText').innerText = estadoTimer.ciclosCompletados + ' / ' + CONFIGURACION.metaDiaria;
+                }
                 if (estado.modo) establecerModo(estado.modo);
 
                 localStorage.removeItem('epycus_pomodoro');
@@ -632,14 +648,14 @@
                 fetch('/api/pomodoro/sesion-activa')
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
-                        if (data && data.datos && data.datos.activa) {
+                        if (data && data.datos && data.datos.activa && !estadoTimer.sesionId) {
                             estadoTimer.sesionId = data.datos.sesionId;
                             estadoTimer.ciclosCompletados = data.datos.ciclosCompletados || 0;
                             document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
                             document.getElementById('modalSesionInfo').innerText = estadoTimer.ciclosCompletados > 0
                                 ? estadoTimer.ciclosCompletados + ' ciclo(s) completado(s) en la sesión anterior.'
                                 : 'Sesión iniciada pero sin ciclos completados aún.';
-                            var modalActiva = new bootstrap.Modal(document.getElementById('modalSesionActiva'));
+                            var modalActiva = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalSesionActiva'));
                             modalActiva.show();
                         }
                     })
@@ -668,8 +684,8 @@
             estadoTimer.modo = modo;
             estadoTimer.tiempoRestante = CONFIGURACION[modo] || CONFIGURACION.enfoque;
             estadoTimer.tiempoTotal = CONFIGURACION[modo] || CONFIGURACION.enfoque;
-            btnSaltar.style.display = modo === 'enfoque' ? 'inline-flex' : 'none';
-            document.getElementById('btnFinalizar').style.display = (modo === 'enfoque' && estadoTimer.sesionId) ? 'inline-flex' : 'none';
+            btnSaltar.style.display = (modo === 'enfoque' || modo === 'personalizado') ? 'inline-flex' : 'none';
+            document.getElementById('btnFinalizar').style.display = ((modo === 'enfoque' || modo === 'personalizado') && estadoTimer.sesionId) ? 'inline-flex' : 'none';
             actualizarUI();
 
             document.querySelectorAll('.ep-pomodoro-tab').forEach(tab => {
@@ -750,7 +766,7 @@
                 if (ctx.state === 'suspended') { await ctx.resume(); }
             } catch(e) {}
 
-            if (estadoTimer.modo === 'enfoque' && !estadoTimer.sesionId) {
+            if ((estadoTimer.modo === 'enfoque' || estadoTimer.modo === 'personalizado') && !estadoTimer.sesionId) {
                 let parametrosBody = {};
                 if (estadoTimer.tareaSeleccionadaId) {
                     if (estadoTimer.tareaSeleccionadaTipo === 'Habito') parametrosBody.habitoId = estadoTimer.tareaSeleccionadaId;
@@ -838,7 +854,6 @@
         async function finalizarSesion() {
             if (!estadoTimer.sesionId) return;
             var idSesion = estadoTimer.sesionId;
-            estadoTimer.sesionId = null;
             ocultarBotonFinalizar();
             if (estadoTimer.estaCorriendo) pausarTimer();
             try {
@@ -848,21 +863,22 @@
                     body: JSON.stringify({ ciclosCompletados: estadoTimer.ciclosCompletados })
                 });
                 if (respuesta.ok) {
+                    estadoTimer.sesionId = null;
                     const data = await respuesta.json();
                     estadoTimer.xpTotal = data.datos.xpTotal;
                     document.getElementById('statXpGanado').innerText = estadoTimer.xpTotal;
                     notificar('Sesión finalizada', 'Has ganado ' + data.datos.xpTotal + ' XP (incluyendo ' + data.datos.xpBonus + ' XP bonus).');
                     mostrarExito('¡Sesión finalizada! ' + data.datos.xpTotal + ' XP ganado (+' + data.datos.xpBonus + ' bonus).');
                     actualizarGraficoSemanal();
+                    establecerModo('corto');
                 } else {
                     mostrarError("Error al finalizar la sesión.");
                 }
             } catch(e) { mostrarError("Error de conexión al finalizar la sesión."); }
-            establecerModo('corto');
         }
 
         function mostrarAyudaAtajos() {
-            var modal = new bootstrap.Modal(document.getElementById('modalAtajos'));
+            var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAtajos'));
             modal.show();
         }
 
@@ -915,7 +931,7 @@
                     }
                 }
 
-                agregarHistorial("Enfoque", formatearTiempo(estadoTimer.tiempoTotal), true);
+                agregarHistorial("Enfoque", Math.floor(estadoTimer.tiempoTotal / 60) + " min", true);
 
                 var cicloValido = true;
 
@@ -934,7 +950,7 @@
 
                             if (data.datos.sugerirDescanso) {
                                 notificar('Descanso largo', 'Es momento de un descanso largo. ¡Recupérate!');
-                                if (data.datos.pausaActiva && data.datos.pausaActiva !== 'corta' && data.datos.pausaActiva !== 'larga') {
+                                if (data.datos.pausaActiva) {
                                     document.getElementById('pausaActivaContent').innerHTML = '<i class="bi bi-info-circle me-2"></i>' + data.datos.pausaActiva;
                                     document.getElementById('pausaActivaContent').style.display = 'block';
                                 } else {
@@ -970,7 +986,7 @@
                                 return;
                             }
 
-                            if (data.datos.pausaActiva && data.datos.pausaActiva !== 'corta' && data.datos.pausaActiva !== 'larga') {
+                            if (data.datos.pausaActiva) {
                                 mostrarInfo(data.datos.pausaActiva);
                             }
                         } else {
@@ -1032,7 +1048,7 @@
                 }
 
             } else {
-                agregarHistorial(estadoTimer.modo === 'corto' ? 'Descanso corto' : 'Descanso largo', formatearTiempo(estadoTimer.tiempoTotal), false);
+                agregarHistorial(estadoTimer.modo === 'corto' ? 'Descanso corto' : 'Descanso largo', Math.floor(estadoTimer.tiempoTotal / 60) + " min", false);
                 establecerModo('enfoque');
                 if (CONFIGURACION.autoIniciarEnfoque) {
                     setTimeout(function() { alternarTimer(); }, 500);
@@ -1044,9 +1060,15 @@
             fetch('/api/pomodoro/racha')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    if (data && data.datos && data.datos.racha > 0) {
+                    if (data && data.datos) {
                         var badge = document.querySelector('.badge.bg-warning');
-                        if (badge) badge.remove();
+                        if (data.datos.racha > 0) {
+                            if (badge) {
+                                badge.innerHTML = '🔥 ' + data.datos.racha + ' día(s)';
+                            }
+                        } else {
+                            if (badge) badge.remove();
+                        }
                     }
                 })
                 .catch(function() {});
@@ -1083,7 +1105,7 @@
             const badgeText = esEnfoque ? "Completado" : "Descanso";
 
             const item = document.createElement('div');
-            item.className = "position-relative mb-3";
+            item.className = "position-relative mb-3 ps-4";
 
             const icon = document.createElement('i');
             icon.className = `bi ${iconClass} position-absolute`;
@@ -1144,7 +1166,7 @@
                     break;
                 case 's':
                 case 'S':
-                    if (estadoTimer.modo === 'enfoque') saltarCiclo();
+                    if (estadoTimer.modo === 'enfoque' || estadoTimer.modo === 'personalizado') saltarCiclo();
                     break;
             }
         });
