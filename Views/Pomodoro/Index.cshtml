@@ -596,8 +596,11 @@
                 var estado = JSON.parse(saved);
                 if (!estado || !estado.modo) return;
 
+                var modoValido = CONFIGURACION[estado.modo] != null;
+                if (!modoValido) return;
+
                 estadoTimer.modo = estado.modo;
-                estadoTimer.tiempoTotal = estado.tiempoTotal || CONFIGURACION[estado.modo] || CONFIGURACION.enfoque;
+                estadoTimer.tiempoTotal = CONFIGURACION[estado.modo];
                 estadoTimer.sesionId = estado.sesionId || null;
                 estadoTimer.tareaSeleccionadaId = estado.tareaSeleccionadaId || null;
                 estadoTimer.tareaSeleccionadaTipo = estado.tareaSeleccionadaTipo || null;
@@ -611,13 +614,14 @@
 
                 if (estado.estaCorriendo && estado.finEn) {
                     var remaining = Math.max(0, Math.floor((estado.finEn - Date.now()) / 1000));
-                    estadoTimer.tiempoRestante = remaining;
-                    estadoTimer.tiempoTotal = estado.tiempoTotal || estadoTimer.tiempoRestante;
+                    estadoTimer.tiempoRestante = Math.min(remaining, estadoTimer.tiempoTotal);
                     if (remaining > 0) {
                         setTimeout(function() { alternarTimer(); }, 300);
                     }
                 } else {
-                    estadoTimer.tiempoRestante = estado.tiempoRestante || estadoTimer.tiempoTotal;
+                    estadoTimer.tiempoRestante = estado.tiempoRestante != null
+                        ? Math.min(estado.tiempoRestante, estadoTimer.tiempoTotal)
+                        : estadoTimer.tiempoTotal;
                 }
 
                 document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
@@ -633,7 +637,7 @@
                         metaTextEl.innerText = estadoTimer.ciclosCompletados + ' / ' + CONFIGURACION.metaDiaria;
                     }
                 }
-                if (estado.modo) establecerModo(estado.modo);
+                establecerModo(estado.modo);
 
                 localStorage.removeItem('epycus_pomodoro');
             } catch(e) {}
