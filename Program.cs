@@ -183,6 +183,13 @@ public partial class Program
                 opt.QueueLimit = 0;
             });
 
+            options.AddFixedWindowLimiter("Pomodoro", opt =>
+            {
+                opt.PermitLimit = 60;
+                opt.Window = TimeSpan.FromMinutes(1);
+                opt.QueueLimit = 5;
+            });
+
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     partitionKey: context.User.Identity?.IsAuthenticated == true

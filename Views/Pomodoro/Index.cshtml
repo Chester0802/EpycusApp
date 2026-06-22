@@ -813,7 +813,7 @@
             actualizarIndicadorDND();
         }
 
-        function detenerTimer() {
+        async function detenerTimer() {
             estadoTimer.estaCorriendo = false;
             clearInterval(estadoTimer.idIntervalo);
             detenerTicTac();
@@ -825,7 +825,16 @@
                 var idSesion = estadoTimer.sesionId;
                 estadoTimer.sesionId = null;
                 ocultarBotonFinalizar();
-                fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' }).catch(function() { mostrarError("Error al cancelar la sesión."); });
+                try {
+                    const respuesta = await fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' });
+                    if (!respuesta.ok) {
+                        estadoTimer.sesionId = idSesion;
+                        mostrarError("Error al cancelar la sesión.");
+                    }
+                } catch(e) {
+                    estadoTimer.sesionId = idSesion;
+                    mostrarError("Error de conexión al cancelar la sesión.");
+                }
             }
         }
 
@@ -834,14 +843,23 @@
             establecerModo(estadoTimer.modo);
         }
 
-        function saltarCiclo() {
+        async function saltarCiclo() {
             if (!confirm("¿Saltar este ciclo? No se otorgará XP.")) return;
             estadoTimer.tiempoRestante = 0;
             pausarTimer();
             if (estadoTimer.sesionId) {
                 var idSesion = estadoTimer.sesionId;
                 estadoTimer.sesionId = null;
-                fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' }).catch(function() { mostrarError("Error al cancelar el ciclo."); });
+                try {
+                    const respuesta = await fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' });
+                    if (!respuesta.ok) {
+                        estadoTimer.sesionId = idSesion;
+                        mostrarError("Error al cancelar el ciclo.");
+                    }
+                } catch(e) {
+                    estadoTimer.sesionId = idSesion;
+                    mostrarError("Error de conexión al cancelar el ciclo.");
+                }
             }
             ocultarBotonFinalizar();
             establecerModo('corto');
@@ -862,15 +880,14 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ciclosCompletados: estadoTimer.ciclosCompletados })
                 });
-                if (respuesta.ok) {
-                    estadoTimer.sesionId = null;
-                    const data = await respuesta.json();
-                    estadoTimer.xpTotal = data.datos.xpTotal;
-                    document.getElementById('statXpGanado').innerText = estadoTimer.xpTotal;
-                    notificar('Sesión finalizada', 'Has ganado ' + data.datos.xpTotal + ' XP (incluyendo ' + data.datos.xpBonus + ' XP bonus).');
-                    mostrarExito('¡Sesión finalizada! ' + data.datos.xpTotal + ' XP ganado (+' + data.datos.xpBonus + ' bonus).');
-                    actualizarGraficoSemanal();
-                    establecerModo('corto');
+                        if (respuesta.ok) {
+                                    estadoTimer.sesionId = null;
+                                    const data = await respuesta.json();
+                                    estadoTimer.xpTotal = data.datos.xpTotal;
+                                    document.getElementById('statXpGanado').innerText = estadoTimer.xpTotal;
+                                    notificar('Sesión finalizada', 'Has ganado ' + data.datos.xpTotal + ' XP (incluyendo ' + data.datos.xpBonus + ' XP bonus).');
+                                    mostrarExito('¡Sesión finalizada! ' + data.datos.xpTotal + ' XP ganado (+' + data.datos.xpBonus + ' bonus).');
+                                    establecerModo('corto');
                 } else {
                     mostrarError("Error al finalizar la sesión.");
                 }
@@ -1008,6 +1025,13 @@
                             document.getElementById('metaBar').style.width = pctRollback + '%';
                             document.getElementById('metaText').innerText = prevCiclos + ' / ' + CONFIGURACION.metaDiaria;
                         }
+                        var histList = document.getElementById('historialList');
+                        if (histList.firstChild && histList.firstChild.classList.contains('position-relative')) {
+                            histList.removeChild(histList.firstChild);
+                            if (histList.children.length === 0) {
+                                histList.innerHTML = '<div class="text-secondary small fst-italic no-sesiones-msg">Aún no hay sesiones registradas hoy.</div>';
+                            }
+                        }
                         return;
                     }
                 }
@@ -1034,7 +1058,7 @@
                     }
                     if (CONFIGURACION.metaDiaria > 0 && estadoTimer.ciclosCompletados >= CONFIGURACION.metaDiaria) {
                         document.getElementById('modalMetaNumero').innerText = CONFIGURACION.metaDiaria;
-                        var modalMeta = new bootstrap.Modal(document.getElementById('modalMetaCumplida'));
+                        var modalMeta = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalMetaCumplida'));
                         modalMeta.show();
                         mostrarExito('¡Meta diaria cumplida! Sesión finalizada con XP bonus.');
                     } else {
@@ -1061,13 +1085,24 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data && data.datos) {
-                        var badge = document.querySelector('.badge.bg-warning');
+                        var badges = document.querySelectorAll('.badge.bg-warning');
                         if (data.datos.racha > 0) {
-                            if (badge) {
-                                badge.innerHTML = '🔥 ' + data.datos.racha + ' día(s)';
+                            if (badges.length > 0) {
+                                badges.forEach(function(b) { b.innerHTML = '🔥 ' + data.datos.racha + ' día(s)'; });
+                            } else {
+                                var headerActions = document.querySelector('.mb-4.d-flex.justify-content-between.align-items-center > .d-flex.gap-2');
+                                if (headerActions) {
+                                    var newBadge = document.createElement('span');
+                                    newBadge.className = 'badge bg-warning bg-opacity-25 text-warning border border-warning px-3 py-2';
+                                    newBadge.setAttribute('title', 'Racha actual');
+                                    newBadge.innerHTML = '🔥 ' + data.datos.racha + ' día(s)';
+                                    headerActions.insertBefore(newBadge, headerActions.firstChild);
+                                }
                             }
                         } else {
-                            if (badge) badge.remove();
+                            if (badges.length > 0) {
+                                badges.forEach(function(b) { b.remove(); });
+                            }
                         }
                     }
                 })

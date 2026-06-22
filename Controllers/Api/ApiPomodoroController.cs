@@ -11,7 +11,7 @@ namespace EpycusApp.Controllers.Api
     [Authorize]
     [ApiController]
     [Route("api/pomodoro")]
-    [EnableRateLimiting("Mobile")]
+    [EnableRateLimiting("Pomodoro")]
     public class ApiPomodoroController : BaseApiController
     {
         private readonly IServicioPomodoro _servicioPomodoro;

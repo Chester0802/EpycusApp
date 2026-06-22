@@ -50,12 +50,15 @@
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <label class="form-label">Sonido de notificación</label>
-            <select asp-for="SonidoSeleccionado" class="form-select ep-input">
-                <option value="campana">🔔 Campana suave</option>
-                <option value="digital">🔊 Digital</option>
-                <option value="naturaleza">🌿 Naturaleza</option>
-                <option value="silencio">🔇 Silencio</option>
-            </select>
+            <div class="d-flex gap-2">
+                <select asp-for="SonidoSeleccionado" class="form-select ep-input flex-grow-1">
+                    <option value="campana">🔔 Campana suave</option>
+                    <option value="digital">🔊 Digital</option>
+                    <option value="naturaleza">🌿 Naturaleza</option>
+                    <option value="silencio">🔇 Silencio</option>
+                </select>
+                <button type="button" class="btn btn-sm btn-ep-outline" onclick="previsualizarSonido()" title="Probar sonido">▶</button>
+            </div>
         </div>
         <div class="col-md-4">
             <label class="form-label">Volumen</label>
@@ -128,3 +131,44 @@
         <a asp-action="Index" class="btn btn-ep-outline">Volver</a>
     </div>
 </form>
+
+@section Scripts {
+    <script>
+        function previsualizarSonido() {
+            var sonido = document.getElementById('SonidoSeleccionado').value;
+            if (sonido === 'silencio') return;
+            try {
+                var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                var gain = ctx.createGain();
+                gain.connect(ctx.destination);
+                gain.gain.value = 0.3;
+                if (sonido === 'campana') {
+                    var osc = ctx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.value = 523.25;
+                    osc.connect(gain);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                } else if (sonido === 'digital') {
+                    var osc = ctx.createOscillator();
+                    osc.type = 'square';
+                    osc.frequency.value = 880;
+                    osc.connect(gain);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.15);
+                } else if (sonido === 'naturaleza') {
+                    var bufferSize = ctx.sampleRate * 0.5;
+                    var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    var data = buffer.getChannelData(0);
+                    for (var i = 0; i < bufferSize; i++) {
+                        data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+                    }
+                    var noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    noise.connect(gain);
+                    noise.start();
+                }
+            } catch(e) {}
+        }
+    </script>
+}
