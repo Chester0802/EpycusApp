@@ -17,9 +17,10 @@ namespace EpycusApp.Servicios.Interfaces
         Task<SesionPomodoro?> ObtenerSesion(int sesionId);
         Task<List<SesionPomodoro>> ObtenerSesionesHoyAsync(int usuarioId);
         Task<List<TareaPomodoro>> ObtenerTareasEnfoqueAsync(int usuarioId);
-        Task<List<SesionPomodoro>> ObtenerHistorialAsync(int usuarioId, DateTime desde, DateTime hasta, int pagina = 1, int tamano = 20);
+        Task<List<SesionPomodoro>> ObtenerHistorialAsync(int usuarioId, DateTime desde, DateTime hasta, int pagina = 1, int tamano = 20, bool? completada = null, bool? conXp = null);
         Task<int> ObtenerRachaActualAsync(int usuarioId);
         Task<EstadisticasPomodoroPeriodo> ObtenerEstadisticasPeriodoAsync(int usuarioId, DateTime desde, DateTime hasta);
         Task<List<EstadisticasPomodoroPeriodo>> ObtenerEstadisticasSemanalesAsync(int usuarioId);
+        Task<PomodoroEstadisticasAvanzadasResponse> ObtenerEstadisticasAvanzadasAsync(int usuarioId, DateTime desde, DateTime hasta);
     }
 }

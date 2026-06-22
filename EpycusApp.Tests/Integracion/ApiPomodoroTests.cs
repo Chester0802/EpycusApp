@@ -447,4 +447,59 @@ public class ApiPomodoroTests : IDisposable
         respuesta.Datos.Should().NotBeNull();
         respuesta.Datos!.Consejo.Should().Be("Test tip");
     }
+
+    // NF-22: Tests de filtros en GET /api/pomodoro/historial
+    [Fact]
+    public async Task T16_Historial_FiltroCompletadaTrue_RetornaSoloCompletadas()
+    {
+        await SeedUsuarioAsync();
+        var s1 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), CiclosCompletados = 0, XpOtorgado = 0, FueCompletada = false };
+        _contexto.SesionesPomodoro.AddRange(s1, s2);
+        await _contexto.SaveChangesAsync();
+
+        var resultado = await _controller.ObtenerHistorial(DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 1, 20, true, null);
+
+        var okResult = resultado.Should().BeOfType<OkObjectResult>().Subject;
+        var respuesta = okResult.Value.Should().BeOfType<RespuestaApi<PomodoroHistorialResponse>>().Subject;
+        respuesta.Datos.Should().NotBeNull();
+        respuesta.Datos!.Historial.Should().HaveCount(1);
+        respuesta.Datos.Historial![0].FueCompletada.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task T16_Historial_FiltroConXpTrue_RetornaSoloConXp()
+    {
+        await SeedUsuarioAsync();
+        var s1 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), CiclosCompletados = 1, XpOtorgado = 0, FueCompletada = true };
+        _contexto.SesionesPomodoro.AddRange(s1, s2);
+        await _contexto.SaveChangesAsync();
+
+        var resultado = await _controller.ObtenerHistorial(DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 1, 20, null, true);
+
+        var okResult = resultado.Should().BeOfType<OkObjectResult>().Subject;
+        var respuesta = okResult.Value.Should().BeOfType<RespuestaApi<PomodoroHistorialResponse>>().Subject;
+        respuesta.Datos.Should().NotBeNull();
+        respuesta.Datos!.Historial.Should().HaveCount(1);
+        respuesta.Datos.Historial![0].XpOtorgado.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task T16_Historial_FiltrosCombinados_RetornaCoincidentes()
+    {
+        await SeedUsuarioAsync();
+        var s1 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-3), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), CiclosCompletados = 0, XpOtorgado = 0, FueCompletada = false };
+        var s3 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), CiclosCompletados = 1, XpOtorgado = 15, FueCompletada = true };
+        _contexto.SesionesPomodoro.AddRange(s1, s2, s3);
+        await _contexto.SaveChangesAsync();
+
+        var resultado = await _controller.ObtenerHistorial(DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 1, 20, true, true);
+
+        var okResult = resultado.Should().BeOfType<OkObjectResult>().Subject;
+        var respuesta = okResult.Value.Should().BeOfType<RespuestaApi<PomodoroHistorialResponse>>().Subject;
+        respuesta.Datos.Should().NotBeNull();
+        respuesta.Datos!.Historial.Should().HaveCount(2);
+    }
 }

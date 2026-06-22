@@ -233,10 +233,20 @@ namespace EpycusApp.Servicios.Implementaciones
                 .ToListAsync();
         }
 
-        public async Task<List<SesionPomodoro>> ObtenerHistorialAsync(int usuarioId, DateTime desde, DateTime hasta, int pagina = 1, int tamano = 20)
+        public async Task<List<SesionPomodoro>> ObtenerHistorialAsync(int usuarioId, DateTime desde, DateTime hasta, int pagina = 1, int tamano = 20, bool? completada = null, bool? conXp = null)
         {
-            return await _context.SesionesPomodoro
-                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta)
+            var query = _context.SesionesPomodoro
+                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta);
+
+            if (completada.HasValue)
+                query = query.Where(s => s.FueCompletada == completada.Value);
+
+            if (conXp.HasValue)
+                query = conXp.Value
+                    ? query.Where(s => s.XpOtorgado > 0)
+                    : query.Where(s => s.XpOtorgado == 0);
+
+            return await query
                 .OrderByDescending(s => s.FechaInicio)
                 .Skip((pagina - 1) * tamano)
                 .Take(tamano)
@@ -324,6 +334,53 @@ namespace EpycusApp.Servicios.Implementaciones
             }
 
             return resultado;
+        }
+
+        public async Task<PomodoroEstadisticasAvanzadasResponse> ObtenerEstadisticasAvanzadasAsync(int usuarioId, DateTime desde, DateTime hasta)
+        {
+            var sesiones = await _context.SesionesPomodoro
+                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta)
+                .ToListAsync();
+
+            var config = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
+            var tiempoEstudio = config?.TiempoEstudioMin ?? 25;
+
+            var diasEnRango = Math.Max(1, (hasta.Date - desde.Date).Days + 1);
+            var totalCiclos = sesiones.Sum(s => s.CiclosCompletados);
+            var totalMinutos = sesiones.Sum(s => s.FechaFin.HasValue
+                ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
+                : s.CiclosCompletados * tiempoEstudio);
+            var totalXp = sesiones.Sum(s => s.XpOtorgado);
+
+            var heatmap = Enumerable.Range(0, 24).Select(h => new HeatmapPorHora { Hora = h, Ciclos = 0 }).ToList();
+            foreach (var sesion in sesiones.Where(s => s.CiclosCompletados > 0))
+            {
+                var hora = sesion.FechaInicio.Hour;
+                heatmap[hora].Ciclos += sesion.CiclosCompletados;
+            }
+
+            var porMes = sesiones
+                .GroupBy(s => new { s.FechaInicio.Year, s.FechaInicio.Month })
+                .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+                .Select(g => new EstadisticasPomodoroPeriodo
+                {
+                    Fecha = $"{g.Key.Year}-{g.Key.Month:D2}",
+                    Ciclos = g.Sum(s => s.CiclosCompletados),
+                    Minutos = g.Sum(s => s.FechaFin.HasValue
+                        ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
+                        : s.CiclosCompletados * tiempoEstudio),
+                    Xp = g.Sum(s => s.XpOtorgado)
+                }).ToList();
+
+            return new PomodoroEstadisticasAvanzadasResponse
+            {
+                TotalCiclos = totalCiclos,
+                TotalMinutos = totalMinutos,
+                TotalXp = totalXp,
+                PromedioCiclosPorDia = Math.Round((double)totalCiclos / diasEnRango, 1),
+                PorMes = porMes,
+                HeatmapHoras = heatmap
+            };
         }
 
         public async Task<List<TareaPomodoro>> ObtenerTareasEnfoqueAsync(int usuarioId)

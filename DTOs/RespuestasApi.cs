@@ -1,4 +1,5 @@
 using EpycusApp.Models.Entidades;
+using EpycusApp.ViewModels;
 
 namespace EpycusApp.DTOs;
 
@@ -210,6 +211,22 @@ public class PomodoroHistorialResponse
 public class PomodoroRachaResponse
 {
     public int Racha { get; set; }
+}
+
+public class PomodoroEstadisticasAvanzadasResponse
+{
+    public double PromedioCiclosPorDia { get; set; }
+    public int TotalCiclos { get; set; }
+    public int TotalMinutos { get; set; }
+    public int TotalXp { get; set; }
+    public List<EstadisticasPomodoroPeriodo> PorMes { get; set; } = new();
+    public List<HeatmapPorHora> HeatmapHoras { get; set; } = new();
+}
+
+public class HeatmapPorHora
+{
+    public int Hora { get; set; }
+    public int Ciclos { get; set; }
 }
 
 // ── Misiones ──

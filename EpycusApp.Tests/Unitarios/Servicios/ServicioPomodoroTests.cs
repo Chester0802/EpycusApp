@@ -583,4 +583,123 @@ public class ServicioPomodoroTests
         sesionDb.FechaFin.Should().BeNull();
         sesionDb.FueCompletada.Should().BeFalse();
     }
+
+    // NF-22: Tests de filtros en ObtenerHistorialAsync
+    [Fact]
+    public async Task ObtenerHistorialAsync_FiltroCompletada_True_RetornaSoloCompletadas()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var s1 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), CiclosCompletados = 0, XpOtorgado = 0, FueCompletada = false };
+        _contexto.SesionesPomodoro.AddRange(s1, s2);
+        await _contexto.SaveChangesAsync();
+
+        var historial = await _servicio.ObtenerHistorialAsync(usuarioId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 1, 20, completada: true);
+
+        historial.Should().HaveCount(1);
+        historial[0].FueCompletada.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ObtenerHistorialAsync_FiltroCompletada_False_RetornaSoloNoCompletadas()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var s1 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), CiclosCompletados = 0, XpOtorgado = 0, FueCompletada = false };
+        _contexto.SesionesPomodoro.AddRange(s1, s2);
+        await _contexto.SaveChangesAsync();
+
+        var historial = await _servicio.ObtenerHistorialAsync(usuarioId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 1, 20, completada: false);
+
+        historial.Should().HaveCount(1);
+        historial[0].FueCompletada.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ObtenerHistorialAsync_FiltroConXp_True_RetornaSoloConXp()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var s1 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), CiclosCompletados = 1, XpOtorgado = 0, FueCompletada = true };
+        _contexto.SesionesPomodoro.AddRange(s1, s2);
+        await _contexto.SaveChangesAsync();
+
+        var historial = await _servicio.ObtenerHistorialAsync(usuarioId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 1, 20, conXp: true);
+
+        historial.Should().HaveCount(1);
+        historial[0].XpOtorgado.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task ObtenerHistorialAsync_FiltroConXp_False_RetornaSoloSinXp()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var s1 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), CiclosCompletados = 1, XpOtorgado = 0, FueCompletada = true };
+        _contexto.SesionesPomodoro.AddRange(s1, s2);
+        await _contexto.SaveChangesAsync();
+
+        var historial = await _servicio.ObtenerHistorialAsync(usuarioId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 1, 20, conXp: false);
+
+        historial.Should().HaveCount(1);
+        historial[0].XpOtorgado.Should().Be(0);
+    }
+
+    // NF-6: Tests de estadísticas avanzadas
+    [Fact]
+    public async Task EstadisticasAvanzadas_SinSesiones_RetornaCeros()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+
+        var stats = await _servicio.ObtenerEstadisticasAvanzadasAsync(usuarioId, DateTime.UtcNow.AddMonths(-1), DateTime.UtcNow);
+
+        stats.Should().NotBeNull();
+        stats.TotalCiclos.Should().Be(0);
+        stats.TotalMinutos.Should().Be(0);
+        stats.TotalXp.Should().Be(0);
+        stats.PromedioCiclosPorDia.Should().Be(0);
+        stats.PorMes.Should().BeEmpty();
+        stats.HeatmapHoras.Should().HaveCount(24);
+        stats.HeatmapHoras.Should().AllSatisfy(h => h.Ciclos.Should().Be(0));
+    }
+
+    [Fact]
+    public async Task EstadisticasAvanzadas_ConSesiones_CalculaCorrectamente()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        _contexto.ConfiguracionesPomodoro.Add(new ConfiguracionPomodoro { UsuarioId = usuarioId, TiempoEstudioMin = 25 });
+        await _contexto.SaveChangesAsync();
+
+        var s1 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.Date.AddHours(10), FechaFin = DateTime.UtcNow.Date.AddHours(11), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.Date.AddDays(-1).AddHours(15), FechaFin = DateTime.UtcNow.Date.AddDays(-1).AddHours(16), CiclosCompletados = 1, XpOtorgado = 15, FueCompletada = true };
+        _contexto.SesionesPomodoro.AddRange(s1, s2);
+        await _contexto.SaveChangesAsync();
+
+        var stats = await _servicio.ObtenerEstadisticasAvanzadasAsync(usuarioId, DateTime.UtcNow.AddDays(-2), DateTime.UtcNow);
+
+        stats.TotalCiclos.Should().Be(3);
+        stats.TotalMinutos.Should().Be(120);
+        stats.TotalXp.Should().Be(45);
+        stats.PromedioCiclosPorDia.Should().Be(1.0);
+        stats.PorMes.Should().NotBeEmpty();
+        stats.HeatmapHoras.Should().HaveCount(24);
+        stats.HeatmapHoras.First(h => h.Hora == 10).Ciclos.Should().Be(2);
+        stats.HeatmapHoras.First(h => h.Hora == 15).Ciclos.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ObtenerHistorialAsync_FiltrosCombinados_RetornaCoincidentes()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var s1 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-3), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), CiclosCompletados = 0, XpOtorgado = 0, FueCompletada = false };
+        var s3 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), CiclosCompletados = 1, XpOtorgado = 15, FueCompletada = true };
+        _contexto.SesionesPomodoro.AddRange(s1, s2, s3);
+        await _contexto.SaveChangesAsync();
+
+        var historial = await _servicio.ObtenerHistorialAsync(usuarioId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 1, 20, completada: true, conXp: true);
+
+        historial.Should().HaveCount(2);
+        historial.Should().AllSatisfy(s => { s.FueCompletada.Should().BeTrue(); s.XpOtorgado.Should().BeGreaterThan(0); });
+    }
 }
