@@ -393,7 +393,7 @@
             ciclosCompletados: parseInt(document.getElementById('statCiclos').innerText) || 0,
             minutosTotales: parseInt(document.getElementById('statMinutos').innerText) || 0,
             xpTotal: parseInt(document.getElementById('statXpGanado').innerText) || 0,
-            ciclosObjetivo: CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : null
+            ciclosObjetivo: CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : 1
         };
 
         const elDisplayTimer = document.getElementById('timerDisplay');
@@ -571,7 +571,7 @@
                 estadoTimer.ciclosCompletados = estado.ciclosCompletados || 0;
                 estadoTimer.minutosTotales = estado.minutosTotales || 0;
                 estadoTimer.xpTotal = estado.xpTotal || 0;
-                estadoTimer.ciclosObjetivo = estado.ciclosObjetivo || (CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : null);
+                estadoTimer.ciclosObjetivo = estado.ciclosObjetivo || (CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : 1);
 
                 if (estado.estaCorriendo && estado.finEn) {
                     var remaining = Math.max(0, Math.floor((estado.finEn - Date.now()) / 1000));
@@ -745,6 +745,11 @@
         }
 
         async function iniciarTimer() {
+            try {
+                var ctx = obtenerContextoAudio();
+                if (ctx.state === 'suspended') { await ctx.resume(); }
+            } catch(e) {}
+
             if (estadoTimer.modo === 'enfoque' && !estadoTimer.sesionId) {
                 let parametrosBody = {};
                 if (estadoTimer.tareaSeleccionadaId) {
@@ -891,6 +896,10 @@
             notificar('Pomodoro', estadoTimer.modo === 'enfoque' ? '¡Ciclo completado! Tómate un descanso.' : '¡Descanso terminado! Vuelve al enfoque.');
 
             if (estadoTimer.modo === 'enfoque' || estadoTimer.modo === 'personalizado') {
+                var prevCiclos = estadoTimer.ciclosCompletados;
+                var prevMinutos = estadoTimer.minutosTotales;
+                var prevXp = estadoTimer.xpTotal;
+
                 estadoTimer.ciclosCompletados++;
                 estadoTimer.minutosTotales += Math.floor((estadoTimer.modo === 'personalizado' ? CONFIGURACION.personalizado : CONFIGURACION.enfoque) / 60);
 
@@ -907,6 +916,8 @@
                 }
 
                 agregarHistorial("Enfoque", formatearTiempo(estadoTimer.tiempoTotal), true);
+
+                var cicloValido = true;
 
                 if (estadoTimer.sesionId) {
                     try {
@@ -962,8 +973,27 @@
                             if (data.datos.pausaActiva && data.datos.pausaActiva !== 'corta' && data.datos.pausaActiva !== 'larga') {
                                 mostrarInfo(data.datos.pausaActiva);
                             }
+                        } else {
+                            cicloValido = false;
                         }
-                    } catch(e) { mostrarError("Error al registrar el ciclo. Intenta de nuevo."); }
+                    } catch(e) {
+                        cicloValido = false;
+                        mostrarError("Error al registrar el ciclo. Intenta de nuevo.");
+                    }
+
+                    if (!cicloValido) {
+                        estadoTimer.ciclosCompletados = prevCiclos;
+                        estadoTimer.minutosTotales = prevMinutos;
+                        estadoTimer.xpTotal = prevXp;
+                        document.getElementById('statCiclos').innerText = prevCiclos;
+                        document.getElementById('statMinutos').innerText = prevMinutos;
+                        if (CONFIGURACION.metaDiaria > 0) {
+                            const pctRollback = Math.min(100, (prevCiclos / CONFIGURACION.metaDiaria) * 100);
+                            document.getElementById('metaBar').style.width = pctRollback + '%';
+                            document.getElementById('metaText').innerText = prevCiclos + ' / ' + CONFIGURACION.metaDiaria;
+                        }
+                        return;
+                    }
                 }
 
                 if (estadoTimer.ciclosObjetivo && estadoTimer.ciclosCompletados >= estadoTimer.ciclosObjetivo) {

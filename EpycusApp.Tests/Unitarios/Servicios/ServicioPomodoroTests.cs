@@ -223,6 +223,26 @@ public class ServicioPomodoroTests
     }
 
     [Fact]
+    public async Task FinalizarSesion_SinCiclos_NoOtorgaBonus()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var sesion = await _servicio.IniciarSesion(usuarioId, null, null);
+
+        var (xpTotal, xpBonus) = await _servicio.FinalizarSesion(sesion.Id, 0);
+
+        var sesionDb = await _contexto.SesionesPomodoro.FirstAsync(s => s.Id == sesion.Id);
+        sesionDb.FueCompletada.Should().BeTrue();
+        sesionDb.CiclosCompletados.Should().Be(0);
+        sesionDb.FechaFin.Should().NotBeNull();
+        sesionDb.XpOtorgado.Should().Be(0);
+        xpBonus.Should().Be(0);
+        xpTotal.Should().Be(0);
+
+        _gamificacionMock.Verify(g => g.SumarXP(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        _gamificacionMock.Verify(g => g.VerificarYOtorgarLogros(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
     public async Task CancelarSesion_MarcaComoNoCompletada()
     {
         var usuarioId = await SeedUsuarioAsync();

@@ -130,7 +130,7 @@ public class ContratoJsonTests
             CiclosAntesDescansoLargo = 4,
             SonidoActivo = true,
             SonidoSeleccionado = "lluvia",
-            Volumen = 0.8,
+            Volumen = 80,
             AutoIniciarDescanso = false,
             AutoIniciarEnfoque = true,
             TicTacActivo = false,

@@ -79,6 +79,7 @@ namespace EpycusApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Configuracion(ActualizarConfiguracionPomodoroDto dto)
         {
             var usuarioId = ObtenerUsuarioId();
