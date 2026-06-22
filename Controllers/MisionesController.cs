@@ -48,12 +48,6 @@ namespace EpycusApp.Controllers
             var mision = await _servicioMisiones.ObtenerPorId(id);
             if (mision == null || mision.UsuarioId != usuarioId) return NotFound();
 
-            if (mision.Estado == "Completado" || mision.Estado == "Fallido")
-            {
-                TempData["Error"] = "No se puede editar una mision completada o fallida.";
-                return RedirectToAction(nameof(Index));
-            }
-
             var modelo = new EditarMisionViewModel
             {
                 Id = mision.Id,
@@ -63,7 +57,8 @@ namespace EpycusApp.Controllers
                 FechaLimite = mision.FechaLimite.ToDateTime(TimeOnly.MinValue),
                 Prioridad = mision.Prioridad,
                 ConPomodoro = mision.ConPomodoro,
-                CategoriaId = mision.CategoriaId
+                CategoriaId = mision.CategoriaId,
+                Estado = mision.Estado
             };
 
             await CargarCategorias();
@@ -79,6 +74,7 @@ namespace EpycusApp.Controllers
                 try
                 {
                     await _servicioMisiones.EditarMision(modelo, ObtenerUsuarioId());
+                    TempData["Exito"] = "Misi\u00f3n actualizada.";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -106,12 +102,25 @@ namespace EpycusApp.Controllers
             var resultado = await _servicioMisiones.CompletarMision(id, ObtenerUsuarioId());
             if (resultado.Exito)
             {
-                TempData["Exito"] = $"Mision completada. Ganaste {resultado.XpGanado} XP.";
+                TempData["Exito"] = $"Misi\u00f3n completada. Ganaste {resultado.XpGanado} XP.";
             }
             else
             {
-                TempData["Error"] = "No se pudo completar la mision.";
+                TempData["Error"] = "No se pudo completar la misi\u00f3n.";
             }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Revertir(int id)
+        {
+            var (exito, mensaje) = await _servicioMisiones.RevertirMision(id, ObtenerUsuarioId());
+            if (exito)
+                TempData["Exito"] = mensaje;
+            else
+                TempData["Error"] = mensaje;
 
             return RedirectToAction(nameof(Index));
         }

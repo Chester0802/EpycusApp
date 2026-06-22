@@ -125,6 +125,7 @@
                         </div>
                         <div class="ep-pomodoro-time" id="timerDisplay">25:00</div>
                         <div class="ep-pomodoro-label" id="timerLabel">Tiempo de enfoque</div>
+                        <div class="small text-secondary mt-1" id="timerTaskInfo" style="font-size:0.7rem; min-height:1.2em;"></div>
                     </div>
                 </div>
             </div>
@@ -406,6 +407,9 @@
             sesionId: null,
             tareaSeleccionadaId: null,
             tareaSeleccionadaTipo: null,
+            tareaSeleccionadaNombre: null,
+            subTareaId: null,
+            subTareaNombre: null,
             ciclosCompletados: parseInt(document.getElementById('statCiclos').innerText) || 0,
             minutosTotales: parseInt(document.getElementById('statMinutos').innerText) || 0,
             xpTotal: parseInt(document.getElementById('statXpGanado').innerText) || 0,
@@ -568,6 +572,9 @@
                     sesionId: estadoTimer.sesionId,
                     tareaSeleccionadaId: estadoTimer.tareaSeleccionadaId,
                     tareaSeleccionadaTipo: estadoTimer.tareaSeleccionadaTipo,
+                    tareaSeleccionadaNombre: estadoTimer.tareaSeleccionadaNombre,
+                    subTareaId: estadoTimer.subTareaId,
+                    subTareaNombre: estadoTimer.subTareaNombre,
                     ciclosCompletados: estadoTimer.ciclosCompletados,
                     minutosTotales: estadoTimer.minutosTotales,
                     xpTotal: estadoTimer.xpTotal,
@@ -595,6 +602,9 @@
                 estadoTimer.sesionId = estado.sesionId || null;
                 estadoTimer.tareaSeleccionadaId = estado.tareaSeleccionadaId || null;
                 estadoTimer.tareaSeleccionadaTipo = estado.tareaSeleccionadaTipo || null;
+                estadoTimer.tareaSeleccionadaNombre = estado.tareaSeleccionadaNombre || null;
+                estadoTimer.subTareaId = estado.subTareaId || null;
+                estadoTimer.subTareaNombre = estado.subTareaNombre || null;
                 estadoTimer.ciclosCompletados = estado.ciclosCompletados || 0;
                 estadoTimer.minutosTotales = estado.minutosTotales || 0;
                 estadoTimer.xpTotal = estado.xpTotal || 0;
@@ -801,8 +811,11 @@
                 element.style.borderStyle = 'none';
                 estadoTimer.tareaSeleccionadaId = null;
                 estadoTimer.tareaSeleccionadaTipo = null;
+                estadoTimer.tareaSeleccionadaNombre = null;
                 estadoTimer.subTareaId = null;
+                estadoTimer.subTareaNombre = null;
                 ocultarSelectorSubTarea();
+                actualizarInfoTarea();
                 return;
             }
 
@@ -820,7 +833,9 @@
                 element.style.borderStyle = 'solid';
                 estadoTimer.tareaSeleccionadaId = id;
                 estadoTimer.tareaSeleccionadaTipo = tipo;
+                estadoTimer.tareaSeleccionadaNombre = element.querySelector('.flex-grow-1')?.textContent?.trim() || '';
                 estadoTimer.subTareaId = null;
+                estadoTimer.subTareaNombre = null;
 
                 if (tipo === 'Mision') {
                     cargarSubTareasDeMision(id);
@@ -830,8 +845,25 @@
             } else {
                 estadoTimer.tareaSeleccionadaId = null;
                 estadoTimer.tareaSeleccionadaTipo = null;
+                estadoTimer.tareaSeleccionadaNombre = null;
                 estadoTimer.subTareaId = null;
+                estadoTimer.subTareaNombre = null;
                 ocultarSelectorSubTarea();
+            }
+            actualizarInfoTarea();
+        }
+
+        function actualizarInfoTarea() {
+            var info = document.getElementById('timerTaskInfo');
+            if (!info) return;
+            if (estadoTimer.tareaSeleccionadaId) {
+                var txt = estadoTimer.tareaSeleccionadaNombre;
+                if (estadoTimer.subTareaId && estadoTimer.subTareaNombre) {
+                    txt += ' > ' + estadoTimer.subTareaNombre;
+                }
+                info.textContent = txt;
+            } else {
+                info.textContent = '';
             }
         }
 
@@ -847,7 +879,8 @@
                         data.datos.forEach(function(st) {
                             var opt = document.createElement('option');
                             opt.value = st.id;
-                            opt.textContent = st.nombre;
+                            opt.textContent = st.nombre + (st.estaCompletada ? ' \u2713' : '');
+                            opt.dataset.nombre = st.nombre;
                             select.appendChild(opt);
                         });
                     }
@@ -864,6 +897,9 @@
         document.addEventListener('change', function(e) {
             if (e.target && e.target.id === 'subtareaSelect') {
                 estadoTimer.subTareaId = e.target.value ? parseInt(e.target.value) : null;
+                var selectedOpt = e.target.selectedOptions[0];
+                estadoTimer.subTareaNombre = selectedOpt ? (selectedOpt.dataset.nombre || selectedOpt.textContent) : null;
+                actualizarInfoTarea();
             }
         });
 

@@ -25,5 +25,7 @@
 
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Selecciona una categoría.")]
         public int CategoriaId { get; set; }
+
+        public string Estado { get; set; } = "Pendiente";
     }
 }

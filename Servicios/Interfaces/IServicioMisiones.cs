@@ -14,6 +14,7 @@ namespace EpycusApp.Servicios.Interfaces
         Task CambiarEstado(int id, string estado, int usuarioId);
         Task<List<Categoria>> ObtenerCategoriasMisionAsync();
         Task<int> ContarCompletadasHoyAsync(int usuarioId);
+        Task<(bool Exito, string Mensaje)> RevertirMision(int id, int usuarioId);
         Task<List<SubTarea>> ObtenerSubTareas(int misionId, int usuarioId);
         Task<SubTarea?> ObtenerSubTareaPorId(int id, int usuarioId);
         Task CrearSubTarea(string nombre, string? descripcion, int misionId, int usuarioId);

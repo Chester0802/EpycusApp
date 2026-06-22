@@ -40,7 +40,17 @@
         </div>
 
         <div class="row mb-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
+                <label asp-for="Estado" class="form-label">Estado</label>
+                <select asp-for="Estado" class="form-select ep-input">
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="EnProgreso">En Progreso</option>
+                    <option value="Completado">Completado</option>
+                    <option value="Fallido">Fallido</option>
+                </select>
+                <span asp-validation-for="Estado" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
                 <label asp-for="Prioridad" class="form-label">Prioridad</label>
                 <select asp-for="Prioridad" class="form-select ep-input">
                     <option value="Baja">Baja</option>
@@ -49,7 +59,7 @@
                 </select>
                 <span asp-validation-for="Prioridad" class="text-danger"></span>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label asp-for="CategoriaId" class="form-label">Categoría</label>
                 <select asp-for="CategoriaId" class="form-select ep-input" asp-items="ViewBag.Categorias">
                     <option value="">-- Seleccione una Categoría --</option>
