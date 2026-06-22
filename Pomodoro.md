@@ -534,6 +534,7 @@ Checklist de verificación — Estado actual:
 - [x] N-4: `ModoPersonalizadoMinutos` renombrado a `ModoPersonalizadoMin` con `[Column]` para mantener BD *(verificar código)*
 - [x] N-7: Rutas API multi-palabra usan kebab-case consistentemente *(verificar código)*
 - [x] Tic-tac checkbox: listener `change` detiene/reanuda tic-tac sin reiniciar timer *(verificar código)*
+- [x] NF-21: Pomodoro en segundo plano — `visibilitychange` corrige `tiempoRestante` con `Date.now()` al volver visible, evitando throttling de `setInterval` en background *(verificar código)*
 
 ---
 
@@ -597,7 +598,7 @@ Checklist de verificación — Estado actual:
 | ID | Funcionalidad | Descripción |
 |----|---------------|-------------|
 | NF-20 | Sincronización entre pestañas | Usar BroadcastChannel API o SignalR para que el timer se sincronice en múltiples pestañas |
-| NF-21 | Pomodoro en segundo plano | Usar `visibilitychange` + `Date.now()` para que el timer no se detenga al cambiar de pestaña (setInterval se throttlea en background) |
+| ~~NF-21~~ | ~~Pomodoro en segundo plano~~ | ~~Usar `visibilitychange` + `Date.now()` para que el timer no se detenga al cambiar de pestaña~~ | ✅ IMPLEMENTADO en Ronda 6 |
 | NF-22 | Historial con filtros | Endpoint `GET /historial` con filtros: `desde`, `hasta`, `completada`, `conXp`, `página`, `tamaño` |
 | NF-23 | Pomodoro grupal/competitivo | Salas de estudio compartidas con temporizador sincronizado y ranking de ciclos |
 
@@ -620,6 +621,7 @@ Checklist de verificación — Estado actual:
 | Issues menores Ronda 3 | 8 (R3-1 a R3-8) — ✅ todos corregidos |
 | Issues encontrados Ronda 4 | 7 (A-1 a A-7) — ✅ todos corregidos |
 | Issues encontrados Ronda 5 | 5 (R5-1 a R5-5) — ✅ todos corregidos |
+| Nueva funcionalidad Ronda 6 | 1 (NF-21) — Pomodoro en segundo plano |
 
 ### Prioridad de corrección — Estado actual
 
@@ -633,6 +635,7 @@ FASE 6 — Bugs menores R2 (M-1 a M-5)                 ✅ COMPLETADA (M-4 corre
 FASE 7 — Issues menores frontend + seguridad (R3)     ✅ COMPLETADA
 FASE 8 — Code smells + tests integración (R4)         ✅ COMPLETADA
 FASE 9 — Seguridad S-2/S-3 + nombres N-2/N-4 + tests (R5) ✅ COMPLETADA
+FASE 10 — NF-21 Pomodoro en segundo plano (R6)              ✅ COMPLETADA
 ```
 
 ### Lecciones aprendidas (3 rondas de auditoría)
@@ -699,6 +702,15 @@ var timerState = {
 ---
 
 ## Historial de Correcciones
+
+### 2026-06-22 (7ma ronda — NF-21 Pomodoro en segundo plano)
+
+- **NF-21 (R6-1)**: El temporizador ahora no se retrasa cuando la pestaña está en segundo plano. Se agregó `estadoTimer.ultimoTick` que registra `Date.now()` al iniciar el timer y en cada tick del `setInterval`. El manejador `visibilitychange` ahora:
+  - Al ocultar la pestaña: registra `ultimoTick = Date.now()` y actualiza el título con el tiempo restante.
+  - Al volver visible: calcula los segundos reales transcurridos (`(Date.now() - ultimoTick) / 1000`), descuenta de `tiempoRestante` y si expiró llama `alCompletarTimer()`. Esto evita que el throttling de `setInterval` en background retrase el timer.
+- **Archivo**: `Views/Pomodoro/Index.cshtml` — líneas 397, 809–811, 1226–1246
+- **Tests**: 205 tests pasan (sin cambios — NF-21 es frontend JS puro)
+- **Pomodoro.md**: Actualizado con Ronda 6, métricas actualizadas
 
 ### 2026-06-22 (6ta ronda — seguridad, nombres, cobertura, code smells R5)
 
