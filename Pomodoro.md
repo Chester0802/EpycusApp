@@ -457,9 +457,9 @@ VISTA SEMANA:
 | Archivos del módulo | 23 |
 | Bugs críticos | 7 (C-1 a C-7) — ✅ todos corregidos |
 | Bugs de lógica | 7 (L-1 a L-7) — ✅ todos corregidos |
-| Problemas UX/UI | 11 (UX-1 a UX-11) — ✅ mayoría corregidos |
-| Problemas de nombres | 7 (N-1 a N-7) |
-| Validaciones faltantes | 7 (V-1 a V-7) |
+| Problemas UX/UI | 11 (UX-1 a UX-11) — ✅ todos corregidos |
+| Problemas de nombres | 7 (N-1 a N-7) — ✅ N-1, N-2, N-5, N-6 corregidos |
+| Validaciones faltantes | 7 (V-1 a V-7) — ✅ todos corregidos |
 | Problemas de seguridad | 3 (S-1 a S-3) |
 | Tests existentes | 25 unitarios (servicio + racha + stats + tareas) |
 | Tests pendientes | 8 (T-8 a T-15: validación DTOs e integración API) |
@@ -552,6 +552,17 @@ var timerState = {
 ---
 
 ## Historial de Correcciones
+
+### 2026-06-22 (2da ronda)
+- **UX3**: Botón `?` con modal de atajos de teclado (Espacio, R, 1-4, F, S)
+- **UX5**: Icono fullscreen alterna entre `bi-arrows-fullscreen`/`bi-fullscreen-exit` vía `fullscreenchange` listener
+- **UX8**: Timeout 8s de seguridad para ocultar spinner si DOMContentLoaded falla
+- **UX9**: Volumen persiste en `localStorage` (`epycus_pomodoro_volumen`), se restaura al cargar
+- **UX11**: Indicador "No molestar" (badge rojo con luna) visible durante enfoque activo
+- **N2**: `statXP` renombrado a `statXpGanado` consistentemente en frontend
+- **N5**: `ciclosObjetivo` inicializado desde `CONFIGURACION.metaDiaria` en vez de hardcoded `1`
+- **N6**: Propiedad muerta `enPausaActiva` eliminada de `estadoTimer`
+- **Doc**: Pomodoro.md actualizado
 
 ### 2026-06-22
 - **C-4**: `SuppressModelStateInvalidFilter = true` en `Program.cs`
