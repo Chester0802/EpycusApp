@@ -11,14 +11,17 @@ namespace EpycusApp.Controllers
     {
         private readonly IServicioPomodoro _servicioPomodoro;
         private readonly IServicioMisiones _servicioMisiones;
+        private readonly ILogger<PomodoroController> _logger;
 
-        public PomodoroController(IServicioPomodoro servicioPomodoro, IServicioMisiones servicioMisiones)
+        public PomodoroController(IServicioPomodoro servicioPomodoro, IServicioMisiones servicioMisiones, ILogger<PomodoroController> logger)
         {
             _servicioPomodoro = servicioPomodoro;
             _servicioMisiones = servicioMisiones;
+            _logger = logger;
         }
 
         [HttpGet]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Index()
         {
             var modelo = new PomodoroIndexViewModel();
@@ -53,6 +56,7 @@ namespace EpycusApp.Controllers
         }
 
         [HttpGet]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Configuracion()
         {
             var usuarioId = ObtenerUsuarioId();
@@ -84,9 +88,23 @@ namespace EpycusApp.Controllers
         {
             var usuarioId = ObtenerUsuarioId();
             if (usuarioId == 0) return Challenge();
-            if (!ModelState.IsValid) return View(dto);
-            await _servicioPomodoro.ActualizarConfiguracion(usuarioId, dto);
-            return RedirectToAction("Index");
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Corrige los errores antes de guardar.";
+                return View(dto);
+            }
+            try
+            {
+                await _servicioPomodoro.ActualizarConfiguracion(usuarioId, dto);
+                TempData["Exito"] = "Configuración guardada correctamente.";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al guardar configuración Pomodoro para usuario {UsuarioId}", usuarioId);
+                TempData["Error"] = "Ocurrió un error al guardar la configuración. Intenta de nuevo.";
+                return View(dto);
+            }
         }
     }
 }

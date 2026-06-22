@@ -12,6 +12,16 @@
 <form asp-action="Configuracion" method="post" class="ep-card">
     @Html.AntiForgeryToken()
 
+    @if (TempData["Exito"] is string exito)
+    {
+        <div class="alert alert-success bg-transparent border-success text-success small">@exito</div>
+    }
+    @if (TempData["Error"] is string error)
+    {
+        <div class="alert alert-danger bg-transparent border-danger text-danger small">@error</div>
+    }
+    <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+
     <h6 class="fw-bold mb-3"><i class="bi bi-clock me-2"></i>Tiempos</h6>
     <div class="row g-3 mb-4">
         <div class="col-md-4">
