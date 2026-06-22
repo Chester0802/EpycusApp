@@ -8,9 +8,9 @@ namespace EpycusApp.Servicios.Interfaces
     {
         Task<SesionPomodoro> IniciarSesion(int usuarioId, int? habitoId, int? misionId);
         Task<(bool Exito, SesionPomodoro? Sesion, string? Error)> IniciarSesionSiNoActiva(int usuarioId, int? habitoId, int? misionId);
-        Task<(int XpGanado, bool SugerirDescanso, string? PausaActiva)> RegistrarCiclo(int sesionId, int ciclosCompletados);
-        Task<(int XpTotal, int XpBonus)> FinalizarSesion(int sesionId, int ciclosCompletados);
-        Task CancelarSesion(int sesionId);
+        Task<(int XpGanado, bool SugerirDescanso, string? PausaActiva)> RegistrarCiclo(int sesionId, int ciclosCompletados, int usuarioId);
+        Task<(int XpTotal, int XpBonus)> FinalizarSesion(int sesionId, int ciclosCompletados, int usuarioId);
+        Task CancelarSesion(int sesionId, int usuarioId);
         Task<ConfiguracionPomodoro> ObtenerConfiguracion(int usuarioId);
         Task ActualizarConfiguracion(int usuarioId, ActualizarConfiguracionPomodoroDto dto);
         Task<string> ObtenerTipAleatorio();

@@ -83,10 +83,10 @@ namespace EpycusApp.Servicios.Implementaciones
             }
         }
 
-        public async Task<(int XpGanado, bool SugerirDescanso, string? PausaActiva)> RegistrarCiclo(int sesionId, int ciclosCompletados)
+        public async Task<(int XpGanado, bool SugerirDescanso, string? PausaActiva)> RegistrarCiclo(int sesionId, int ciclosCompletados, int usuarioId)
         {
             var sesion = await _context.SesionesPomodoro.FirstOrDefaultAsync(s => s.Id == sesionId);
-            if (sesion is null)
+            if (sesion is null || sesion.UsuarioId != usuarioId)
                 return (0, false, null);
 
             if (ciclosCompletados <= 0 || ciclosCompletados <= sesion.CiclosCompletados)
@@ -95,7 +95,7 @@ namespace EpycusApp.Servicios.Implementaciones
             int nuevosCiclos = ciclosCompletados - sesion.CiclosCompletados;
             sesion.CiclosCompletados = ciclosCompletados;
 
-            int xpGanado = ConstantesGamificacion.XP_BASE_POMODORO * nuevosCiclos;
+            int xpGanado = ConstantesGamificacion.XpBasePomodoro * nuevosCiclos;
             sesion.XpOtorgado += xpGanado;
 
             var config = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == sesion.UsuarioId);
@@ -116,10 +116,10 @@ namespace EpycusApp.Servicios.Implementaciones
             return (xpGanado, sugerir, pausaActiva?.Descripcion);
         }
 
-        public async Task<(int XpTotal, int XpBonus)> FinalizarSesion(int sesionId, int ciclosCompletados)
+        public async Task<(int XpTotal, int XpBonus)> FinalizarSesion(int sesionId, int ciclosCompletados, int usuarioId)
         {
             var sesion = await _context.SesionesPomodoro.FirstOrDefaultAsync(s => s.Id == sesionId);
-            if (sesion is null) return (0, 0);
+            if (sesion is null || sesion.UsuarioId != usuarioId) return (0, 0);
 
             if (ciclosCompletados < sesion.CiclosCompletados)
                 ciclosCompletados = sesion.CiclosCompletados;
@@ -142,10 +142,10 @@ namespace EpycusApp.Servicios.Implementaciones
             return (sesion.XpOtorgado, xpBonus);
         }
 
-        public async Task CancelarSesion(int sesionId)
+        public async Task CancelarSesion(int sesionId, int usuarioId)
         {
             var sesion = await _context.SesionesPomodoro.FirstOrDefaultAsync(s => s.Id == sesionId);
-            if (sesion is null) return;
+            if (sesion is null || sesion.UsuarioId != usuarioId) return;
 
             sesion.FechaFin = DateTime.UtcNow;
             sesion.FueCompletada = false;
@@ -182,7 +182,7 @@ namespace EpycusApp.Servicios.Implementaciones
                     AutoIniciarEnfoque = dto.AutoIniciarEnfoque,
                     TicTacActivo = dto.TicTacActivo,
                     MetaDiariaCiclos = dto.MetaDiariaCiclos,
-                    ModoPersonalizadoMinutos = dto.ModoPersonalizadoMinutos,
+                    ModoPersonalizadoMin = dto.ModoPersonalizadoMin,
                     VibracionActiva = dto.VibracionActiva,
                     NotificacionDesktop = dto.NotificacionDesktop,
                     FechaActualizacion = DateTime.UtcNow
@@ -201,7 +201,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 existente.AutoIniciarEnfoque = dto.AutoIniciarEnfoque;
                 existente.TicTacActivo = dto.TicTacActivo;
                 existente.MetaDiariaCiclos = dto.MetaDiariaCiclos;
-                existente.ModoPersonalizadoMinutos = dto.ModoPersonalizadoMinutos;
+                existente.ModoPersonalizadoMin = dto.ModoPersonalizadoMin;
                 existente.VibracionActiva = dto.VibracionActiva;
                 existente.NotificacionDesktop = dto.NotificacionDesktop;
                 existente.FechaActualizacion = DateTime.UtcNow;

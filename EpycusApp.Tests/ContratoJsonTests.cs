@@ -1,6 +1,7 @@
 using System.Text.Json;
 using EpycusApp.Ayudantes;
 using EpycusApp.DTOs;
+using EpycusApp.Models.Entidades;
 using FluentAssertions;
 
 namespace EpycusApp.Tests;
@@ -135,7 +136,7 @@ public class ContratoJsonTests
             AutoIniciarEnfoque = true,
             TicTacActivo = false,
             MetaDiariaCiclos = 8,
-            ModoPersonalizadoMinutos = null,
+            ModoPersonalizadoMin = 25,
             VibracionActiva = true,
             NotificacionDesktop = false
         };
@@ -146,7 +147,7 @@ public class ContratoJsonTests
         {
             "tiempoEstudio", "tiempoDescanso", "tiempoDescansoLargo", "ciclosAntesDescansoLargo",
             "sonidoActivo", "sonidoSeleccionado", "volumen", "autoIniciarDescanso",
-            "autoIniciarEnfoque", "ticTacActivo", "metaDiariaCiclos", "modoPersonalizadoMinutos",
+            "autoIniciarEnfoque", "ticTacActivo", "metaDiariaCiclos", "modoPersonalizadoMin",
             "vibracionActiva", "notificacionDesktop"
         };
         foreach (var prop in propiedades)
@@ -382,7 +383,10 @@ public class ContratoJsonTests
     {
         var original = new PomodoroHistorialResponse
         {
-            Historial = new[] { new { id = 1, fecha = "2025-01-01" } },
+            Historial = new List<SesionPomodoro>
+            {
+                new SesionPomodoro { Id = 1, FechaInicio = new DateTime(2025, 1, 1) }
+            },
             Pagina = 1,
             Tamano = 20
         };

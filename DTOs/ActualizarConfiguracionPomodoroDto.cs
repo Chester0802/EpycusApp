@@ -34,7 +34,7 @@ namespace EpycusApp.DTOs
         public int MetaDiariaCiclos { get; set; }
 
         [Range(1, 180, ErrorMessage = "El modo personalizado debe ser entre 1 y 180 minutos.")]
-        public int ModoPersonalizadoMinutos { get; set; } = 25;
+        public int ModoPersonalizadoMin { get; set; } = 25;
 
         public bool VibracionActiva { get; set; } = true;
         public bool NotificacionDesktop { get; set; } = true;

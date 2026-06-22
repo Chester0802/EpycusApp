@@ -71,7 +71,7 @@ public class ServicioPomodoroTests
     {
         var usuarioId = await SeedUsuarioAsync();
         var sesion = await _servicio.IniciarSesion(usuarioId, null, null);
-        await _servicio.FinalizarSesion(sesion.Id, 1);
+        await _servicio.FinalizarSesion(sesion.Id, 1, usuarioId);
 
         var racha = await _servicio.ObtenerRachaActualAsync(usuarioId);
         racha.Should().Be(1);
@@ -171,19 +171,19 @@ public class ServicioPomodoroTests
         _contexto.ConfiguracionesPomodoro.Add(new ConfiguracionPomodoro { UsuarioId = usuarioId, CiclosAntesDescansoLargo = 4 });
         await _contexto.SaveChangesAsync();
 
-        _gamificacionMock.Setup(g => g.SumarXP(usuarioId, ConstantesGamificacion.XP_BASE_POMODORO * 2))
-            .ReturnsAsync((ConstantesGamificacion.XP_BASE_POMODORO * 2, false, 1));
+        _gamificacionMock.Setup(g => g.SumarXP(usuarioId, ConstantesGamificacion.XpBasePomodoro * 2))
+            .ReturnsAsync((ConstantesGamificacion.XpBasePomodoro * 2, false, 1));
 
-        var (xp, sugerirDescanso, _) = await _servicio.RegistrarCiclo(sesion.Id, 2);
+        var (xp, sugerirDescanso, _) = await _servicio.RegistrarCiclo(sesion.Id, 2, usuarioId);
 
-        xp.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO * 2);
+        xp.Should().Be(ConstantesGamificacion.XpBasePomodoro * 2);
         sugerirDescanso.Should().BeFalse();
 
         var sesionDb = await _contexto.SesionesPomodoro.FirstAsync(s => s.Id == sesion.Id);
         sesionDb.CiclosCompletados.Should().Be(2);
-        sesionDb.XpOtorgado.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO * 2);
+        sesionDb.XpOtorgado.Should().Be(ConstantesGamificacion.XpBasePomodoro * 2);
 
-        _gamificacionMock.Verify(g => g.SumarXP(usuarioId, ConstantesGamificacion.XP_BASE_POMODORO * 2), Times.Once);
+        _gamificacionMock.Verify(g => g.SumarXP(usuarioId, ConstantesGamificacion.XpBasePomodoro * 2), Times.Once);
     }
 
     [Fact]
@@ -197,14 +197,14 @@ public class ServicioPomodoroTests
         _gamificacionMock.Setup(g => g.SumarXP(It.IsAny<int>(), It.IsAny<int>()))
             .ReturnsAsync((15, false, 1));
 
-        await _servicio.RegistrarCiclo(sesion.Id, 2);
-        var (xp, _, _) = await _servicio.RegistrarCiclo(sesion.Id, 4);
+        await _servicio.RegistrarCiclo(sesion.Id, 2, usuarioId);
+        var (xp, _, _) = await _servicio.RegistrarCiclo(sesion.Id, 4, usuarioId);
 
-        xp.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO * 2);
+        xp.Should().Be(ConstantesGamificacion.XpBasePomodoro * 2);
 
         var sesionDb = await _contexto.SesionesPomodoro.FirstAsync(s => s.Id == sesion.Id);
         sesionDb.CiclosCompletados.Should().Be(4);
-        sesionDb.XpOtorgado.Should().Be(ConstantesGamificacion.XP_BASE_POMODORO * 4);
+        sesionDb.XpOtorgado.Should().Be(ConstantesGamificacion.XpBasePomodoro * 4);
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public class ServicioPomodoroTests
         _gamificacionMock.Setup(g => g.SumarXP(It.IsAny<int>(), It.IsAny<int>()))
             .ReturnsAsync((15, false, 1));
 
-        var (_, sugerirDescanso, pausaActiva) = await _servicio.RegistrarCiclo(sesion.Id, 4);
+        var (_, sugerirDescanso, pausaActiva) = await _servicio.RegistrarCiclo(sesion.Id, 4, usuarioId);
 
         sugerirDescanso.Should().BeTrue();
     }
@@ -232,7 +232,7 @@ public class ServicioPomodoroTests
         _gamificacionMock.Setup(g => g.SumarXP(It.IsAny<int>(), It.IsAny<int>()))
             .ReturnsAsync((25, false, 1));
 
-        var (xpTotal, xpBonus) = await _servicio.FinalizarSesion(sesion.Id, 3);
+        var (xpTotal, xpBonus) = await _servicio.FinalizarSesion(sesion.Id, 3, usuarioId);
 
         var sesionDb = await _contexto.SesionesPomodoro.FirstAsync(s => s.Id == sesion.Id);
         sesionDb.FueCompletada.Should().BeTrue();
@@ -249,7 +249,7 @@ public class ServicioPomodoroTests
         var usuarioId = await SeedUsuarioAsync();
         var sesion = await _servicio.IniciarSesion(usuarioId, null, null);
 
-        var (xpTotal, xpBonus) = await _servicio.FinalizarSesion(sesion.Id, 0);
+        var (xpTotal, xpBonus) = await _servicio.FinalizarSesion(sesion.Id, 0, usuarioId);
 
         var sesionDb = await _contexto.SesionesPomodoro.FirstAsync(s => s.Id == sesion.Id);
         sesionDb.FueCompletada.Should().BeTrue();
@@ -269,7 +269,7 @@ public class ServicioPomodoroTests
         var usuarioId = await SeedUsuarioAsync();
         var sesion = await _servicio.IniciarSesion(usuarioId, null, null);
 
-        await _servicio.CancelarSesion(sesion.Id);
+        await _servicio.CancelarSesion(sesion.Id, usuarioId);
 
         var sesionDb = await _contexto.SesionesPomodoro.FirstAsync(s => s.Id == sesion.Id);
         sesionDb.FueCompletada.Should().BeFalse();
@@ -308,7 +308,7 @@ public class ServicioPomodoroTests
             AutoIniciarEnfoque = false,
             TicTacActivo = true,
             MetaDiariaCiclos = 8,
-            ModoPersonalizadoMinutos = 30,
+            ModoPersonalizadoMin = 30,
             VibracionActiva = false,
             NotificacionDesktop = true
         };
@@ -324,7 +324,7 @@ public class ServicioPomodoroTests
         config.AutoIniciarDescanso.Should().BeTrue();
         config.TicTacActivo.Should().BeTrue();
         config.MetaDiariaCiclos.Should().Be(8);
-        config.ModoPersonalizadoMinutos.Should().Be(30);
+        config.ModoPersonalizadoMin.Should().Be(30);
     }
 
     [Fact]
@@ -335,9 +335,9 @@ public class ServicioPomodoroTests
         _contexto.ConfiguracionesPomodoro.Add(new ConfiguracionPomodoro { UsuarioId = usuarioId, CiclosAntesDescansoLargo = 4 });
         await _contexto.SaveChangesAsync();
 
-        await _servicio.RegistrarCiclo(sesion.Id, 3);
+        await _servicio.RegistrarCiclo(sesion.Id, 3, usuarioId);
 
-        var (xp, _, _) = await _servicio.RegistrarCiclo(sesion.Id, 2);
+        var (xp, _, _) = await _servicio.RegistrarCiclo(sesion.Id, 2, usuarioId);
 
         xp.Should().Be(0);
         _gamificacionMock.Verify(g => g.SumarXP(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
@@ -454,5 +454,133 @@ public class ServicioPomodoroTests
         var usuarioId = await SeedUsuarioAsync();
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _servicio.IniciarSesion(usuarioId, null, 999));
+    }
+
+    [Fact]
+    public async Task ObtenerHistorialAsync_SinSesiones_RetornaVacio()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+
+        var historial = await _servicio.ObtenerHistorialAsync(usuarioId, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow);
+
+        historial.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ObtenerHistorialAsync_ConSesiones_RetornaPagina()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        for (int i = 0; i < 5; i++)
+        {
+            var s = new SesionPomodoro
+            {
+                UsuarioId = usuarioId,
+                FechaInicio = DateTime.UtcNow.AddHours(-i),
+                CiclosCompletados = 1,
+                XpOtorgado = 15,
+                FueCompletada = true
+            };
+            _contexto.SesionesPomodoro.Add(s);
+        }
+        await _contexto.SaveChangesAsync();
+
+        var pagina1 = await _servicio.ObtenerHistorialAsync(usuarioId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 1, 2);
+        var pagina2 = await _servicio.ObtenerHistorialAsync(usuarioId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 2, 2);
+
+        pagina1.Should().HaveCount(2);
+        pagina2.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task ObtenerHistorialAsync_FueraDeRango_RetornaVacio()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var s = new SesionPomodoro
+        {
+            UsuarioId = usuarioId,
+            FechaInicio = DateTime.UtcNow.AddDays(-10),
+            CiclosCompletados = 1,
+            XpOtorgado = 15,
+            FueCompletada = true
+        };
+        _contexto.SesionesPomodoro.Add(s);
+        await _contexto.SaveChangesAsync();
+
+        var historial = await _servicio.ObtenerHistorialAsync(usuarioId, DateTime.UtcNow.AddDays(-5), DateTime.UtcNow);
+
+        historial.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task EstadisticasPeriodo_SinSesiones_RetornaCeros()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+
+        var stats = await _servicio.ObtenerEstadisticasPeriodoAsync(usuarioId, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow);
+
+        stats.Ciclos.Should().Be(0);
+        stats.Minutos.Should().Be(0);
+        stats.Xp.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task RegistrarCiclo_SesionInexistente_RetornaCeros()
+    {
+        var (xp, sugerir, pausa) = await _servicio.RegistrarCiclo(999, 1, 1);
+
+        xp.Should().Be(0);
+        sugerir.Should().BeFalse();
+        pausa.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task FinalizarSesion_SesionInexistente_RetornaCeros()
+    {
+        var (xpTotal, xpBonus) = await _servicio.FinalizarSesion(999, 1, 1);
+
+        xpTotal.Should().Be(0);
+        xpBonus.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task CancelarSesion_SesionInexistente_NoLanzaExcepcion()
+    {
+        await _servicio.CancelarSesion(999, 1);
+    }
+
+    [Fact]
+    public async Task RegistrarCiclo_DeOtroUsuario_NoOtorgaXP()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var sesion = await _servicio.IniciarSesion(usuarioId, null, null);
+
+        var (xp, _, _) = await _servicio.RegistrarCiclo(sesion.Id, 1, 999);
+
+        xp.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task FinalizarSesion_DeOtroUsuario_RetornaCeros()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var sesion = await _servicio.IniciarSesion(usuarioId, null, null);
+
+        var (xpTotal, xpBonus) = await _servicio.FinalizarSesion(sesion.Id, 1, 999);
+
+        xpTotal.Should().Be(0);
+        xpBonus.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task CancelarSesion_DeOtroUsuario_NoCancela()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var sesion = await _servicio.IniciarSesion(usuarioId, null, null);
+
+        await _servicio.CancelarSesion(sesion.Id, 999);
+
+        var sesionDb = await _contexto.SesionesPomodoro.FirstAsync(s => s.Id == sesion.Id);
+        sesionDb.FechaFin.Should().BeNull();
+        sesionDb.FueCompletada.Should().BeFalse();
     }
 }
