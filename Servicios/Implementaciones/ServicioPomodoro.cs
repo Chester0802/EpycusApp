@@ -222,11 +222,14 @@ namespace EpycusApp.Servicios.Implementaciones
                 .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta)
                 .ToListAsync();
 
+            var config = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
+            var tiempoEstudio = config?.TiempoEstudioMin ?? 25;
+
             return new EstadisticasPomodoroPeriodo
             {
                 Fecha = desde.ToString("yyyy-MM-dd"),
                 Ciclos = sesiones.Sum(s => s.CiclosCompletados),
-                Minutos = sesiones.Where(s => s.FueCompletada).Sum(s => (int)((s.FechaFin ?? s.FechaInicio) - s.FechaInicio).TotalMinutes),
+                Minutos = sesiones.Sum(s => s.CiclosCompletados * tiempoEstudio),
                 Xp = sesiones.Sum(s => s.XpOtorgado)
             };
         }

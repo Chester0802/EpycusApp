@@ -38,9 +38,9 @@ namespace EpycusApp.Controllers
                     modelo.EstadisticasHoy.CiclosCompletados += s.CiclosCompletados;
                     modelo.EstadisticasHoy.XpGanado += s.XpOtorgado;
                 }
+                var tiempoEstudio = modelo.Configuracion?.TiempoEstudioMin ?? 25;
                 modelo.EstadisticasHoy.MinutosEnfocados = sesionesHoy
-                    .Where(s => s.FueCompletada && s.FechaFin.HasValue)
-                    .Sum(s => (int)(s.FechaFin!.Value - s.FechaInicio).TotalMinutes);
+                    .Sum(s => s.CiclosCompletados * tiempoEstudio);
 
                 modelo.EstadisticasHoy.MisionesCompletadas = await _servicioMisiones.ContarCompletadasHoyAsync(usuarioId);
                 modelo.TareasEnfoque = await _servicioPomodoro.ObtenerTareasEnfoqueAsync(usuarioId);
