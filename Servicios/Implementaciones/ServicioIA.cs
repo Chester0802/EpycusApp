@@ -84,7 +84,7 @@ namespace EpycusApp.Servicios.Implementaciones
             var sugerencias = new List<string>();
 
             var misionesUrgentes = await _contexto.Misiones
-                .CountAsync(m => m.UsuarioId == usuarioId && m.Estado != "Completada"
+                .CountAsync(m => m.UsuarioId == usuarioId && m.Estado != "Completado"
                     && m.FechaLimite.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber <= 2);
             if (misionesUrgentes > 0)
                 sugerencias.Add($"Tengo {misionesUrgentes} mision(es) urgente(s)");
@@ -124,7 +124,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 .CountAsync(s => s.UsuarioId == usuarioId && s.FechaInicio >= DateTime.Today);
 
             var misionesPendientes = await _contexto.Misiones
-                .CountAsync(m => m.UsuarioId == usuarioId && m.Estado != "Completada");
+                .CountAsync(m => m.UsuarioId == usuarioId && m.Estado != "Completado");
 
             var alertas = await _contexto.MensajesIA
                 .Where(m => m.UsuarioId == usuarioId && m.Rol == "alerta_bienestar"
@@ -452,7 +452,7 @@ namespace EpycusApp.Servicios.Implementaciones
             var usuario = await _contexto.Usuarios
                 .Include(u => u.Progreso).ThenInclude(p => p.NivelActual)
                 .Include(u => u.Habitos.Where(h => h.EstaActivo)).ThenInclude(h => h.Categoria)
-                .Include(u => u.Misiones.Where(m => m.Estado != "Completada"))
+                .Include(u => u.Misiones.Where(m => m.Estado != "Completado"))
                 .Include(u => u.LogrosUsuario)
                 .FirstOrDefaultAsync(u => u.Id == usuarioId)
                 ?? throw new KeyNotFoundException($"Usuario {usuarioId} no encontrado.");
@@ -474,7 +474,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
             var misionesCompletadasSemana = await _contexto.Misiones
                 .CountAsync(m => m.UsuarioId == usuarioId
-                              && m.Estado == "Completada"
+                              && m.Estado == "Completado"
                               && m.FechaCompletado != null
                               && m.FechaCompletado >= inicioSemanaDt);
 
