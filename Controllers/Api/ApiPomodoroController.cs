@@ -29,20 +29,13 @@ namespace EpycusApp.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
 
-            if (!ModelState.IsValid)
+            var (exito, sesion, error) = await _servicioPomodoro.IniciarSesionSiNoActiva(usuarioId.Value, req?.HabitoId, req?.MisionId);
+            if (!exito)
             {
-                return BadRequest(RespuestaApi<object>.Fallida("Datos inválidos."));
+                return Conflict(RespuestaApi<object>.Fallida(error ?? "No se pudo iniciar la sesión."));
             }
 
-            var sesionesHoy = await _servicioPomodoro.ObtenerSesionesHoyAsync(usuarioId.Value);
-            var sesionActiva = sesionesHoy.FirstOrDefault(s => !s.FechaFin.HasValue);
-            if (sesionActiva != null)
-            {
-                return Conflict(RespuestaApi<object>.Fallida("Ya tienes una sesión activa. Finalízala o cancélala antes de iniciar una nueva."));
-            }
-
-            var sesion = await _servicioPomodoro.IniciarSesion(usuarioId.Value, req?.HabitoId, req?.MisionId);
-            return Ok(RespuestaApi<PomodoroIniciarResponse>.Exitosa(new PomodoroIniciarResponse { SesionId = sesion.Id, FechaInicio = sesion.FechaInicio }));
+            return Ok(RespuestaApi<PomodoroIniciarResponse>.Exitosa(new PomodoroIniciarResponse { SesionId = sesion!.Id, FechaInicio = sesion.FechaInicio }));
         }
 
         [HttpPost("{sesionId}/ciclo-completado")]
@@ -66,21 +59,14 @@ namespace EpycusApp.Controllers.Api
         [HttpPost("{sesionId}/finalizar")]
         public async Task<IActionResult> Finalizar(int sesionId, [FromBody] CicloCompletadoRequest req)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(RespuestaApi<object>.Fallida("CiclosCompletados debe ser entre 1 y 100."));
-            }
-
             var sesion = await _servicioPomodoro.ObtenerSesion(sesionId);
             if (sesion == null) return NotFound();
             var usuarioId = ObtenerUsuarioId();
             if (usuarioId == null || sesion.UsuarioId != usuarioId.Value)
                 return Unauthorized(RespuestaApi<object>.Fallida("No autorizado"));
 
-            await _servicioPomodoro.FinalizarSesion(sesionId, req?.CiclosCompletados ?? 0);
-
-            var sesionActualizada = await _servicioPomodoro.ObtenerSesion(sesionId);
-            return Ok(RespuestaApi<PomodoroFinalizarResponse>.Exitosa(new PomodoroFinalizarResponse { XpTotal = sesionActualizada?.XpOtorgado ?? 0, SesionGuardada = true }));
+            var (xpTotal, xpBonus) = await _servicioPomodoro.FinalizarSesion(sesionId, req?.CiclosCompletados ?? 0);
+            return Ok(RespuestaApi<PomodoroFinalizarResponse>.Exitosa(new PomodoroFinalizarResponse { XpTotal = xpTotal, SesionGuardada = true, XpBonus = xpBonus }));
         }
 
         [HttpPost("{sesionId}/cancelar")]

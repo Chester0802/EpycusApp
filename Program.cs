@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
 using EpycusApp.Datos;
 using EpycusApp.Datos.Semilla;
 using EpycusApp.Middleware;
@@ -122,6 +123,11 @@ public partial class Program
             });
 
         builder.Services.AddAuthorization();
+
+        builder.Services.Configure<ApiBehaviorOptions>(options =>
+        {
+            options.SuppressModelStateInvalidFilter = true;
+        });
 
         builder.Services.AddControllersWithViews(options =>
         {
