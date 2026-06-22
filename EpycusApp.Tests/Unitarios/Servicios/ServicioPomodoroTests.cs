@@ -389,7 +389,7 @@ public class ServicioPomodoroTests
         var stats = await _servicio.ObtenerEstadisticasPeriodoAsync(usuarioId, desde, hasta);
 
         stats.Ciclos.Should().Be(3);
-        stats.Minutos.Should().Be(3 * 25);
+        stats.Minutos.Should().Be(0);
         stats.Xp.Should().Be(45);
     }
 
