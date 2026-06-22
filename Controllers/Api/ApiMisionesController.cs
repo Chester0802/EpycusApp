@@ -37,7 +37,10 @@ namespace EpycusApp.Controllers.Api
                 FechaLimite = m.FechaLimite.ToString("yyyy-MM-dd"),
                 XpOtorgado = m.XpOtorgado,
                 FechaCreacion = m.FechaCreacion,
-                CategoriaId = m.CategoriaId
+                CategoriaId = m.CategoriaId,
+                SubTareasCount = m.SubTareas?.Count ?? 0,
+                SubTareasCompletadas = m.SubTareas?.Count(st => st.EstaCompletada) ?? 0,
+                TiempoEnfoqueSegundos = m.SubTareas?.Sum(st => st.TiempoEnfoqueSegundos) ?? 0
             }).ToList();
             return Ok(RespuestaApi<List<MisionListaItemResponse>>.Exitosa(resultado));
         }
@@ -121,6 +124,126 @@ namespace EpycusApp.Controllers.Api
             var usuarioId = ObtenerUsuarioId()!.Value;
             await _servicioMisiones.CambiarEstado(id, dto.Estado, usuarioId);
             return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
+        }
+
+        [HttpGet("{misionId}/sub-tareas")]
+        public async Task<IActionResult> ObtenerSubTareas(int misionId)
+        {
+            var usuarioId = ObtenerUsuarioId()!.Value;
+            var subTareas = await _servicioMisiones.ObtenerSubTareas(misionId, usuarioId);
+            var resultado = subTareas.Select(st => new SubTareaResponse
+            {
+                Id = st.Id,
+                Nombre = st.Nombre,
+                Descripcion = st.Descripcion,
+                EstaCompletada = st.EstaCompletada,
+                Orden = st.Orden,
+                TiempoEnfoqueSegundos = st.TiempoEnfoqueSegundos,
+                TiempoEnfoqueFormateado = FormateadorTiempo.FormatearSegundos(st.TiempoEnfoqueSegundos),
+                FechaCreacion = st.FechaCreacion,
+                FechaCompletado = st.FechaCompletado,
+                MisionId = st.MisionId
+            }).ToList();
+            return Ok(RespuestaApi<List<SubTareaResponse>>.Exitosa(resultado));
+        }
+
+        [HttpGet("{misionId}/sub-tareas/{id}")]
+        public async Task<IActionResult> ObtenerSubTarea(int misionId, int id)
+        {
+            var usuarioId = ObtenerUsuarioId()!.Value;
+            var subTarea = await _servicioMisiones.ObtenerSubTareaPorId(id, usuarioId);
+            if (subTarea == null)
+                return NotFound(RespuestaApi<object>.Fallida("Sub-tarea no encontrada"));
+
+            var resultado = new SubTareaResponse
+            {
+                Id = subTarea.Id,
+                Nombre = subTarea.Nombre,
+                Descripcion = subTarea.Descripcion,
+                EstaCompletada = subTarea.EstaCompletada,
+                Orden = subTarea.Orden,
+                TiempoEnfoqueSegundos = subTarea.TiempoEnfoqueSegundos,
+                TiempoEnfoqueFormateado = FormateadorTiempo.FormatearSegundos(subTarea.TiempoEnfoqueSegundos),
+                FechaCreacion = subTarea.FechaCreacion,
+                FechaCompletado = subTarea.FechaCompletado,
+                MisionId = subTarea.MisionId
+            };
+            return Ok(RespuestaApi<SubTareaResponse>.Exitosa(resultado));
+        }
+
+        [HttpPost("{misionId}/sub-tareas")]
+        public async Task<IActionResult> CrearSubTarea(int misionId, [FromBody] CrearSubTareaDto dto)
+        {
+            var usuarioId = ObtenerUsuarioId()!.Value;
+            try
+            {
+                await _servicioMisiones.CrearSubTarea(dto.Nombre, dto.Descripcion, misionId, usuarioId);
+                return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida(ex.Message));
+            }
+        }
+
+        [HttpPut("{misionId}/sub-tareas/{id}")]
+        public async Task<IActionResult> EditarSubTarea(int misionId, int id, [FromBody] EditarSubTareaDto dto)
+        {
+            var usuarioId = ObtenerUsuarioId()!.Value;
+            try
+            {
+                await _servicioMisiones.EditarSubTarea(id, dto.Nombre, dto.Descripcion, dto.Orden, usuarioId);
+                return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida(ex.Message));
+            }
+        }
+
+        [HttpPost("{misionId}/sub-tareas/{id}/completar")]
+        public async Task<IActionResult> CompletarSubTarea(int misionId, int id)
+        {
+            var usuarioId = ObtenerUsuarioId()!.Value;
+            try
+            {
+                await _servicioMisiones.CompletarSubTarea(id, usuarioId);
+                return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida(ex.Message));
+            }
+        }
+
+        [HttpPost("{misionId}/sub-tareas/{id}/descompletar")]
+        public async Task<IActionResult> DescompletarSubTarea(int misionId, int id)
+        {
+            var usuarioId = ObtenerUsuarioId()!.Value;
+            try
+            {
+                await _servicioMisiones.DescompletarSubTarea(id, usuarioId);
+                return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida(ex.Message));
+            }
+        }
+
+        [HttpDelete("{misionId}/sub-tareas/{id}")]
+        public async Task<IActionResult> EliminarSubTarea(int misionId, int id)
+        {
+            var usuarioId = ObtenerUsuarioId()!.Value;
+            try
+            {
+                await _servicioMisiones.EliminarSubTarea(id, usuarioId);
+                return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(RespuestaApi<object>.Fallida(ex.Message));
+            }
         }
 
         [HttpGet("categorias")]

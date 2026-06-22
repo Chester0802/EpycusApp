@@ -5,9 +5,6 @@ using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
-// Servicio de Misiones: implementación de la lógica de negocio para CRUD y cambios de estado
-// Todas las variables, métodos y comentarios en español segÃºn convenciones del proyecto
-
 namespace EpycusApp.Servicios.Implementaciones
 {
     public class ServicioMisiones : IServicioMisiones
@@ -27,6 +24,7 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             return await _contexto.Misiones
                 .Include(m => m.Categoria)
+                .Include(m => m.SubTareas)
                 .Where(m => m.UsuarioId == usuarioId)
                 .OrderBy(m => m.Estado == "Completado" ? 1 : 0)
                 .ThenBy(m => m.FechaLimite)
@@ -37,6 +35,7 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             return await _contexto.Misiones
                 .Include(m => m.Categoria)
+                .Include(m => m.SubTareas)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
@@ -63,10 +62,10 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task EditarMision(EditarMisionViewModel modelo, int usuarioId)
         {
             var mision = await _contexto.Misiones.FirstOrDefaultAsync(m => m.Id == modelo.Id && m.UsuarioId == usuarioId);
-            if (mision == null) throw new Exception("Misión no encontrada o no autorizada.");
+            if (mision == null) throw new Exception("Misi\u00f3n no encontrada o no autorizada.");
 
             if (mision.Estado == "Completado" || mision.Estado == "Fallido")
-                throw new Exception("No se puede editar una misiÃ³n que ya está completada o fallida.");
+                throw new Exception("No se puede editar una misi\u00f3n que ya est\u00e1 completada o fallida.");
 
             mision.Nombre = modelo.Nombre;
             mision.Descripcion = modelo.Descripcion;
@@ -91,7 +90,9 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<(bool Exito, int XpGanado)> CompletarMision(int id, int usuarioId)
         {
-            var mision = await _contexto.Misiones.FirstOrDefaultAsync(m => m.Id == id && m.UsuarioId == usuarioId);
+            var mision = await _contexto.Misiones
+                .Include(m => m.SubTareas)
+                .FirstOrDefaultAsync(m => m.Id == id && m.UsuarioId == usuarioId);
             if (mision == null) return (false, 0);
 
             if (mision.Estado != "Pendiente" && mision.Estado != "EnProgreso")
@@ -102,6 +103,12 @@ namespace EpycusApp.Servicios.Implementaciones
             mision.Estado = "Completado";
             mision.FechaCompletado = DateTime.UtcNow;
             mision.XpOtorgado = xp;
+
+            foreach (var st in mision.SubTareas.Where(st => !st.EstaCompletada))
+            {
+                st.EstaCompletada = true;
+                st.FechaCompletado = DateTime.UtcNow;
+            }
 
             await _contexto.SaveChangesAsync();
             await _servicioGamificacion.SumarXP(usuarioId, xp);
@@ -139,6 +146,122 @@ namespace EpycusApp.Servicios.Implementaciones
                     && m.FechaCompletado != null
                     && m.FechaCompletado.Value.Date == hoy)
                 .CountAsync();
+        }
+
+        public async Task<List<SubTarea>> ObtenerSubTareas(int misionId, int usuarioId)
+        {
+            return await _contexto.SubTareas
+                .Where(st => st.MisionId == misionId && st.Mision.UsuarioId == usuarioId)
+                .OrderBy(st => st.Orden)
+                .ThenBy(st => st.FechaCreacion)
+                .ToListAsync();
+        }
+
+        public async Task<SubTarea?> ObtenerSubTareaPorId(int id, int usuarioId)
+        {
+            return await _contexto.SubTareas
+                .Include(st => st.Mision)
+                .FirstOrDefaultAsync(st => st.Id == id && st.Mision.UsuarioId == usuarioId);
+        }
+
+        public async Task CrearSubTarea(string nombre, string? descripcion, int misionId, int usuarioId)
+        {
+            var mision = await _contexto.Misiones.FirstOrDefaultAsync(m => m.Id == misionId && m.UsuarioId == usuarioId);
+            if (mision == null) throw new Exception("Misi\u00f3n no encontrada o no autorizada.");
+            if (mision.Estado == "Completado" || mision.Estado == "Fallido")
+                throw new Exception("No se pueden agregar sub-tareas a una misi\u00f3n completada o fallida.");
+
+            var maxOrden = await _contexto.SubTareas
+                .Where(st => st.MisionId == misionId)
+                .MaxAsync(st => (int?)st.Orden) ?? -1;
+
+            var subTarea = new SubTarea
+            {
+                Nombre = nombre,
+                Descripcion = descripcion,
+                Orden = maxOrden + 1,
+                MisionId = misionId,
+                FechaCreacion = DateTime.UtcNow
+            };
+
+            _contexto.SubTareas.Add(subTarea);
+            await _contexto.SaveChangesAsync();
+        }
+
+        public async Task EditarSubTarea(int id, string nombre, string? descripcion, int? orden, int usuarioId)
+        {
+            var subTarea = await _contexto.SubTareas
+                .Include(st => st.Mision)
+                .FirstOrDefaultAsync(st => st.Id == id && st.Mision.UsuarioId == usuarioId);
+            if (subTarea == null) throw new Exception("Sub-tarea no encontrada o no autorizada.");
+            if (subTarea.Mision.Estado == "Completado" || subTarea.Mision.Estado == "Fallido")
+                throw new Exception("No se puede editar una sub-tarea de una misi\u00f3n completada o fallida.");
+
+            subTarea.Nombre = nombre;
+            subTarea.Descripcion = descripcion;
+            if (orden.HasValue) subTarea.Orden = orden.Value;
+
+            await _contexto.SaveChangesAsync();
+        }
+
+        public async Task CompletarSubTarea(int id, int usuarioId)
+        {
+            var subTarea = await _contexto.SubTareas
+                .Include(st => st.Mision)
+                .ThenInclude(m => m.SubTareas)
+                .FirstOrDefaultAsync(st => st.Id == id && st.Mision.UsuarioId == usuarioId);
+            if (subTarea == null) throw new Exception("Sub-tarea no encontrada o no autorizada.");
+
+            subTarea.EstaCompletada = true;
+            subTarea.FechaCompletado = DateTime.UtcNow;
+
+            if (subTarea.Mision.SubTareas.All(st => st.EstaCompletada))
+            {
+                var (exito, _) = await CompletarMision(subTarea.MisionId, usuarioId);
+                if (exito) return;
+            }
+
+            await _contexto.SaveChangesAsync();
+        }
+
+        public async Task DescompletarSubTarea(int id, int usuarioId)
+        {
+            var subTarea = await _contexto.SubTareas
+                .Include(st => st.Mision)
+                .FirstOrDefaultAsync(st => st.Id == id && st.Mision.UsuarioId == usuarioId);
+            if (subTarea == null) throw new Exception("Sub-tarea no encontrada o no autorizada.");
+
+            subTarea.EstaCompletada = false;
+            subTarea.FechaCompletado = null;
+
+            await _contexto.SaveChangesAsync();
+        }
+
+        public async Task EliminarSubTarea(int id, int usuarioId)
+        {
+            var subTarea = await _contexto.SubTareas
+                .Include(st => st.Mision)
+                .FirstOrDefaultAsync(st => st.Id == id && st.Mision.UsuarioId == usuarioId);
+            if (subTarea == null) throw new Exception("Sub-tarea no encontrada o no autorizada.");
+            if (subTarea.Mision.Estado == "Completado" || subTarea.Mision.Estado == "Fallido")
+                throw new Exception("No se puede eliminar una sub-tarea de una misi\u00f3n completada o fallida.");
+
+            _contexto.SubTareas.Remove(subTarea);
+            await _contexto.SaveChangesAsync();
+        }
+
+        public async Task<int> ObtenerTiempoEnfoqueSubTarea(int id, int usuarioId)
+        {
+            var subTarea = await _contexto.SubTareas
+                .FirstOrDefaultAsync(st => st.Id == id && st.Mision.UsuarioId == usuarioId);
+            return subTarea?.TiempoEnfoqueSegundos ?? 0;
+        }
+
+        public async Task<int> ObtenerTiempoEnfoqueMision(int misionId, int usuarioId)
+        {
+            return await _contexto.SubTareas
+                .Where(st => st.MisionId == misionId && st.Mision.UsuarioId == usuarioId)
+                .SumAsync(st => st.TiempoEnfoqueSegundos);
         }
     }
 }

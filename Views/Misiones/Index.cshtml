@@ -33,8 +33,11 @@
                 _ => "bg-light"
             };
 
+            var subCount = mision.SubTareas?.Count ?? 0;
+            var subDone = mision.SubTareas?.Count(st => st.EstaCompletada) ?? 0;
+
             <div class="col">
-                <div class="ep-card h-100">
+                <div class="ep-card h-100" data-mision-id="@mision.Id">
                     <div class="d-flex justify-content-between mb-3">
                         <span class="badge @badgeEstado">@mision.Estado</span>
                         <span class="badge bg-@colorPrioridad" style="color: var(--text-inverse)">@mision.Prioridad</span>
@@ -46,7 +49,26 @@
                         <i class="bi bi-calendar-event"></i>
                         <span>Límite: @mision.FechaLimite.ToString("dd/MM/yyyy")</span>
                     </div>
-                        <div class="d-flex justify-content-between mb-2">
+                    @if (subCount > 0)
+                    {
+                        <div class="mb-2">
+                            <button class="btn btn-sm btn-link text-decoration-none p-0 subtarea-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#subtask-@mision.Id">
+                                <i class="bi bi-list-check me-1"></i> <span class="subtarea-count">@subDone/@subCount</span> sub-tareas
+                            </button>
+                        </div>
+                    }
+                    <div class="collapse @(subCount > 0 ? "" : "show")" id="subtask-@mision.Id">
+                        <div class="subtarea-list mb-2" data-mision-id="@mision.Id">
+                        </div>
+                        @if (mision.Estado != "Completado" && mision.Estado != "Fallido")
+                        {
+                            <div class="input-group input-group-sm mb-2">
+                                <input type="text" class="form-control form-control-sm subtarea-input" placeholder="Nueva sub-tarea..." />
+                                <button class="btn btn-ep-outline btn-sm subtarea-add" type="button">+</button>
+                            </div>
+                        }
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
                         @if (mision.Estado == "Pendiente")
                         {
                             <form asp-action="CambiarEstado" method="post" class="d-inline">
@@ -78,6 +100,140 @@
         document.addEventListener('DOMContentLoaded', function() {
             var spinner = document.getElementById('ep-spinner');
             if (spinner) spinner.style.display = 'none';
+
+            cargarTodasSubTareas();
         });
+
+        function cargarTodasSubTareas() {
+            document.querySelectorAll('.subtarea-list').forEach(function(list) {
+                var misionId = list.getAttribute('data-mision-id');
+                if (misionId) cargarSubTareas(misionId);
+            });
+        }
+
+        function cargarSubTareas(misionId) {
+            fetch('/api/misiones/' + misionId + '/sub-tareas')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.datos) {
+                        renderizarSubTareas(misionId, data.datos);
+                    }
+                })
+                .catch(function() {});
+        }
+
+        function renderizarSubTareas(misionId, subTareas) {
+            var list = document.querySelector('.subtarea-list[data-mision-id="' + misionId + '"]');
+            if (!list) return;
+            list.innerHTML = '';
+            var done = 0;
+            subTareas.forEach(function(st) {
+                if (st.estaCompletada) done++;
+                var item = document.createElement('div');
+                item.className = 'd-flex align-items-center gap-2 py-1 subtarea-item';
+                item.dataset.id = st.id;
+
+                var check = document.createElement('input');
+                check.type = 'checkbox';
+                check.className = 'form-check-input subtarea-check';
+                check.checked = st.estaCompletada;
+                check.addEventListener('change', function() {
+                    if (this.checked) completarSubTarea(misionId, st.id);
+                    else descompletarSubTarea(misionId, st.id);
+                });
+
+                var label = document.createElement('span');
+                label.className = 'flex-grow-1 small' + (st.estaCompletada ? ' text-decoration-line-through text-secondary' : '');
+                label.textContent = st.nombre;
+
+                var tiempo = document.createElement('small');
+                tiempo.className = 'text-secondary';
+                tiempo.textContent = st.tiempoEnfoqueFormateado || '0s';
+
+                var delBtn = document.createElement('button');
+                delBtn.className = 'btn btn-sm btn-link text-danger p-0';
+                delBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                delBtn.addEventListener('click', function() {
+                    eliminarSubTarea(misionId, st.id);
+                });
+
+                item.appendChild(check);
+                item.appendChild(label);
+                item.appendChild(tiempo);
+                if (subTareas.length > 0) item.appendChild(delBtn);
+                list.appendChild(item);
+            });
+
+            var card = list.closest('.ep-card');
+            if (card) {
+                var toggle = card.querySelector('.subtarea-toggle');
+                if (toggle) {
+                    toggle.querySelector('.subtarea-count').textContent = done + '/' + subTareas.length;
+                }
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            var addBtn = e.target.closest('.subtarea-add');
+            if (addBtn) {
+                var container = addBtn.closest('.collapse, .ep-card');
+                var input = container.querySelector('.subtarea-input');
+                var list = container.querySelector('.subtarea-list');
+                var misionId = list ? list.getAttribute('data-mision-id') : null;
+                if (input && misionId && input.value.trim()) {
+                    crearSubTarea(misionId, input.value.trim());
+                    input.value = '';
+                }
+            }
+        });
+
+        function crearSubTarea(misionId, nombre) {
+            fetch('/api/misiones/' + misionId + '/sub-tareas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre: nombre, descripcion: null })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data && data.exito !== false) {
+                    cargarSubTareas(misionId);
+                }
+            })
+            .catch(function() {});
+        }
+
+        function completarSubTarea(misionId, id) {
+            fetch('/api/misiones/' + misionId + '/sub-tareas/' + id + '/completar', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.exito !== false) {
+                        cargarSubTareas(misionId);
+                    }
+                })
+                .catch(function() {});
+        }
+
+        function descompletarSubTarea(misionId, id) {
+            fetch('/api/misiones/' + misionId + '/sub-tareas/' + id + '/descompletar', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.exito !== false) {
+                        cargarSubTareas(misionId);
+                    }
+                })
+                .catch(function() {});
+        }
+
+        function eliminarSubTarea(misionId, id) {
+            if (!confirm('Eliminar esta sub-tarea?')) return;
+            fetch('/api/misiones/' + misionId + '/sub-tareas/' + id, { method: 'DELETE' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.exito !== false) {
+                        cargarSubTareas(misionId);
+                    }
+                })
+                .catch(function() {});
+        }
     </script>
 }

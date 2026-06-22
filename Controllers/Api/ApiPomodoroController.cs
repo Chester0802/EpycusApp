@@ -30,7 +30,7 @@ namespace EpycusApp.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
             }
 
-            var (exito, sesion, error) = await _servicioPomodoro.IniciarSesionSiNoActiva(usuarioId.Value, req?.HabitoId, req?.MisionId);
+            var (exito, sesion, error) = await _servicioPomodoro.IniciarSesionSiNoActiva(usuarioId.Value, req?.HabitoId, req?.MisionId, req?.SubTareaId);
             if (!exito)
             {
                 return Conflict(RespuestaApi<object>.Fallida(error ?? "No se pudo iniciar la sesión."));
@@ -230,6 +230,31 @@ namespace EpycusApp.Controllers.Api
 
             var stats = await _servicioPomodoro.ObtenerEstadisticasSemanalesAsync(usuarioId.Value);
             return Ok(RespuestaApi<List<EstadisticasPomodoroPeriodo>>.Exitosa(stats));
+        }
+
+        [HttpGet("mision/{misionId}/sub-tareas")]
+        public async Task<IActionResult> ObtenerSubTareasDeMision(int misionId)
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            var subTareas = await _servicioPomodoro.ObtenerSubTareasDisponibles(usuarioId.Value, misionId);
+            var resultado = subTareas.Select(st => new SubTareaResponse
+            {
+                Id = st.Id,
+                Nombre = st.Nombre,
+                Descripcion = st.Descripcion,
+                EstaCompletada = st.EstaCompletada,
+                Orden = st.Orden,
+                TiempoEnfoqueSegundos = st.TiempoEnfoqueSegundos,
+                TiempoEnfoqueFormateado = FormateadorTiempo.FormatearSegundos(st.TiempoEnfoqueSegundos),
+                FechaCreacion = st.FechaCreacion,
+                FechaCompletado = st.FechaCompletado,
+                MisionId = st.MisionId
+            }).ToList();
+
+            return Ok(RespuestaApi<List<SubTareaResponse>>.Exitosa(resultado));
         }
 
         [HttpGet("estadisticas-avanzadas")]

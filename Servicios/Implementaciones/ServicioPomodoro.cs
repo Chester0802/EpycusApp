@@ -33,20 +33,29 @@ namespace EpycusApp.Servicios.Implementaciones
             _logger = logger;
         }
 
-        public async Task<SesionPomodoro> IniciarSesion(int usuarioId, int? habitoId, int? misionId)
+        public async Task<SesionPomodoro> IniciarSesion(int usuarioId, int? habitoId, int? misionId, int? subTareaId = null)
         {
             if (habitoId.HasValue)
             {
                 var habito = await _context.Habitos.FirstOrDefaultAsync(h => h.Id == habitoId && h.UsuarioId == usuarioId);
                 if (habito is null)
-                    throw new InvalidOperationException("El hábito especificado no existe o no te pertenece.");
+                    throw new InvalidOperationException("El h\u00e1bito especificado no existe o no te pertenece.");
             }
 
             if (misionId.HasValue)
             {
                 var mision = await _context.Misiones.FirstOrDefaultAsync(m => m.Id == misionId && m.UsuarioId == usuarioId);
                 if (mision is null)
-                    throw new InvalidOperationException("La misión especificada no existe o no te pertenece.");
+                    throw new InvalidOperationException("La misi\u00f3n especificada no existe o no te pertenece.");
+            }
+
+            if (subTareaId.HasValue)
+            {
+                var subTarea = await _context.SubTareas
+                    .Include(st => st.Mision)
+                    .FirstOrDefaultAsync(st => st.Id == subTareaId && st.Mision.UsuarioId == usuarioId);
+                if (subTarea is null)
+                    throw new InvalidOperationException("La sub-tarea especificada no existe o no te pertenece.");
             }
 
             var sesion = new SesionPomodoro
@@ -55,6 +64,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 UsuarioId = usuarioId,
                 HabitoId = habitoId,
                 MisionId = misionId,
+                SubTareaId = subTareaId,
                 CiclosCompletados = 0,
                 XpOtorgado = 0,
                 FueCompletada = false,
@@ -66,16 +76,16 @@ namespace EpycusApp.Servicios.Implementaciones
             return sesion;
         }
 
-        public async Task<(bool Exito, SesionPomodoro? Sesion, string? Error)> IniciarSesionSiNoActiva(int usuarioId, int? habitoId, int? misionId)
+        public async Task<(bool Exito, SesionPomodoro? Sesion, string? Error)> IniciarSesionSiNoActiva(int usuarioId, int? habitoId, int? misionId, int? subTareaId = null)
         {
             var sesionesHoy = await ObtenerSesionesHoyAsync(usuarioId);
             var activa = sesionesHoy.FirstOrDefault(s => !s.FechaFin.HasValue);
             if (activa != null)
-                return (false, null, "Ya tienes una sesión activa. Finalízala o cancélala antes de iniciar una nueva.");
+                return (false, null, "Ya tienes una sesi\u00f3n activa. Final\u00edzala o canc\u00e9lala antes de iniciar una nueva.");
 
             try
             {
-                var sesion = await IniciarSesion(usuarioId, habitoId, misionId);
+                var sesion = await IniciarSesion(usuarioId, habitoId, misionId, subTareaId);
                 return (true, sesion, null);
             }
             catch (InvalidOperationException ex)
@@ -105,6 +115,15 @@ namespace EpycusApp.Servicios.Implementaciones
                 config = new ConfiguracionPomodoro { UsuarioId = sesion.UsuarioId };
             }
 
+            if (sesion.SubTareaId.HasValue)
+            {
+                var subTarea = await _context.SubTareas.FirstOrDefaultAsync(st => st.Id == sesion.SubTareaId);
+                if (subTarea != null)
+                {
+                    subTarea.TiempoEnfoqueSegundos += config.TiempoEstudioMin * 60;
+                }
+            }
+
             bool sugerir = config.CiclosAntesDescansoLargo > 0 && (ciclosCompletados % config.CiclosAntesDescansoLargo == 0);
 
             var pausaActiva = _servicioBienestar.RecomendacionPausaActiva(ciclosCompletados);
@@ -132,6 +151,22 @@ namespace EpycusApp.Servicios.Implementaciones
 
             int xpBonus = ciclosCompletados > 0 ? ciclosCompletados * 5 + 10 : 0;
             sesion.XpOtorgado += xpBonus;
+
+            if (sesion.SubTareaId.HasValue)
+            {
+                var subTarea = await _context.SubTareas.FirstOrDefaultAsync(st => st.Id == sesion.SubTareaId);
+                if (subTarea != null)
+                {
+                    var config = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == sesion.UsuarioId);
+                    var tiempoEstudio = config?.TiempoEstudioMin ?? 25;
+                    var segundosReales = (int)(sesion.FechaFin.Value - sesion.FechaInicio).TotalSeconds;
+                    var segundosYaRegistrados = sesion.CiclosCompletados * tiempoEstudio * 60;
+                    if (segundosReales > segundosYaRegistrados)
+                    {
+                        subTarea.TiempoEnfoqueSegundos += segundosReales - segundosYaRegistrados;
+                    }
+                }
+            }
 
             await _context.SaveChangesAsync();
 
@@ -403,6 +438,17 @@ namespace EpycusApp.Servicios.Implementaciones
                 PorMes = porMes,
                 HeatmapHoras = heatmap
             };
+        }
+
+        public async Task<List<SubTarea>> ObtenerSubTareasDisponibles(int usuarioId, int misionId)
+        {
+            var mision = await _context.Misiones
+                .Include(m => m.SubTareas)
+                .FirstOrDefaultAsync(m => m.Id == misionId && m.UsuarioId == usuarioId);
+            return mision?.SubTareas
+                .OrderBy(st => st.Orden)
+                .ThenBy(st => st.FechaCreacion)
+                .ToList() ?? new();
         }
 
         public async Task<List<TareaPomodoro>> ObtenerTareasEnfoqueAsync(int usuarioId)

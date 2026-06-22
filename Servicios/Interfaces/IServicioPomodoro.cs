@@ -6,8 +6,9 @@ namespace EpycusApp.Servicios.Interfaces
 {
     public interface IServicioPomodoro
     {
-        Task<SesionPomodoro> IniciarSesion(int usuarioId, int? habitoId, int? misionId);
-        Task<(bool Exito, SesionPomodoro? Sesion, string? Error)> IniciarSesionSiNoActiva(int usuarioId, int? habitoId, int? misionId);
+        Task<SesionPomodoro> IniciarSesion(int usuarioId, int? habitoId, int? misionId, int? subTareaId = null);
+        Task<(bool Exito, SesionPomodoro? Sesion, string? Error)> IniciarSesionSiNoActiva(int usuarioId, int? habitoId, int? misionId, int? subTareaId = null);
+        Task<List<SubTarea>> ObtenerSubTareasDisponibles(int usuarioId, int misionId);
         Task<(int XpGanado, bool SugerirDescanso, string? PausaActiva)> RegistrarCiclo(int sesionId, int ciclosCompletados, int usuarioId);
         Task<(int XpTotal, int XpBonus)> FinalizarSesion(int sesionId, int ciclosCompletados, int usuarioId);
         Task CancelarSesion(int sesionId, int usuarioId);
