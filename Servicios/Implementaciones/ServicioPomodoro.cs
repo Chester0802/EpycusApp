@@ -284,7 +284,9 @@ namespace EpycusApp.Servicios.Implementaciones
             {
                 Fecha = desde.ToString("yyyy-MM-dd"),
                 Ciclos = sesiones.Sum(s => s.CiclosCompletados),
-                Minutos = sesiones.Sum(s => s.CiclosCompletados * tiempoEstudio),
+                Minutos = sesiones.Sum(s => s.FechaFin.HasValue
+                    ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
+                    : s.CiclosCompletados * tiempoEstudio),
                 Xp = sesiones.Sum(s => s.XpOtorgado)
             };
         }
@@ -314,7 +316,9 @@ namespace EpycusApp.Servicios.Implementaciones
                 {
                     Fecha = dia.ToString("ddd"),
                     Ciclos = delDia.Sum(s => s.CiclosCompletados),
-                    Minutos = delDia.Sum(s => s.CiclosCompletados * tiempoEstudio),
+                    Minutos = delDia.Sum(s => s.FechaFin.HasValue
+                        ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
+                        : s.CiclosCompletados * tiempoEstudio),
                     Xp = delDia.Sum(s => s.XpOtorgado)
                 });
             }
