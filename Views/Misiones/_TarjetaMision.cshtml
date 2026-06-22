@@ -1,0 +1,149 @@
+@model EpycusApp.Models.Entidades.Mision
+
+@{
+    var colorPrioridad = Model.Prioridad switch
+    {
+        "Alta" => "danger",
+        "Media" => "primary",
+        "Baja" => "secondary",
+        _ => "secondary"
+    };
+    var iconoPrioridad = Model.Prioridad switch
+    {
+        "Alta" => "bi-flag-fill",
+        "Media" => "bi-flag",
+        "Baja" => "bi-flag",
+        _ => "bi-flag"
+    };
+
+    var badgeEstado = Model.Estado switch
+    {
+        "Pendiente" => "bg-secondary",
+        "EnProgreso" => "bg-info",
+        "Completado" => "bg-success",
+        "Fallido" => "bg-danger",
+        _ => "bg-light"
+    };
+
+    var subCount = Model.SubTareas?.Count ?? 0;
+    var subDone = Model.SubTareas?.Count(st => st.EstaCompletada) ?? 0;
+    var pctCompletado = subCount > 0 ? (int)((double)subDone / subCount * 100) : 0;
+    var esCompletada = Model.Estado == "Completado" || Model.Estado == "Fallido";
+}
+
+<div class="col">
+    <div class="ep-card h-100 @(esCompletada ? "opacity-75" : "")" data-mision-id="@Model.Id">
+        <div class="d-flex justify-content-between mb-2">
+            <span class="badge @badgeEstado">@Model.Estado</span>
+            <span class="badge bg-@colorPrioridad" style="color: var(--text-inverse)">
+                <i class="bi @iconoPrioridad me-1"></i>@Model.Prioridad
+            </span>
+        </div>
+
+        <h5 class="card-title fw-bold mb-1">@Model.Nombre</h5>
+        <p class="text-muted small mb-2">@Model.Categoria?.Nombre</p>
+
+        @if (!string.IsNullOrEmpty(Model.Descripcion))
+        {
+            <p class="card-text small text-secondary">@Model.Descripcion</p>
+        }
+
+        <div class="d-flex align-items-center gap-2 text-muted small mb-2">
+            <i class="bi bi-calendar-event"></i>
+            <span>Límite: @Model.FechaLimite.ToString("dd/MM/yyyy")</span>
+            @if (Model.ConPomodoro)
+            {
+                <span class="badge bg-opacity-10 text-primary border border-primary" style="font-size:0.6rem;">
+                    <i class="bi bi-clock-history"></i> Pomodoro
+                </span>
+            }
+        </div>
+
+        @if (subCount > 0)
+        {
+            <div class="mb-1">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-sm btn-link text-decoration-none p-0 subtarea-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#subtask-@Model.Id">
+                        <i class="bi bi-list-check me-1"></i>
+                        <span class="subtarea-count">@subDone/@subCount</span> sub-tareas
+                        <i class="bi bi-chevron-down ms-1 small"></i>
+                    </button>
+                    <small class="text-secondary">@pctCompletado%</small>
+                </div>
+                <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-success subtarea-progress-bar" role="progressbar"
+                         style="width: @pctCompletado%" aria-valuenow="@subDone" aria-valuemin="0" aria-valuemax="@subCount"></div>
+                </div>
+            </div>
+        }
+
+        <div class="collapse @(subCount > 0 ? "" : "show")" id="subtask-@Model.Id">
+            <div class="subtarea-list my-2 p-2 rounded" style="background: var(--ep-superficie-2);" data-mision-id="@Model.Id"></div>
+
+            @if (!esCompletada)
+            {
+                <div class="input-group input-group-sm mb-2">
+                    <input type="text" class="form-control form-control-sm subtarea-input" placeholder="Nueva sub-tarea..." maxlength="200" />
+                    <button class="btn btn-ep-outline btn-sm subtarea-add" type="button">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+            }
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary">
+            <div>
+                @if (Model.Estado == "Pendiente")
+                {
+                    <form asp-action="CambiarEstado" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="estado" value="EnProgreso" />
+                        <button type="submit" class="btn btn-ep-outline btn-sm">
+                            <i class="bi bi-play-fill me-1"></i>Iniciar
+                        </button>
+                    </form>
+                }
+                else if (Model.Estado == "EnProgreso")
+                {
+                    <form asp-action="Completar" method="post" class="d-inline" onsubmit="return confirmarCompletar(this)">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-ep btn-sm">
+                            <i class="bi bi-check-lg me-1"></i>Completar
+                        </button>
+                    </form>
+                }
+                else if (Model.Estado == "Completado")
+                {
+                    <form asp-action="Revertir" method="post" class="d-inline" onsubmit="return confirmarRevertir()">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-warning btn-sm">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Revertir
+                        </button>
+                    </form>
+                }
+            </div>
+
+            <div>
+                @if (!esCompletada)
+                {
+                    <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-ep-outline btn-sm" title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                }
+                <form asp-action="Eliminar" method="post" class="d-inline" onsubmit="return confirm('\u00bfEliminar esta misi\u00f3n?')">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-ep-outline btn-sm text-danger" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        @if (Model.Estado == "Completado" && Model.XpOtorgado > 0)
+        {
+            <div class="mt-2 text-center">
+                <small class="text-success"><i class="bi bi-stars me-1"></i>+@Model.XpOtorgado XP</small>
+            </div>
+        }
+    </div>
+</div>

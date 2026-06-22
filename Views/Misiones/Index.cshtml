@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Misiones";
+    var activas = Model.Where(m => m.Estado != "Completado" && m.Estado != "Fallido");
+    var completadas = Model.Where(m => m.Estado == "Completado" || m.Estado == "Fallido");
 }
 
 <div class="mb-4">
@@ -10,99 +12,55 @@
     <a asp-action="Crear" class="btn btn-ep mt-3"><i class="bi bi-plus-lg me-2"></i>Nueva misión</a>
 </div>
 
-    <div id="ep-spinner" class="ep-spinner-overlay"><div class="ep-spinner"></div><span class="ms-2">Cargando misiones...</span></div>
-    <partial name="_MensajeFeedback" />
+<div id="ep-spinner" class="ep-spinner-overlay"><div class="ep-spinner"></div><span class="ms-2">Cargando misiones...</span></div>
+<partial name="_MensajeFeedback" />
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        @foreach (var mision in Model)
+@if (activas.Any())
+{
+    <h5 class="fw-bold mb-3 text-secondary"><i class="bi bi-lightning me-2"></i>Activas</h5>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+        @foreach (var mision in activas)
         {
-            var colorPrioridad = mision.Prioridad switch
-            {
-                "Alta" => "danger",
-                "Media" => "warning",
-                "Baja" => "success",
-                _ => "secondary"
-            };
-
-            var badgeEstado = mision.Estado switch
-            {
-                "Pendiente" => "bg-secondary",
-                "EnProgreso" => "bg-primary",
-                "Completado" => "bg-success",
-                "Fallido" => "bg-danger",
-                _ => "bg-light"
-            };
-
-            var subCount = mision.SubTareas?.Count ?? 0;
-            var subDone = mision.SubTareas?.Count(st => st.EstaCompletada) ?? 0;
-
-            <div class="col">
-                <div class="ep-card h-100" data-mision-id="@mision.Id">
-                    <div class="d-flex justify-content-between mb-3">
-                        <span class="badge @badgeEstado">@mision.Estado</span>
-                        <span class="badge bg-@colorPrioridad" style="color: var(--text-inverse)">@mision.Prioridad</span>
-                    </div>
-                    <h5 class="card-title fw-bold mb-1">@mision.Nombre</h5>
-                    <p class="text-muted small mb-2">@mision.Categoria?.Nombre</p>
-                    <p class="card-text">@mision.Descripcion</p>
-                    <div class="d-flex align-items-center gap-2 text-muted small mb-3">
-                        <i class="bi bi-calendar-event"></i>
-                        <span>Límite: @mision.FechaLimite.ToString("dd/MM/yyyy")</span>
-                    </div>
-                    @if (subCount > 0)
-                    {
-                        <div class="mb-2">
-                            <button class="btn btn-sm btn-link text-decoration-none p-0 subtarea-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#subtask-@mision.Id">
-                                <i class="bi bi-list-check me-1"></i> <span class="subtarea-count">@subDone/@subCount</span> sub-tareas
-                            </button>
-                        </div>
-                    }
-                    <div class="collapse @(subCount > 0 ? "" : "show")" id="subtask-@mision.Id">
-                        <div class="subtarea-list mb-2" data-mision-id="@mision.Id">
-                        </div>
-                        @if (mision.Estado != "Completado" && mision.Estado != "Fallido")
-                        {
-                            <div class="input-group input-group-sm mb-2">
-                                <input type="text" class="form-control form-control-sm subtarea-input" placeholder="Nueva sub-tarea..." />
-                                <button class="btn btn-ep-outline btn-sm subtarea-add" type="button">+</button>
-                            </div>
-                        }
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        @if (mision.Estado == "Pendiente")
-                        {
-                            <form asp-action="CambiarEstado" method="post" class="d-inline">
-                                <input type="hidden" name="id" value="@mision.Id" />
-                                <input type="hidden" name="estado" value="EnProgreso" />
-                                <button type="submit" class="btn btn-ep-outline btn-sm">Iniciar</button>
-                            </form>
-                        }
-                        else if (mision.Estado == "EnProgreso")
-                        {
-                            <form asp-action="Completar" method="post" class="d-inline">
-                                <input type="hidden" name="id" value="@mision.Id" />
-                                <button type="submit" class="btn btn-ep btn-sm">Completar</button>
-                            </form>
-                        }
-
-                        @if (mision.Estado != "Completado" && mision.Estado != "Fallido")
-                        {
-                            <a asp-action="Editar" asp-route-id="@mision.Id" class="btn btn-ep-outline btn-sm">Editar</a>
-                        }
-                    </div>
-                </div>
-            </div>
+            @await Html.PartialAsync("_TarjetaMision", mision)
         }
     </div>
+}
+
+@if (completadas.Any())
+{
+    <h5 class="fw-bold mb-3 text-secondary">
+        <i class="bi bi-archive me-2"></i>Completadas / Fallidas
+        <button class="btn btn-sm btn-link text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#completadasCollapse">
+            <i class="bi bi-chevron-down"></i>
+        </button>
+    </h5>
+    <div class="collapse show" id="completadasCollapse">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var mision in completadas)
+            {
+                @await Html.PartialAsync("_TarjetaMision", mision)
+            }
+        </div>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <i class="bi bi-inbox fs-1 text-secondary"></i>
+        <p class="text-secondary mt-2">No tienes misiones aún. Crea tu primera misión.</p>
+    </div>
+}
 
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var spinner = document.getElementById('ep-spinner');
             if (spinner) spinner.style.display = 'none';
-
             cargarTodasSubTareas();
         });
+
+        var editandoSubTareaId = null;
 
         function cargarTodasSubTareas() {
             document.querySelectorAll('.subtarea-list').forEach(function(list) {
@@ -115,9 +73,7 @@
             fetch('/api/misiones/' + misionId + '/sub-tareas')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    if (data && data.datos) {
-                        renderizarSubTareas(misionId, data.datos);
-                    }
+                    if (data && data.datos) renderizarSubTareas(misionId, data.datos);
                 })
                 .catch(function() {});
         }
@@ -127,10 +83,11 @@
             if (!list) return;
             list.innerHTML = '';
             var done = 0;
+
             subTareas.forEach(function(st) {
                 if (st.estaCompletada) done++;
                 var item = document.createElement('div');
-                item.className = 'd-flex align-items-center gap-2 py-1 subtarea-item';
+                item.className = 'd-flex align-items-center gap-2 py-1 subtarea-item rounded px-1';
                 item.dataset.id = st.id;
 
                 var check = document.createElement('input');
@@ -143,34 +100,112 @@
                 });
 
                 var label = document.createElement('span');
-                label.className = 'flex-grow-1 small' + (st.estaCompletada ? ' text-decoration-line-through text-secondary' : '');
+                label.className = 'flex-grow-1 small subtarea-nombre' + (st.estaCompletada ? ' text-decoration-line-through text-secondary' : '');
                 label.textContent = st.nombre;
+                label.style.cursor = 'pointer';
+                label.title = 'Editar nombre';
+                label.addEventListener('dblclick', function() { iniciarEdicion(st.id, st.nombre, misionId); });
 
                 var tiempo = document.createElement('small');
-                tiempo.className = 'text-secondary';
+                tiempo.className = 'text-secondary subtarea-tiempo';
                 tiempo.textContent = st.tiempoEnfoqueFormateado || '0s';
+                tiempo.title = st.tiempoEnfoqueSegundos + ' segundos de enfoque';
 
                 var delBtn = document.createElement('button');
-                delBtn.className = 'btn btn-sm btn-link text-danger p-0';
+                delBtn.className = 'btn btn-sm btn-link text-danger p-0 subtarea-delete';
                 delBtn.innerHTML = '<i class="bi bi-trash"></i>';
-                delBtn.addEventListener('click', function() {
-                    eliminarSubTarea(misionId, st.id);
-                });
+                delBtn.addEventListener('click', function() { eliminarSubTarea(misionId, st.id); });
 
                 item.appendChild(check);
                 item.appendChild(label);
                 item.appendChild(tiempo);
-                if (subTareas.length > 0) item.appendChild(delBtn);
+                item.appendChild(delBtn);
                 list.appendChild(item);
             });
 
-            var card = list.closest('.ep-card');
-            if (card) {
-                var toggle = card.querySelector('.subtarea-toggle');
-                if (toggle) {
-                    toggle.querySelector('.subtarea-count').textContent = done + '/' + subTareas.length;
-                }
+            actualizarContador(misionId, done, subTareas.length);
+        }
+
+        function actualizarContador(misionId, done, total) {
+            var card = document.querySelector('[data-mision-id="' + misionId + '"]');
+            if (!card) return;
+            var toggle = card.querySelector('.subtarea-toggle');
+            if (toggle) {
+                toggle.querySelector('.subtarea-count').textContent = done + '/' + total;
             }
+            var bar = card.querySelector('.subtarea-progress-bar');
+            if (bar && total > 0) {
+                bar.style.width = (done / total * 100) + '%';
+                bar.setAttribute('aria-valuenow', done);
+            }
+        }
+
+        function iniciarEdicion(id, nombreActual, misionId) {
+            if (editandoSubTareaId === id) return;
+            editandoSubTareaId = id;
+            var item = document.querySelector('.subtarea-item[data-id="' + id + '"]');
+            if (!item) return;
+            var label = item.querySelector('.subtarea-nombre');
+            var tiempo = item.querySelector('.subtarea-tiempo');
+            var delBtn = item.querySelector('.subtarea-delete');
+
+            label.style.display = 'none';
+            if (tiempo) tiempo.style.display = 'none';
+            if (delBtn) delBtn.style.display = 'none';
+
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-control form-control-sm flex-grow-1';
+            input.value = nombreActual;
+            input.maxLength = 200;
+            item.insertBefore(input, tiempo);
+
+            var confirmBtn = document.createElement('button');
+            confirmBtn.className = 'btn btn-sm btn-success p-1 px-2';
+            confirmBtn.innerHTML = '<i class="bi bi-check"></i>';
+            item.insertBefore(confirmBtn, tiempo);
+
+            var cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-sm btn-link text-secondary p-1 px-2';
+            cancelBtn.innerHTML = '<i class="bi bi-x"></i>';
+            item.insertBefore(cancelBtn, tiempo);
+
+            input.focus();
+            input.select();
+
+            function cancelarEdicion() {
+                label.style.display = '';
+                if (tiempo) tiempo.style.display = '';
+                if (delBtn) delBtn.style.display = '';
+                input.remove();
+                confirmBtn.remove();
+                cancelBtn.remove();
+                editandoSubTareaId = null;
+            }
+
+            function guardarEdicion() {
+                var nuevoNombre = input.value.trim();
+                if (nuevoNombre && nuevoNombre !== nombreActual) {
+                    fetch('/api/misiones/' + misionId + '/sub-tareas/' + id, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre: nuevoNombre, descripcion: null })
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data && data.exito !== false) cargarSubTareas(misionId);
+                    })
+                    .catch(function() {});
+                }
+                cancelarEdicion();
+            }
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') guardarEdicion();
+                if (e.key === 'Escape') cancelarEdicion();
+            });
+            confirmBtn.addEventListener('click', guardarEdicion);
+            cancelBtn.addEventListener('click', cancelarEdicion);
         }
 
         document.addEventListener('click', function(e) {
@@ -195,9 +230,7 @@
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
-                if (data && data.exito !== false) {
-                    cargarSubTareas(misionId);
-                }
+                if (data && data.exito !== false) cargarSubTareas(misionId);
             })
             .catch(function() {});
         }
@@ -206,9 +239,7 @@
             fetch('/api/misiones/' + misionId + '/sub-tareas/' + id + '/completar', { method: 'POST' })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    if (data && data.exito !== false) {
-                        cargarSubTareas(misionId);
-                    }
+                    if (data && data.exito !== false) cargarSubTareas(misionId);
                 })
                 .catch(function() {});
         }
@@ -217,23 +248,30 @@
             fetch('/api/misiones/' + misionId + '/sub-tareas/' + id + '/descompletar', { method: 'POST' })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    if (data && data.exito !== false) {
-                        cargarSubTareas(misionId);
-                    }
+                    if (data && data.exito !== false) cargarSubTareas(misionId);
                 })
                 .catch(function() {});
         }
 
         function eliminarSubTarea(misionId, id) {
-            if (!confirm('Eliminar esta sub-tarea?')) return;
+            if (!confirm('\u00bfEliminar esta sub-tarea?')) return;
             fetch('/api/misiones/' + misionId + '/sub-tareas/' + id, { method: 'DELETE' })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    if (data && data.exito !== false) {
-                        cargarSubTareas(misionId);
-                    }
+                    if (data && data.exito !== false) cargarSubTareas(misionId);
                 })
                 .catch(function() {});
+        }
+
+        function confirmarCompletar(form) {
+            if (!confirm('\u00bfEst\u00e1s seguro de completar esta misi\u00f3n? Esta acci\u00f3n se puede revertir despu\u00e9s.')) {
+                return false;
+            }
+            return true;
+        }
+
+        function confirmarRevertir() {
+            return confirm('\u00bfRevertir esta misi\u00f3n a En Progreso? Las sub-tareas completadas se marcar\u00e1n como pendientes.');
         }
     </script>
 }

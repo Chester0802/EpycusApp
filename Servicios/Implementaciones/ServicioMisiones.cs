@@ -64,8 +64,18 @@ namespace EpycusApp.Servicios.Implementaciones
             var mision = await _contexto.Misiones.FirstOrDefaultAsync(m => m.Id == modelo.Id && m.UsuarioId == usuarioId);
             if (mision == null) throw new Exception("Misi\u00f3n no encontrada o no autorizada.");
 
-            if (mision.Estado == "Completado" || mision.Estado == "Fallido")
-                throw new Exception("No se puede editar una misi\u00f3n que ya est\u00e1 completada o fallida.");
+            if (!string.IsNullOrEmpty(modelo.Estado) && modelo.Estado != mision.Estado)
+            {
+                if (modelo.Estado == "Completado")
+                {
+                    var (exito, _) = await CompletarMision(mision.Id, usuarioId);
+                    if (!exito) throw new Exception("No se pudo completar la misi\u00f3n.");
+                    await _contexto.SaveChangesAsync();
+                    return;
+                }
+                mision.Estado = modelo.Estado;
+                if (modelo.Estado == "Pendiente") mision.FechaCompletado = null;
+            }
 
             mision.Nombre = modelo.Nombre;
             mision.Descripcion = modelo.Descripcion;
@@ -135,6 +145,29 @@ namespace EpycusApp.Servicios.Implementaciones
             return await _contexto.Categorias
                 .Where(c => c.Tipo == "Mision" || c.Tipo == "Ambos")
                 .ToListAsync();
+        }
+
+        public async Task<(bool Exito, string Mensaje)> RevertirMision(int id, int usuarioId)
+        {
+            var mision = await _contexto.Misiones
+                .Include(m => m.SubTareas)
+                .FirstOrDefaultAsync(m => m.Id == id && m.UsuarioId == usuarioId);
+            if (mision == null) return (false, "Misi\u00f3n no encontrada.");
+            if (mision.Estado != "Completado")
+                return (false, "Solo se puede revertir una misi\u00f3n completada.");
+
+            mision.Estado = "EnProgreso";
+            mision.FechaCompletado = null;
+            mision.XpOtorgado = 0;
+
+            foreach (var st in mision.SubTareas.Where(st => st.EstaCompletada))
+            {
+                st.EstaCompletada = false;
+                st.FechaCompletado = null;
+            }
+
+            await _contexto.SaveChangesAsync();
+            return (true, "Misi\u00f3n revertida a En Progreso.");
         }
 
         public async Task<int> ContarCompletadasHoyAsync(int usuarioId)
