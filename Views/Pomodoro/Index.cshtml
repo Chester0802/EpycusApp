@@ -140,6 +140,9 @@
                 <button class="ep-btn-icon" id="btnSkip" onclick="saltarCiclo()" title="Saltar ciclo" style="display:none;">
                     <i class="bi bi-skip-forward-fill"></i>
                 </button>
+                <button class="ep-btn-icon" id="btnFinalizar" onclick="finalizarSesion()" title="Finalizar sesión" style="display:none;">
+                    <i class="bi bi-check2-square"></i>
+                </button>
             </div>
 
             <!-- Controles rápidos -->
@@ -390,7 +393,7 @@
             ciclosCompletados: parseInt(document.getElementById('statCiclos').innerText) || 0,
             minutosTotales: parseInt(document.getElementById('statMinutos').innerText) || 0,
             xpTotal: parseInt(document.getElementById('statXpGanado').innerText) || 0,
-            ciclosObjetivo: CONFIGURACION.metaDiaria || 1
+            ciclosObjetivo: CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : null
         };
 
         const elDisplayTimer = document.getElementById('timerDisplay');
@@ -568,7 +571,7 @@
                 estadoTimer.ciclosCompletados = estado.ciclosCompletados || 0;
                 estadoTimer.minutosTotales = estado.minutosTotales || 0;
                 estadoTimer.xpTotal = estado.xpTotal || 0;
-                estadoTimer.ciclosObjetivo = estado.ciclosObjetivo || CONFIGURACION.metaDiaria || 1;
+                estadoTimer.ciclosObjetivo = estado.ciclosObjetivo || (CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : null);
 
                 if (estado.estaCorriendo && estado.finEn) {
                     var remaining = Math.max(0, Math.floor((estado.finEn - Date.now()) / 1000));
@@ -666,6 +669,7 @@
             estadoTimer.tiempoRestante = CONFIGURACION[modo] || CONFIGURACION.enfoque;
             estadoTimer.tiempoTotal = CONFIGURACION[modo] || CONFIGURACION.enfoque;
             btnSaltar.style.display = modo === 'enfoque' ? 'inline-flex' : 'none';
+            document.getElementById('btnFinalizar').style.display = (modo === 'enfoque' && estadoTimer.sesionId) ? 'inline-flex' : 'none';
             actualizarUI();
 
             document.querySelectorAll('.ep-pomodoro-tab').forEach(tab => {
@@ -756,6 +760,7 @@
                     if (respuesta.ok) {
                         const data = await respuesta.json();
                         estadoTimer.sesionId = data.datos.sesionId;
+                        document.getElementById('btnFinalizar').style.display = 'inline-flex';
                     }
                 } catch(e) { mostrarError("Error al iniciar sesión. Revisa tu conexión."); }
             }
@@ -798,6 +803,7 @@
             if (estadoTimer.sesionId) {
                 var idSesion = estadoTimer.sesionId;
                 estadoTimer.sesionId = null;
+                ocultarBotonFinalizar();
                 fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' }).catch(function() { mostrarError("Error al cancelar la sesión."); });
             }
         }
@@ -816,6 +822,37 @@
                 estadoTimer.sesionId = null;
                 fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' }).catch(function() { mostrarError("Error al cancelar el ciclo."); });
             }
+            ocultarBotonFinalizar();
+            establecerModo('corto');
+        }
+
+        function ocultarBotonFinalizar() {
+            document.getElementById('btnFinalizar').style.display = 'none';
+        }
+
+        async function finalizarSesion() {
+            if (!estadoTimer.sesionId) return;
+            var idSesion = estadoTimer.sesionId;
+            estadoTimer.sesionId = null;
+            ocultarBotonFinalizar();
+            if (estadoTimer.estaCorriendo) pausarTimer();
+            try {
+                const respuesta = await fetch(`/api/pomodoro/${idSesion}/finalizar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ciclosCompletados: estadoTimer.ciclosCompletados })
+                });
+                if (respuesta.ok) {
+                    const data = await respuesta.json();
+                    estadoTimer.xpTotal = data.datos.xpTotal;
+                    document.getElementById('statXpGanado').innerText = estadoTimer.xpTotal;
+                    notificar('Sesión finalizada', 'Has ganado ' + data.datos.xpTotal + ' XP (incluyendo ' + data.datos.xpBonus + ' XP bonus).');
+                    mostrarExito('¡Sesión finalizada! ' + data.datos.xpTotal + ' XP ganado (+' + data.datos.xpBonus + ' bonus).');
+                    actualizarGraficoSemanal();
+                } else {
+                    mostrarError("Error al finalizar la sesión.");
+                }
+            } catch(e) { mostrarError("Error de conexión al finalizar la sesión."); }
             establecerModo('corto');
         }
 
@@ -901,7 +938,11 @@
                                     alternarTimer();
                                 };
                                 var modalLargoEl = document.getElementById('modalDescansoLargo');
-                                modalLargoEl.addEventListener('hidden.bs.modal', function() {
+                                var modalLargo = bootstrap.Modal.getOrCreateInstance(modalLargoEl);
+                                if (modalLargoEl._epycusModalHandler) {
+                                    modalLargoEl.removeEventListener('hidden.bs.modal', modalLargoEl._epycusModalHandler);
+                                }
+                                modalLargoEl._epycusModalHandler = function() {
                                     if (!window._modalHandled) {
                                         establecerModo('corto');
                                         if (CONFIGURACION.autoIniciarDescanso) {
@@ -909,9 +950,11 @@
                                         }
                                     }
                                     window._modalHandled = false;
-                                }, { once: true });
+                                    modalLargoEl.removeEventListener('hidden.bs.modal', modalLargoEl._epycusModalHandler);
+                                    delete modalLargoEl._epycusModalHandler;
+                                };
+                                modalLargoEl.addEventListener('hidden.bs.modal', modalLargoEl._epycusModalHandler);
                                 window._modalHandled = false;
-                                var modalLargo = new bootstrap.Modal(modalLargoEl);
                                 modalLargo.show();
                                 return;
                             }
@@ -923,14 +966,33 @@
                     } catch(e) { mostrarError("Error al registrar el ciclo. Intenta de nuevo."); }
                 }
 
-                if (estadoTimer.ciclosCompletados >= estadoTimer.ciclosObjetivo) {
+                if (estadoTimer.ciclosObjetivo && estadoTimer.ciclosCompletados >= estadoTimer.ciclosObjetivo) {
                     notificar('Metas', 'Has completado ' + estadoTimer.ciclosObjetivo + ' ciclos. ¡Buen trabajo!');
+                    if (estadoTimer.sesionId) {
+                        var idFinalizar = estadoTimer.sesionId;
+                        estadoTimer.sesionId = null;
+                        ocultarBotonFinalizar();
+                        try {
+                            var respFin = await fetch(`/api/pomodoro/${idFinalizar}/finalizar`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ ciclosCompletados: estadoTimer.ciclosCompletados })
+                            });
+                            if (respFin.ok) {
+                                var dataFin = await respFin.json();
+                                estadoTimer.xpTotal = dataFin.datos.xpTotal;
+                                document.getElementById('statXpGanado').innerText = estadoTimer.xpTotal;
+                                notificar('Sesión finalizada', 'Has ganado ' + dataFin.datos.xpTotal + ' XP (+' + dataFin.datos.xpBonus + ' bonus).');
+                            }
+                        } catch(e) { mostrarError("Error al finalizar la sesión automáticamente."); }
+                    }
                     if (CONFIGURACION.metaDiaria > 0 && estadoTimer.ciclosCompletados >= CONFIGURACION.metaDiaria) {
                         document.getElementById('modalMetaNumero').innerText = CONFIGURACION.metaDiaria;
                         var modalMeta = new bootstrap.Modal(document.getElementById('modalMetaCumplida'));
                         modalMeta.show();
+                        mostrarExito('¡Meta diaria cumplida! Sesión finalizada con XP bonus.');
                     } else {
-                        mostrarExito('¡Has completado ' + estadoTimer.ciclosObjetivo + ' ciclos!');
+                        mostrarExito('¡Has completado ' + estadoTimer.ciclosObjetivo + ' ciclos! Sesión finalizada.');
                     }
                 }
 
@@ -955,6 +1017,26 @@
                     if (data && data.datos && data.datos.racha > 0) {
                         var badge = document.querySelector('.badge.bg-warning');
                         if (badge) badge.remove();
+                    }
+                })
+                .catch(function() {});
+            fetch('/api/pomodoro/estadisticas-semanales')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.datos && data.datos.length === 7) {
+                        var chart = document.getElementById('weeklyChart');
+                        if (!chart) return;
+                        var maxCiclos = Math.max.apply(null, data.datos.map(function(d) { return d.ciclos; }));
+                        if (maxCiclos === 0) maxCiclos = 1;
+                        chart.innerHTML = '';
+                        data.datos.forEach(function(dia) {
+                            var altura = Math.round(dia.ciclos / maxCiclos * 60);
+                            var div = document.createElement('div');
+                            div.className = 'text-center';
+                            div.style.cssText = 'flex:1;';
+                            div.innerHTML = '<div class="bg-primary bg-opacity-50 rounded" style="height:' + altura + 'px; width:16px; margin:0 auto; transition: height 0.3s;" title="' + dia.ciclos + ' ciclos"></div><small class="text-secondary" style="font-size:0.6rem;">' + dia.fecha + '</small>';
+                            chart.appendChild(div);
+                        });
                     }
                 })
                 .catch(function() {});

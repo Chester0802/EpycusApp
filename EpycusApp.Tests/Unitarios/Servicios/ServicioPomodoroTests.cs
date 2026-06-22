@@ -101,9 +101,9 @@ public class ServicioPomodoroTests
         racha.Should().Be(3);
     }
 
-    // T4: ObtenerRachaActualAsync — racha 0 con gap de 2 días
+    // T4: ObtenerRachaActualAsync — racha 1 (gap de 2 días rompe racha, pero ayer hay sesión)
     [Fact]
-    public async Task Racha_GapDeDosDias_RetornaCero()
+    public async Task Racha_GapDeDosDias_RetornaUno()
     {
         var usuarioId = await SeedUsuarioAsync();
         for (int i = 3; i >= 0; i -= 2)
