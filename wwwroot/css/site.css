@@ -1021,7 +1021,7 @@ textarea:focus-visible {
   border-radius: var(--ep-radio);
   width: fit-content;
   margin: 0;
-  margin-left: -0.75rem;
+  margin-left: 0;
 }
 
 .ep-pomodoro-tab {

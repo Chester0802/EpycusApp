@@ -62,12 +62,7 @@ namespace EpycusApp.DTOs
                     [nameof(TiempoDescansoLargoMin)]);
             }
 
-            if (MetaDiariaCiclos > 0 && CiclosAntesDescansoLargo <= 0)
-            {
-                yield return new ValidationResult(
-                    "Si tienes una meta diaria, los ciclos antes del descanso largo deben ser al menos 1.",
-                    [nameof(CiclosAntesDescansoLargo)]);
-            }
+
         }
     }
 }

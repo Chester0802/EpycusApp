@@ -125,14 +125,14 @@ namespace EpycusApp.Servicios.Implementaciones
             sesion.FechaFin = DateTime.UtcNow;
             sesion.FueCompletada = true;
 
-            int xpBonus = ciclosCompletados * 5 + 10;
+            int xpBonus = ciclosCompletados > 0 ? ciclosCompletados * 5 + 10 : 0;
             sesion.XpOtorgado += xpBonus;
 
             await _context.SaveChangesAsync();
 
             if (xpBonus > 0)
             {
-                var (_, _, _) = await _servicioGamificacion.SumarXP(sesion.UsuarioId, xpBonus);
+                await _servicioGamificacion.SumarXP(sesion.UsuarioId, xpBonus);
                 await _servicioGamificacion.VerificarYOtorgarLogros(sesion.UsuarioId);
             }
 

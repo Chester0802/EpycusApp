@@ -175,7 +175,7 @@ public class PomodoroConfiguracionResponse
     public int CiclosAntesDescansoLargo { get; set; }
     public bool SonidoActivo { get; set; }
     public string? SonidoSeleccionado { get; set; }
-    public double Volumen { get; set; }
+    public int Volumen { get; set; }
     public bool AutoIniciarDescanso { get; set; }
     public bool AutoIniciarEnfoque { get; set; }
     public bool TicTacActivo { get; set; }
