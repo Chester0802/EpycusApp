@@ -1,6 +1,7 @@
 ﻿using EpycusApp.Ayudantes;
 using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
+using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -199,6 +200,17 @@ namespace EpycusApp.Controllers.Api
 
             var stats = await _servicioPomodoro.ObtenerEstadisticasPeriodoAsync(usuarioId.Value, desdeDate, hastaDate);
             return Ok(RespuestaApi<object>.Exitosa(stats));
+        }
+
+        [HttpGet("estadisticas-semanales")]
+        public async Task<IActionResult> ObtenerEstadisticasSemanales()
+        {
+            var usuarioId = ObtenerUsuarioId();
+            if (usuarioId == null)
+                return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
+
+            var stats = await _servicioPomodoro.ObtenerEstadisticasSemanalesAsync(usuarioId.Value);
+            return Ok(RespuestaApi<List<EstadisticasPomodoroPeriodo>>.Exitosa(stats));
         }
     }
 }
