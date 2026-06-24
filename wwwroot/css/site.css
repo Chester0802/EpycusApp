@@ -395,7 +395,7 @@ textarea:focus-visible {
   .dash-hero { padding: 1.25rem; }
   .dash-hero-grid { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 1rem; }
   .dash-hero-personaje { order: -1; width: 160px; height: 180px; }
-  .dash-personaje-img { max-height: 160px; max-width: 145px; }
+  .dash-personaje-img { width: 100% !important; height: 100% !important; max-height: none; max-width: none; }
   .dash-hero-text { align-items: center; }
   .dash-hero-quote-col { justify-self: center; text-align: center; max-width: 100%; }
   .dash-hero-quote-col .dash-hero-quote { text-align: center; }
@@ -435,7 +435,7 @@ textarea:focus-visible {
   .ep-header-title { font-size: 1.35rem; }
   .dash-hero { padding: 1rem; }
   .dash-hero-personaje { width: min(45vw, 180px) !important; height: min(52vw, 220px) !important; }
-  .dash-personaje-img { max-height: min(48vw, 200px) !important; max-width: min(42vw, 175px) !important; }
+  .dash-personaje-img { width: 100% !important; height: 100% !important; max-height: none; max-width: none; }
   .dash-personaje-aura { width: min(48vw, 200px) !important; height: min(48vw, 200px) !important; }
   .dash-hero-glow-orb { display: none; }
   .dash-progress-bar { width: 100px; }
