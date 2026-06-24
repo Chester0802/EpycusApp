@@ -383,9 +383,9 @@ public class ContratoJsonTests
     {
         var original = new PomodoroHistorialResponse
         {
-            Historial = new List<SesionPomodoro>
+            Historial = new List<SesionPomodoroDto>
             {
-                new SesionPomodoro { Id = 1, FechaInicio = new DateTime(2025, 1, 1) }
+                new SesionPomodoroDto { Id = 1, FechaInicio = new DateTime(2025, 1, 1) }
             },
             Pagina = 1,
             Tamano = 20
