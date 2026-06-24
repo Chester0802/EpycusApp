@@ -112,6 +112,8 @@
 
     /* Accent primary bg */
     --accent-primary-bg: rgba(255, 107, 157, 0.15);
+    --accent-primary-rgb: 255, 107, 157;
+    --error-rgb: 255, 107, 157;
 
     /* Password strength colors */
     --ep-pass-weak: #ef4444;
@@ -336,49 +338,7 @@ body[data-theme="dark"] {
     --sparkle-effect: drop-shadow(0 0 4px rgba(255, 107, 157, 0.4));
 }
 
-/* === COMPATIBILIDAD CON VARIABLES ANTIGUAS === */
-:root {
-    /* Mapeo de variables antiguas --ep-* a nuevas */
-    --ep-fondo: var(--bg-primary);
-    --ep-texto: var(--text-primary);
-    --ep-superficie: var(--surface);
-    --ep-superficie-2: var(--bg-elevated);
-    --ep-borde: var(--border-color);
-    --ep-texto-apagado: var(--text-secondary);
-    --ep-primario: var(--accent-primary);
-    --ep-primario-hover: var(--accent-primary-hover);
-    --ep-neon: var(--accent-primary);
-    --ep-neon-borde: var(--accent-primary);
-    --ep-neon-suave: var(--accent-primary-light);
-    --ep-sombra-neon: var(--shadow-lg);
-    --ep-radio: var(--radius-lg);
-    --ep-radio-sm: var(--radius-sm);
-    --ep-sombra: var(--shadow-sm);
-    --ep-sombra-primario: var(--shadow-md);
-    --ep-nivel: var(--accent-secondary);
-    --ep-xp: var(--info);
-    --ep-xp-suave: var(--info-light);
-    --ep-racha: var(--warning);
-    --ep-racha-suave: var(--warning-light);
-    --ep-barra-xp-fondo: var(--bg-elevated);
-    --ep-barra-xp-relleno: var(--accent-primary);
-    /* Variables faltantes en el mapeo compat */
-    --ep-acento: var(--accent-secondary);
-    --ep-texto-secundario: var(--text-secondary);
-    --ep-texto-primario: var(--text-primary);
-    --ep-exito: var(--success);
-    --ep-advertencia: var(--warning);
-    --ep-peligro: var(--error);
-    --ep-nav-fondo: var(--sidebar-bg);
-    --ep-nav-texto: var(--sidebar-text);
-    --ep-nav-texto-activo: var(--sidebar-text-strong);
-    --ep-nav-item-hover: var(--sidebar-item-hover);
-    --ep-nav-item-activo: var(--sidebar-item-active);
-    --ep-info: var(--info);
-    --ep-primario-rgb: var(--accent-primary-rgb);
-    --accent-primary-rgb: 255, 107, 157;
-    --error-rgb: 255, 107, 157;
-}
+/* Las variables legacy --ep-* han sido migradas a las nuevas --bg-*, --text-*, etc. */
 
 /* === SOBREESCRITURA DE BOOTSTRAP UTILITIES PARA SOPORTE DE TEMAS === */
 [data-theme] .text-muted { color: var(--text-secondary) !important; }
@@ -460,44 +420,6 @@ body[data-theme="dark"] {
 
 [data-theme="dark"] {
     --btn-close-filter: invert(1) grayscale(100%) brightness(200%);
-    /* Mantener mapeo en tema oscuro */
-    --ep-fondo: var(--bg-primary);
-    --ep-texto: var(--text-primary);
-    --ep-superficie: var(--surface);
-    --ep-superficie-2: var(--bg-elevated);
-    --ep-borde: var(--border-color);
-    --ep-texto-apagado: var(--text-secondary);
-    --ep-primario: var(--accent-primary);
-    --ep-primario-hover: var(--accent-primary-hover);
-    --ep-neon: var(--accent-primary);
-    --ep-neon-borde: var(--accent-primary);
-    --ep-neon-suave: var(--accent-primary-light);
-    --ep-sombra-neon: var(--shadow-glow);
-    --ep-radio: var(--radius-lg);
-    --ep-radio-sm: var(--radius-sm);
-    --ep-sombra: var(--shadow-sm);
-    --ep-sombra-primario: var(--shadow-md);
-    --ep-nivel: var(--accent-secondary);
-    --ep-xp: var(--info);
-    --ep-xp-suave: var(--info-light);
-    --ep-racha: var(--warning);
-    --ep-racha-suave: var(--warning-light);
-    --ep-barra-xp-fondo: var(--bg-elevated);
-    --ep-barra-xp-relleno: var(--accent-primary);
-    /* Variables compat faltantes - tema oscuro */
-    --ep-acento: var(--accent-secondary);
-    --ep-texto-secundario: var(--text-secondary);
-    --ep-texto-primario: var(--text-primary);
-    --ep-exito: var(--success);
-    --ep-advertencia: var(--warning);
-    --ep-peligro: var(--error);
-    --ep-nav-fondo: var(--sidebar-bg);
-    --ep-nav-texto: var(--sidebar-text);
-    --ep-nav-texto-activo: var(--sidebar-text-strong);
-    --ep-nav-item-hover: var(--sidebar-item-hover);
-    --ep-nav-item-activo: var(--sidebar-item-active);
-    --ep-info: var(--info);
-    --ep-primario-rgb: var(--accent-primary-rgb);
     --accent-primary-rgb: 139, 92, 246;
     --error-rgb: 239, 68, 68;
 }

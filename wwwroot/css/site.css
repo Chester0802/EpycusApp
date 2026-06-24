@@ -1,7 +1,7 @@
 body {
   font-family: "Inter", sans-serif;
-  background: var(--ep-fondo);
-  color: var(--ep-texto);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.6;
 }
@@ -17,26 +17,26 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--ep-superficie-2);
+  background: var(--bg-elevated);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--ep-borde);
+  background: var(--border-color);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ep-texto-apagado);
+  background: var(--text-secondary);
 }
 
 a {
-  color: var(--ep-primario);
+  color: var(--accent-primary);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 a:hover {
-  color: var(--ep-primario-hover);
+  color: var(--accent-primary-hover);
 }
 
 button,
@@ -51,15 +51,15 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--ep-neon);
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
 .ep-card {
-  background: var(--ep-superficie);
-  border: 1px solid var(--ep-borde);
-  border-radius: var(--ep-radio);
-  box-shadow: var(--ep-sombra);
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   padding: 1.5rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -70,28 +70,28 @@ textarea:focus-visible {
 }
 
 .ep-card-neon {
-  background: var(--ep-superficie);
-  border: 1px solid var(--ep-neon-borde);
-  border-radius: var(--ep-radio);
-  box-shadow: var(--ep-sombra-neon);
+  background: var(--surface);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   padding: 1.5rem;
 }
 
 .ep-barra-xp {
-  background: var(--ep-barra-xp-fondo);
-  border-radius: var(--ep-radio-sm);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
   height: 8px;
   overflow: hidden;
 }
 
 .ep-barra-xp-relleno {
-  background: var(--ep-barra-xp-relleno);
+  background: var(--accent-primary);
   height: 100%;
   transition: width 0.3s ease;
 }
 
 .ep-badge-nivel {
-  background: var(--ep-nivel);
+  background: var(--accent-secondary);
   color: #fff;
   border-radius: 999px;
   padding: 0.25rem 0.75rem;
@@ -100,8 +100,8 @@ textarea:focus-visible {
 }
 
 .ep-badge-xp {
-  background: var(--ep-xp-suave);
-  color: var(--ep-xp);
+  background: var(--info-light);
+  color: var(--info);
   border-radius: 999px;
   padding: 0.25rem 0.75rem;
   font-weight: 600;
@@ -109,8 +109,8 @@ textarea:focus-visible {
 }
 
 .ep-badge-racha {
-  background: var(--ep-racha-suave);
-  color: var(--ep-racha);
+  background: var(--warning-light);
+  color: var(--warning);
   border-radius: 999px;
   padding: 0.25rem 0.75rem;
   font-weight: 600;
@@ -118,18 +118,18 @@ textarea:focus-visible {
 }
 
 .btn-ep {
-  background: var(--ep-primario);
+  background: var(--accent-primary);
   color: #fff;
   border: none;
-  border-radius: var(--ep-radio-sm);
+  border-radius: var(--radius-sm);
   padding: 0.6rem 1.2rem;
   font-weight: 600;
-  box-shadow: var(--ep-sombra-primario);
+  box-shadow: var(--shadow-md);
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .btn-ep:hover {
-  background: var(--ep-primario-hover);
+  background: var(--accent-primary-hover);
   color: #fff;
   transform: translateY(-1px);
 }
@@ -137,7 +137,7 @@ textarea:focus-visible {
 .btn-ep:focus-visible,
 .btn-ep-outline:focus-visible,
 .ep-boton-icono:focus-visible {
-  box-shadow: 0 0 0 0.2rem var(--ep-neon-suave);
+  box-shadow: 0 0 0 0.2rem var(--accent-primary-light);
 }
 
 .btn-ep:active {
@@ -153,51 +153,51 @@ textarea:focus-visible {
 
 .btn-ep-outline {
   background: transparent;
-  color: var(--ep-primario);
-  border: 1px solid var(--ep-primario);
-  border-radius: var(--ep-radio-sm);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
   padding: 0.6rem 1.2rem;
   font-weight: 600;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
 .btn-ep-outline:hover {
-  background: var(--ep-primario);
+  background: var(--accent-primary);
   color: #fff;
 }
 
 .ep-input {
-  background: var(--ep-superficie);
-  border: 1px solid var(--ep-borde);
-  border-radius: var(--ep-radio-sm);
-  color: var(--ep-texto);
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
   padding: 0.6rem 0.9rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ep-input:focus {
-  border-color: var(--ep-primario);
-  box-shadow: 0 0 0 0.15rem var(--ep-neon-suave);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 0.15rem var(--accent-primary-light);
 }
 
 .ep-input::placeholder {
-  color: var(--ep-texto-apagado);
+  color: var(--text-secondary);
 }
 
 .ep-input:disabled {
-  background: var(--ep-superficie-2);
-  color: var(--ep-texto-apagado);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
 }
 
 .ep-sidebar {
-  background: var(--ep-nav-fondo);
+  background: var(--sidebar-bg);
   min-height: 100vh;
   width: 260px;
   padding: 1.5rem 1rem;
   position: fixed;
   top: 0;
   left: 0;
-  border-right: 1px solid var(--ep-borde);
+  border-right: 1px solid var(--border-color);
 }
 
 .ep-sidebar .ep-nav-item {
@@ -205,8 +205,8 @@ textarea:focus-visible {
 }
 
 .ep-nav-item {
-  color: var(--ep-nav-texto);
-  border-radius: var(--ep-radio-sm);
+  color: var(--sidebar-text);
+  border-radius: var(--radius-sm);
   padding: 0.65rem 0.9rem;
   display: flex;
   align-items: center;
@@ -220,13 +220,13 @@ textarea:focus-visible {
 }
 
 .ep-nav-item:hover {
-  background: var(--ep-nav-item-hover);
-  color: var(--ep-nav-texto-activo);
+  background: var(--sidebar-item-hover);
+  color: var(--sidebar-text-strong);
 }
 
 .ep-nav-item.activo {
-  background: var(--ep-nav-item-activo);
-  color: var(--ep-nav-texto-activo);
+  background: var(--sidebar-item-active);
+  color: var(--sidebar-text-strong);
   font-weight: 600;
 }
 
@@ -243,37 +243,37 @@ textarea:focus-visible {
 .ep-contenido h1,
 .ep-contenido h2,
 .ep-contenido h3 {
-  color: var(--ep-texto);
+  color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
 .ep-contenido p {
-  color: var(--ep-texto-secundario);
+  color: var(--text-secondary);
 }
 
 .ep-estado-completado {
-  color: var(--ep-exito);
+  color: var(--success);
   font-weight: 600;
 }
 
 .ep-estado-pendiente {
-  color: var(--ep-advertencia);
+  color: var(--warning);
   font-weight: 600;
 }
 
 .ep-estado-fallido {
-  color: var(--ep-peligro);
+  color: var(--error);
   font-weight: 600;
 }
 
 .ep-texto-gradiente {
-  background: linear-gradient(90deg, var(--ep-primario), var(--ep-acento));
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .ep-separador {
-  border-bottom: 1px solid var(--ep-borde);
+  border-bottom: 1px solid var(--border-color);
   margin: 1.5rem 0;
 }
 
@@ -281,9 +281,9 @@ textarea:focus-visible {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid var(--ep-borde);
-  background: var(--ep-superficie);
-  color: var(--ep-texto);
+  border: 1px solid var(--border-color);
+  background: var(--surface);
+  color: var(--text-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -291,16 +291,16 @@ textarea:focus-visible {
 }
 
 .ep-boton-icono:hover {
-  background: var(--ep-superficie-2);
-  border-color: var(--ep-primario);
-  color: var(--ep-primario);
+  background: var(--bg-elevated);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .ep-alerta {
-  border-radius: var(--ep-radio);
+  border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
-  border: 1px solid var(--ep-borde);
-  background: var(--ep-superficie);
+  border: 1px solid var(--border-color);
+  background: var(--surface);
   display: flex;
   gap: 0.75rem;
   align-items: flex-start;
@@ -308,7 +308,7 @@ textarea:focus-visible {
 
 .ep-alerta-icono {
   font-size: 1.5rem;
-  color: var(--ep-info);
+  color: var(--info);
 }
 
 .ep-alerta-titulo {
@@ -319,26 +319,26 @@ textarea:focus-visible {
 .ep-tabla {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid var(--ep-borde);
-  border-radius: var(--ep-radio);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 .ep-tabla th,
 .ep-tabla td {
   padding: 0.85rem 1rem;
-  border-bottom: 1px solid var(--ep-borde);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .ep-tabla th {
-  background: var(--ep-superficie-2);
-  color: var(--ep-texto-secundario);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
   font-weight: 600;
   text-align: left;
 }
 
 .ep-tabla tr:hover {
-  background: var(--ep-superficie-2);
+  background: var(--bg-elevated);
 }
 
 @media (max-width: 768px) {
@@ -559,7 +559,7 @@ textarea:focus-visible {
 }
 
 .ep-header-subtitle {
-  color: var(--ep-texto-secundario);
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
@@ -568,9 +568,9 @@ textarea:focus-visible {
   align-items: center;
   gap: 1rem;
   padding: 1.25rem;
-  border-radius: var(--ep-radio);
-  background: var(--ep-superficie);
-  border: 1px solid var(--ep-borde);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border-color);
   height: 100%;
 }
 
@@ -612,7 +612,7 @@ textarea:focus-visible {
 }
 
 .ep-summary-label {
-  color: var(--ep-texto-secundario);
+  color: var(--text-secondary);
   font-size: 0.85rem;
   margin-bottom: 0;
   margin-top: 0.25rem;
@@ -623,9 +623,9 @@ textarea:focus-visible {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
-  background: var(--ep-superficie);
-  border: 1px solid var(--ep-borde);
-  border-radius: var(--ep-radio);
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
   margin-bottom: 0.75rem;
   transition: transform 0.2s;
@@ -634,7 +634,7 @@ textarea:focus-visible {
 .min-w-0 { min-width: 0; }
 
 .ep-habit-card:hover {
-  border-color: var(--ep-neon-borde);
+  border-color: var(--accent-primary);
 }
 
 .ep-habit-icon {
@@ -653,7 +653,7 @@ textarea:focus-visible {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2px solid var(--ep-borde);
+  border: 2px solid var(--border-color);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -664,14 +664,14 @@ textarea:focus-visible {
 }
 
 .ep-day-check.checked {
-  background: var(--ep-primario);
-  border-color: var(--ep-primario);
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
   color: #fff;
 }
 
 .ep-day-check.disabled {
-  border-color: var(--ep-superficie-2);
-  background: var(--ep-superficie-2);
+  border-color: var(--bg-elevated);
+  background: var(--bg-elevated);
   cursor: not-allowed;
 }
 
@@ -890,12 +890,12 @@ textarea:focus-visible {
 }
 
 .ep-tabs {
-  border-bottom: 1px solid var(--ep-borde);
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 1rem;
 }
 
 .ep-tab {
-  color: var(--ep-texto-secundario);
+  color: var(--text-secondary);
   text-decoration: none;
   padding: 0.5rem 1rem;
   display: inline-block;
@@ -904,12 +904,12 @@ textarea:focus-visible {
 }
 
 .ep-tab.active {
-  color: var(--ep-primario);
-  border-bottom-color: var(--ep-primario);
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
 }
 
 .ep-tab:hover {
-  color: var(--ep-texto);
+  color: var(--text-primary);
 }
 
 /* Simple CSS Donut */
@@ -925,9 +925,9 @@ textarea:focus-visible {
   height: 100%;
   border-radius: 50%;
   background: conic-gradient(
-    var(--ep-exito) 0% 70%,
-    var(--ep-advertencia) 70% 85%,
-    var(--ep-peligro) 85% 100%
+    var(--success) 0% 70%,
+    var(--warning) 70% 85%,
+    var(--error) 85% 100%
   );
   display: flex;
   align-items: center;
@@ -937,7 +937,7 @@ textarea:focus-visible {
 .ep-donut-inner {
   width: 90px;
   height: 90px;
-  background: var(--ep-superficie);
+  background: var(--surface);
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -953,14 +953,14 @@ textarea:focus-visible {
 
 .ep-donut-label {
   font-size: 0.75rem;
-  color: var(--ep-texto-secundario);
+  color: var(--text-secondary);
 }
 
 .ep-sidebar-btn {
   width: 100%;
   text-align: center;
   padding: 0.75rem;
-  border-radius: var(--ep-radio-sm);
+  border-radius: var(--radius-sm);
   font-weight: 600;
   margin-bottom: 0.75rem;
   display: block;
@@ -968,7 +968,7 @@ textarea:focus-visible {
 }
 
 .ep-btn-purple {
-  background: var(--ep-acento);
+  background: var(--accent-secondary);
   color: #fff;
   border: none;
 }
@@ -979,14 +979,14 @@ textarea:focus-visible {
 }
 
 .ep-btn-white {
-  background: var(--ep-texto);
-  color: var(--ep-acento);
+  background: var(--text-primary);
+  color: var(--accent-secondary);
   border: none;
 }
 
 .ep-btn-white:hover {
   background: var(--bg-hover);
-  color: var(--ep-acento);
+  color: var(--accent-secondary);
 }
 
 /* --- Pomodoro UI --- */
@@ -1001,7 +1001,7 @@ textarea:focus-visible {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 12px solid var(--ep-superficie-2);
+  border: 12px solid var(--bg-elevated);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1012,12 +1012,12 @@ textarea:focus-visible {
 }
 
 .ep-pomodoro-ring.active {
-  border-color: var(--ep-acento);
+  border-color: var(--accent-secondary);
   box-shadow: 0 0 20px rgba(167, 139, 250, 0.4);
 }
 
 .ep-pomodoro-ring.descanso {
-  border-color: var(--ep-exito);
+  border-color: var(--success);
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
 }
 
@@ -1025,25 +1025,25 @@ textarea:focus-visible {
   font-size: 4.5rem;
   font-weight: 700;
   line-height: 1;
-  color: var(--ep-texto);
+  color: var(--text-primary);
 }
 
 .ep-pomodoro-label {
   font-size: 0.9rem;
-  color: var(--ep-texto-secundario);
+  color: var(--text-secondary);
   margin-top: 0.5rem;
-  background: var(--ep-superficie-2);
+  background: var(--bg-elevated);
   padding: 0.25rem 1rem;
-  border-radius: var(--ep-radio-sm);
+  border-radius: var(--radius-sm);
 }
 
 .ep-pomodoro-tabs {
   display: flex;
   justify-content: flex-start;
   gap: 0.5rem;
-  background: var(--ep-superficie-2);
+  background: var(--bg-elevated);
   padding: 0.5rem;
-  border-radius: var(--ep-radio);
+  border-radius: var(--radius-lg);
   width: 100%;
   margin: 0;
   flex-wrap: wrap;
@@ -1051,8 +1051,8 @@ textarea:focus-visible {
 
 .ep-pomodoro-tab {
   padding: 0.4rem 1rem;
-  border-radius: var(--ep-radio-sm);
-  color: var(--ep-texto-secundario);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s;
@@ -1064,17 +1064,17 @@ textarea:focus-visible {
 }
 
 .ep-pomodoro-tab:hover {
-  color: var(--ep-texto);
+  color: var(--text-primary);
 }
 
 .ep-pomodoro-tab.active {
-  background: var(--ep-superficie);
-  color: var(--ep-acento);
+  background: var(--surface);
+  color: var(--accent-secondary);
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .ep-pomodoro-tab.active.descanso {
-  color: var(--ep-exito);
+  color: var(--success);
 }
 
 .ep-pomodoro-svg {
@@ -1088,28 +1088,28 @@ textarea:focus-visible {
 
 .ep-pomodoro-svg-bg {
   fill: none;
-  stroke: var(--ep-superficie-2);
+  stroke: var(--bg-elevated);
   stroke-width: 8;
 }
 
 .ep-pomodoro-svg-progress {
   fill: none;
-  stroke: var(--ep-acento);
+  stroke: var(--accent-secondary);
   stroke-width: 8;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.5s ease;
 }
 
 .ep-pomodoro-ring.descanso .ep-pomodoro-svg-progress {
-  stroke: var(--ep-exito);
+  stroke: var(--success);
 }
 
 .ep-pomodoro-ring.active .ep-pomodoro-svg-progress {
-  filter: drop-shadow(0 0 6px var(--ep-acento));
+  filter: drop-shadow(0 0 6px var(--accent-secondary));
 }
 
 .ep-pomodoro-ring.descanso.active .ep-pomodoro-svg-progress {
-  filter: drop-shadow(0 0 6px var(--ep-exito));
+  filter: drop-shadow(0 0 6px var(--success));
 }
 
 .ep-pomodoro-ring-content {
@@ -1133,13 +1133,13 @@ textarea:focus-visible {
 }
 
 .ep-btn-play {
-  background: var(--ep-acento);
+  background: var(--accent-secondary);
   color: #fff;
   border: none;
   padding: 1rem 3rem;
   font-size: 1.25rem;
   font-weight: 600;
-  border-radius: var(--ep-radio);
+  border-radius: var(--radius-lg);
   transition: background 0.2s;
 }
 
@@ -1148,7 +1148,7 @@ textarea:focus-visible {
 }
 
 .ep-btn-play.descanso {
-  background: var(--ep-exito);
+  background: var(--success);
 }
 
 .ep-btn-play.descanso:hover {
@@ -1158,10 +1158,10 @@ textarea:focus-visible {
 .ep-btn-icon {
   width: 54px;
   height: 54px;
-  border-radius: var(--ep-radio);
-  border: 1px solid var(--ep-borde);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
   background: transparent;
-  color: var(--ep-texto-secundario);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1170,15 +1170,15 @@ textarea:focus-visible {
 }
 
 .ep-btn-icon:hover {
-  background: var(--ep-superficie-2);
-  color: var(--ep-texto);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .ep-task-item {
   display: flex;
   align-items: center;
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--ep-borde);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .ep-task-item:last-child {
@@ -1189,7 +1189,7 @@ textarea:focus-visible {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid var(--ep-borde);
+  border: 2px solid var(--border-color);
   margin-right: 1rem;
   cursor: pointer;
   display: flex;
@@ -1200,8 +1200,8 @@ textarea:focus-visible {
 }
 
 .ep-task-check.checked {
-  background: var(--ep-primario);
-  border-color: var(--ep-primario);
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
   color: #fff;
 }
 
@@ -1209,8 +1209,8 @@ textarea:focus-visible {
   font-size: 0.75rem;
   padding: 0.15rem 0.5rem;
   border-radius: 12px;
-  background: var(--ep-neon-suave);
-  color: var(--ep-nivel);
+  background: var(--accent-primary-light);
+  color: var(--accent-secondary);
   margin-left: 0.5rem;
 }
 
