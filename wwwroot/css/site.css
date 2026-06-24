@@ -713,7 +713,8 @@ textarea:focus-visible {
 .personaje-card-img img {
     width: 80px;
     height: 100px;
-    object-fit: contain;
+    object-fit: cover;
+    object-position: top 30%;
 }
 
 .personaje-card-info {
@@ -808,6 +809,7 @@ textarea:focus-visible {
   width: 36px;
   height: 36px;
   object-fit: cover;
+  object-position: top center;
   border: 2px solid var(--accent-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }

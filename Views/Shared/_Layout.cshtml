@@ -48,10 +48,17 @@
         <aside class="ep-sidebar" id="ep-sidebar">
             <div class="d-flex align-items-center gap-2 mb-4">
                 <img src="~/img/logo.webp" alt="Epycus" class="ep-sidebar-logo" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.style.display='none';document.getElementById('ep-sidebar-icon').style.display='inline-block'" />
-                <i class="bi bi-stars fs-4" id="ep-sidebar-icon" style="display:none"></i>
-                <span class="fw-semibold">Epycus</span>
-            </div>
-            <nav class="d-flex flex-column gap-2 mb-auto">
+        <i class="bi bi-stars fs-4" id="ep-sidebar-icon" style="display:none"></i>
+        <span class="fw-semibold">Epycus</span>
+    </div>
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        var imgPersonaje = ViewData["ImagenPersonaje"]?.ToString();
+        <div class="ep-sidebar-character">
+            <img src="@(imgPersonaje ?? "/img/personajes/generico/masculino/placeholder.png")" alt="Personaje" class="ep-sidebar-character-img" onerror="this.src='/img/personajes/generico/masculino/placeholder.png'" />
+        </div>
+    }
+    <nav class="d-flex flex-column gap-2 mb-auto">
                 <a asp-controller="Home" asp-action="Index" class="ep-nav-item@(currentController == "Home" ? " activo" : "")"><i class="bi bi-house"></i>Inicio</a>
                 <a asp-controller="Habitos" asp-action="Index" class="ep-nav-item@(currentController == "Habitos" ? " activo" : "")"><i class="bi bi-list-check"></i>Hábitos</a>
                 <a asp-controller="Misiones" asp-action="Index" class="ep-nav-item@(currentController == "Misiones" ? " activo" : "")"><i class="bi bi-clipboard-check"></i>Misiones</a>

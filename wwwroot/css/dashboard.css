@@ -69,7 +69,8 @@
     z-index: 2;
     max-height: 215px;
     max-width: 200px;
-    object-fit: contain;
+    object-fit: cover;
+    object-position: top 25%;
     filter: drop-shadow(0 10px 22px rgba(255, 107, 157, 0.35));
     animation: dash-personaje-float 4s ease-in-out infinite;
 }
