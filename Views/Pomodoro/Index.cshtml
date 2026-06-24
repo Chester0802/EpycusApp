@@ -530,7 +530,7 @@
                 var idSesion = estadoTimer.sesionId;
                 estadoTimer.sesionId = null;
                 try {
-                    var resp = await fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' });
+                    var resp = await fetch(`/api/v1/pomodoro/${idSesion}/cancelar`, { method: 'POST' });
                     if (!resp.ok) {
                         estadoTimer.sesionId = idSesion;
                         mostrarError("No se pudo cancelar la sesión anterior.");
@@ -698,7 +698,7 @@
                 window._broadcastChannel = bc;
             } catch(e) { /* BroadcastChannel no soportado */ }
 
-            fetch('/api/pomodoro/tip-aleatorio')
+            fetch('/api/v1/pomodoro/tip-aleatorio')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data && data.datos && data.datos.consejo) {
@@ -723,7 +723,7 @@
             });
 
             if (!estadoTimer.sesionId) {
-                fetch('/api/pomodoro/sesion-activa')
+                fetch('/api/v1/pomodoro/sesion-activa')
                     .then(function(r) { return r.json(); })
                     .then(function(data) {
                         if (data && data.datos && data.datos.activa && !estadoTimer.sesionId) {
@@ -859,7 +859,7 @@
         }
 
         function cargarSubTareasDeMision(misionId) {
-            fetch('/api/pomodoro/mision/' + misionId + '/sub-tareas')
+            fetch('/api/v1/pomodoro/mision/' + misionId + '/sub-tareas')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     var select = document.getElementById('subtareaSelect');
@@ -924,7 +924,7 @@
                     }
                 }
                 try {
-                    const respuesta = await fetch('/api/pomodoro/iniciar', {
+                    const respuesta = await fetch('/api/v1/pomodoro/iniciar', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(parametrosBody)
@@ -981,7 +981,7 @@
                 estadoTimer.sesionId = null;
                 ocultarBotonFinalizar();
                 try {
-                    const respuesta = await fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' });
+                    const respuesta = await fetch(`/api/v1/pomodoro/${idSesion}/cancelar`, { method: 'POST' });
                     if (!respuesta.ok) {
                         estadoTimer.sesionId = idSesion;
                         mostrarError("Error al cancelar la sesión.");
@@ -1005,7 +1005,7 @@
                 var idSesion = estadoTimer.sesionId;
                 estadoTimer.sesionId = null;
                 try {
-                    const respuesta = await fetch(`/api/pomodoro/${idSesion}/cancelar`, { method: 'POST' });
+                    const respuesta = await fetch(`/api/v1/pomodoro/${idSesion}/cancelar`, { method: 'POST' });
                     if (!respuesta.ok) {
                         estadoTimer.sesionId = idSesion;
                         mostrarError("Error al cancelar el ciclo.");
@@ -1032,7 +1032,7 @@
             ocultarBotonFinalizar();
             if (estadoTimer.estaCorriendo) pausarTimer();
             try {
-                const respuesta = await fetch(`/api/pomodoro/${idSesion}/finalizar`, {
+                const respuesta = await fetch(`/api/v1/pomodoro/${idSesion}/finalizar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ciclosCompletados: estadoTimer.ciclosCompletados })
@@ -1112,7 +1112,7 @@
 
                 if (estadoTimer.sesionId) {
                     try {
-                        const respuesta = await fetch(`/api/pomodoro/${estadoTimer.sesionId}/ciclo-completado`, {
+                        const respuesta = await fetch(`/api/v1/pomodoro/${estadoTimer.sesionId}/ciclo-completado`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ ciclosCompletados: estadoTimer.ciclosCompletados })
@@ -1201,7 +1201,7 @@
                         estadoTimer.sesionId = null;
                         ocultarBotonFinalizar();
                         try {
-                            var respFin = await fetch(`/api/pomodoro/${idFinalizar}/finalizar`, {
+                            var respFin = await fetch(`/api/v1/pomodoro/${idFinalizar}/finalizar`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ ciclosCompletados: estadoTimer.ciclosCompletados })
@@ -1234,7 +1234,7 @@
                 var segundosDescanso = estadoTimer.tiempoTotal;
                 agregarHistorial(estadoTimer.modo === 'corto' ? 'Descanso corto' : 'Descanso largo', Math.floor(estadoTimer.tiempoTotal / 60) + " min", false);
                 try {
-                    await fetch('/api/pomodoro/descanso', {
+                    await fetch('/api/v1/pomodoro/descanso', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ tipo: tipoDescanso, segundos: segundosDescanso })
@@ -1248,7 +1248,7 @@
         }
 
         function actualizarGraficoSemanal() {
-            fetch('/api/pomodoro/racha')
+            fetch('/api/v1/pomodoro/racha')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data && data.datos) {
@@ -1274,7 +1274,7 @@
                     }
                 })
                 .catch(function() {});
-            fetch('/api/pomodoro/estadisticas-semanales')
+            fetch('/api/v1/pomodoro/estadisticas-semanales')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data && data.datos && data.datos.length === 7) {

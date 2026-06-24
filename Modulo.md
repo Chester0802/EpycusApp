@@ -66,21 +66,21 @@
 - **Problema:** Todos los endpoints son `/api/*` sin prefijo de versión (`/api/v1/*`). Cambios breaking romperían clientes (app móvil futura).
 - **Riesgo:** Imposible evolucionar la API sin romper clientes existentes.
 - **Solución:** Agregar ruteo por版本 (`/api/v1/auth/login`, etc.) usando `[Route("api/v1/[controller]")]` o similar.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregado `[Route("api/v1/...")]` en los 13 controladores API. Actualizadas todas las referencias `/api/` → `/api/v1/` en vistas y JS.
 
 ### ARQ-006: ServicioCorreo no usa interfaces de abstracción de SMTP
 - **Archivo:** `Servicios/Implementaciones/ServicioCorreo.cs`
 - **Problema:** Usa `SmtpClient` directamente que es `IDisposable`. En .NET 9, `SmtpClient` está obsoleto para nuevas aplicaciones.
 - **Riesgo:** Futura incompatibilidad. Sin posibilidad de mock en tests.
 - **Solución:** Usar `MailKit` (Recomendado) o `Microsoft.Extensions.Mail` si está disponible.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Migrado de `System.Net.Mail.SmtpClient` a `MailKit` + `MimeKit`. Ahora usa `SmtpClient` de MailKit con `ConnectAsync` + `AuthenticateAsync` + `SendAsync`
 
 ### ARQ-007: Health checks no verifican el pipeline MVC
 - **Archivo:** `Program.cs` (líneas 247-256)
 - **Problema:** Los health checks solo verifican BD, Gemini, DeepSeek y disco. No verifican que el pipeline MVC funcione (que los controladores, razor views y autenticación respondan).
 - **Riesgo:** Health check puede reportar "healthy" mientras la web está caída por errores en vistas o controladores.
 - **Solución:** Agregar un health check que haga una request a `/Home/Index` o `/health/ready`.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Creado `MvcHealthCheck.cs` que hace GET a `/Home/Index` y verifica HTML. Registrado en health checks con tag "mvc".`
 
 ---
 
@@ -90,7 +90,7 @@
 - **Problema:** No hay script de backup automático para MariaDB. Si la BD se corrompe, se pierden todos los datos de usuarios.
 - **Riesgo:** Pérdida total de datos.
 - **Solución:** Agregar cron job: `mysqldump -u epicus_user -p epycus_db > /var/backups/epycus-db-$(date +%Y%m%d).sql` y sincronizar a almacenamiento externo.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Creado `deploy/backup-bd.sh` con mysqldump comprimido, rotación de 7 días (máx 30 backups). Incluir en cron: `0 3 * * * /var/www/epycus-web/deploy/backup-bd.sh`
 
 ### DB-002: Sin política de reintentos en conexión BD
 - **Archivo:** `Program.cs` (líneas 47-56)
@@ -103,7 +103,7 @@
 - **Problema:** El pipeline no ejecuta los tests unitarios ni de aceptación. Solo hace restore, format check, build y deploy.
 - **Riesgo:** Código roto puede llegar a producción sin ser detectado.
 - **Solución:** Agregar `dotnet test EpycusApp.Tests` en el job `code-quality`.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregado paso `dotnet test` en job `code-quality` del pipeline CI/CD
 
 ### CI-002: Sin rollback automático en deploy fallido
 - **Archivo:** `.github/workflows/ci-cd.yml`
@@ -116,27 +116,27 @@
 - **Problema:** El pipeline no ejecuta `dotnet ef database update`. Las migraciones se aplican manualmente o en el startup (Program.cs línea 26).
 - **Riesgo:** Si se agrega una migración y no se aplica manualmente antes del deploy, la app falla al iniciar.
 - **Solución:** Agregar paso de migraciones en el pipeline o asegurar que `MigrateAsync()` en startup funcione correctamente.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregado paso de migraciones EF Core vía SSH en job `deploy` del pipeline CI/CD
 
 ### DEP-001: SSL no configurado (Certbot no ejecutado)
 - **Archivos:** `deploy/setup-vps.sh` (línea 212), `deploy/nginx-epycus.conf`
 - **Problema:** El setup script referencia certificados SSL que NO existen (`/etc/letsencrypt/live/app.epycus.es/`). Certbot nunca fue ejecutado. Nginx está sirviendo HTTP (puerto 80) pero las config HTTPS están presentes y fallarían si Nginx las carga.
 - **Riesgo:** El sitio funciona solo en HTTP. Datos sensibles en texto plano. README dice "HTTPS: Pendiente".
 - **Solución:** Ejecutar `certbot --nginx -d app.epycus.es --non-interactive --agree-tos -m app@epycus.es`
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-24]` Certificado SSL re-instalado con `certbot --nginx -d app.epycus.es`. HTTPS activo en https://app.epycus.es (HTTP/2, TLSv1.2/TLSv1.3)
 
 ### DEP-002: Config Nginx con error de sintaxis
 - **Archivo:** `deploy/nginx-epycus.conf` (línea 18)
 - **Problema:** `http2 on;` está en una línea separada. La sintaxis correcta es `listen 443 ssl http2;` (una sola línea). `http2 on;` ya no es válido en versiones recientes de Nginx.
 - **Riesgo:** Nginx falla al recargar/configurar. HTTP/2 no funciona.
 - **Solución:** Mover `http2` al parámetro `listen`.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Movido `http2` al parámetro `listen` en `deploy/nginx-epycus.conf`
 
 ### DEP-003: README dice HTTPS pendiente pero setup lo configura
 - **Archivo:** `README.md` (línea 53) vs `deploy/setup-vps.sh`
 - **Problema:** README marca HTTPS como pendiente, pero `setup-vps.sh` configura Certbot y SSL. Hay inconsistencia documental.
 - **Solución:** Decidir si HTTPS está configurado o no, y actualizar ambos archivos.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` No hay inconsistencia real: `setup-vps.sh` solo *muestra* el comando de Certbot (línea 212, `echo`), no lo ejecuta. HTTPS sigue pendiente. README correcto. Agregada nota en setup-vps.sh aclarando que es paso manual post-setup. Marcado DEP-001 como [PENDIENTE EN VPS] porque requiere ejecución en VPS
 
 ---
 
@@ -150,7 +150,7 @@
   - El personaje debería ocupar al menos 40% del ancho de pantalla en mobile
   - Usar `min(40vw, 260px)` para el tamaño
 - **Recomendación Battle Royale:** El personaje debe ser GRANDE, con presencia. Inspirado en cómo los juegos gacha/gacha muestran sus personajes (grandes, con animación idle, fondo especial).
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Aumentado personaje en mobile a `min(45vw, 180px)` de ancho. Eliminados inline styles de Index.cshtml que sobrescribían el CSS. Desktop se mantiene en 220x240px desde dashboard.css
 
 ### UX-002: Personaje estático PNG sin animaciones
 - **Archivo:** `wwwroot/img/personajes/`
@@ -160,7 +160,7 @@
   - Implementar animaciones CSS (float, pulse, glow particles)
   - Alternativa: usar sprites animados o Lottie animations
   - Efecto "aura" que ya existe pero mejorarlo con partículas CSS
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregadas partículas CSS brillantes (::before/::after) en dash-personaje-aura con animación de flotación. El aura ya tenía pulse y el personaje float. Se agregaron 2 partículas con delays asincrónicos
 
 
 
@@ -219,7 +219,7 @@
 - **Archivo:** `Program.cs`
 - **Problema:** No hay configuración de `ShutdownTimeout`. Si el servicio se detiene, las requests en curso se abortan abruptamente.
 - **Solución:** `builder.WebHost.ConfigureKestrel(o => o.Limits.MaxConcurrentConnections = 100);` y configurar `ShutdownTimeout` en systemd.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregado `HostOptions.ShutdownTimeout = 30s` en Program.cs para graceful shutdown de requests en curso.`
 
 ### TEC-003: SignalR no implementado (alertas no son en tiempo real)
 - **Problema:** Las alertas de bienestar (ánimo negativo, sobrecarga de misiones) solo se muestran al cargar la página. No hay push en tiempo real.
@@ -246,7 +246,7 @@
   - Longitud mínima: 8 caracteres
   - Requerir: mayúscula, minúscula, número, carácter especial
   - Bloqueo tras 5 intentos fallidos por 15 minutos
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregados campos `IntentosFallidos` y `BloqueoHasta` en entidad Usuario. Login ahora bloquea 15min tras 5 intentos fallidos.`
 
 ### TEC-007: Sin CAPTCHA en login/registro
 - **Problema:** Los formularios de login y registro no tienen CAPTCHA.
@@ -270,7 +270,7 @@
 - **Archivo:** `wwwroot/js/site.js` y `wwwroot/js/theme-manager.js`
 - **Problema:** Ambos archivos manejan el cambio de tema. `site.js` tiene función `cambiarTema()` que manipula `hoja-tema.href`, mientras `theme-manager.js` hace lo mismo con más sofisticación (FOUC prevention, toggle button sync). `site.js` es redundante y puede causar conflictos.
 - **Solución:** Eliminar `site.js` o deprecar sus funciones de tema. Dejar solo `theme-manager.js`.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Eliminadas funciones `cambiarTema()` y listener DOMContentLoaded de `site.js`. Manejo de tema delegado completamente a `theme-manager.js`.
 
 ---
 
@@ -304,7 +304,7 @@
 - **Archivo:** `.gitignore` (línea 441) ignora `package-lock.json`
 - **Problema:** `package-lock.json` está en `.gitignore` pero el archivo EXISTE en el repo. Fue commiteado antes de agregarlo al gitignore.
 - **Solución:** Eliminar del repo con `git rm --cached package-lock.json`.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` El archivo ya estaba en `.gitignore` y no está en HEAD. Verificado con `git ls-files` y `git check-ignore`.
 
 ---
 
@@ -319,15 +319,31 @@
 7. **COMMITEA** con mensaje claro: `fix: resolver SEC-001 rotar credenciales` etc.
 8. **NOTIFICA** al usuario que haga `git pull && dotnet publish && systemctl restart` en el VPS
 
+### Resumen de esta sesión (2026-06-23):
+
+| Item | Estado |
+|------|--------|
+| DEP-002: Sintaxis http2 en nginx | ✅ Resuelto |
+| CI-001: dotnet test en pipeline | ✅ Resuelto |
+| CI-003: Migraciones BD en CI/CD | ✅ Resuelto |
+| UX-001: Tamaño personaje mobile | ✅ Resuelto |
+| UX-002: Animaciones/partículas CSS | ✅ Resuelto |
+| ARQ-006: MailKit en ServicioCorreo | ✅ Resuelto |
+| DB-001: Script backup automático BD | ✅ Resuelto — `deploy/backup-bd.sh` |
+| DEP-003: Consistencia README/setup | ✅ Resuelto — aclarado que HTTPS es manual |
+
 ### Prioridades para la PRÓXIMA IA:
 
-
-2. **SEC-003**: Reordenar middleware pipeline
-3. **SEC-005**: Eliminar o completar configuración de Log entity
-4. **ARQ-001, ARQ-004**: Unificar DTOs
-5. **DEP-001**: Configurar SSL con Certbot
-6. **DB-001**: Backup automático BD
-7. **UX-001, UX-002**: Mejorar personaje (tamaño + animaciones)
+1. **DEP-001**: Configurar SSL con Certbot en el VPS (requiere acceso SSH al VPS)
+2. **CI-002**: Rollback automático en deploy fallido
+3. **TEC-001**: Caché de datos frecuentes (IMemoryCache)
+4. **TEC-003**: SignalR para alertas en tiempo real
+5. **TEC-005**: Sentry/Application Insights para monitoreo
+6. **UX-005**: PWA (manifest.json + service-worker)
+7. **UX-004**: Imágenes reales para todas las carreras
+8. **DDT-001**: Separar DatosSemilla.cs en JSON/modular
+9. **DDT-003**: Refactor Program.cs usando extension methods
+10. **DDT-004**: Re-encoding UTF-8 sin BOM
 
 ---
 

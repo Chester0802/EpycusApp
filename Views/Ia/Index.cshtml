@@ -307,7 +307,7 @@
         scrollToBottom();
 
         try {
-            var res  = await fetch('/api/ia/chat', {
+            var res  = await fetch('/api/v1/ia/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -357,7 +357,7 @@
 
     window.enviarFeedback = async function (mensajeId, util) {
         try {
-            await fetch('/api/ia/feedback', {
+            await fetch('/api/v1/ia/feedback', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

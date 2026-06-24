@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
-    [Route("api/estado-animo")]
+    [Route("api/v1/estado-animo")]
     [Authorize]
     [EnableRateLimiting("Mobile")]
     public class ApiEstadoAnimoController : BaseApiController

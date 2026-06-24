@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
-    [Route("api/perfil")]
+    [Route("api/v1/perfil")]
     [Authorize]
     [EnableRateLimiting("Mobile")]
     public class ApiPerfilController : BaseApiController

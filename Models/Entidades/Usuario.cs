@@ -16,6 +16,8 @@
         public DateTime? UltimoAcceso { get; set; }
         public string? GoogleId { get; set; }
         public string? FotoGoogleUrl { get; set; }
+        public int IntentosFallidos { get; set; }
+        public DateTime? BloqueoHasta { get; set; }
         public int RolId { get; set; }
         public int CarreraId { get; set; }
         public int? TemaActualId { get; set; }

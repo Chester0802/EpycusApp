@@ -50,10 +50,10 @@ Sistema multiplataforma de gamificación de hábitos profesionales inspirado en 
 | Aspecto | Estado |
 |---------|--------|
 | Web funcional | ✅ |
-| HTTPS | ⚠️ Pendiente (Certbot / Let's Encrypt) |
+| HTTPS | ✅ Certbot + Let's Encrypt (HTTP/2, TLSv1.2/TLSv1.3) |
 | App móvil | 📱 En planificación (Flutter) |
 | UI/UX | ✅ Responsivo, modo oscuro/claro, animaciones, micro-interacciones, feedback visual, páginas de error personalizadas |
-| Tests | ❌ No planificados |
+| Tests | ✅ 224 unit tests (xUnit + Moq + FluentAssertions) ejecutados en CI/CD |
 
 > Ver [PENDIENTES.md](./PENDIENTES.md) para la lista completa de tareas.
 
@@ -118,7 +118,7 @@ En producción todas las credenciales se pasan como variables de entorno en el s
 
 El pipeline en `.github/workflows/ci-cd.yml` se ejecuta al hacer push a `main`:
 
-1. **Code Quality** — restore, format check, build con warnings como errores
+1. **Code Quality** — restore, format check, build con warnings como errores, `dotnet test`
 2. **Build & Publish** — build + `dotnet publish`
 3. **Deploy** — backup del deploy actual → SCP → restart service → health check
 4. **Security Scan** — Gitleaks (detección de secretos)

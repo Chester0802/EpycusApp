@@ -1,5 +1,7 @@
 ﻿using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using EpycusApp.Servicios.Interfaces;
 
 namespace EpycusApp.Servicios.Implementaciones
@@ -69,24 +71,20 @@ namespace EpycusApp.Servicios.Implementaciones
             var remitente = _config["Correo:NombreRemitente"] ?? "Epycus App";
             var puerto = int.TryParse(_config["Correo:Puerto"], out var valorPuerto) ? valorPuerto : 587;
 
-            using var mensaje = new MailMessage
-            {
-                From = new MailAddress(usuario, remitente),
-                Subject = asunto,
-                Body = cuerpo,
-                IsBodyHtml = false
-            };
-            mensaje.To.Add(destinatario);
+            var mensaje = new MimeMessage();
+            mensaje.From.Add(new MailboxAddress(remitente, usuario));
+            mensaje.To.Add(new MailboxAddress("", destinatario));
+            mensaje.Subject = asunto;
+            mensaje.Body = new TextPart("plain") { Text = cuerpo };
 
-            using var cliente = new SmtpClient(servidor, puerto)
-            {
-                EnableSsl = true,
-                Credentials = new NetworkCredential(usuario, contrasena)
-            };
+            using var cliente = new SmtpClient();
 
             try
             {
-                await cliente.SendMailAsync(mensaje);
+                await cliente.ConnectAsync(servidor, puerto, SecureSocketOptions.StartTls);
+                await cliente.AuthenticateAsync(usuario, contrasena);
+                await cliente.SendAsync(mensaje);
+                await cliente.DisconnectAsync(true);
             }
             catch (Exception ex)
             {

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
-    [Route("api/admin")]
+    [Route("api/v1/admin")]
     [Authorize]
     [EnableRateLimiting("Api")]
     public class ApiAdminController : BaseApiController
