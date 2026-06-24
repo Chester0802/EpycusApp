@@ -57,7 +57,7 @@
 .dash-hero-personaje {
     position: relative;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     width: 220px;
     height: 240px;
@@ -67,8 +67,8 @@
 .dash-personaje-img {
     position: relative;
     z-index: 2;
-    max-height: 215px;
-    max-width: 200px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     object-position: top 25%;
     filter: drop-shadow(0 10px 22px rgba(255, 107, 157, 0.35));
@@ -782,8 +782,10 @@
     }
 
     .dash-personaje-img {
-        max-height: 180px;
-        max-width: 165px;
+        width: 100% !important;
+        height: 100% !important;
+        max-height: none;
+        max-width: none;
     }
 
     .dash-personaje-aura {
