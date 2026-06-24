@@ -357,4 +357,9 @@
     .ep-da-stat-value {
         font-size: 1.1rem;
     }
+
+    .ep-da-cal-dia {
+        min-height: 32px;
+        font-size: 0.7rem;
+    }
 }
