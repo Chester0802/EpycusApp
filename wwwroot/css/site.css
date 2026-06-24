@@ -342,6 +342,9 @@ textarea:focus-visible {
 }
 
 @media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
   .ep-sidebar {
     position: fixed;
     width: 280px;

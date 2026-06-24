@@ -1,18 +1,9 @@
-const CACHE_NAME = 'epycus-v1';
-const STATIC_ASSETS = [
+const CACHE_NAME = 'epycus-v2';
+const CACHE_FIRST_ASSETS = [
   '/',
   '/lib/bootstrap.min.css',
   '/lib/bootstrap-icons.min.css',
   '/lib/bootstrap.bundle.min.js',
-  '/css/variables.css',
-  '/css/epycus-modern.css',
-  '/css/dashboard.css',
-  '/css/site.css',
-  '/css/notificaciones.css',
-  '/css/temas/tema-noche-epica.css',
-  '/js/theme-manager.js',
-  '/js/site.js',
-  '/js/notificaciones.js',
   '/img/logo.webp',
   '/favicon.ico',
   '/manifest.json'
@@ -21,7 +12,7 @@ const STATIC_ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS);
+      return cache.addAll(CACHE_FIRST_ASSETS);
     })
   );
   self.skipWaiting();
@@ -41,24 +32,38 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
+  const url = new URL(event.request.url);
+
+  // CSS/JS: network-first (always get latest, fall back to cache offline)
+  if (url.pathname.match(/\.(css|js)(\?.*)?$/)) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Everything else: cache-first for speed, update in background
   event.respondWith(
     caches.match(event.request).then(cached => {
-      if (cached) return cached;
-
-      return fetch(event.request).then(response => {
+      const fetchPromise = fetch(event.request).then(response => {
         if (response && response.status === 200) {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, clone);
-          });
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
-      }).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('/');
-        }
-        return new Response('Offline', { status: 503 });
       });
+      return cached || fetchPromise;
+    }).catch(() => {
+      if (event.request.mode === 'navigate') {
+        return caches.match('/');
+      }
+      return new Response('Offline', { status: 503 });
     })
   );
 });

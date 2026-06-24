@@ -214,6 +214,7 @@
 
 .ep-da-calendario {
     max-width: 100%;
+    overflow-x: auto;
 }
 
 .ep-da-cal-header {
