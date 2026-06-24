@@ -188,6 +188,9 @@
         })();
     </script>
     @await RenderSectionAsync("Scripts", required: false)
-    <partial name="_CookieConsent" />
+    @if (!ViewContext.HttpContext.Request.Cookies.ContainsKey("epycus_cookies_aceptadas"))
+    {
+        <partial name="_CookieConsent" />
+    }
 </body>
 </html>
