@@ -196,6 +196,12 @@ namespace EpycusApp.Servicios.Implementaciones
                 return (false, "La cuenta está desactivada", null, null);
             }
 
+            if (usuario.BloqueoHasta.HasValue && usuario.BloqueoHasta > DateTime.UtcNow)
+            {
+                var minutosRestantes = (int)(usuario.BloqueoHasta.Value - DateTime.UtcNow).TotalMinutes;
+                return (false, $"Cuenta bloqueada. Intenta de nuevo en {minutosRestantes} minuto(s).", null, null);
+            }
+
             if (string.IsNullOrWhiteSpace(usuario.ContrasenaHash))
             {
                 return (false, "La cuenta no tiene contraseña, inicia sesión con Google", null, null);
@@ -203,25 +209,34 @@ namespace EpycusApp.Servicios.Implementaciones
 
             if (!BCrypt.Net.BCrypt.Verify(contrasena, usuario.ContrasenaHash))
             {
+                usuario.IntentosFallidos++;
+                if (usuario.IntentosFallidos >= 5)
+                {
+                    usuario.BloqueoHasta = DateTime.UtcNow.AddMinutes(15);
+                    usuario.IntentosFallidos = 0;
+                }
+                await _contexto.SaveChangesAsync();
                 return (false, "Credenciales incorrectas", null, null);
             }
 
+            usuario.IntentosFallidos = 0;
+            usuario.BloqueoHasta = null;
             var token = GenerarToken(usuario);
             var refreshToken = GenerarRefreshToken();
 
             usuario.UltimoAcceso = DateTime.UtcNow;
 
-                        var refreshTokenHash = HashToken(refreshToken);
-                        _contexto.TokensRefresh.Add(new Models.Entidades.TokenRefresh
-                        {
-                            UsuarioId = usuario.Id,
-                            Token = refreshTokenHash,
-                            ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
-                        });
+            var refreshTokenHash = HashToken(refreshToken);
+            _contexto.TokensRefresh.Add(new Models.Entidades.TokenRefresh
+            {
+                UsuarioId = usuario.Id,
+                Token = refreshTokenHash,
+                ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
+            });
 
-                        await _contexto.SaveChangesAsync();
+            await _contexto.SaveChangesAsync();
 
-                        return (true, "Login exitoso", token, refreshToken);
+            return (true, "Login exitoso", token, refreshToken);
         }
 
         public async Task<(bool EsExitoso, string? Mensaje)> CambiarContrasenaAsync(string correo, string contrasenaActual, string nuevaContrasena)

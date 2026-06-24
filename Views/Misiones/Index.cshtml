@@ -70,7 +70,7 @@
         }
 
         function cargarSubTareas(misionId) {
-            fetch('/api/misiones/' + misionId + '/sub-tareas')
+            fetch('/api/v1/misiones/' + misionId + '/sub-tareas')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data && data.datos) renderizarSubTareas(misionId, data.datos);
@@ -186,7 +186,7 @@
             function guardarEdicion() {
                 var nuevoNombre = input.value.trim();
                 if (nuevoNombre && nuevoNombre !== nombreActual) {
-                    fetch('/api/misiones/' + misionId + '/sub-tareas/' + id, {
+                    fetch('/api/v1/misiones/' + misionId + '/sub-tareas/' + id, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ nombre: nuevoNombre, descripcion: null })
@@ -223,7 +223,7 @@
         });
 
         function crearSubTarea(misionId, nombre) {
-            fetch('/api/misiones/' + misionId + '/sub-tareas', {
+            fetch('/api/v1/misiones/' + misionId + '/sub-tareas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nombre: nombre, descripcion: null })
@@ -236,7 +236,7 @@
         }
 
         function completarSubTarea(misionId, id) {
-            fetch('/api/misiones/' + misionId + '/sub-tareas/' + id + '/completar', { method: 'POST' })
+            fetch('/api/v1/misiones/' + misionId + '/sub-tareas/' + id + '/completar', { method: 'POST' })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data && data.exito !== false) cargarSubTareas(misionId);
@@ -245,7 +245,7 @@
         }
 
         function descompletarSubTarea(misionId, id) {
-            fetch('/api/misiones/' + misionId + '/sub-tareas/' + id + '/descompletar', { method: 'POST' })
+            fetch('/api/v1/misiones/' + misionId + '/sub-tareas/' + id + '/descompletar', { method: 'POST' })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data && data.exito !== false) cargarSubTareas(misionId);
@@ -255,7 +255,7 @@
 
         function eliminarSubTarea(misionId, id) {
             if (!confirm('\u00bfEliminar esta sub-tarea?')) return;
-            fetch('/api/misiones/' + misionId + '/sub-tareas/' + id, { method: 'DELETE' })
+            fetch('/api/v1/misiones/' + misionId + '/sub-tareas/' + id, { method: 'DELETE' })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data && data.exito !== false) cargarSubTareas(misionId);

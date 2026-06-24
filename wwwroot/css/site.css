@@ -434,9 +434,9 @@ textarea:focus-visible {
   .ep-card { padding: 1rem; }
   .ep-header-title { font-size: 1.35rem; }
   .dash-hero { padding: 1rem; }
-  .dash-hero-personaje { width: 80px !important; height: 90px !important; }
-  .dash-personaje-img { max-height: 80px !important; max-width: 75px !important; }
-  .dash-personaje-aura { width: 90px !important; height: 90px !important; }
+  .dash-hero-personaje { width: min(45vw, 180px) !important; height: min(52vw, 220px) !important; }
+  .dash-personaje-img { max-height: min(48vw, 200px) !important; max-width: min(42vw, 175px) !important; }
+  .dash-personaje-aura { width: min(48vw, 200px) !important; height: min(48vw, 200px) !important; }
   .dash-hero-glow-orb { display: none; }
   .dash-progress-bar { width: 100px; }
   .dash-streak-name { width: 80px; }

@@ -209,6 +209,11 @@ public partial class Program
                     }));
         });
 
+        builder.Services.Configure<HostOptions>(options =>
+        {
+            options.ShutdownTimeout = TimeSpan.FromSeconds(30);
+        });
+
         builder.Services.AddAntiforgery(options =>
         {
             options.HeaderName = "X-CSRF-TOKEN";
@@ -250,11 +255,18 @@ public partial class Program
             options.SwaggerDoc("v1", new() { Title = "EpycusApp API", Version = "v1" });
         });
 
+        builder.Services.AddHttpClient<MvcHealthCheck>(client =>
+        {
+            client.BaseAddress = new Uri(builder.Configuration["App:UrlBase"] ?? "http://localhost:5000");
+            client.Timeout = TimeSpan.FromSeconds(5);
+        });
+
         var cadenaConexion = builder.Configuration.GetConnectionString("ConexionPrincipal")!;
         var healthChecks = builder.Services.AddHealthChecks()
             .AddCheck<GeminiHealthCheck>("Gemini API", tags: ["api"])
             .AddCheck<DeepSeekHealthCheck>("DeepSeek API", tags: ["api"])
-            .AddCheck<DiskHealthCheck>("Disco", tags: ["system"]);
+            .AddCheck<DiskHealthCheck>("Disco", tags: ["system"])
+            .AddCheck<MvcHealthCheck>("Pipeline MVC", tags: ["mvc"]);
 
         if (proveedorDb != "InMemory")
         {

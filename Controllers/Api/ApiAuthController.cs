@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace EpycusApp.Controllers.Api
 {
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/v1/auth")]
     [EnableRateLimiting("Auth")]
     public class ApiAuthController : BaseApiController
     {
