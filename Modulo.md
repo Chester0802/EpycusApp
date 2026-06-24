@@ -65,7 +65,7 @@
 - **Archivo:** Todos los controladores API en `Controllers/Api/`
 - **Problema:** Todos los endpoints son `/api/*` sin prefijo de versión (`/api/v1/*`). Cambios breaking romperían clientes (app móvil futura).
 - **Riesgo:** Imposible evolucionar la API sin romper clientes existentes.
-- **Solución:** Agregar ruteo por版本 (`/api/v1/auth/login`, etc.) usando `[Route("api/v1/[controller]")]` o similar.
+- **Solución:** Agregar ruteo por versión (`/api/v1/auth/login`, etc.) usando `[Route("api/v1/[controller]")]` o similar.
 - **Estado:** `[RESUELTO: 2026-06-23]` Agregado `[Route("api/v1/...")]` en los 13 controladores API. Actualizadas todas las referencias `/api/` → `/api/v1/` en vistas y JS.
 
 ### ARQ-006: ServicioCorreo no usa interfaces de abstracción de SMTP
@@ -80,7 +80,7 @@
 - **Problema:** Los health checks solo verifican BD, Gemini, DeepSeek y disco. No verifican que el pipeline MVC funcione (que los controladores, razor views y autenticación respondan).
 - **Riesgo:** Health check puede reportar "healthy" mientras la web está caída por errores en vistas o controladores.
 - **Solución:** Agregar un health check que haga una request a `/Home/Index` o `/health/ready`.
-- **Estado:** `[RESUELTO: 2026-06-23]` Creado `MvcHealthCheck.cs` que hace GET a `/Home/Index` y verifica HTML. Registrado en health checks con tag "mvc".`
+- **Estado:** `[RESUELTO: 2026-06-23]` Creado `MvcHealthCheck.cs` que hace GET a `/Home/Index` y verifica HTML. Registrado en health checks con tag "mvc".
 
 ---
 
@@ -123,7 +123,7 @@
 - **Problema:** El setup script referencia certificados SSL que NO existen (`/etc/letsencrypt/live/app.epycus.es/`). Certbot nunca fue ejecutado. Nginx está sirviendo HTTP (puerto 80) pero las config HTTPS están presentes y fallarían si Nginx las carga.
 - **Riesgo:** El sitio funciona solo en HTTP. Datos sensibles en texto plano. README dice "HTTPS: Pendiente".
 - **Solución:** Ejecutar `certbot --nginx -d app.epycus.es --non-interactive --agree-tos -m app@epycus.es`
-- **Estado:** `[RESUELTO: 2026-06-24]` Certificado SSL re-instalado con `certbot --nginx -d app.epycus.es`. HTTPS activo en https://app.epycus.es (HTTP/2, TLSv1.2/TLSv1.3)
+- **Estado:** `[PENDIENTE: requiere ejecutar Certbot en el VPS]` Ver `deploy/setup-vps.sh` línea 212. HTTPS aún no configurado.
 
 ### DEP-002: Config Nginx con error de sintaxis
 - **Archivo:** `deploy/nginx-epycus.conf` (línea 18)
@@ -164,7 +164,7 @@
 
 
 
-### UX-004: Solo 2 carreras con imágenes reales
+### UX-003: Solo 2 carreras con imágenes reales
 - **Archivo:** `wwwroot/img/personajes/`
 - **Problema:** De 12 carreras, solo "Ing. Sistemas" y "Medicina" tienen imágenes PNG reales. El resto usa `placeholder.png`. 20 niveles pero solo hay 2-3 imágenes por personaje.
 - **Riesgo:** La mayoría de usuarios ven un placeholder genérico.
@@ -174,7 +174,7 @@
   - O usar avatares generados por IA con diferenciación por carrera
 - **Estado:** `[PENDIENTE]`
 
-### UX-005: Sin PWA (Progressive Web App)
+### UX-004: Sin PWA (Progressive Web App)
 - **Problema:** No hay `manifest.json`, `service-worker.js`, ni soporte offline. La app no se puede instalar en la pantalla de inicio del celular.
 - **Riesgo:** Experiencia mobile subóptima. Los usuarios deben abrir el navegador cada vez.
 - **Solución:** 
@@ -183,14 +183,14 @@
    3. Estrategia offline-first para datos críticos
 - **Estado:** `[RESUELTO: 2026-06-23]` Creado `wwwroot/manifest.json` con display standalone, theme_color #6366f1. Creado `wwwroot/sw.js` con caché de assets estáticos y estrategia cache-first. Registrado en _Layout.cshtml con link rel manifest, apple-touch-icon, meta tags.
 
-### UX-006: Sidebar no muestra personaje en mobile
+### UX-005: Sidebar no muestra personaje en mobile
 - **Problema:** En mobile, el sidebar se oculta (fuera de pantalla) y el personaje no se ve hasta que se abre el menú. En la vista mobile no hay representación visual del personaje en el layout general.
 - **Solución:** 
    - Agregar un avatar circular pequeño del personaje en el toggle button del sidebar
    - O mostrar el personaje en miniatura en la barra superior
 - **Estado:** `[RESUELTO: 2026-06-23]` Agregado `ep-mobile-avatar` en _Layout.cshtml que muestra el personaje en la esquina superior derecha en mobile. Usa ViewData["ImagenPersonaje"] del CargarPersonajeFilter. Estilos CSS en site.css.
 
-### UX-007: Sin transiciones entre páginas (sensación "SPA-like")
+### UX-006: Sin transiciones entre páginas (sensación "SPA-like")
 - **Problema:** Cada navegación recarga la página completamente. No hay transiciones suaves entre vistas.
 - **Solución:** 
    - Usar `@import` de htmx o Turbo Drive (Hotwire) para navegación tipo SPA
@@ -198,7 +198,7 @@
    - Agregar transiciones de página con `ViewTransitions` API
 - **Estado:** `[RESUELTO: 2026-06-23]` Agregada animación CSS `ep-fade-in` (opacity + translateY 8px, 0.3s) en `.ep-contenido` para transiciones suaves entre páginas.
 
-### UX-008: Sin retroalimentación háptica ni sonidos gamificados
+### UX-007: Sin retroalimentación háptica ni sonidos gamificados
 - **Problema:** Completar hábitos, subir de nivel, ganar logros — todo es silencioso y sin vibración.
 - **Solución:** 
    - Sonidos cortos para: completar hábito, subir nivel, ganar logro, recibir XP
@@ -260,7 +260,7 @@
 
 
 
-### DSN-002: Variables CSS legacy --ep-* mezcladas con nuevas
+### DSN-001: Variables CSS legacy --ep-* mezcladas con nuevas
 - **Archivo:** `wwwroot/css/variables.css` (líneas 340-381, 461-503)
 - **Problema:** El sistema de diseño tiene variables legacy (`--ep-fondo`, `--ep-texto`, etc.) mapeadas a las nuevas (`--bg-primary`, `--text-primary`). Esto es confuso y algunos CSS usan las viejas y otros las nuevas.
 - **Solución:** Migrar gradualmente todo a las variables nuevas y eliminar las legacy.
@@ -335,19 +335,14 @@
 | TEC-001: Caché datos frecuentes | ✅ Resuelto — ServicioCache con IMemoryCache |
 | TEC-003: SignalR alertas tiempo real | ✅ Resuelto — NotificacionesHub + toast |
 | TEC-005: Sentry monitoreo errores | ✅ Resuelto — Sentry.AspNetCore |
-| UX-005: PWA | ✅ Resuelto — manifest.json + sw.js |
-| UX-006: Sidebar personaje mobile | ✅ Resuelto — avatar móvil |
-| UX-007: Transiciones entre páginas | ✅ Resuelto — fade-in CSS |
-| UX-008: Sonidos gamificados hápticos | ✅ Resuelto — Web Audio API + vibrate |
+| UX-004: PWA | ✅ Resuelto — manifest.json + sw.js |
+| UX-005: Sidebar personaje mobile | ✅ Resuelto — avatar móvil |
+| UX-006: Transiciones entre páginas | ✅ Resuelto — fade-in CSS |
+| UX-007: Sonidos gamificados hápticos | ✅ Resuelto — Web Audio API + vibrate |
 | DDT-001: Separar DatosSemilla.cs | ✅ Resuelto — 8 módulos separados |
 | DDT-003: Refactor Program.cs | ✅ Resuelto — extension methods |
-
-### Resumen de esta sesión (2026-06-23):
-
-| Item | Estado |
-|------|--------|
 | DDT-002: Dividir ServicioIA.cs | ✅ Resuelto — ProveedorGemini, ProveedorDeepSeek, ConstructorContextoIA creados. 743→180 líneas |
-| DSN-002: Migrar variables CSS legacy | ✅ Resuelto — Reemplazados todos los `--ep-*` en site.css, bienestar.css. Eliminados bloques compat en variables.css y temas |
+| DSN-001: Migrar variables CSS legacy | ✅ Resuelto — Reemplazados todos los `--ep-*` en site.css, bienestar.css. Eliminados bloques compat en variables.css y temas |
 | TEC-004: Tests de integración | ✅ Resuelto — 10 tests nuevos (ApiAuthTests + ApiHabitosTests) |
 | TEC-007: CAPTCHA login/registro | ✅ Resuelto — Cloudflare Turnstile implementado |
 | DDT-004: UTF-8 sin BOM | ✅ Resuelto — Verificados archivos clave, sin mojibake. BOM es inocua en .NET |
@@ -355,7 +350,7 @@
 ### Prioridades para la PRÓXIMA IA:
 
 1. **DEP-001**: Configurar SSL con Certbot en el VPS (requiere acceso SSH al VPS)
-2. **UX-004**: Imágenes reales para todas las carreras
+2. **UX-003**: Imágenes reales para todas las carreras
 
 ---
 
