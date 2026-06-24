@@ -15,17 +15,20 @@ namespace EpycusApp.Servicios.Implementaciones
         private readonly ContextoAplicacion _contexto;
         private readonly IConfiguration _config;
         private readonly IServicioCorreo _servicioCorreo;
+        private readonly IServicioAuditoria _servicioAuditoria;
         private readonly ILogger<ServicioAutenticacion> _logger;
 
         public ServicioAutenticacion(
             ContextoAplicacion contexto,
             IConfiguration config,
             IServicioCorreo servicioCorreo,
+            IServicioAuditoria servicioAuditoria,
             ILogger<ServicioAutenticacion> logger)
         {
             _contexto = contexto;
             _config = config;
             _servicioCorreo = servicioCorreo;
+            _servicioAuditoria = servicioAuditoria;
             _logger = logger;
         }
 
@@ -216,6 +219,7 @@ namespace EpycusApp.Servicios.Implementaciones
                     usuario.IntentosFallidos = 0;
                 }
                 await _contexto.SaveChangesAsync();
+                await _servicioAuditoria.RegistrarAsync("LoginFallido", $"Intento fallido para {correo}", usuario.Id);
                 return (false, "Credenciales incorrectas", null, null);
             }
 
@@ -235,6 +239,7 @@ namespace EpycusApp.Servicios.Implementaciones
             });
 
             await _contexto.SaveChangesAsync();
+            await _servicioAuditoria.RegistrarAsync("LoginExitoso", $"Login exitoso para {correo}", usuario.Id);
 
             return (true, "Login exitoso", token, refreshToken);
         }
@@ -252,7 +257,17 @@ namespace EpycusApp.Servicios.Implementaciones
                         return (false, "Contraseña actual incorrecta");
 
                     usuario.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(nuevaContrasena, workFactor: 12);
+
+                    var tokensActivos = await _contexto.TokensRefresh
+                        .Where(t => t.UsuarioId == usuario.Id && !t.Revocado)
+                        .ToListAsync();
+                    foreach (var token in tokensActivos)
+                    {
+                        token.Revocado = true;
+                    }
+
                     await _contexto.SaveChangesAsync();
+                    await _servicioAuditoria.RegistrarAsync("CambioContrasena", "Contraseña cambiada exitosamente", usuario.Id);
                     return (true, null);
                 }
 
@@ -399,7 +414,16 @@ namespace EpycusApp.Servicios.Implementaciones
             usuario.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(nuevaContrasena, workFactor: 12);
             recuperacion.Usado = true;
 
+            var tokensActivos = await _contexto.TokensRefresh
+                .Where(t => t.UsuarioId == usuario.Id && !t.Revocado)
+                .ToListAsync();
+            foreach (var t in tokensActivos)
+            {
+                t.Revocado = true;
+            }
+
             await _contexto.SaveChangesAsync();
+            await _servicioAuditoria.RegistrarAsync("RestablecerContrasena", "Contraseña restablecida via token de recuperación", usuario.Id);
 
             return true;
         }

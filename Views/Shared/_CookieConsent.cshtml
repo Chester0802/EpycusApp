@@ -1,0 +1,18 @@
+@{
+    var cookieConsent = Context.Request.Cookies["epycus_cookies_aceptadas"];
+}
+@if (string.IsNullOrEmpty(cookieConsent))
+{
+    <div id="ep-cookie-consent" style="position:fixed;bottom:0;left:0;right:0;z-index:99999;background:var(--bg-card,#1e1e2e);color:var(--text-primary,#fff);padding:16px 24px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;border-top:2px solid var(--accent-primary,#6366f1);font-size:14px;">
+        <span>Usamos cookies necesarias para el funcionamiento de la app. Al continuar, aceptas su uso. <a href="/Home/Privacidad" style="color:var(--accent-primary,#6366f1);text-decoration:underline;">Ver política</a></span>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+            <button onclick="aceptarCookies()" style="padding:8px 20px;border:none;border-radius:8px;background:var(--accent-primary,#6366f1);color:#fff;cursor:pointer;font-weight:600;">Aceptar</button>
+        </div>
+    </div>
+    <script>
+        function aceptarCookies() {
+            document.cookie = "epycus_cookies_aceptadas=1; path=/; max-age=" + (365*24*60*60) + "; SameSite=Lax";
+            document.getElementById('ep-cookie-consent').style.display = 'none';
+        }
+    </script>
+}

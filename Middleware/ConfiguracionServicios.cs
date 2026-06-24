@@ -255,6 +255,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 healthChecks.AddMySql(cadenaConexion, name: "Base de Datos", tags: ["db"]);
             }
 
+            builder.Services.AddScoped<IServicioAuditoria, ServicioAuditoria>();
             builder.Services.AddScoped<IServicioAutenticacion, ServicioAutenticacion>();
             builder.Services.AddScoped<IServicioGamificacion, ServicioGamificacion>();
             builder.Services.AddScoped<IServicioHabitos, ServicioHabitos>();

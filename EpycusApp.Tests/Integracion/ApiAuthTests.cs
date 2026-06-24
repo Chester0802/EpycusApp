@@ -23,12 +23,14 @@ public class ApiAuthTests : IDisposable
     private readonly ApiAuthController _controller;
     private readonly Mock<IServicioCorreo> _correoMock;
     private readonly Mock<ILogger<ServicioAutenticacion>> _loggerMock;
+    private readonly Mock<IServicioAuditoria> _auditoriaMock;
 
     public ApiAuthTests()
     {
         _contexto = DbContextFactory.CrearContexto("AuthIntegracion");
         _correoMock = new Mock<IServicioCorreo>();
         _loggerMock = new Mock<ILogger<ServicioAutenticacion>>();
+        _auditoriaMock = new Mock<IServicioAuditoria>();
 
         var configData = new Dictionary<string, string?>
         {
@@ -38,7 +40,7 @@ public class ApiAuthTests : IDisposable
         };
         var config = new ConfigurationBuilder().AddInMemoryCollection(configData).Build();
 
-        _servicio = new ServicioAutenticacion(_contexto, config, _correoMock.Object, _loggerMock.Object);
+        _servicio = new ServicioAutenticacion(_contexto, config, _correoMock.Object, _auditoriaMock.Object, _loggerMock.Object);
 
         _controller = new ApiAuthController(_servicio);
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "0") };
