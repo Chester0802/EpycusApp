@@ -1,8 +1,10 @@
 using EpycusApp.Datos;
+using EpycusApp.Hubs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Implementaciones;
 using EpycusApp.Tests.AyudantesTests;
 using FluentAssertions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -19,7 +21,8 @@ public class ServicioBienestarTests
     {
         _contexto = DbContextFactory.CrearContexto("BienestarTest");
         _loggerMock = new Mock<ILogger<ServicioBienestar>>();
-        _servicio = new ServicioBienestar(_contexto, _loggerMock.Object);
+        var hubMock = new Mock<IHubContext<NotificacionesHub>>();
+        _servicio = new ServicioBienestar(_contexto, hubMock.Object, _loggerMock.Object);
     }
 
     private async Task<int> SeedUsuarioAsync()

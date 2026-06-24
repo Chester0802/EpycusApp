@@ -797,6 +797,31 @@ textarea:focus-visible {
   }
 }
 
+.ep-mobile-avatar {
+  position: fixed;
+  top: 0.65rem;
+  right: 0.75rem;
+  z-index: 1060;
+}
+
+.ep-mobile-avatar img {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border: 2px solid var(--accent-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Page Transitions (View Transitions API) ──────────── */
+@keyframes ep-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ep-contenido {
+  animation: ep-fade-in 0.3s ease-out;
+}
+
 /* ── Loading Skeleton ──────────────────────────────────── */
 .ep-skeleton {
   background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);

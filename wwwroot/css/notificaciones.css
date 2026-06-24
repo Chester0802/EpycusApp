@@ -123,3 +123,36 @@
 .ep-toast:nth-child(4) {
     transition-delay: 0.15s;
 }
+
+.ep-toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 16px 20px;
+    border-radius: 12px;
+    background: var(--bg-card, #1e1e2e);
+    color: var(--text-primary, #fff);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border-left: 4px solid var(--accent, #f59e0b);
+    max-width: 400px;
+    animation: epSlideInRight 0.3s ease;
+    transform: translateX(0);
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+.ep-toast-notification.ep-toast-critica {
+    border-left-color: #ef4444;
+}
+
+@keyframes epSlideInRight {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

@@ -110,7 +110,7 @@
 - **Problema:** Si el deploy falla (health check post-deploy no responde), no hay rollback automático al backup.
 - **Riesgo:** Producción caída hasta que alguien hace rollback manual.
 - **Solución:** Agregar paso de rollback que restaure el backup si `systemctl is-active` falla.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregado paso de rollback automático que restaura el backup más reciente si el health check post-deploy falla. También se agregó notificación de estado final.
 
 ### CI-003: Sin migraciones de BD en CI/CD
 - **Problema:** El pipeline no ejecuta `dotnet ef database update`. Las migraciones se aplican manualmente o en el startup (Program.cs línea 26).
@@ -178,33 +178,33 @@
 - **Problema:** No hay `manifest.json`, `service-worker.js`, ni soporte offline. La app no se puede instalar en la pantalla de inicio del celular.
 - **Riesgo:** Experiencia mobile subóptima. Los usuarios deben abrir el navegador cada vez.
 - **Solución:** 
-  1. Crear `manifest.json` con íconos, tema color, nombre corto
-  2. Service worker básico para cachear assets estáticos
-  3. Estrategia offline-first para datos críticos
-- **Estado:** `[PENDIENTE]`
+   1. Crear `manifest.json` con íconos, tema color, nombre corto
+   2. Service worker básico para cachear assets estáticos
+   3. Estrategia offline-first para datos críticos
+- **Estado:** `[RESUELTO: 2026-06-23]` Creado `wwwroot/manifest.json` con display standalone, theme_color #6366f1. Creado `wwwroot/sw.js` con caché de assets estáticos y estrategia cache-first. Registrado en _Layout.cshtml con link rel manifest, apple-touch-icon, meta tags.
 
 ### UX-006: Sidebar no muestra personaje en mobile
 - **Problema:** En mobile, el sidebar se oculta (fuera de pantalla) y el personaje no se ve hasta que se abre el menú. En la vista mobile no hay representación visual del personaje en el layout general.
 - **Solución:** 
-  - Agregar un avatar circular pequeño del personaje en el toggle button del sidebar
-  - O mostrar el personaje en miniatura en la barra superior
-- **Estado:** `[PENDIENTE]`
+   - Agregar un avatar circular pequeño del personaje en el toggle button del sidebar
+   - O mostrar el personaje en miniatura en la barra superior
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregado `ep-mobile-avatar` en _Layout.cshtml que muestra el personaje en la esquina superior derecha en mobile. Usa ViewData["ImagenPersonaje"] del CargarPersonajeFilter. Estilos CSS en site.css.
 
 ### UX-007: Sin transiciones entre páginas (sensación "SPA-like")
 - **Problema:** Cada navegación recarga la página completamente. No hay transiciones suaves entre vistas.
 - **Solución:** 
-  - Usar `@import` de htmx o Turbo Drive (Hotwire) para navegación tipo SPA
-  - O usar fetch + reemplazo de contenido con animaciones CSS
-  - Agregar transiciones de página con `ViewTransitions` API
-- **Estado:** `[PENDIENTE]`
+   - Usar `@import` de htmx o Turbo Drive (Hotwire) para navegación tipo SPA
+   - O usar fetch + reemplazo de contenido con animaciones CSS
+   - Agregar transiciones de página con `ViewTransitions` API
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregada animación CSS `ep-fade-in` (opacity + translateY 8px, 0.3s) en `.ep-contenido` para transiciones suaves entre páginas.
 
 ### UX-008: Sin retroalimentación háptica ni sonidos gamificados
 - **Problema:** Completar hábitos, subir de nivel, ganar logros — todo es silencioso y sin vibración.
 - **Solución:** 
-  - Sonidos cortos para: completar hábito, subir nivel, ganar logro, recibir XP
-  - Vibración táctil en mobile para acciones importantes
-  - El sonido del Pomodoro ya existe, extenderlo a otras acciones
-- **Estado:** `[PENDIENTE]`
+   - Sonidos cortos para: completar hábito, subir nivel, ganar logro, recibir XP
+   - Vibración táctil en mobile para acciones importantes
+   - El sonido del Pomodoro ya existe, extenderlo a otras acciones
+- **Estado:** `[RESUELTO: 2026-06-23]` Creado `EpycusSonidos` en notificaciones.js con Web Audio API para generar tonos (completarHabito, subirNivel, ganarLogro, recibirXP, error). Vibración táctil con Navigator.vibrate(). Notificaciones._mostrarToast extendido para incluir sonidos.
 
 ---
 
@@ -213,7 +213,7 @@
 ### TEC-001: Sin caché de datos frecuentes
 - **Problema:** Las carreras, niveles, categorías, frases se cargan desde BD en cada request. Son datos quasi-estáticos que cambian raramente.
 - **Solución:** Implementar `IMemoryCache` con expiración por tiempo. Usar `[ResponseCache]` donde sea posible.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Creado `ServicioCache.cs` con IMemoryCache y TTL de 30min para Carreras, Niveles, Categorías, FrasesMotivacionales. Usa IServiceScopeFactory para evitar captura de scoped DbContext. Registrado como singleton en Program.cs.
 
 ### TEC-002: Sin graceful shutdown
 - **Archivo:** `Program.cs`
@@ -224,7 +224,7 @@
 ### TEC-003: SignalR no implementado (alertas no son en tiempo real)
 - **Problema:** Las alertas de bienestar (ánimo negativo, sobrecarga de misiones) solo se muestran al cargar la página. No hay push en tiempo real.
 - **Solución:** Implementar SignalR Hub para notificaciones en vivo. El bienestar debería poder alertar al usuario inmediatamente.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Creado `Hubs/NotificacionesHub.cs` con grupos por usuario. ServicioBienestar ahora envía alertas críticas via SignalR. Cliente JS con reconexión automática y toast notifications animadas.
 
 ### TEC-004: Tests de integración no implementados
 - **Archivo:** `EpycusApp.Tests/Integracion/` (vacío)
@@ -237,7 +237,7 @@
 - **Problema:** No hay sistema de tracking de errores. Los errores solo se ven en logs del servidor.
 - **Riesgo:** Errores en producción pasan desapercibidos hasta que un usuario los reporta.
 - **Solución:** Agregar Sentry SDK (`Sentry.AspNetCore`) o Application Insights.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregado `Sentry.AspNetCore` v5.3.0. Configurado en Program.cs con DSN desde configuración. TracesSampleRate 0.2. Se activa solo si Sentry:Dsn está configurado en appsettings.json o variable de entorno.
 
 ### TEC-006: Sin política de contraseñas
 - **Problema:** No hay validación de longitud mínima, complejidad ni bloqueo por intentos fallidos.
@@ -280,7 +280,7 @@
 - **Archivo:** `Datos/Semilla/DatosSemilla.cs`
 - **Problema:** El archivo de datos semilla es extremadamente largo. Mezcla definición de datos con lógica de inserción.
 - **Solución:** Separar los datos en archivos JSON o clases estáticas por módulo (SemillaHabitos.cs, SemillaMisiones.cs, etc.).
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Separado en 7 archivos modulares: SemillaCarreras.cs, SemillaNiveles.cs, SemillaCategorias.cs, SemillaTemas.cs, SemillaPersonajes.cs, SemillaLogros.cs, SemillaFrases.cs, SemillaTipsPomodoro.cs. DatosSemilla.cs ahora es solo un orquestador que llama a cada módulo.
 
 ### DDT-002: ServicioIA.cs con 743 líneas — viola SRP
 - **Archivo:** `Servicios/Implementaciones/ServicioIA.cs`
@@ -292,7 +292,7 @@
 - **Archivo:** `Program.cs`
 - **Problema:** Todo el pipeline de configuración está en Program.cs. Las configuraciones de servicios, middleware, health checks, rate limiting, autenticación — todo mezclado.
 - **Solución:** Usar extension methods: `builder.Services.AddEpycusAuthentication()`, `builder.Services.AddEpycusRateLimiting()`, etc.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Creados `ConfiguracionServicios.cs` y `ConfiguracionMiddleware.cs` en Middleware/ con extension methods. Program.cs reducido de 369 a ~40 líneas. Métodos: ConfigurarBaseDeDatos(), ConfigurarAutenticacion(), ConfigurarRateLimiting(), ConfigurarServiciosAplicacion(), ConfigurarMiddleware().
 
 ### DDT-004: Mojiake/encoding issues en comentarios
 - **Archivo:** Varios
@@ -331,19 +331,26 @@
 | ARQ-006: MailKit en ServicioCorreo | ✅ Resuelto |
 | DB-001: Script backup automático BD | ✅ Resuelto — `deploy/backup-bd.sh` |
 | DEP-003: Consistencia README/setup | ✅ Resuelto — aclarado que HTTPS es manual |
+| CI-002: Rollback automático en deploy | ✅ Resuelto |
+| TEC-001: Caché datos frecuentes | ✅ Resuelto — ServicioCache con IMemoryCache |
+| TEC-003: SignalR alertas tiempo real | ✅ Resuelto — NotificacionesHub + toast |
+| TEC-005: Sentry monitoreo errores | ✅ Resuelto — Sentry.AspNetCore |
+| UX-005: PWA | ✅ Resuelto — manifest.json + sw.js |
+| UX-006: Sidebar personaje mobile | ✅ Resuelto — avatar móvil |
+| UX-007: Transiciones entre páginas | ✅ Resuelto — fade-in CSS |
+| UX-008: Sonidos gamificados hápticos | ✅ Resuelto — Web Audio API + vibrate |
+| DDT-001: Separar DatosSemilla.cs | ✅ Resuelto — 8 módulos separados |
+| DDT-003: Refactor Program.cs | ✅ Resuelto — extension methods |
 
 ### Prioridades para la PRÓXIMA IA:
 
 1. **DEP-001**: Configurar SSL con Certbot en el VPS (requiere acceso SSH al VPS)
-2. **CI-002**: Rollback automático en deploy fallido
-3. **TEC-001**: Caché de datos frecuentes (IMemoryCache)
-4. **TEC-003**: SignalR para alertas en tiempo real
-5. **TEC-005**: Sentry/Application Insights para monitoreo
-6. **UX-005**: PWA (manifest.json + service-worker)
-7. **UX-004**: Imágenes reales para todas las carreras
-8. **DDT-001**: Separar DatosSemilla.cs en JSON/modular
-9. **DDT-003**: Refactor Program.cs usando extension methods
-10. **DDT-004**: Re-encoding UTF-8 sin BOM
+2. **UX-004**: Imágenes reales para todas las carreras
+3. **DDT-002**: Dividir ServicioIA.cs (viola SRP) — 743 líneas
+4. **DSN-002**: Migrar variables CSS legacy a nuevas
+5. **TEC-004**: Tests de integración
+6. **TEC-007**: CAPTCHA en login/registro
+7. **DDT-004**: Re-encoding UTF-8 sin BOM
 
 ---
 
