@@ -39,6 +39,7 @@ namespace EpycusApp.Datos
  = null!;
         public DbSet<MensajeIA> MensajesIA { get; set; } = null!;
         public DbSet<EntradaDiario> EntradasDiario { get; set; } = null!;
+        public DbSet<Log> Logs { get; set; } = null!;
         public DbSet<SubTarea> SubTareas { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

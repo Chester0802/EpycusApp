@@ -125,21 +125,4 @@ namespace EpycusApp.Controllers
 
     }
 
-    public sealed class ChatMensajeDto
-    {
-        public string Mensaje { get; set; } = string.Empty;
-        public string ConversacionId { get; set; } = string.Empty;
-    }
-
-    public sealed class FeedbackDto
-    {
-        public int MensajeId { get; set; }
-        public bool Util { get; set; }
-    }
-
-    public sealed class AnimoChatDto
-    {
-        public string Estado { get; set; } = string.Empty;
-        public string? Nota { get; set; }
-    }
 }

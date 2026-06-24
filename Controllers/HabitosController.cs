@@ -42,10 +42,20 @@ namespace EpycusApp.Controllers
         public async Task<IActionResult> Crear(CrearHabitoViewModel modelo)
         {
             modelo ??= new CrearHabitoViewModel();
-            CompletarModeloDesdeFormulario(modelo);
+
+            if (modelo.DiasSemana?.Any() != true)
+            {
+                var diasRaw = Request.Form["DiasSemana"].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(diasRaw))
+                {
+                    modelo.DiasSemana = diasRaw
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => int.Parse(s.Trim()))
+                        .ToList();
+                }
+            }
 
             ViewBag.Categorias = await _servicioHabitos.ObtenerCategoriasActivas();
-            TryValidateModel(modelo);
 
             if (!ModelState.IsValid)
             {
@@ -133,7 +143,18 @@ namespace EpycusApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Editar(EditarHabitoViewModel modelo)
         {
-            CompletarDiasSemanaDesdeFormulario(modelo);
+            if (modelo.DiasSemana?.Any() != true)
+            {
+                var diasRaw = Request.Form["DiasSemana"].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(diasRaw))
+                {
+                    modelo.DiasSemana = diasRaw
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => int.Parse(s.Trim()))
+                        .ToList();
+                }
+            }
+
             ViewBag.Categorias = await _servicioHabitos.ObtenerCategoriasActivas();
 
             if (!ModelState.IsValid)
@@ -176,74 +197,6 @@ namespace EpycusApp.Controllers
                     kvp => kvp.Key,
                     kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
 
-        private void CompletarModeloDesdeFormulario(CrearHabitoViewModel modelo)
-        {
-            var nombreForm = Request.Form["Nombre"].FirstOrDefault();
-            if (!string.IsNullOrWhiteSpace(nombreForm)) modelo.Nombre = nombreForm;
 
-            var descForm = Request.Form["Descripcion"].FirstOrDefault();
-            if (!string.IsNullOrWhiteSpace(descForm)) modelo.Descripcion = descForm;
-
-            var catForm = Request.Form["CategoriaId"].FirstOrDefault();
-            if (!string.IsNullOrWhiteSpace(catForm) && int.TryParse(catForm, out var catId)) modelo.CategoriaId = catId;
-
-            var freqForm = Request.Form["Frecuencia"].FirstOrDefault();
-            if (!string.IsNullOrWhiteSpace(freqForm)) modelo.Frecuencia = freqForm;
-
-            CompletarDiasSemanaDesdeFormulario(modelo);
-
-            modelo.ConPomodoro = EsCheckboxMarcado("ConPomodoro");
-            modelo.EstaActivo = EsCheckboxMarcado("EstaActivo");
-
-            var horaForm = Request.Form["RecordatorioHora"].FirstOrDefault();
-            if (!string.IsNullOrWhiteSpace(horaForm) && TimeSpan.TryParse(horaForm, out var ts))
-            {
-                modelo.RecordatorioHora = ts;
-            }
-        }
-
-        private void CompletarDiasSemanaDesdeFormulario(CrearHabitoViewModel modelo)
-        {
-            var diasRaw = Request.Form["DiasSemana"].FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(diasRaw) || modelo.DiasSemana?.Any() == true)
-            {
-                return;
-            }
-
-            try
-            {
-                modelo.DiasSemana = diasRaw.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => int.Parse(s.Trim()))
-                    .ToList();
-            }
-            catch
-            {
-                ModelState.AddModelError("DiasSemana", "Formato de dias invalido. Use: 1,3,5");
-            }
-        }
-
-        private void CompletarDiasSemanaDesdeFormulario(EditarHabitoViewModel modelo)
-        {
-            var diasRaw = Request.Form["DiasSemana"].FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(diasRaw) || modelo.DiasSemana?.Any() == true)
-            {
-                return;
-            }
-
-            try
-            {
-                modelo.DiasSemana = diasRaw.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => int.Parse(s.Trim()))
-                    .ToList();
-            }
-            catch
-            {
-                ModelState.AddModelError("DiasSemana", "Formato de dias invalido. Use: 1,3,5");
-            }
-        }
-
-        private bool EsCheckboxMarcado(string nombre)
-            => Request.Form.ContainsKey(nombre)
-               && (Request.Form[nombre] == "on" || Request.Form[nombre] == "true");
     }
 }

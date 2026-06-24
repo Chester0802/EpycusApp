@@ -1,5 +1,5 @@
 ﻿using EpycusApp.Datos;
-using EpycusApp.Models.DTOs;
+using EpycusApp.DTOs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;

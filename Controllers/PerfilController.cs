@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using EpycusApp.DTOs;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -106,10 +107,5 @@ namespace EpycusApp.Controllers
             return Ok(new { exito = resultado.EsExitoso, mensaje = resultado.Mensaje });
         }
 
-    }
-
-    public sealed class CambiarTemaDto
-    {
-        public int TemaId { get; set; }
     }
 }

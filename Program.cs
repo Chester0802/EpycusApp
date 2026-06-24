@@ -52,7 +52,13 @@ public partial class Program
                     ? ServerVersion.AutoDetect(cadenaConexion)
                     : ServerVersion.Parse(versionServidor);
 
-                options.UseMySql(cadenaConexion, serverVersion);
+                options.UseMySql(cadenaConexion, serverVersion, mysqlOptions =>
+                {
+                    mysqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        errorNumbersToAdd: null);
+                });
             });
         }
 
@@ -318,9 +324,9 @@ public partial class Program
             app.UseCors("ApiPolicy");
         }
 
+        app.UseRateLimiter();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.UseRateLimiter();
         app.UseMiddleware<TelemetriaMiddleware>();
 
         app.MapDefaultControllerRoute();
