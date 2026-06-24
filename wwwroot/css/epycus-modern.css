@@ -150,7 +150,8 @@ body {
 .ep-sidebar-character-img {
     width: 80px;
     height: 80px;
-    object-fit: contain;
+    object-fit: cover;
+    object-position: top center;
     border-radius: var(--radius-lg);
     border: 2px solid var(--sidebar-char-border, rgba(255, 255, 255, 0.2));
     background: var(--sidebar-char-bg, rgba(255, 255, 255, 0.05));
