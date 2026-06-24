@@ -1,6 +1,7 @@
 using System.Globalization;
 using EpycusApp.Ayudantes;
 using EpycusApp.DTOs;
+using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -27,7 +28,8 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var entrada = await _servicioDiario.ObtenerEntradaHoy(usuarioId);
-            return Ok(RespuestaApi<DiarioEntradaResponse>.Exitosa(new DiarioEntradaResponse { Entrada = entrada }));
+            var dto = entrada == null ? null : MapToDto(entrada);
+            return Ok(RespuestaApi<DiarioEntradaResponse>.Exitosa(new DiarioEntradaResponse { Entrada = dto }));
         }
 
         [HttpGet("fecha")]
@@ -38,7 +40,8 @@ namespace EpycusApp.Controllers.Api
 
             var usuarioId = ObtenerUsuarioId()!.Value;
             var entrada = await _servicioDiario.ObtenerEntradaPorFecha(usuarioId, fechaParsed);
-            return Ok(RespuestaApi<DiarioEntradaResponse>.Exitosa(new DiarioEntradaResponse { Entrada = entrada }));
+            var dto = entrada == null ? null : MapToDto(entrada);
+            return Ok(RespuestaApi<DiarioEntradaResponse>.Exitosa(new DiarioEntradaResponse { Entrada = dto }));
         }
 
         [HttpGet("mes")]
@@ -46,7 +49,8 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var entradas = await _servicioDiario.ObtenerEntradasMes(usuarioId, anio, mes);
-            return Ok(RespuestaApi<DiarioEntradasResponse>.Exitosa(new DiarioEntradasResponse { Entradas = entradas }));
+            var dtos = entradas?.Select(MapToDto).ToList();
+            return Ok(RespuestaApi<DiarioEntradasResponse>.Exitosa(new DiarioEntradasResponse { Entradas = dtos }));
         }
 
         [HttpPost]
@@ -58,7 +62,8 @@ namespace EpycusApp.Controllers.Api
             var usuarioId = ObtenerUsuarioId()!.Value;
             var preguntaGuia = _servicioDiario.ObtenerPreguntaGuia();
             var entrada = await _servicioDiario.RegistrarEntrada(usuarioId, model, preguntaGuia);
-            return CreatedAtAction(nameof(ObtenerHoy), null, RespuestaApi<DiarioEntradaResponse>.Exitosa(new DiarioEntradaResponse { Entrada = entrada }, "Entrada registrada correctamente"));
+            var dto = MapToDto(entrada);
+            return CreatedAtAction(nameof(ObtenerHoy), null, RespuestaApi<DiarioEntradaResponse>.Exitosa(new DiarioEntradaResponse { Entrada = dto }, "Entrada registrada correctamente"));
         }
 
         [HttpPut("{fecha}")]
@@ -76,7 +81,22 @@ namespace EpycusApp.Controllers.Api
             if (entrada is null)
                 return NotFound(RespuestaApi<MensajeResponseDto>.Fallida("No se encontró una entrada para esa fecha"));
 
-            return Ok(RespuestaApi<DiarioEntradaResponse>.Exitosa(new DiarioEntradaResponse { Entrada = entrada }, "Entrada actualizada correctamente"));
+            var dto = MapToDto(entrada);
+            return Ok(RespuestaApi<DiarioEntradaResponse>.Exitosa(new DiarioEntradaResponse { Entrada = dto }, "Entrada actualizada correctamente"));
+        }
+
+        private static DiarioEntradaResponseDto MapToDto(EntradaDiario e)
+        {
+            return new DiarioEntradaResponseDto
+            {
+                Id = e.Id,
+                Fecha = e.Fecha.ToString("yyyy-MM-dd"),
+                EstadoAnimo = e.EstadoAnimo,
+                NivelEnergia = e.NivelEnergia,
+                DiarioTexto = e.DiarioTexto,
+                PreguntaGuia = e.PreguntaGuia,
+                RespuestaGuia = e.RespuestaGuia
+            };
         }
 
         [HttpGet("racha")]

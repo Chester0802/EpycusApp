@@ -97,14 +97,25 @@ public class PausaActivaResponse
 }
 
 // ── Diario ──
+public class DiarioEntradaResponseDto
+{
+    public int Id { get; set; }
+    public string Fecha { get; set; } = string.Empty;
+    public int EstadoAnimo { get; set; }
+    public int NivelEnergia { get; set; }
+    public string? DiarioTexto { get; set; }
+    public string? PreguntaGuia { get; set; }
+    public string? RespuestaGuia { get; set; }
+}
+
 public class DiarioEntradaResponse
 {
-    public object? Entrada { get; set; }
+    public DiarioEntradaResponseDto? Entrada { get; set; }
 }
 
 public class DiarioEntradasResponse
 {
-    public object? Entradas { get; set; }
+    public List<DiarioEntradaResponseDto>? Entradas { get; set; }
 }
 
 public class DiarioRachaResponse
@@ -201,9 +212,20 @@ public class PomodoroSesionActivaResponse
     public int? CiclosCompletados { get; set; }
 }
 
+public class SesionPomodoroDto
+{
+    public int Id { get; set; }
+    public DateTime FechaInicio { get; set; }
+    public DateTime? FechaFin { get; set; }
+    public int CiclosCompletados { get; set; }
+    public int XpOtorgado { get; set; }
+    public bool FueCompletada { get; set; }
+    public string Tipo { get; set; } = string.Empty;
+}
+
 public class PomodoroHistorialResponse
 {
-    public List<SesionPomodoro>? Historial { get; set; }
+    public List<SesionPomodoroDto>? Historial { get; set; }
     public int Pagina { get; set; }
     public int Tamano { get; set; }
 }

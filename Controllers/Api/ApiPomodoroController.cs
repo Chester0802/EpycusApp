@@ -193,7 +193,17 @@ namespace EpycusApp.Controllers.Api
             tamano = Math.Clamp(tamano, 1, 100);
 
             var historial = await _servicioPomodoro.ObtenerHistorialAsync(usuarioId.Value, desdeDate, hastaDate, pagina, tamano, completada, conXp);
-            return Ok(RespuestaApi<PomodoroHistorialResponse>.Exitosa(new PomodoroHistorialResponse { Historial = historial, Pagina = pagina, Tamano = tamano }));
+            var dtos = historial?.Select(s => new SesionPomodoroDto
+            {
+                Id = s.Id,
+                FechaInicio = s.FechaInicio,
+                FechaFin = s.FechaFin,
+                CiclosCompletados = s.CiclosCompletados,
+                XpOtorgado = s.XpOtorgado,
+                FueCompletada = s.FueCompletada,
+                Tipo = s.Tipo
+            }).ToList();
+            return Ok(RespuestaApi<PomodoroHistorialResponse>.Exitosa(new PomodoroHistorialResponse { Historial = dtos, Pagina = pagina, Tamano = tamano }));
         }
 
         [HttpGet("racha")]
@@ -218,7 +228,7 @@ namespace EpycusApp.Controllers.Api
             var hastaDate = hasta ?? DateTime.UtcNow;
 
             var stats = await _servicioPomodoro.ObtenerEstadisticasPeriodoAsync(usuarioId.Value, desdeDate, hastaDate);
-            return Ok(RespuestaApi<object>.Exitosa(stats));
+            return Ok(RespuestaApi<EstadisticasPomodoroPeriodo>.Exitosa(stats));
         }
 
         [HttpGet("estadisticas-semanales")]
