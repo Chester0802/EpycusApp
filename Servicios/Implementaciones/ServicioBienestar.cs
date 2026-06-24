@@ -1,7 +1,9 @@
 ﻿using EpycusApp.Datos;
 using EpycusApp.DTOs;
+using EpycusApp.Hubs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace EpycusApp.Servicios.Implementaciones
@@ -9,11 +11,13 @@ namespace EpycusApp.Servicios.Implementaciones
     public class ServicioBienestar : IServicioBienestar
     {
         private readonly ContextoAplicacion _contexto;
+        private readonly IHubContext<NotificacionesHub> _hubContext;
         private readonly ILogger<ServicioBienestar> _logger;
 
-        public ServicioBienestar(ContextoAplicacion contexto, ILogger<ServicioBienestar> logger)
+        public ServicioBienestar(ContextoAplicacion contexto, IHubContext<NotificacionesHub> hubContext, ILogger<ServicioBienestar> logger)
         {
             _contexto = contexto;
+            _hubContext = hubContext;
             _logger = logger;
         }
 
@@ -36,6 +40,11 @@ namespace EpycusApp.Servicios.Implementaciones
             var alertaMisiones = await VerificarSobrecargaMisiones(usuarioId);
             if (alertaMisiones != null)
                 alertas.Add(alertaMisiones);
+
+            foreach (var alerta in alertas.Where(a => a.EsCritica))
+            {
+                await EnviarAlertaSignalR(usuarioId, alerta);
+            }
 
             return alertas;
         }
@@ -219,7 +228,12 @@ namespace EpycusApp.Servicios.Implementaciones
             });
 
             await _contexto.SaveChangesAsync();
-            return await VerificarAnimoNegativoConsecutivo(usuarioId);
+            var alerta = await VerificarAnimoNegativoConsecutivo(usuarioId);
+            if (alerta != null)
+            {
+                await EnviarAlertaSignalR(usuarioId, alerta);
+            }
+            return alerta;
         }
 
         public async Task<List<EstadoAnimo>> ObtenerHistorialAnimoCompletoAsync(int usuarioId)
@@ -243,6 +257,25 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             return await _contexto.Misiones
                 .CountAsync(m => m.UsuarioId == usuarioId && (m.Estado == "Pendiente" || m.Estado == "EnProgreso"));
+        }
+
+        private async Task EnviarAlertaSignalR(int usuarioId, AlertaBienestar alerta)
+        {
+            try
+            {
+                await _hubContext.Clients.Group($"usuario_{usuarioId}").SendAsync("RecibirAlerta", new
+                {
+                    alerta.Tipo,
+                    alerta.Mensaje,
+                    alerta.Icono,
+                    alerta.EsCritica,
+                    Fecha = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al enviar alerta SignalR para usuario {UsuarioId}", usuarioId);
+            }
         }
     }
 }

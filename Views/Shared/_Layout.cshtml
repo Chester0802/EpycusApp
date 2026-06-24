@@ -15,6 +15,12 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/temas/tema-noche-epica.css" id="hoja-tema" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#6366f1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Epycus" />
+    <link rel="apple-touch-icon" href="/img/logo.webp" />
     <script src="~/js/theme-manager.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -27,6 +33,13 @@
         <button id="ep-sidebar-toggle" class="ep-sidebar-toggle btn">
             <i class="bi bi-list"></i>
         </button>
+        @if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            var imgPersonaje = ViewData["ImagenPersonaje"]?.ToString();
+            <div class="ep-mobile-avatar d-md-none">
+                <img src="@(imgPersonaje ?? "/img/personajes/generico/masculino/placeholder.png")" alt="Avatar" class="rounded-circle" />
+            </div>
+        }
         <aside class="ep-sidebar" id="ep-sidebar">
             <div class="d-flex align-items-center gap-2 mb-4">
                 <img src="~/img/logo.webp" alt="Epycus" class="ep-sidebar-logo" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.style.display='none';document.getElementById('ep-sidebar-icon').style.display='inline-block'" />
@@ -104,9 +117,63 @@
     <script src="~/lib/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/notificaciones.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
     <script>
-        // Exponer si el usuario está autenticado al cliente
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                console.warn('SW registration failed:', err);
+            });
+        }
+    </script>
+    <script>
+        // Exponer datos del usuario al cliente
         window.isAuthenticated = @(User.Identity != null && User.Identity.IsAuthenticated ? "true" : "false");
+        window.usuarioId = @(User.Identity?.IsAuthenticated == true
+            ? (User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value is string idStr && int.TryParse(idStr, out var uid) ? uid : 0)
+            : 0);
+    </script>
+    <script>
+        // SignalR — notificaciones en tiempo real
+        (function() {
+            if (!window.isAuthenticated) return;
+
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hub/notificaciones")
+                .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+                .build();
+
+            connection.on("RecibirAlerta", function(alerta) {
+                var toast = document.createElement('div');
+                toast.className = 'ep-toast-notification' + (alerta.esCritica ? ' ep-toast-critica' : '');
+                toast.innerHTML = '<div class="d-flex align-items-center gap-2">' +
+                    '<i class="' + (alerta.icono || 'bi-bell') + ' fs-5"></i>' +
+                    '<span>' + alerta.mensaje + '</span>' +
+                    '</div>';
+                toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;padding:16px 20px;' +
+                    'border-radius:12px;background:var(--bg-card,#1e1e2e);color:var(--text-primary,#fff);' +
+                    'box-shadow:0 8px 32px rgba(0,0,0,0.4);border-left:4px solid ' +
+                    (alerta.esCritica ? '#ef4444' : '#f59e0b') + ';' +
+                    'max-width:400px;animation:slideInRight 0.3s ease;transform:translateX(0);opacity:1;' +
+                    'transition:all 0.3s ease;';
+                document.body.appendChild(toast);
+                setTimeout(function() {
+                    toast.style.transform = 'translateX(120%)';
+                    toast.style.opacity = '0';
+                    setTimeout(function() { toast.remove(); }, 400);
+                }, 8000);
+            });
+
+            connection.onreconnected(function() {
+                if (window.usuarioId) connection.invoke("UnirseAlGrupo", window.usuarioId).catch(function(){});
+            });
+
+            connection.start().then(function() {
+                if (window.usuarioId) connection.invoke("UnirseAlGrupo", window.usuarioId).catch(function(){});
+            }).catch(function(err) {
+                console.warn('SignalR connection failed:', err);
+            });
+        })();
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
