@@ -1,0 +1,334 @@
+# MÓDULO.md — Auditoría Integral EpycusApp v1.0
+
+> **Propósito:** Este archivo contiene la auditoría completa del proyecto. Cada IA que trabaje aquí debe leerlo, resolver los items que pueda, marcar los items como `[RESUELTO]` con la fecha, y dejar notas para la siguiente IA. Ciclo: Leer → Resolver → Actualizar → Pasar al siguiente.
+
+> **Fecha auditoría:** 2026-06-23  
+> **Proyecto:** EpycusApp (ASP.NET Core MVC 9 + MariaDB + Bootstrap 5)  
+> **Dominio:** https://app.epycus.es  
+> **VPS:** 147.93.119.193 (Debian 13 Trixie)  
+> **Repo:** https://github.com/Chester0802/EpycusApp  
+> **Flujo deploy:** `git push` → GitHub Actions → SCP al VPS → `systemctl restart epycus-web`
+
+---
+
+## 🔴 NIVEL 1 — CRÍTICO (arreglar AHORA)
+
+### SEC-003: Rate Limiter middleware mal posicionado
+- **Archivo:** `Program.cs` (líneas 321-324)
+- **Problema:** `app.UseRateLimiter()` está DESPUÉS de `app.UseAuthentication()` y `app.UseAuthorization()`. El orden correcto según Microsoft es: `UseRateLimiter` → `UseAuthentication` → `UseAuthorization`.
+- **Riesgo:** El rate limiter global NO protege adecuadamente porque se ejecuta después de la autenticación. Las políticas con nombre (Api, Auth, Mobile, Gemini) tampoco funcionan correctamente.
+- **Solución:** Mover `app.UseRateLimiter();` ANTES de `app.UseAuthentication();`
+- **Estado:** `[RESUELTO: 2026-06-23]` Movido `app.UseRateLimiter()` antes de `app.UseAuthentication()` y `app.UseAuthorization()` en Program.cs
+
+
+
+### SEC-005: Entidad Log configurada sin DbSet — error runtime
+- **Archivo:** `Datos/ContextoAplicacion.cs` (línea 182-183)
+- **Problema:** `modelBuilder.Entity<Log>().HasIndex(l => l.UsuarioId);` referencia la entidad `Log` pero NO existe `DbSet<Log> Logs` declarado en el DbContext.
+- **Riesgo:** EF Core intentará registrar esta entidad en el modelo pero como no tiene DbSet y no es referenciada por ninguna otra entidad, esto puede causar `InvalidOperationException` al aplicar migraciones o al iniciar la app.
+- **Solución:** Eliminar la configuración de `Log` en `OnModelCreating` (si no se usa) o agregar `DbSet<Log> Logs`.
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregado `DbSet<Log> Logs` en `ContextoAplicacion.cs` para que la entidad Log tenga su DbSet correspondiente
+
+---
+
+## 🟠 NIVEL 2 — ALTA PRIORIDAD
+
+### ARQ-001: Dos directorios DTOs inconsistentes
+- **Archivos:** `Models/DTOs/` y `DTOs/`
+- **Problema:** Existen DOS carpetas DTOs. `Models/DTOs/` contiene solo `RespuestaOperacion.cs` mientras que `DTOs/` contiene 11 archivos con todos los DTOs de la API.
+- **Riesgo:** Confusión para desarrolladores. DTOs duplicados o inconsistentes.
+- **Solución:** Unificar todo en `DTOs/`. Eliminar `Models/DTOs/`. Actualizar todos los `using`.
+- **Estado:** `[RESUELTO: 2026-06-23]` Movido `RespuestaOperacion.cs` de `Models/DTOs/` a `DTOs/` con namespace actualizado. Eliminada carpeta `Models/DTOs/`
+
+### ARQ-002: AjustesController duplica PerfilController
+- **Archivos:** `Controllers/AjustesController.cs` y `Controllers/PerfilController.cs`
+- **Problema:** Ambos controladores tienen prácticamente la misma funcionalidad: `Index()`, `ActualizarPerfil()`, `CambiarContrasena()`, `CambiarPersonaje()`. `AjustesController` es una copia casi exacta de `PerfilController`.
+- **Riesgo:** Mantenimiento duplicado. Cambios en un controlador no se reflejan en el otro.
+- **Solución:** Unificar en un solo controlador (ej: `PerfilController`) y redirigir las rutas de `Ajustes` a `Perfil`, o eliminar `AjustesController` y actualizar las vistas.
+- **Estado:** `[RESUELTO: 2026-06-23]` `AjustesController.Index()` redirige a `PerfilController.Index()`. Los POST actions redirigen a Perfil o mantienen lógica mínima para compatibilidad con vistas existentes
+
+### ARQ-003: HabitosController parsea Request.Form manualmente
+- **Archivo:** `Controllers/HabitosController.cs` (líneas 179-223)
+- **Problema:** En lugar de confiar en el model binding de ASP.NET, el controlador lee manualmente `Request.Form["Nombre"]`, `Request.Form["DiasSemana"]`, etc. Esto es frágil y propenso a errores.
+- **Riesgo:** Validación inconsistente, errores difíciles de depurar, bypass de validación del modelo.
+- **Solución:** Usar model binding estándar. Eliminar `CompletarModeloDesdeFormulario()` y `CompletarDiasSemanaDesdeFormulario()`.
+- **Estado:** `[RESUELTO: 2026-06-23]` Eliminados métodos `CompletarModeloDesdeFormulario()`, `CompletarDiasSemanaDesdeFormulario()` y `EsCheckboxMarcado()`. El model binding estándar ahora maneja todos los campos excepto `DiasSemana` (que se parsea inline por ser coma-separado)
+
+### ARQ-004: Nested DTOs definidos dentro de controladores
+- **Archivos:** `Controllers/PerfilController.cs` (línea 111-114, clase `CambiarTemaDto`), `Controllers/IaController.cs` (líneas 128-144, clases `ChatMensajeDto`, `FeedbackDto`, `AnimoChatDto`)
+- **Problema:** Clases DTO definidas como clases anidadas dentro de los archivos de controller, en lugar de estar en `DTOs/`.
+- **Riesgo:** DTOs no reutilizables, desorden, difícil de encontrar.
+- **Solución:** Mover a `DTOs/` como archivos separados.
+- **Estado:** `[RESUELTO: 2026-06-23]` Extraídos `CambiarTemaDto` (de PerfilController), `ChatMensajeDto`, `FeedbackDto`, `AnimoChatDto` (de IaController) a archivos separados en `DTOs/`
+
+### ARQ-005: Sin versionado de API
+- **Archivo:** Todos los controladores API en `Controllers/Api/`
+- **Problema:** Todos los endpoints son `/api/*` sin prefijo de versión (`/api/v1/*`). Cambios breaking romperían clientes (app móvil futura).
+- **Riesgo:** Imposible evolucionar la API sin romper clientes existentes.
+- **Solución:** Agregar ruteo por版本 (`/api/v1/auth/login`, etc.) usando `[Route("api/v1/[controller]")]` o similar.
+- **Estado:** `[PENDIENTE]`
+
+### ARQ-006: ServicioCorreo no usa interfaces de abstracción de SMTP
+- **Archivo:** `Servicios/Implementaciones/ServicioCorreo.cs`
+- **Problema:** Usa `SmtpClient` directamente que es `IDisposable`. En .NET 9, `SmtpClient` está obsoleto para nuevas aplicaciones.
+- **Riesgo:** Futura incompatibilidad. Sin posibilidad de mock en tests.
+- **Solución:** Usar `MailKit` (Recomendado) o `Microsoft.Extensions.Mail` si está disponible.
+- **Estado:** `[PENDIENTE]`
+
+### ARQ-007: Health checks no verifican el pipeline MVC
+- **Archivo:** `Program.cs` (líneas 247-256)
+- **Problema:** Los health checks solo verifican BD, Gemini, DeepSeek y disco. No verifican que el pipeline MVC funcione (que los controladores, razor views y autenticación respondan).
+- **Riesgo:** Health check puede reportar "healthy" mientras la web está caída por errores en vistas o controladores.
+- **Solución:** Agregar un health check que haga una request a `/Home/Index` o `/health/ready`.
+- **Estado:** `[PENDIENTE]`
+
+---
+
+## 🟡 NIVEL 3 — IMPORTANTE
+
+### DB-001: Sin backup automático de BD
+- **Problema:** No hay script de backup automático para MariaDB. Si la BD se corrompe, se pierden todos los datos de usuarios.
+- **Riesgo:** Pérdida total de datos.
+- **Solución:** Agregar cron job: `mysqldump -u epicus_user -p epycus_db > /var/backups/epycus-db-$(date +%Y%m%d).sql` y sincronizar a almacenamiento externo.
+- **Estado:** `[PENDIENTE]`
+
+### DB-002: Sin política de reintentos en conexión BD
+- **Archivo:** `Program.cs` (líneas 47-56)
+- **Problema:** `UseMySql` se configura sin `EnableRetryOnFailure`. Si la BD se reinicia o hay un error transitorio, la app lanzará excepción en lugar de reintentar.
+- **Solución:** Agregar `options.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(10), null);`
+- **Estado:** `[RESUELTO: 2026-06-23]` Agregado `EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: 10s)` en la configuración de `UseMySql` en Program.cs
+
+### CI-001: CI/CD no ejecuta tests
+- **Archivo:** `.github/workflows/ci-cd.yml`
+- **Problema:** El pipeline no ejecuta los tests unitarios ni de aceptación. Solo hace restore, format check, build y deploy.
+- **Riesgo:** Código roto puede llegar a producción sin ser detectado.
+- **Solución:** Agregar `dotnet test EpycusApp.Tests` en el job `code-quality`.
+- **Estado:** `[PENDIENTE]`
+
+### CI-002: Sin rollback automático en deploy fallido
+- **Archivo:** `.github/workflows/ci-cd.yml`
+- **Problema:** Si el deploy falla (health check post-deploy no responde), no hay rollback automático al backup.
+- **Riesgo:** Producción caída hasta que alguien hace rollback manual.
+- **Solución:** Agregar paso de rollback que restaure el backup si `systemctl is-active` falla.
+- **Estado:** `[PENDIENTE]`
+
+### CI-003: Sin migraciones de BD en CI/CD
+- **Problema:** El pipeline no ejecuta `dotnet ef database update`. Las migraciones se aplican manualmente o en el startup (Program.cs línea 26).
+- **Riesgo:** Si se agrega una migración y no se aplica manualmente antes del deploy, la app falla al iniciar.
+- **Solución:** Agregar paso de migraciones en el pipeline o asegurar que `MigrateAsync()` en startup funcione correctamente.
+- **Estado:** `[PENDIENTE]`
+
+### DEP-001: SSL no configurado (Certbot no ejecutado)
+- **Archivos:** `deploy/setup-vps.sh` (línea 212), `deploy/nginx-epycus.conf`
+- **Problema:** El setup script referencia certificados SSL que NO existen (`/etc/letsencrypt/live/app.epycus.es/`). Certbot nunca fue ejecutado. Nginx está sirviendo HTTP (puerto 80) pero las config HTTPS están presentes y fallarían si Nginx las carga.
+- **Riesgo:** El sitio funciona solo en HTTP. Datos sensibles en texto plano. README dice "HTTPS: Pendiente".
+- **Solución:** Ejecutar `certbot --nginx -d app.epycus.es --non-interactive --agree-tos -m app@epycus.es`
+- **Estado:** `[PENDIENTE]`
+
+### DEP-002: Config Nginx con error de sintaxis
+- **Archivo:** `deploy/nginx-epycus.conf` (línea 18)
+- **Problema:** `http2 on;` está en una línea separada. La sintaxis correcta es `listen 443 ssl http2;` (una sola línea). `http2 on;` ya no es válido en versiones recientes de Nginx.
+- **Riesgo:** Nginx falla al recargar/configurar. HTTP/2 no funciona.
+- **Solución:** Mover `http2` al parámetro `listen`.
+- **Estado:** `[PENDIENTE]`
+
+### DEP-003: README dice HTTPS pendiente pero setup lo configura
+- **Archivo:** `README.md` (línea 53) vs `deploy/setup-vps.sh`
+- **Problema:** README marca HTTPS como pendiente, pero `setup-vps.sh` configura Certbot y SSL. Hay inconsistencia documental.
+- **Solución:** Decidir si HTTPS está configurado o no, y actualizar ambos archivos.
+- **Estado:** `[PENDIENTE]`
+
+---
+
+## 🔵 NIVEL 4 — UX/UI (Battle Royale + Mobile)
+
+### UX-001: Personaje muy pequeño en mobile (80x90px)
+- **Archivo:** `wwwroot/css/site.css` (líneas 437-438), `Views/Home/Index.cshtml` (línea 15)
+- **Problema:** En mobile (<576px), el personaje se reduce a 80x90px. Es demasiado pequeño para apreciar el arte. El contenedor mide 80-120px de ancho.
+- **Solución:** 
+  - Hero: Aumentar a 180x220px en mobile, 260x300px en desktop
+  - El personaje debería ocupar al menos 40% del ancho de pantalla en mobile
+  - Usar `min(40vw, 260px)` para el tamaño
+- **Recomendación Battle Royale:** El personaje debe ser GRANDE, con presencia. Inspirado en cómo los juegos gacha/gacha muestran sus personajes (grandes, con animación idle, fondo especial).
+- **Estado:** `[PENDIENTE]`
+
+### UX-002: Personaje estático PNG sin animaciones
+- **Archivo:** `wwwroot/img/personajes/`
+- **Problema:** Los personajes son imágenes PNG estáticas, sin animaciones idle (respiración, flotación, partículas).
+- **Riesgo:** Se siente plano, no hay sensación de "personaje vivo".
+- **Solución:** 
+  - Implementar animaciones CSS (float, pulse, glow particles)
+  - Alternativa: usar sprites animados o Lottie animations
+  - Efecto "aura" que ya existe pero mejorarlo con partículas CSS
+- **Estado:** `[PENDIENTE]`
+
+
+
+### UX-004: Solo 2 carreras con imágenes reales
+- **Archivo:** `wwwroot/img/personajes/`
+- **Problema:** De 12 carreras, solo "Ing. Sistemas" y "Medicina" tienen imágenes PNG reales. El resto usa `placeholder.png`. 20 niveles pero solo hay 2-3 imágenes por personaje.
+- **Riesgo:** La mayoría de usuarios ven un placeholder genérico.
+- **Solución:** 
+  - Priorizar: crear al menos imagen de nivel 1 para cada carrera
+  - IA generativa (DALL-E, Midjourney) para crear assets rápidamente
+  - O usar avatares generados por IA con diferenciación por carrera
+- **Estado:** `[PENDIENTE]`
+
+### UX-005: Sin PWA (Progressive Web App)
+- **Problema:** No hay `manifest.json`, `service-worker.js`, ni soporte offline. La app no se puede instalar en la pantalla de inicio del celular.
+- **Riesgo:** Experiencia mobile subóptima. Los usuarios deben abrir el navegador cada vez.
+- **Solución:** 
+  1. Crear `manifest.json` con íconos, tema color, nombre corto
+  2. Service worker básico para cachear assets estáticos
+  3. Estrategia offline-first para datos críticos
+- **Estado:** `[PENDIENTE]`
+
+### UX-006: Sidebar no muestra personaje en mobile
+- **Problema:** En mobile, el sidebar se oculta (fuera de pantalla) y el personaje no se ve hasta que se abre el menú. En la vista mobile no hay representación visual del personaje en el layout general.
+- **Solución:** 
+  - Agregar un avatar circular pequeño del personaje en el toggle button del sidebar
+  - O mostrar el personaje en miniatura en la barra superior
+- **Estado:** `[PENDIENTE]`
+
+### UX-007: Sin transiciones entre páginas (sensación "SPA-like")
+- **Problema:** Cada navegación recarga la página completamente. No hay transiciones suaves entre vistas.
+- **Solución:** 
+  - Usar `@import` de htmx o Turbo Drive (Hotwire) para navegación tipo SPA
+  - O usar fetch + reemplazo de contenido con animaciones CSS
+  - Agregar transiciones de página con `ViewTransitions` API
+- **Estado:** `[PENDIENTE]`
+
+### UX-008: Sin retroalimentación háptica ni sonidos gamificados
+- **Problema:** Completar hábitos, subir de nivel, ganar logros — todo es silencioso y sin vibración.
+- **Solución:** 
+  - Sonidos cortos para: completar hábito, subir nivel, ganar logro, recibir XP
+  - Vibración táctil en mobile para acciones importantes
+  - El sonido del Pomodoro ya existe, extenderlo a otras acciones
+- **Estado:** `[PENDIENTE]`
+
+---
+
+## 🟢 NIVEL 5 — MEJORAS TÉCNICAS
+
+### TEC-001: Sin caché de datos frecuentes
+- **Problema:** Las carreras, niveles, categorías, frases se cargan desde BD en cada request. Son datos quasi-estáticos que cambian raramente.
+- **Solución:** Implementar `IMemoryCache` con expiración por tiempo. Usar `[ResponseCache]` donde sea posible.
+- **Estado:** `[PENDIENTE]`
+
+### TEC-002: Sin graceful shutdown
+- **Archivo:** `Program.cs`
+- **Problema:** No hay configuración de `ShutdownTimeout`. Si el servicio se detiene, las requests en curso se abortan abruptamente.
+- **Solución:** `builder.WebHost.ConfigureKestrel(o => o.Limits.MaxConcurrentConnections = 100);` y configurar `ShutdownTimeout` en systemd.
+- **Estado:** `[PENDIENTE]`
+
+### TEC-003: SignalR no implementado (alertas no son en tiempo real)
+- **Problema:** Las alertas de bienestar (ánimo negativo, sobrecarga de misiones) solo se muestran al cargar la página. No hay push en tiempo real.
+- **Solución:** Implementar SignalR Hub para notificaciones en vivo. El bienestar debería poder alertar al usuario inmediatamente.
+- **Estado:** `[PENDIENTE]`
+
+### TEC-004: Tests de integración no implementados
+- **Archivo:** `EpycusApp.Tests/Integracion/` (vacío)
+- **Problema:** El directorio de tests de integración está vacío. Solo hay unitarios.
+- **Riesgo:** No se prueba la interacción entre capas (controller → servicio → DB).
+- **Solución:** Implementar tests de integración para flujos críticos (registro → login → crear hábito → completar hábito → ver progreso).
+- **Estado:** `[PENDIENTE]`
+
+### TEC-005: Sin monitoreo de errores (Sentry, Application Insights, etc.)
+- **Problema:** No hay sistema de tracking de errores. Los errores solo se ven en logs del servidor.
+- **Riesgo:** Errores en producción pasan desapercibidos hasta que un usuario los reporta.
+- **Solución:** Agregar Sentry SDK (`Sentry.AspNetCore`) o Application Insights.
+- **Estado:** `[PENDIENTE]`
+
+### TEC-006: Sin política de contraseñas
+- **Problema:** No hay validación de longitud mínima, complejidad ni bloqueo por intentos fallidos.
+- **Riesgo:** Contraseñas débiles ("123456") permitidas. Ataques de fuerza bruta.
+- **Solución:** 
+  - Longitud mínima: 8 caracteres
+  - Requerir: mayúscula, minúscula, número, carácter especial
+  - Bloqueo tras 5 intentos fallidos por 15 minutos
+- **Estado:** `[PENDIENTE]`
+
+### TEC-007: Sin CAPTCHA en login/registro
+- **Problema:** Los formularios de login y registro no tienen CAPTCHA.
+- **Riesgo:** Vulnerable a ataques automatizados y bots.
+- **Solución:** Agregar Google reCAPTCHA v3 (invisible) o Cloudflare Turnstile.
+- **Estado:** `[PENDIENTE]`
+
+---
+
+## 🎨 NIVEL 6 — DISEÑO VISUAL / TEMAS
+
+
+
+### DSN-002: Variables CSS legacy --ep-* mezcladas con nuevas
+- **Archivo:** `wwwroot/css/variables.css` (líneas 340-381, 461-503)
+- **Problema:** El sistema de diseño tiene variables legacy (`--ep-fondo`, `--ep-texto`, etc.) mapeadas a las nuevas (`--bg-primary`, `--text-primary`). Esto es confuso y algunos CSS usan las viejas y otros las nuevas.
+- **Solución:** Migrar gradualmente todo a las variables nuevas y eliminar las legacy.
+- **Estado:** `[PENDIENTE]`
+
+### DSN-003: site.js duplica funcionalidad de theme-manager.js
+- **Archivo:** `wwwroot/js/site.js` y `wwwroot/js/theme-manager.js`
+- **Problema:** Ambos archivos manejan el cambio de tema. `site.js` tiene función `cambiarTema()` que manipula `hoja-tema.href`, mientras `theme-manager.js` hace lo mismo con más sofisticación (FOUC prevention, toggle button sync). `site.js` es redundante y puede causar conflictos.
+- **Solución:** Eliminar `site.js` o deprecar sus funciones de tema. Dejar solo `theme-manager.js`.
+- **Estado:** `[PENDIENTE]`
+
+---
+
+## 📋 NIVEL 7 — CÓDIGO DURO / DEUDA TÉCNICA
+
+### DDT-001: SeedData.cs con 1500+ líneas — difícil de mantener
+- **Archivo:** `Datos/Semilla/DatosSemilla.cs`
+- **Problema:** El archivo de datos semilla es extremadamente largo. Mezcla definición de datos con lógica de inserción.
+- **Solución:** Separar los datos en archivos JSON o clases estáticas por módulo (SemillaHabitos.cs, SemillaMisiones.cs, etc.).
+- **Estado:** `[PENDIENTE]`
+
+### DDT-002: ServicioIA.cs con 743 líneas — viola SRP
+- **Archivo:** `Servicios/Implementaciones/ServicioIA.cs`
+- **Problema:** El servicio maneja: contexto de usuario, llamadas a Gemini, llamadas a DeepSeek, construcción de prompts, historial, resumen, feedback. Demasiadas responsabilidades.
+- **Solución:** Dividir en: `ProveedorGemini.cs`, `ProveedorDeepSeek.cs`, `ConstructorContextoIA.cs`, `ServicioIA.cs` (orquestador).
+- **Estado:** `[PENDIENTE]`
+
+### DDT-003: Program.cs con 350 líneas — demasiado para Program
+- **Archivo:** `Program.cs`
+- **Problema:** Todo el pipeline de configuración está en Program.cs. Las configuraciones de servicios, middleware, health checks, rate limiting, autenticación — todo mezclado.
+- **Solución:** Usar extension methods: `builder.Services.AddEpycusAuthentication()`, `builder.Services.AddEpycusRateLimiting()`, etc.
+- **Estado:** `[PENDIENTE]`
+
+### DDT-004: Mojiake/encoding issues en comentarios
+- **Archivo:** Varios
+- **Problema:** Caracteres como `â”€â”€`, `Ã©`, `Ã\xad` en comentarios y cadenas. Archivos guardados en Windows-1252 en lugar de UTF-8 sin BOM.
+- **Solución:** Re-encoding masivo a UTF-8 sin BOM. Revisar `ServicioIA.cs`, `ServicioCorreo.cs`, `PerfilController.cs`.
+- **Estado:** `[PENDIENTE]`
+
+### DDT-005: package-lock.json en git ignorado pero presente
+- **Archivo:** `.gitignore` (línea 441) ignora `package-lock.json`
+- **Problema:** `package-lock.json` está en `.gitignore` pero el archivo EXISTE en el repo. Fue commiteado antes de agregarlo al gitignore.
+- **Solución:** Eliminar del repo con `git rm --cached package-lock.json`.
+- **Estado:** `[PENDIENTE]`
+
+---
+
+## 🔧 INSTRUCCIONES PARA LA PRÓXIMA IA
+
+1. **LEE** este archivo completo
+2. **TOMA** los items marcados como `[PENDIENTE]` que puedas resolver
+3. **RESUELVE** implementando el código necesario
+4. **MARCA** cada item como `[RESUELTO: YYYY-MM-DD]` y agrega un breve resumen del cambio
+5. **AGREGA** nuevos hallazgos si descubres más issues
+6. **AVANZA** al siguiente en orden de prioridad (Nivel 1 → Nivel 2 → ...)
+7. **COMMITEA** con mensaje claro: `fix: resolver SEC-001 rotar credenciales` etc.
+8. **NOTIFICA** al usuario que haga `git pull && dotnet publish && systemctl restart` en el VPS
+
+### Prioridades para la PRÓXIMA IA:
+
+
+2. **SEC-003**: Reordenar middleware pipeline
+3. **SEC-005**: Eliminar o completar configuración de Log entity
+4. **ARQ-001, ARQ-004**: Unificar DTOs
+5. **DEP-001**: Configurar SSL con Certbot
+6. **DB-001**: Backup automático BD
+7. **UX-001, UX-002**: Mejorar personaje (tamaño + animaciones)
+
+---
+
+*Este archivo debe mantenerse actualizado. Cada IA que trabaje aquí debe modificarlo para reflejar el progreso.*

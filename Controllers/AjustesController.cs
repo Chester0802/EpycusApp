@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using EpycusApp.Servicios.Interfaces;
+﻿using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace EpycusApp.Controllers;
@@ -18,19 +18,10 @@ public class AjustesController : BaseController
         _servicioAutenticacion = servicioAutenticacion;
     }
 
-    public async Task<IActionResult> Index()
+    [HttpGet]
+    public IActionResult Index()
     {
-        var usuarioId = ObtenerUsuarioId();
-        var perfil = await _servicioPerfil.ObtenerPerfilCompletoAsync(usuarioId);
-
-        if (perfil == null)
-        {
-            return NotFound();
-        }
-
-        perfil.PersonajesDisponibles = await _servicioPerfil.ObtenerPersonajesDisponiblesAsync(usuarioId);
-        ViewBag.Carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
-        return View(perfil);
+        return RedirectToAction("Index", "Perfil");
     }
 
     [HttpPost]
@@ -41,7 +32,7 @@ public class AjustesController : BaseController
             TempData["Error"] = string.Join("; ", ModelState.Values
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage));
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Perfil");
         }
 
         var usuarioId = ObtenerUsuarioId();
@@ -56,7 +47,7 @@ public class AjustesController : BaseController
             TempData["Error"] = resultado.Mensaje ?? "No se pudo actualizar el perfil.";
         }
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Index", "Perfil");
     }
 
     [HttpPost]
@@ -65,10 +56,9 @@ public class AjustesController : BaseController
         if (!ModelState.IsValid)
         {
             TempData["Error"] = "Por favor verifica los datos ingresados.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Perfil");
         }
 
-        var usuarioId = ObtenerUsuarioId();
         var correo = User.FindFirstValue(ClaimTypes.Email);
 
         var resultado = await _servicioAutenticacion.CambiarContrasenaAsync(
@@ -86,7 +76,7 @@ public class AjustesController : BaseController
             TempData["Error"] = resultado.Mensaje ?? "No se pudo cambiar la contraseña.";
         }
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Index", "Perfil");
     }
 
     [HttpPost]
