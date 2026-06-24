@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using EpycusApp.Ayudantes;
 using EpycusApp.Controllers;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
@@ -15,12 +16,15 @@ namespace EpycusApp.Tests.Unitarios.Controladores;
 public class AutenticacionControllerTests
 {
     private readonly Mock<IServicioAutenticacion> _authMock;
+    private readonly VerificadorTurnstile _verificadorTurnstile;
     private readonly AutenticacionController _controller;
 
     public AutenticacionControllerTests()
     {
         _authMock = new Mock<IServicioAutenticacion>();
-        _controller = new AutenticacionController(_authMock.Object);
+        var turnstileOptions = Microsoft.Extensions.Options.Options.Create(new TurnstileOptions());
+        _verificadorTurnstile = new VerificadorTurnstile(new HttpClient(), turnstileOptions);
+        _controller = new AutenticacionController(_authMock.Object, _verificadorTurnstile);
 
         var httpContext = new DefaultHttpContext();
         _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

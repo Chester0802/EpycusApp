@@ -21,6 +21,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Epycus" />
     <link rel="apple-touch-icon" href="/img/logo.webp" />
+    <meta name="description" content="Epycus - Tu asistente de productividad gamificada para estudiantes universitarios. Hábitos, pomodoro, misiones y más." />
+    <meta name="keywords" content="productividad, hábitos, pomodoro, estudiantes, gamificación, bienestar" />
+    <meta name="author" content="Epycus" />
+    <link rel="canonical" href="https://app.epycus.es/" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     <script src="~/js/theme-manager.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -176,5 +181,6 @@
         })();
     </script>
     @await RenderSectionAsync("Scripts", required: false)
+    <partial name="_CookieConsent" />
 </body>
 </html>

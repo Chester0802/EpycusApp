@@ -14,6 +14,7 @@
                 await SemillaLogros.SembrarAsync(contexto);
                 await SemillaFrases.SembrarAsync(contexto);
                 await SemillaTipsPomodoro.SembrarAsync(contexto);
+                await SemillaAdmin.SembrarAsync(contexto);
             }
             catch (Exception ex)
             {

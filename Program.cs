@@ -38,6 +38,7 @@ public partial class Program
         builder.Services.AddControllersWithViews(options =>
         {
             options.Filters.Add<CargarPersonajeFilter>();
+            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
         }).AddApplicationPart(typeof(Program).Assembly);
 
         builder.ConfigurarRateLimiting();
