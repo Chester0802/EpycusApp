@@ -1,5 +1,6 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using EpycusApp.Ayudantes;
 using EpycusApp.Datos;
 using EpycusApp.Datos.Semilla;
 using EpycusApp.Middleware;
@@ -223,6 +224,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
 
+            builder.Services.AddHttpClient<VerificadorTurnstile>(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
+            builder.Services.Configure<TurnstileOptions>(builder.Configuration.GetSection(TurnstileOptions.Seccion));
             builder.Services.AddHttpClient();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
@@ -260,6 +266,9 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddScoped<IServicioAdmin, ServicioAdmin>();
             builder.Services.AddScoped<IServicioBienestar, ServicioBienestar>();
             builder.Services.AddScoped<IServicioDiarioAnimo, ServicioDiarioAnimo>();
+            builder.Services.AddScoped<ConstructorContextoIA>();
+            builder.Services.AddScoped<IProveedorGemini, ProveedorGemini>();
+            builder.Services.AddScoped<IProveedorDeepSeek, ProveedorDeepSeek>();
             builder.Services.AddScoped<IServicioIA, ServicioIA>();
             builder.Services.AddSignalR();
             builder.Services.AddMemoryCache();

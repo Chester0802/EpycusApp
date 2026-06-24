@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using EpycusApp.Ayudantes;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using EpycusApp.ViewModels.Autenticacion;
@@ -12,10 +13,12 @@ namespace EpycusApp.Controllers
     public class AutenticacionController : Controller
     {
         private readonly IServicioAutenticacion _servicioAutenticacion;
+        private readonly VerificadorTurnstile _verificadorTurnstile;
 
-        public AutenticacionController(IServicioAutenticacion servicioAutenticacion)
+        public AutenticacionController(IServicioAutenticacion servicioAutenticacion, VerificadorTurnstile verificadorTurnstile)
         {
             _servicioAutenticacion = servicioAutenticacion;
+            _verificadorTurnstile = verificadorTurnstile;
         }
 
         private CookieOptions CrearOpcionesCookie(int expiracionDias = 7)
@@ -57,6 +60,14 @@ namespace EpycusApp.Controllers
         {
             if (!ModelState.IsValid)
             {
+                ViewBag.Carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
+                return View(modelo);
+            }
+
+            var turnstileToken = Request.Form["cf-turnstile-response"];
+            if (!await _verificadorTurnstile.VerificarTokenAsync(turnstileToken))
+            {
+                ModelState.AddModelError(string.Empty, "Verificacion de seguridad fallida. Intentalo de nuevo.");
                 ViewBag.Carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
                 return View(modelo);
             }
@@ -177,6 +188,13 @@ namespace EpycusApp.Controllers
         {
             if (!ModelState.IsValid)
             {
+                return View(modelo);
+            }
+
+            var turnstileToken = Request.Form["cf-turnstile-response"];
+            if (!await _verificadorTurnstile.VerificarTokenAsync(turnstileToken))
+            {
+                ModelState.AddModelError(string.Empty, "Verificacion de seguridad fallida. Intentalo de nuevo.");
                 return View(modelo);
             }
 

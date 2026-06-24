@@ -9,9 +9,9 @@
     gap: 4px;
     padding: 0.6rem 0.75rem;
     border-radius: 0.75rem;
-    border: 1px solid var(--ep-borde);
-    background: var(--ep-superficie-2);
-    color: var(--ep-texto-primario);
+    border: 1px solid var(--border-color);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
     cursor: pointer;
     transition: all 0.2s;
     min-width: 60px;
@@ -59,8 +59,8 @@
 }
 
 .ep-recursos-card {
-    background: var(--ep-superficie-2);
-    border: 1px solid var(--ep-borde);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
     border-radius: 0.75rem;
     transition: all 0.2s;
 }
@@ -74,8 +74,8 @@
     text-align: center;
     padding: 0.75rem;
     border-radius: 0.75rem;
-    background: var(--ep-superficie-2);
-    border: 1px solid var(--ep-borde);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
     transition: all 0.2s;
 }
 

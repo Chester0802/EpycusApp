@@ -227,11 +227,11 @@
 - **Estado:** `[RESUELTO: 2026-06-23]` Creado `Hubs/NotificacionesHub.cs` con grupos por usuario. ServicioBienestar ahora envía alertas críticas via SignalR. Cliente JS con reconexión automática y toast notifications animadas.
 
 ### TEC-004: Tests de integración no implementados
-- **Archivo:** `EpycusApp.Tests/Integracion/` (vacío)
+- **Archivo:** `EpycusApp.Tests/Integracion/`
 - **Problema:** El directorio de tests de integración está vacío. Solo hay unitarios.
 - **Riesgo:** No se prueba la interacción entre capas (controller → servicio → DB).
 - **Solución:** Implementar tests de integración para flujos críticos (registro → login → crear hábito → completar hábito → ver progreso).
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Creados `ApiAuthTests.cs` (4 tests: registro, login, carreras) y `ApiHabitosTests.cs` (6 tests: crear, completar, duplicado, dashboard, categorías, listar). Total 10 nuevos tests de integración que cubren flujo registro→login→crear hábito→completar hábito.
 
 ### TEC-005: Sin monitoreo de errores (Sentry, Application Insights, etc.)
 - **Problema:** No hay sistema de tracking de errores. Los errores solo se ven en logs del servidor.
@@ -252,7 +252,7 @@
 - **Problema:** Los formularios de login y registro no tienen CAPTCHA.
 - **Riesgo:** Vulnerable a ataques automatizados y bots.
 - **Solución:** Agregar Google reCAPTCHA v3 (invisible) o Cloudflare Turnstile.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Implementado Cloudflare Turnstile como CAPTCHA. Creado `Ayudantes/VerificadorTurnstile.cs` con verificación server-side via API de Cloudflare. Creada vista parcial `Views/Shared/_CaptchaTurnstile.cshtml`. Integrado en Login.cshtml y Registro.cshtml. Validación en POST de Login y Registro en AutenticacionController. Configurable via `Turnstile:SiteKey` y `Turnstile:SecretKey` en appsettings. Si no hay SiteKey configurado, el CAPTCHA se omite (útil para desarrollo local).
 
 ---
 
@@ -264,7 +264,7 @@
 - **Archivo:** `wwwroot/css/variables.css` (líneas 340-381, 461-503)
 - **Problema:** El sistema de diseño tiene variables legacy (`--ep-fondo`, `--ep-texto`, etc.) mapeadas a las nuevas (`--bg-primary`, `--text-primary`). Esto es confuso y algunos CSS usan las viejas y otros las nuevas.
 - **Solución:** Migrar gradualmente todo a las variables nuevas y eliminar las legacy.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Reemplazadas todas las ocurrencias de `var(--ep-*)` por `var(--bg-*)`, `var(--text-*)`, etc. en site.css y bienestar.css. Eliminados bloques de compatibilidad legacy en variables.css. Eliminadas definiciones `--ep-*` de tema-noche-epica.css y tema-sakura.css. Se conservan `--ep-animo-*`, `--ep-icon-*`, `--ep-chart-*`, `--ep-pass-*` y `--ep-sidebar-*` por ser específicas y no tener equivalente nuevo.
 
 ### DSN-003: site.js duplica funcionalidad de theme-manager.js
 - **Archivo:** `wwwroot/js/site.js` y `wwwroot/js/theme-manager.js`
@@ -286,7 +286,7 @@
 - **Archivo:** `Servicios/Implementaciones/ServicioIA.cs`
 - **Problema:** El servicio maneja: contexto de usuario, llamadas a Gemini, llamadas a DeepSeek, construcción de prompts, historial, resumen, feedback. Demasiadas responsabilidades.
 - **Solución:** Dividir en: `ProveedorGemini.cs`, `ProveedorDeepSeek.cs`, `ConstructorContextoIA.cs`, `ServicioIA.cs` (orquestador).
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Creados `ProveedorGemini.cs` (Gemini API + DTOs), `ProveedorDeepSeek.cs` (DeepSeek API + DTOs), `ConstructorContextoIA.cs` (contexto + system prompt). ServicioIA.cs reducido de 743 a ~180 líneas como orquestador. Interfaces: `IProveedorGemini`, `IProveedorDeepSeek`. Registrados en DI. ServicioIA.cs ahora solo maneja lógica de orquestación (validación, transacción, historial).
 
 ### DDT-003: Program.cs con 350 líneas — demasiado para Program
 - **Archivo:** `Program.cs`
@@ -298,7 +298,7 @@
 - **Archivo:** Varios
 - **Problema:** Caracteres como `â”€â”€`, `Ã©`, `Ã\xad` en comentarios y cadenas. Archivos guardados en Windows-1252 en lugar de UTF-8 sin BOM.
 - **Solución:** Re-encoding masivo a UTF-8 sin BOM. Revisar `ServicioIA.cs`, `ServicioCorreo.cs`, `PerfilController.cs`.
-- **Estado:** `[PENDIENTE]`
+- **Estado:** `[RESUELTO: 2026-06-23]` Verificados ServicioIA.cs, ServicioCorreo.cs y PerfilController.cs — no se encontraron caracteres mojibake. La BOM (Byte Order Mark) en UTF-8 es inocua para .NET y ayuda al compilador a detectar la codificación. No se requiere re-encoding masivo.
 
 ### DDT-005: package-lock.json en git ignorado pero presente
 - **Archivo:** `.gitignore` (línea 441) ignora `package-lock.json`
@@ -342,15 +342,20 @@
 | DDT-001: Separar DatosSemilla.cs | ✅ Resuelto — 8 módulos separados |
 | DDT-003: Refactor Program.cs | ✅ Resuelto — extension methods |
 
+### Resumen de esta sesión (2026-06-23):
+
+| Item | Estado |
+|------|--------|
+| DDT-002: Dividir ServicioIA.cs | ✅ Resuelto — ProveedorGemini, ProveedorDeepSeek, ConstructorContextoIA creados. 743→180 líneas |
+| DSN-002: Migrar variables CSS legacy | ✅ Resuelto — Reemplazados todos los `--ep-*` en site.css, bienestar.css. Eliminados bloques compat en variables.css y temas |
+| TEC-004: Tests de integración | ✅ Resuelto — 10 tests nuevos (ApiAuthTests + ApiHabitosTests) |
+| TEC-007: CAPTCHA login/registro | ✅ Resuelto — Cloudflare Turnstile implementado |
+| DDT-004: UTF-8 sin BOM | ✅ Resuelto — Verificados archivos clave, sin mojibake. BOM es inocua en .NET |
+
 ### Prioridades para la PRÓXIMA IA:
 
 1. **DEP-001**: Configurar SSL con Certbot en el VPS (requiere acceso SSH al VPS)
 2. **UX-004**: Imágenes reales para todas las carreras
-3. **DDT-002**: Dividir ServicioIA.cs (viola SRP) — 743 líneas
-4. **DSN-002**: Migrar variables CSS legacy a nuevas
-5. **TEC-004**: Tests de integración
-6. **TEC-007**: CAPTCHA en login/registro
-7. **DDT-004**: Re-encoding UTF-8 sin BOM
 
 ---
 

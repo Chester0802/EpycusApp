@@ -1,0 +1,12 @@
+@using EpycusApp.Ayudantes
+@inject Microsoft.Extensions.Options.IOptions<TurnstileOptions> TurnstileOpts
+@{
+    var siteKey = TurnstileOpts.Value.SiteKey;
+}
+@if (!string.IsNullOrEmpty(siteKey))
+{
+    <div class="mb-4">
+        <div class="cf-turnstile" data-sitekey="@siteKey" data-theme="auto"></div>
+    </div>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+}
