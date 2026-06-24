@@ -1,6 +1,6 @@
 # Auditoría Completa de EpycusApp
 
-**Fecha:** 2026-06-21  
+**Fecha:** 2026-06-24  
 **Proyecto:** EpycusApp - Plataforma de gamificación para productividad y bienestar universitario  
 **Repositorio:** GitHub con CI/CD vía GitHub Actions  
 **Entorno:** Windows (desarrollo local) → Debian 13 VPS (producción)
@@ -78,6 +78,8 @@ C:\Users\marco\Pictures\EpycusApp\
 │   ├── js/ (4 archivos)
 │   ├── lib/ (jQuery, Bootstrap, Chart.js, etc.)
 │   └── img/
+├── Documentacion.md                # Documentación completa del proyecto
+├── README.md                       # Readme principal
 └── Archivos raíz:
     ├── Program.cs
     ├── appsettings.json
@@ -857,7 +859,7 @@ Cors__OrigenesPermitidos__0 / __1
 
 ## 11. Roadmap
 
-Según `NUEVOS_MODULOS.md`, el proyecto tiene una hoja de ruta con 15 módulos nuevos planificados:
+El proyecto tiene una hoja de ruta con 15 módulos nuevos planificados:
 
 ### Fase 1: Inmediata
 - PWA (service worker, manifest, offline)

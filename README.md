@@ -55,7 +55,6 @@ Sistema multiplataforma de gamificación de hábitos profesionales inspirado en 
 | UI/UX | ✅ Responsivo, modo oscuro/claro, animaciones, micro-interacciones, feedback visual, páginas de error personalizadas |
 | Tests | ✅ 224 unit tests (xUnit + Moq + FluentAssertions) ejecutados en CI/CD |
 
-> Ver [PENDIENTES.md](./PENDIENTES.md) para la lista completa de tareas.
 
 ## Requisitos
 
