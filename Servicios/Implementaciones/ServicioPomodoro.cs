@@ -5,6 +5,7 @@ using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace EpycusApp.Servicios.Implementaciones
 {
@@ -185,7 +186,7 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var sesion = new SesionPomodoro
             {
-                FechaInicio = DateTime.UtcNow,
+                FechaInicio = DateTime.UtcNow.AddSeconds(-segundos),
                 FechaFin = DateTime.UtcNow,
                 UsuarioId = usuarioId,
                 CiclosCompletados = 0,
@@ -375,7 +376,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
                 resultado.Add(new EstadisticasPomodoroPeriodo
                 {
-                    Fecha = dia.ToString("ddd"),
+                    Fecha = dia.ToString("ddd", CultureInfo.CreateSpecificCulture("es-ES")),
                     Ciclos = delDia.Sum(s => s.CiclosCompletados),
                     Minutos = delDia.Sum(s => s.FechaFin.HasValue
                         ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
