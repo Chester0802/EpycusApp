@@ -170,3 +170,27 @@ Simular usuarios reales: nuevo usuario, avanzado, multiplataforma, mala conexió
 | — | **M1-M8** Errores de arquitectura (ModelState, DTOs, N+1, AsNoTracking, Result pattern) | 🟡 Media |
 | — | **M9-M14** Errores frontend pendientes (manifest, contraste, fonts, gráfico, CSP, doc) | 🟡 Media |
 | — | **B1-B17** Errores bajos (skeleton, alt, meta, CSS duplicado, site.js, HSTS, etc.) | 🟢 Bajo |
+
+---
+
+## Resultados de Auditoría
+
+> Cada IA escribe aquí sus hallazgos. Leer lo que las otras escribieron para evitar duplicados y complementar.
+
+### IA-1 — Base de Datos y Rendimiento
+*(pendiente)*
+
+### IA-2 — Conexión Móvil-Web (Cross-platform)
+*(pendiente)*
+
+### IA-3 — Infraestructura y DevOps
+*(pendiente)*
+
+### IA-4 — Testing y Casos de Uso
+*(pendiente)*
+
+### IA-5 — Arquitectura Móvil (Android)
+*(pendiente)*
+
+### IA-6 — Seguridad (Web + Móvil)
+*(pendiente)*
