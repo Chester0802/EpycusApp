@@ -178,7 +178,39 @@ Simular usuarios reales: nuevo usuario, avanzado, multiplataforma, mala conexió
 > Cada IA escribe aquí sus hallazgos. Leer lo que las otras escribieron para evitar duplicados y complementar.
 
 ### IA-1 — Base de Datos y Rendimiento
-*(pendiente)*
+
+**✅ Funcionando correctamente:**
+- **8 migraciones** aplicadas sin pendientes, snapshot actualizado con EF Core 9.0
+- **26 DbSets** bien definidos y mapeados
+- **UTF8mb4** charset configurado globalmente
+- **Índices individuales** en todas las FK (`UsuarioId`, `HabitoId`, `CategoriaId`, etc.)
+- **Relaciones** con `OnDelete` correcto (Cascade/SetNull/Restrict según el caso)
+- **`EF.Functions.Random()`** usado para tip aleatorio (no carga toda la tabla)
+- **Charset utf8mb4** consistente en todas las columnas `longtext`
+- **Connection string** sin `Max Pool Size` explícito (usa default de MariaDB/MySQL)
+
+**❌ Errores encontrados:**
+
+| # | Descripción | Severidad | Archivo/Línea |
+|---|---|---|---|
+| 1 | **Sin índice compuesto en `SesionPomodoro(UsuarioId, FechaInicio)`** — las consultas más frecuentes (historial, estadísticas semanales, avanzadas) filtran por ambos campos pero solo hay índice individual en `UsuarioId`. Con muchas sesiones, hará escaneo de filas innecesario. | **MEDIA** | `ContextoAplicacion.cs:230-232` · consultas en `ServicioPomodoro.cs:294-311,342-356,359-389,391-433` |
+| 2 | **Sin índice en `SesionPomodoro(UsuarioId, FueCompletada, FechaInicio)`** — el cálculo de racha (`ObtenerRachaActualAsync`) filtra por `UsuarioId` + `FueCompletada=true` + ordena por `FechaInicio`. Sin índice compuesto, hará escaneo completo de sesiones del usuario. | **MEDIA** | `ServicioPomodoro.cs:316-339` |
+| 3 | **Sin índice en `ConfiguracionesPomodoro(UsuarioId)`** — cada operación de pomodoro (`RegistrarCiclo`, `FinalizarSesion`) carga la configuración por `UsuarioId`. Sin índice, escanea toda la tabla. | **MEDIA** | `ContextoAplicacion.cs` (falta declaración) |
+| 4 | **Racha calculada en memoria** (`ObtenerRachaActualAsync`): carga TODAS las sesiones completadas del usuario y calcula la secuencia en C#. Con usuarios de varios meses, esto cargará cientos/miles de filas en memoria. | **MEDIA** | `ServicioPomodoro.cs:314-339` |
+| 5 | **Sin `AsNoTracking()` en queries de solo lectura**: `ObtenerHistorialAsync`, `ObtenerEstadisticasPeriodoAsync`, `ObtenerEstadisticasSemanalesAsync`, `ObtenerEstadisticasAvanzadasAsync`, `ObtenerSesionesHoyAsync`, `ObtenerRachaActualAsync` trackean entidades que nunca se modifican. | **MEDIA** | `ServicioPomodoro.cs:288,294,316,342,364,393` |
+| 6 | **N+1 queries en `RegistrarCiclo()`**: 3 queries separadas para sesión (line 100), config (line 113) y subTarea (line 121). Podrían cargarse con `.Include()`. | **MEDIA** | `ServicioPomodoro.cs:98-126` |
+| 7 | **N+1 queries en `FinalizarSesion()`**: misma pauta — sesión (line 143), subTarea (line 158), config (line 161) en queries separadas. | **MEDIA** | `ServicioPomodoro.cs:141-170` |
+| 8 | **N+1 queries en `IniciarSesion()`**: 3 queries separadas para hábito (line 41), misión (line 48) y subTarea (line 55). La subTarea ya incluye `.Include(st => st.Mision)` innecesario si solo se verifica existencia. | **MEDIA** | `ServicioPomodoro.cs:37-60` |
+| 9 | **Fechas formateadas en C# sin hora local**: `Fecha = dia.ToString("ddd", ...)` y `Fecha = desde.ToString("yyyy-MM-dd")` se hacen en memoria con `CultureInfo`, pero las fechas vienen en UTC. No hay conversión a zona horaria del usuario. | **BAJA** | `ServicioPomodoro.cs:348,379,416` |
+| 10 | **`ObtenerTareasEnfoqueAsync()` hace 2 DB calls paralelizables**: carga hábitos y misiones en dos queries separadas secuenciales cuando podrían ser `Task.WhenAll()`. | **BAJA** | `ServicioPomodoro.cs:448-468` |
+| 11 | **`DiasSemanaHabito` DbSet con salto de línea extraño** en la declaración (línea 38-39). | **BAJA** | `ContextoAplicacion.cs:38-39` |
+| 12 | **Connection string sin `Max Pool Size` ni `Connection Lifetime`**: usa defaults (pool=100, lifetime=0). En producción con muchos usuarios concurrentes, puede haber contención de conexiones. | **BAJA** | `appsettings.json:9` |
+
+**⚠️ Complementos a otras IAs:**
+- Coincido con el error #4 de Arquitectura (N+1 en ServicioPomodoro) — lo detallo con más precisión en errores 6-8 de esta tabla.
+- El error #5 de Arquitectura (racha en memoria) lo confirmo y amplío en error #4.
+- El error #6 de Arquitectura (AsNoTracking) lo confirmo y detallo líneas exactas en error #5.
+- Los errores #1, #2, #3 (índices) no estaban documentados previamente — son nuevos hallazgos de esta auditoría.
 
 ### IA-2 — Conexión Móvil-Web (Cross-platform)
 *(pendiente)*
