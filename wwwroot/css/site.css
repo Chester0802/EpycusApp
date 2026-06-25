@@ -1044,6 +1044,13 @@ textarea:focus-visible {
   border-radius: var(--radius-sm);
 }
 
+.ep-pomodoro-ciclo {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  min-height: 1.2rem;
+}
+
 .ep-pomodoro-tabs {
   display: flex;
   justify-content: flex-start;

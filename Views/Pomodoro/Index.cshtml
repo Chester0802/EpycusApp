@@ -53,7 +53,7 @@
 </div>
 
 <!-- Modal sesion activa -->
-<div class="modal fade" id="modalSesionActiva" tabindex="-1" data-bs-backdrop="static">
+<div class="modal fade" id="modalSesionActiva" tabindex="-1" data-bs-backdrop="static" data-bs-focus="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="background: var(--ep-superficie); color: var(--text-primary);">
             <div class="modal-header border-secondary">
@@ -125,6 +125,7 @@
                         </div>
                         <div class="ep-pomodoro-time" id="timerDisplay">25:00</div>
                         <div class="ep-pomodoro-label" id="timerLabel">Tiempo de enfoque</div>
+                        <div class="ep-pomodoro-ciclo" id="cicloIndicator"></div>
                     </div>
                 </div>
             </div>
@@ -542,6 +543,7 @@
                     return;
                 }
             }
+            document.activeElement.blur();
             var modal = bootstrap.Modal.getInstance(document.getElementById('modalSesionActiva'));
             if (modal) modal.hide();
             estadoTimer.ciclosCompletados = 0;
@@ -555,6 +557,7 @@
         }
 
         function continuarSesionActiva() {
+            document.activeElement.blur();
             var modal = bootstrap.Modal.getInstance(document.getElementById('modalSesionActiva'));
             if (modal) modal.hide();
             if (estadoTimer.ciclosCompletados > 0) {
@@ -751,6 +754,18 @@
             elDisplayTimer.innerText = formatearTiempo(estadoTimer.tiempoRestante);
             const progress = estadoTimer.tiempoTotal > 0 ? (estadoTimer.tiempoRestante / estadoTimer.tiempoTotal) * CIRCUNFERENCIA : 0;
             circuloProgreso.setAttribute('stroke-dashoffset', progress);
+            actualizarIndicadorCiclo();
+        }
+
+        function actualizarIndicadorCiclo() {
+            var el = document.getElementById('cicloIndicator');
+            if (!el) return;
+            if (estadoTimer.modo === 'enfoque' || estadoTimer.modo === 'personalizado') {
+                var total = metaDiariaValue || CONFIGURACION.metaDiaria || 4;
+                el.innerText = 'Ciclo ' + (estadoTimer.ciclosCompletados + 1) + ' / ' + total;
+            } else {
+                el.innerText = '';
+            }
         }
 
         function broadcastMensaje(tipo, datos) {
@@ -1189,6 +1204,11 @@
                             if (histList.children.length === 0) {
                                 histList.innerHTML = '<div class="text-secondary small fst-italic no-sesiones-msg">Aún no hay sesiones registradas hoy.</div>';
                             }
+                        }
+                        mostrarError("Error al registrar el ciclo. Puedes continuar con el descanso.");
+                        establecerModo('corto');
+                        if (CONFIGURACION.autoIniciarDescanso) {
+                            setTimeout(function() { alternarTimer(); }, 500);
                         }
                         return;
                     }
