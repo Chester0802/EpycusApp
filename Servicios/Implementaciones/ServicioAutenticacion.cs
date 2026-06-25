@@ -300,6 +300,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
                 private string GenerarToken(Models.Entidades.Usuario usuario)
                 {
+            var jti = Guid.NewGuid().ToString();
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
@@ -307,7 +308,8 @@ namespace EpycusApp.Servicios.Implementaciones
                 new Claim(ClaimTypes.Name, usuario.Nombre),
                 new Claim(ClaimTypes.Role, usuario.Rol?.Nombre ?? "Usuario"),
                 new Claim("CodigoUnico", usuario.CodigoUnico),
-                new Claim("CarreraId", usuario.CarreraId.ToString())
+                new Claim("CarreraId", usuario.CarreraId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, jti)
             };
 
             var claveStr = _config["Jwt:Clave"];

@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Sentry;
 
@@ -95,6 +97,16 @@ namespace Microsoft.Extensions.DependencyInjection
                                     : "/Autenticacion/Login");
                             }
                             return Task.CompletedTask;
+                        },
+                        OnTokenValidated = async context =>
+                        {
+                            var blacklist = context.HttpContext.RequestServices.GetRequiredService<IJwtBlacklist>();
+                            var jti = context.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+                            
+                            if (!string.IsNullOrEmpty(jti) && await blacklist.IsBlacklistedAsync(jti))
+                            {
+                                context.Fail("Token revocado");
+                            }
                         }
                     };
                 })
@@ -208,8 +220,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     options.AddPolicy("ApiPolicy", policy =>
                     {
                         policy.WithOrigins(origenesPermitidos)
-                              .AllowAnyHeader()
-                              .AllowAnyMethod()
+                              .WithHeaders("Authorization", "Content-Type", "X-Requested-With")
+                              .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH")
                               .AllowCredentials();
                     });
                 });
@@ -281,6 +293,8 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddSignalR();
             builder.Services.AddMemoryCache();
             builder.Services.AddSingleton<IServicioCache, ServicioCache>();
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddScoped<IJwtBlacklist, JwtBlacklist>();
 
             var sentryDsn = builder.Configuration["Sentry:Dsn"];
             if (!string.IsNullOrEmpty(sentryDsn))

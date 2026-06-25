@@ -134,7 +134,7 @@ jobs:
             sudo dotnet ef database update --no-build 2>&1 || echo "⚠️ Migraciones no aplicadas (pueden no requerirse)"
             echo "✅ Migraciones ejecutadas"
 
-      # Reinicio seguro + health check
+      # Reinicio seguro + health check HTTP con retry
       - name: Restart service & health check
         uses: appleboy/ssh-action@v1.0.3
         id: restart_service
@@ -150,13 +150,39 @@ jobs:
             sudo systemctl restart epycus-web
             sleep 5
             STATUS=$(sudo systemctl is-active epycus-web)
-            if [ "$STATUS" = "active" ]; then
-              echo "✅ Servicio epycus-web reiniciado correctamente"
-            else
+            if [ "$STATUS" != "active" ]; then
               echo "❌ El servicio no está activo. Estado: $STATUS"
               sudo systemctl status epycus-web --no-pager
               exit 1
             fi
+            echo "✅ Servicio epycus-web reiniciado correctamente"
+
+            # HTTP health check con reintentos
+            echo "🔍 Verificando health check HTTP..."
+            MAX_RETRIES=3
+            RETRY_DELAY=5
+            HEALTH_URL="https://app.epycus.es/health"
+            for i in $(seq 1 $MAX_RETRIES); do
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEALTH_URL" 2>/dev/null || echo "000")
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "✅ Health check OK (HTTP 200)"
+                # Verificar que el status en JSON sea Healthy
+                HEALTH_JSON=$(curl -s --max-time 10 "$HEALTH_URL" 2>/dev/null)
+                if echo "$HEALTH_JSON" | grep -q '"status":"Healthy"'; then
+                  echo "✅ Health check: status Healthy"
+                  exit 0
+                else
+                  echo "⚠️ Health check responde 200 pero status no es Healthy: $HEALTH_JSON"
+                fi
+              else
+                echo "⏳ Intento $i/$MAX_RETRIES: Health check falló (HTTP $HTTP_CODE), reintentando en ${RETRY_DELAY}s..."
+              fi
+              if [ $i -lt $MAX_RETRIES ]; then
+                sleep $RETRY_DELAY
+              fi
+            done
+            echo "❌ Health check falló tras $MAX_RETRIES intentos"
+            exit 1
 
       # Rollback automático si el health check falla
       - name: Rollback on deploy failure

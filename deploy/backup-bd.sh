@@ -21,6 +21,35 @@ mysqldump -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" --single-transaction --routi
 
 echo "✅ Backup created: ${BACKUP_GZ} ($(du -h "$BACKUP_GZ" | cut -f1))"
 
+# Verificar integridad del backup (test gzip + test restore a DB temporal)
+echo "🔍 Verificando integridad del backup..."
+if gzip -t "$BACKUP_GZ"; then
+    echo "✅ Archivo gzip válido"
+else
+    echo "❌ ERROR: Archivo gzip corrupto"
+    exit 1
+fi
+
+# Test de restore rápido: crear DB temporal y verificar tablas principales
+VERIFY_DB="${DB_NAME}_verify_${TIMESTAMP}"
+mysql -u "$DB_USER" -p"$DB_PASSWORD" -e "CREATE DATABASE \`$VERIFY_DB\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+if zcat "$BACKUP_GZ" | mysql -u "$DB_USER" -p"$DB_PASSWORD" "$VERIFY_DB"; then
+    # Verificar que las tablas críticas tienen datos
+    TABLES=("Usuarios" "Habitos" "SesionesPomodoro" "Misiones" "Carreras")
+    for TABLE in "${TABLES[@]}"; do
+        COUNT=$(mysql -u "$DB_USER" -p"$DB_PASSWORD" -N -e "SELECT COUNT(*) FROM \`$VERIFY_DB\`.\`$TABLE\`;" 2>/dev/null || echo "0")
+        echo "  - Tabla $TABLE: $COUNT filas"
+    done
+    echo "✅ Verificación de restore exitosa"
+else
+    echo "❌ ERROR: Fallo al restaurar backup de prueba"
+    mysql -u "$DB_USER" -p"$DB_PASSWORD" -e "DROP DATABASE IF EXISTS \`$VERIFY_DB\`;"
+    exit 1
+fi
+
+# Limpiar DB de verificación
+mysql -u "$DB_USER" -p"$DB_PASSWORD" -e "DROP DATABASE IF EXISTS \`$VERIFY_DB\`;"
+
 # Cleanup old backups
 find "$BACKUP_DIR" -name "epycus-db-*.sql.gz" -mtime +$RETENTION_DAYS -delete
 

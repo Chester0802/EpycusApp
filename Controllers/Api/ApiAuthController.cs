@@ -15,10 +15,12 @@ namespace EpycusApp.Controllers.Api
     public class ApiAuthController : BaseApiController
     {
         private readonly IServicioAutenticacion _servicioAutenticacion;
+        private readonly VerificadorTurnstile _verificadorTurnstile;
 
-        public ApiAuthController(IServicioAutenticacion servicioAutenticacion)
+        public ApiAuthController(IServicioAutenticacion servicioAutenticacion, VerificadorTurnstile verificadorTurnstile)
         {
             _servicioAutenticacion = servicioAutenticacion;
+            _verificadorTurnstile = verificadorTurnstile;
         }
 
         [HttpPost("login")]
@@ -51,6 +53,22 @@ namespace EpycusApp.Controllers.Api
         [Authorize]
         public async Task<IActionResult> Logout()
         {
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            {
+                var token = authHeader.Substring("Bearer ".Length).Trim();
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+                var jti = jwtToken.Claims.FirstOrDefault(c => c.Type == Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames.Jti)?.Value;
+                var exp = jwtToken.ValidTo;
+                
+                if (!string.IsNullOrEmpty(jti) && exp > DateTime.UtcNow)
+                {
+                    var blacklist = HttpContext.RequestServices.GetRequiredService<EpycusApp.Servicios.Interfaces.IJwtBlacklist>();
+                    await blacklist.AddToBlacklistAsync(jti, exp - DateTime.UtcNow);
+                }
+            }
+
             var usuarioId = ObtenerUsuarioId()!.Value;
             await _servicioAutenticacion.CerrarSesion(usuarioId);
             return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
@@ -60,6 +78,11 @@ namespace EpycusApp.Controllers.Api
         [AllowAnonymous]
         public async Task<IActionResult> Registro([FromBody] RegistroRequestDto request)
         {
+            if (string.IsNullOrEmpty(request.TurnstileToken) || !await _verificadorTurnstile.VerificarTokenAsync(request.TurnstileToken))
+            {
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Verificación de seguridad fallida. Inténtalo de nuevo."));
+            }
+
             var modelo = new RegistroViewModel
             {
                 Nombre = request.Nombre,
@@ -96,6 +119,7 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("recuperar-contrasena")]
         [AllowAnonymous]
+        [EnableRateLimiting("Auth")]
         public async Task<IActionResult> RecuperarContrasena([FromBody] RecuperarContrasenaDto request)
         {
             var resultado = await _servicioAutenticacion.EnviarCorreoRecuperacion(request.Correo);
@@ -109,6 +133,7 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("restablecer-contrasena")]
         [AllowAnonymous]
+        [EnableRateLimiting("Auth")]
         public async Task<IActionResult> RestablecerContrasena([FromBody] RestablecerContrasenaDto request)
         {
             var resultado = await _servicioAutenticacion.RestablecerContrasena(request.Token, request.NuevaContrasena);
@@ -188,6 +213,7 @@ namespace EpycusApp.Controllers.Api
             public string Genero { get; set; } = string.Empty;
             public int CarreraId { get; set; }
             public bool AceptoTerminos { get; set; }
+            public string TurnstileToken { get; set; } = string.Empty;
         }
 
         public class RecuperarContrasenaDto

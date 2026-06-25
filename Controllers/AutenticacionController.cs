@@ -328,8 +328,29 @@ namespace EpycusApp.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            var token = Request.Cookies["jwt_token"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+                var jti = jwtToken.Claims.FirstOrDefault(c => c.Type == Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames.Jti)?.Value;
+                var exp = jwtToken.ValidTo;
+                
+                if (!string.IsNullOrEmpty(jti) && exp > DateTime.UtcNow)
+                {
+                    var blacklist = HttpContext.RequestServices.GetRequiredService<EpycusApp.Servicios.Interfaces.IJwtBlacklist>();
+                    await blacklist.AddToBlacklistAsync(jti, exp - DateTime.UtcNow);
+                }
+            }
+
+            var usuarioId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(usuarioId, out var id))
+            {
+                await _servicioAutenticacion.CerrarSesion(id);
+            }
+
             Response.Cookies.Delete("jwt_token");
             Response.Cookies.Delete("refresh_token");
             return RedirectToAction("Login");

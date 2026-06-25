@@ -2,6 +2,7 @@
 using EpycusApp.ViewModels.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EpycusApp.Controllers
 {
@@ -31,6 +32,7 @@ namespace EpycusApp.Controllers
         [AllowAnonymous]
         [HttpPost("/admin/login")]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("Auth")]
         public async Task<IActionResult> Login(AdminLoginViewModel modelo)
         {
             if (!ModelState.IsValid)

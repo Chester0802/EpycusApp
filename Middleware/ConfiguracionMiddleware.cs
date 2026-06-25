@@ -42,7 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
                 if (!app.Environment.IsDevelopment())
                 {
-                    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https://ui-avatars.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' https://cdn.jsdelivr.net";
+                    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https://ui-avatars.com; font-src 'self' data: https://cdnjs.cloudflare.com; connect-src 'self' https://cdn.jsdelivr.net; report-uri /csp-report;";
                 }
                 if (context.Response.ContentType == "text/html" || context.Response.ContentType?.StartsWith("text/html") == true)
                 {
