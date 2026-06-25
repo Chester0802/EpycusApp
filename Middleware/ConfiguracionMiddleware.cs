@@ -21,6 +21,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 app.UseSwaggerUI();
             }
 
+            app.UseResponseCompression();
+
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto

@@ -9,7 +9,7 @@ namespace EpycusApp.Controllers.Api
 {
     [ApiController]
     [Route("api/v1/admin")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [EnableRateLimiting("Api")]
     public class ApiAdminController : BaseApiController
     {
@@ -30,6 +30,9 @@ namespace EpycusApp.Controllers.Api
 
             if (!exito)
                 return Ok(RespuestaApi<MensajeResponseDto>.Fallida(mensaje));
+
+            if (!await _servicioAdmin.EsAdministrador(request.Correo))
+                return Ok(RespuestaApi<MensajeResponseDto>.Fallida("No tienes permisos de administrador"));
 
             return Ok(RespuestaApi<AdminLoginResponseDto>.Exitosa(new AdminLoginResponseDto { Token = token!, RefreshToken = refreshToken!, Mensaje = mensaje }));
         }

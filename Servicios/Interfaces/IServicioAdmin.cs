@@ -11,5 +11,6 @@ namespace EpycusApp.Servicios.Interfaces
         Task<List<FraseMotivacional>> ObtenerFrases();
         Task CrearFrase(string frase, string autor);
         Task EliminarFrase(int id);
+        Task<bool> EsAdministrador(string correo);
     }
 }

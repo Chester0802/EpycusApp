@@ -150,8 +150,8 @@
                 <div class="text-center" style="height: clamp(200px, 40vw, 300px); position: relative;">
                     <div id="skeletonChart" class="ep-skeleton ep-skeleton-card" style="height: 100%; width: 100%;"></div>
                     <canvas id="graficoCategorias"
-                            data-categorias='@Html.Raw(Json.Serialize(Model.Estadisticas.DistribucionPorCategoria.Keys))'
-                            data-valores='@Html.Raw(Json.Serialize(Model.Estadisticas.DistribucionPorCategoria.Values))'
+                            data-categorias='@Json.Serialize(Model.Estadisticas.DistribucionPorCategoria.Keys)'
+                            data-valores='@Json.Serialize(Model.Estadisticas.DistribucionPorCategoria.Values)'
                             style="display: none;">
                     </canvas>
                 </div>

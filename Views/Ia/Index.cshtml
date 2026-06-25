@@ -171,6 +171,7 @@
     static string FormatearMensaje(string texto)
     {
         if (string.IsNullOrEmpty(texto)) return string.Empty;
+        texto = System.Net.WebUtility.HtmlEncode(texto);
         texto = System.Text.RegularExpressions.Regex.Replace(
             texto, @"\*\*(.+?)\*\*", "<strong>$1</strong>");
         texto = System.Text.RegularExpressions.Regex.Replace(

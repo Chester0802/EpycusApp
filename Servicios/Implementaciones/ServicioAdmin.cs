@@ -106,6 +106,13 @@ namespace EpycusApp.Servicios.Implementaciones
             await _contexto.SaveChangesAsync();
         }
 
+        public async Task<bool> EsAdministrador(string correo)
+        {
+            return await _contexto.Usuarios
+                .Include(u => u.Rol)
+                .AnyAsync(u => u.CorreoElectronico == correo && u.Rol!.Nombre == "Admin");
+        }
+
         public async Task EliminarFrase(int id)
         {
             var frase = await _contexto.FrasesMotivacionales.FirstOrDefaultAsync(f => f.Id == id);

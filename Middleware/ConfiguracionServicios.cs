@@ -8,6 +8,7 @@ using EpycusApp.Servicios.Implementaciones;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -271,6 +272,12 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddScoped<IProveedorGemini, ProveedorGemini>();
             builder.Services.AddScoped<IProveedorDeepSeek, ProveedorDeepSeek>();
             builder.Services.AddScoped<IServicioIA, ServicioIA>();
+            builder.Services.AddResponseCompression(options =>
+            {
+                options.EnableForHttps = true;
+                options.Providers.Add<BrotliCompressionProvider>();
+                options.Providers.Add<GzipCompressionProvider>();
+            });
             builder.Services.AddSignalR();
             builder.Services.AddMemoryCache();
             builder.Services.AddSingleton<IServicioCache, ServicioCache>();

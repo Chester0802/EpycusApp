@@ -5,7 +5,7 @@
 .ep-da-titulo {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--texto);
+    color: var(--text-primary);
 }
 
 .ep-ods-badge {
@@ -16,7 +16,7 @@
     border-radius: 999px;
     background: var(--ep-animo-bien-bg);
     border: 1px solid var(--ep-animo-bien);
-    color: var(--texto);
+    color: var(--text-primary);
     font-size: 0.75rem;
     font-weight: 500;
     text-decoration: none;
@@ -25,7 +25,7 @@
 
 .ep-ods-badge:hover {
     opacity: 0.85;
-    color: var(--texto);
+    color: var(--text-primary);
 }
 
 .ep-da-stat-card {
@@ -34,7 +34,7 @@
     gap: 0.75rem;
     padding: 1rem;
     border-radius: 12px;
-    background: var(--superficie);
+    background: var(--surface);
     border: 1px solid var(--border-color);
 }
 
@@ -58,16 +58,16 @@
     font-size: 1.35rem;
     font-weight: 700;
     line-height: 1.2;
-    color: var(--texto);
+    color: var(--text-primary);
 }
 
 .ep-da-stat-label {
     font-size: 0.75rem;
-    color: var(--texto-secundario);
+    color: var(--text-secondary);
 }
 
 .ep-da-card {
-    background: var(--superficie);
+    background: var(--surface);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     overflow: hidden;
@@ -77,8 +77,8 @@
     padding: 0.85rem 1rem;
     font-weight: 600;
     font-size: 0.9rem;
-    color: var(--texto);
-    background: var(--hover);
+    color: var(--text-primary);
+    background: var(--bg-hover);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
@@ -93,7 +93,7 @@
     display: block;
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--texto);
+    color: var(--text-primary);
     margin-bottom: 0.4rem;
 }
 
@@ -111,7 +111,7 @@
     padding: 0.6rem 0.3rem;
     border-radius: 10px;
     border: 2px solid var(--border-color);
-    background: var(--superficie);
+    background: var(--surface);
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -135,7 +135,7 @@
 .ep-da-animo-lbl {
     font-size: 0.65rem;
     font-weight: 600;
-    color: var(--texto);
+    color: var(--text-primary);
 }
 
 .ep-da-select,
@@ -143,16 +143,16 @@
     font-size: 0.85rem !important;
     border-radius: 8px !important;
     border: 1px solid var(--border-color) !important;
-    background: var(--superficie) !important;
-    color: var(--texto) !important;
+    background: var(--surface) !important;
+    color: var(--text-primary) !important;
 }
 
 .ep-da-textarea {
     font-size: 0.85rem !important;
     border-radius: 8px !important;
     border: 1px solid var(--border-color) !important;
-    background: var(--superficie) !important;
-    color: var(--texto) !important;
+    background: var(--surface) !important;
+    color: var(--text-primary) !important;
     resize: vertical;
 }
 
@@ -161,7 +161,7 @@
     gap: 0.75rem;
     padding: 0.85rem;
     border-radius: 10px;
-    background: var(--hover);
+    background: var(--bg-hover);
     border: 1px solid var(--border-color);
 }
 
@@ -175,7 +175,7 @@
 .ep-da-pregunta-texto {
     font-size: 0.82rem;
     font-style: italic;
-    color: var(--texto);
+    color: var(--text-primary);
     font-weight: 500;
 }
 
@@ -201,8 +201,8 @@
 }
 
 .ep-da-btn-nav {
-    background: var(--hover) !important;
-    color: var(--texto) !important;
+    background: var(--bg-hover) !important;
+    color: var(--text-primary) !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 8px !important;
     font-size: 0.8rem !important;
@@ -223,7 +223,7 @@
     text-align: center;
     font-size: 0.7rem;
     font-weight: 700;
-    color: var(--texto-secundario);
+    color: var(--text-secondary);
     text-transform: uppercase;
     margin-bottom: 0.5rem;
 }
@@ -242,7 +242,7 @@
     justify-content: center;
     border-radius: 8px;
     font-size: 0.8rem;
-    color: var(--texto);
+    color: var(--text-primary);
     position: relative;
     min-height: 44px;
 }
@@ -257,7 +257,7 @@
 }
 
 .ep-da-cal-dia--lleno:hover {
-    background: var(--hover);
+    background: var(--bg-hover);
     cursor: pointer;
 }
 
@@ -280,13 +280,13 @@
     gap: 0.75rem;
     padding: 0.75rem;
     border-radius: 10px;
-    background: var(--superficie);
+    background: var(--surface);
     border: 1px solid var(--border-color);
     transition: background 0.2s;
 }
 
 .ep-da-entrada-item:hover {
-    background: var(--hover);
+    background: var(--bg-hover);
 }
 
 .ep-da-entrada-fecha {
@@ -301,13 +301,13 @@
     font-size: 1.2rem;
     font-weight: 700;
     line-height: 1;
-    color: var(--texto);
+    color: var(--text-primary);
 }
 
 .ep-da-entrada-mes {
     font-size: 0.65rem;
     text-transform: uppercase;
-    color: var(--texto-secundario);
+    color: var(--text-secondary);
 }
 
 .ep-da-entrada-contenido {
@@ -317,14 +317,14 @@
 
 .ep-da-entrada-texto {
     font-size: 0.82rem;
-    color: var(--texto);
+    color: var(--text-primary);
     word-break: break-word;
 }
 
 .ep-da-entrada-reflexion {
     padding: 0.4rem 0.6rem;
     border-radius: 6px;
-    background: var(--hover);
+    background: var(--bg-hover);
     border-left: 3px solid var(--accent-primary);
     margin-top: 0.3rem;
 }

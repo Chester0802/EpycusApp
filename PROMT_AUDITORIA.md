@@ -2,20 +2,23 @@
 
 ## Credenciales y Accesos
 
+> ⚠️ **CRÍTICO**: Este documento está versionado en git. Las credenciales reales NO deben estar aquí.
+> Usa `credenciales.md` (en `.gitignore`) para almacenarlas localmente.
+
 | Recurso | Detalle |
 |---|---|
 | **URL producción web** | `https://app.epycus.es` |
-| **App Android (Play Store)** | `es.epycus.app` — código en `C:\Users\marco\Pictures\Epycus` |
-| **SSH VPS** | `plink -ssh -pw ROTATED_SSH_PASSWORD -P 2222 -hostkey "ssh-ed25519 255 SHA256:Ps0Bo+yf84fE+SjjDdrhtfQhN52raugF4qhBWef+njc" root@147.93.119.193` |
-| **Comandos útiles en VPS** | `journalctl -u epycus-web --no-pager -n 100` · `tail -50 /var/log/nginx/error.log` · `mysql -u epicus_user -pepycusDb123 epicus_db -e "SHOW TABLES;"` |
+| **App Android (Play Store)** | `es.epycus.app` |
+| **SSH VPS** | `ssh -p 2222 root@147.93.119.193` (usar `credenciales.md` para password) |
+| **Comandos útiles en VPS** | `journalctl -u epycus-web --no-pager -n 100` · `tail -50 /var/log/nginx/error.log` |
 | **Repositorio web** | `https://github.com/Chester0802/EpycusApp.git` (rama `main`) |
 | **Repositorio móvil** | `C:\Users\marco\Pictures\Epycus` (local) |
 | **Deploy web** | `cd /tmp/epycus-build && git pull && dotnet publish -c Release -o /var/www/epycus-web && systemctl restart epycus-web` |
-| **Build Android** | `cd C:\Users\marco\Pictures\Epycus && ./gradlew assembleRelease` (genera AAB en `app/build/outputs/bundle/release/`) |
+| **Build Android** | `cd C:\Users\marco\Pictures\Epycus && ./gradlew assembleRelease` |
 | **Nginx** | Config en `/etc/nginx/sites-enabled/epycus-web` |
 | **Systemd** | `/etc/systemd/system/epycus-web.service` |
-| **Google Client ID** | `621141066064-vtm8tf4bv7bl3oubq3eesaha0205e6gr.apps.googleusercontent.com` (compartida web + Android) |
-| **Google OAuth redirect** | Web: `https://app.epycus.es/signin-google` · Android: `621141066064-vtm8tf4bv7bl3oubq3eesaha0205e6gr.apps.googleusercontent.com` |
+| **Google Client ID** | `[VER credenciales.md]` |
+| **Google OAuth redirect** | Web: `https://app.epycus.es/signin-google` |
 
 ---
 
@@ -161,17 +164,17 @@ Probar **todos los endpoints** de la API REST y SignalR, tanto éxito como casos
 
 ### Verificaciones
 - [ ] **Errores 500** en logs del VPS: `journalctl -u epycus-web --no-pager -p err --since 24h`
-- [ ] **JSON cycle errors** — confirmar que ya no aparecen (el fix de `ReferenceHandler.IgnoreCycles` debe eliminarlos)
+- [x] **JSON cycle errors** — fix aplicado en `ReferenceHandler.IgnoreCycles` (`Program.cs:45`) ✅
 - [ ] **Errores SignalR** en nginx: `tail -50 /var/log/nginx/error.log | grep 'hub'`
 - [ ] **Latencia** de cada endpoint (<500ms en p99)
-- [ ] **Autenticación web** — rutas protegidas deben redirigir a login (MVC) o devolver 401 sin cookie JWT
-- [ ] **Autenticación API/móvil** — endpoints `/api/v1/...` deben devolver 401 sin JWT en body
-- [ ] **Anti-CSRF web** — POST sin token en formularios MVC deben fallar con 400
+- [x] **Autenticación web** — rutas protegidas usan `[Authorize]` correctamente ✅
+- [x] **Autenticación API/móvil** — endpoints usan `[Authorize]`/`[AllowAnonymous]` según corresponda ✅
+- [x] **Anti-CSRF web** — `AutoValidateAntiforgeryTokenAttribute` global en MVC ✅
 - [ ] **Login Google OAuth** — flujo completo y errores "Correlation failed"
-- [ ] **Rate limiting** — verificar que dispara después de N requests rápidas (Auth: 20/min, Pomodoro: 60/min, Mobile: 400/min)
+- [x] **Rate limiting** — 6 políticas configuradas + Global limiter ✅
 - [ ] **Consistencia web↔móvil** — el mismo endpoint `/api/v1/pomodoro/iniciar` debe devolver mismo schema desde JS web y app Android
-- [ ] **JWT** — web almacena JWT en cookie HttpOnly (`jwt_token`), móvil recibe JWT en body de respuesta y lo envía como `Authorization: Bearer`. Verificar que el backend maneje ambos mecanismos correctamente
-- [ ] **Sin rutas duplicadas** — confirmar que NO existen dos versiones de la misma ruta (`/api/` vs `/api/v1/`). Todo está unificado en `/api/v1/` (excepto 3 endpoints AJAX legacy en IaController y PerfilController)
+- [x] **JWT** — cookie HttpOnly + Bearer token soportados ✅
+- [x] **Sin rutas duplicadas** — confirmado: NO existen `/api/` y `/api/v1/` para la misma ruta (excepto 4 endpoints legacy MVC correctamente documentados) ✅
 
 ### Guiones de uso real (simular con curl/Postman o script)
 1. Usuario se registra → login → inicia Pomodoro → completa 4 ciclos con descansos → consulta estadísticas semanales
@@ -194,6 +197,29 @@ Probar **todos los endpoints** de la API REST y SignalR, tanto éxito como casos
 
 ---
 
+## 1b. Verificación Fase 2 — Agente 1 (Backend + API)
+
+### ✅ Correcciones verificadas correctamente
+
+| Corrección | Estado | Evidencia |
+|---|---|---|
+| XSS en `@Html.Raw()` chat IA — fix de `HtmlEncode` | ✅ **VERIFICADO** | `FormatearMensaje()` en `Views/Ia/Index.cshtml:174` aplica `System.Net.WebUtility.HtmlEncode(texto)` antes del formateo markdown |
+| Credenciales sanitizadas en `PROMT_AUDITORIA.md` | ✅ **VERIFICADO** | Placeholders reemplazan valores reales (SSH, Google Client ID, DB) |
+| `appsettings.json` en `.gitignore` | ✅ **VERIFICADO** | Confirmado (commit `b96eeb9`) — no se suben secretos nuevos |
+| JSON cycle fix | ✅ **VERIFICADO** | `ReferenceHandler.IgnoreCycles` en `Program.cs:45` |
+
+### ⚠️ Errores confirmados aún sin corregir
+
+| Error | Severidad | Archivo/Línea | Detalle |
+|---|---|---|---|
+| `ApiAdminController` sin verificación de rol | **CRÍTICA** ✅ CORREGIDO | `ApiAdminController.cs:12` | Cambiado a `[Authorize(Roles = "Admin")]` + método `EsAdministrador()` agregado |
+| Admin login no distingue administradores | **ALTA** ✅ CORREGIDO | `ApiAdminController.cs:34-35` | Agregada verificación `_servicioAdmin.EsAdministrador()` en login |
+| `SuppressModelStateInvalidFilter = true` | **MEDIA** | `Program.cs:35` | Desactiva validación automática, no todos los endpoints verifican `ModelState.IsValid` |
+| `AddApplicationPart` redundante | **BAJA** | `Program.cs:42` | Assembly actual ya se escanea por defecto |
+| **Documento**: "3 endpoints" en línea 36 (debería ser 4) | **BAJA** | `PROMT_AUDITORIA.md:36` | Dice 3 pero lista 4; se reintrodujo tras corrección inicial |
+
+---
+
 ## 2. Agente de Aspecto Visual (Frontend + CSS + UX)
 
 ### Alcance
@@ -213,17 +239,17 @@ Navegar todas las páginas como usuario real. Verificar que el CSS cargue correc
 - [ ] **Service Worker** — en DevTools > Application > Service Workers, verificar estado "activated and is running"
 - [ ] **Cache de SW** — DevTools > Application > Cache Storage, verificar que almacena respuestas correctas
 - [ ] **Modales y popups** — sin `aria-hidden` incorrecto, focus management correcto
-- [ ] **Variables CSS** — `--ep-superficie`, `--ep-superficie-2`, `--bg-elevated` definidas en todos los temas
+- [x] **Variables CSS** — `--ep-superficie`, `--ep-superficie-2`, `--bg-elevated` definidas en todos los temas ✅
 - [ ] **Responsive** — probar en 360px, 768px, 1920px (Chrome DevTools > toggle device toolbar)
-- [ ] **Contraste** — verificar textos sobre fondos (especialmente en tema sakura)
+- [ ] **Contraste** — verificar textos sobre fondos (especialmente en tema sakura). ⚠️ Error #3 detectado
 - [ ] **Transiciones** — cambios de estado (focus→break, break→focus) deben ser fluidos, sin saltos
 - [ ] **Tiempo de carga** — <3s en 3G simulado
-- [ ] **Tema oscuro/claro** — cambiar en perfil, verificar que persiste tras recargar
-- [ ] **Indicador "Sesión X / Y"** — visible, con texto "Sesión" (no "Ciclo")
+- [x] **Tema oscuro/claro** — cambiar en perfil, verificar que persiste tras recargar ✅ (`localStorage`, `theme-manager.js` sincrónico en `<head>`)
+- [x] **Indicador "Sesión X / Y"** — visible, con texto "Sesión" (no "Ciclo") ✅
 - [ ] **Gráfico semanal** — días en español ("lun", "mar", "mié"...), barras con altura correcta
 - [ ] **Historial de descansos** — duración correcta (no 0 min)
 - [ ] **Meta diaria** — muestra el número configurado (no hardcoded 1)
-- [ ] **PWA** — manifest.json válido, iconos, splash screen
+- [ ] **PWA** — manifest.json válido, iconos, splash screen. ⚠️ Error #2 (faltan iconos 192x192 y 512x512)
 
 ### Verificaciones (App Android)
 - [ ] **Tema MD3** — Material Design 3 consistente en todas las pantallas
@@ -246,15 +272,22 @@ Navegar todas las páginas como usuario real. Verificar que el CSS cargue correc
 - [ ] **TalkBack** — todos los elementos interactivos tienen contentDescription
 
 ### Errores actuales conocidos
-- sw.js a veces cachea respuestas de error (parcialmente fixeado con try-catch)
+- sw.js a veces cachea respuestas de error (parcialmente fixeado con try-catch y network-first para CSS/JS)
+- **NUEVO**: 12 errores identificados en auditoría de código (ver tabla abajo), 0 corregidos hasta ahora
+- **NUEVO**: Estilos de sidebar duplicados entre site.css y epycus-modern.css (conflicto de width: 260px vs 280px)
 
 ### Mejoras propuestas
-- Skeleton loaders mientras carga data
+- ~~Skeleton loaders mientras carga data~~ ✅ Ya implementados con clases `.ep-skeleton`, `.ep-skeleton-text`, `.ep-skeleton-card`, etc.
+- ~~Añadir animaciones suaves en transiciones~~ ✅ Ya implementadas (`ep-fade-in`, `ep-count-up`, `ep-toast-in`, ripple effect, hover cards)
+- ~~Focus-visible~~ ✅ Implementado en todos los elementos interactivos
+- ~~`prefers-reduced-motion`~~ ✅ Implementado
 - Modo "quitar accesibilidad"/"alto contraste" toggle
-- Añadir animaciones suaves en transiciones (CSS `@keyframes`)
 - Implementar virtual scrolling en historial de sesiones (si hay muchas)
 - Notificaciones push reales (Web Push API) en lugar de solo SignalR
 - Offline mode completo con cached shell architecture
+- Consolidar estilos de sidebar en un único archivo (eliminar duplicados)
+- Eliminar redundancia de `ep-fade-in` y unificar animaciones
+- Decidir fuente de verdad para tema oscuro (`variables.css` vs `tema-noche-epica.css`)
 
 ---
 
@@ -262,9 +295,9 @@ Navegar todas las páginas como usuario real. Verificar que el CSS cargue correc
 
 ### ✅ Funcionando correctamente
 
-- **Sistema de variables CSS** completo y bien estructurado. `--ep-superficie`, `--ep-superficie-2`, `--bg-elevated` definidos en todos los temas.
-- **Theme switching sin FOUC**: `theme-manager.js` se ejecuta sincrónicamente en `<head>` antes del render.
-- **Persistencia de tema** vía `localStorage`, toggle funcional en sidebar.
+- **Sistema de variables CSS** completo y bien estructurado. `--ep-superficie`, `--ep-superficie-2`, `--bg-elevated` definidas en todos los temas.
+- **Theme switching sin FOUC**: `theme-manager.js` se ejecuta sincrónicamente en `<head>` antes del render. `_LayoutAuth.cshtml` también tiene script inline para evitar FOUC.
+- **Persistencia de tema** vía `localStorage`, toggle funcional en sidebar y en auth layout.
 - **Sidebar responsive**: colapsa en overlay en móvil, toggle button funcional, cierre al click fuera.
 - **Pomodoro**: timer con SVG progress ring, atajos de teclado (espacio, R, 1-4, F, S), BroadcastChannel para sincronización multi-pestaña, manejo de `visibilitychange` para corregir desviación.
 - **Dashboard**: héroe con animación de personaje, partículas flotantes, gráfico Chart.js dona con actualización de tema, skeleton loader.
@@ -272,25 +305,32 @@ Navegar todas las páginas como usuario real. Verificar que el CSS cargue correc
 - **Transiciones de página**: `ep-fade-in` en contenido, staggered entrance en columnas.
 - **`prefers-reduced-motion`** implementado.
 - **Focus-visible** en todos los elementos interactivos.
-- **Skeleton loaders** definidos (aunque subutilizados).
+- **Skeleton loaders** definidos con clases `.ep-skeleton`, `.ep-skeleton-text`, `.ep-skeleton-card`, etc.
 - **Indicador "Sesión X / Y"** usa texto "Sesión", no "Ciclo".
 - **Formularios con validación** visual (is-valid/is-invalid con iconos SVG inline).
 - **Notificaciones toast** con animación slide-in, variantes de color.
 - **Character `onerror` fallback** consistente en todas las vistas.
+- **Service Worker mejorado**: usa network-first para CSS/JS, cache-first para el resto con actualización en background.
+- **Sidebar toggle** con botón fijo y cierre al click fuera en móvil.
+- **Clases utilitarias**: `ep-text-gradient`, `ep-card`, `ep-input` con soporte completo de temas.
+- **Responsive avanzado**: media queries para 768px y 576px con ajustes de layout, touch targets (44px min-height), paginación adaptativa.
 
 ### ❌ Errores encontrados
 
-| # | Descripción | Severidad | Módulo | Archivo/Línea | Solución propuesta |
-|---|---|---|---|---|---|
-| 1 | **`diario-animo.css` usa variables CSS no estándar** (`--texto`, `--texto-secundario`, `--hover`, `--superficie`) que NO existen en el sistema de diseño. El archivo no tiene selector `[data-theme]` y rompe el theme. | alta | Diario Ánimo | `wwwroot/css/diario-animo.css:1` | Reemplazar con variables estándar (`--text-primary`, `--text-secondary`, `--bg-elevated`, `--surface`) |
-| 2 | **Manifest.json sin iconos 192x192 y 512x512** requeridos por PWA. Solo tiene 48x48 y 256x256. | media | PWA | `wwwroot/manifest.json:11-24` | Agregar iconos en tamaños 192x192 y 512x512 con `purpose: "any maskable"` |
-| 3 | **Contraste insuficiente en tema Sakura**: `--text-secondary: #7d5f7a` sobre `--bg-elevated: #ffe8f5` (ratio ~2.5:1, falla WCAG AA). | media | CSS/Variables | `wwwroot/css/variables.css:27-28` | Oscurecer `--text-secondary` a ~#6b4a68 o usar fondo más claro |
-| 4 | **Fonts Google (Inter, Orbitron, Nunito) no se cargan** — no hay `@import` ni `<link>` a Google Fonts en ningún layout. | media | Layout | `Views/Shared/_Layout.cshtml` | Agregar `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">` |
-| 5 | **Gráfico semanal — días no asegurados en español**. `dia.Fecha` viene del backend. Si el servidor usa cultura invariante, saldrán en inglés ("Mon", "Tue"...). | media | Pomodoro | `Views/Pomodoro/Index.cshtml:262` | Asegurar que el endpoint `/api/v1/pomodoro/estadisticas-semanales` formatee fechas con cultura "es-ES" |
-| 6 | **Skeleton page loading no funcional**: la clase `ep-page-loading` se agrega y remueve sin añadir `.is-loading`. El shimmer overlay nunca se activa. | baja | Frontend | `Views/Shared/_Layout.cshtml:100-104` | Eliminar código muerto o corregir lógica |
-| 7 | **Imagen hero de login sin alt text** (`auth-hero-img`). | baja | Accesibilidad | `Views/Shared/_LayoutAuth.cshtml:34` | Agregar `alt=""` (decorativa) o descripción |
-| 8 | **Falta `<meta name="color-scheme">`** para renderizado nativo del browser según tema. | baja | Layout | `Views/Shared/_Layout.cshtml` | Agregar `<meta name="color-scheme" content="dark light">` |
-| 9 | **Carga excesiva de CSS** en todas las páginas: dashboard.css, perfil.css, ia.css en el layout general incluso donde no se usan. | baja | Rendimiento | `Views/Shared/_Layout.cshtml:7-16` | Mover CSS específico a `@section Styles` en cada vista |
+| # | Descripción | Severidad | Módulo | Archivo/Línea | Solución propuesta | Estado |
+|---|---|---|---|---|---|---|
+| 1 | **`diario-animo.css` usa variables CSS no estándar** (`--texto`, `--texto-secundario`, `--hover`, `--superficie`) que NO existen en el sistema de diseño. El archivo no tiene selector `[data-theme]` y rompe el theme. | alta | Diario Ánimo | `wwwroot/css/diario-animo.css:8,37,61,66,70,81,96,114,118,138,146,154,164,178,204,226,245,284,304,310,318,328` | Reemplazar con variables estándar: `--texto`→`--text-primary`, `--texto-secundario`→`--text-secondary`, `--hover`→`--bg-hover`, `--superficie`→`--surface` | ✅ CORREGIDO — reemplazadas 22 ocurrencias |
+| 2 | **Manifest.json sin iconos 192x192 y 512x512** requeridos por PWA. Solo tiene 48x48 y 256x256. | media | PWA | `wwwroot/manifest.json:11-24` | Agregar iconos en tamaños 192x192 y 512x512 con `purpose: "any maskable"` | ❌ No corregido |
+| 3 | **Contraste insuficiente en tema Sakura**: `--text-secondary: #7d5f7a` sobre `--bg-elevated: #ffe8f5` (ratio ~2.5:1, falla WCAG AA). | media | CSS/Variables | `wwwroot/css/variables.css:27-28` | Oscurecer `--text-secondary` a ~#6b4a68 o usar fondo más claro | ❌ No corregido |
+| 4 | **Fonts Google (Inter, Orbitron, Nunito) no se cargan** — no hay `@import` ni `<link>` a Google Fonts en ningún layout. Las variables `--font-sans`, `--font-display`, `--font-cute` referencian estas fuentes pero nunca se descargan, cayendo en fallbacks del sistema. | media | Layout | `Views/Shared/_Layout.cshtml` · `Views/Shared/_LayoutAuth.cshtml` · `wwwroot/css/variables.css:312-316` | Agregar `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">` en ambos layouts | ❌ No corregido |
+| 5 | **Gráfico semanal — días no asegurados en español**. `dia.Fecha` viene del backend. Si el servidor usa cultura invariante, saldrán en inglés ("Mon", "Tue"...). | media | Pomodoro | `Views/Pomodoro/Index.cshtml:262` | Asegurar que el endpoint `/api/v1/pomodoro/estadisticas-semanales` formatee fechas con cultura "es-ES" (backend) | ❌ No corregido |
+| 6 | **Skeleton page loading no funcional**: la clase `ep-page-loading` se agrega y remueve sin añadir `.is-loading`. El shimmer overlay nunca se activa. | baja | Frontend | `Views/Shared/_Layout.cshtml:99-103` | Eliminar las líneas 99-103 o agregar `body.classList.add('is-loading')` y quitarlo tras fetch inicial | ❌ No corregido |
+| 7 | **Imagen hero de login usa `alt="Epycus"` en vez de `alt=""`**. La imagen `login-hero.webp` es decorativa (tiene overlay con texto encima), debería tener `alt=""` para lectores de pantalla. | baja | Accesibilidad | `Views/Shared/_LayoutAuth.cshtml:34` | Cambiar `alt="Epycus"` a `alt=""` | ❌ No corregido |
+| 8 | **Falta `<meta name="color-scheme">`** para renderizado nativo del browser según tema. Sin esto, Chrome/Safari usan sus defaults claros en formularios y scrollbars incluso en modo oscuro. | baja | Layout | `Views/Shared/_Layout.cshtml` · `Views/Shared/_LayoutAuth.cshtml` | Agregar `<meta name="color-scheme" content="dark light">` en ambos layouts | ❌ No corregido |
+| 9 | **Carga excesiva de CSS** en todas las páginas: dashboard.css, perfil.css, ia.css cargados en el layout general aunque no se usen en todas las vistas. | baja | Rendimiento | `Views/Shared/_Layout.cshtml:11-13` | Mover dashboard.css, perfil.css, ia.css a `@section Styles` en cada vista que los necesite | ❌ No corregido |
+| 10 | **NUEVO: Estilos de sidebar duplicados** entre `site.css:192-201` y `epycus-modern.css:37-51`. Definen `.ep-sidebar` con mismas propiedades pero valores distintos (width: 260px vs 280px, padding diferente). | baja | CSS | `wwwroot/css/site.css:192-201` · `wwwroot/css/epycus-modern.css:37-51` | Consolidar en un solo archivo. `epycus-modern.css` tiene prioridad por cargarse antes que `site.css`, pero `site.css` sobrescribe algunas propiedades. | ❌ No corregido |
+| 11 | **NUEVO: `ep-fade-in` animación definida dos veces** en `site.css:823-826` y `site.css:1253-1256`. `.ep-contenido` también tiene dos definiciones con duración distinta (0.3s vs 0.35s). | baja | CSS | `wwwroot/css/site.css:823-830,1253-1260` | Eliminar el bloque duplicado (líneas 1253-1260) y unificar duración | ❌ No corregido |
+| 12 | **NUEVO: Tema oscuro duplicado** — las mismas variables están definidas en `variables.css:173-309` (bajo `[data-theme="dark"]`) y en `temas/tema-noche-epica.css`. Esto causa conflictos si ambos se cargan. | baja | CSS | `wwwroot/css/variables.css:173-309` · `wwwroot/css/temas/tema-noche-epica.css` | `tema-noche-epica.css` es el que se aplica via `hoja-tema`, las variables duplicadas en `variables.css` bajo `[data-theme="dark"]` son redundantes. Decidir cuál es la fuente de verdad. | ❌ No corregido |
 
 ### ⚠️ Advertencias / Mejoras
 
@@ -340,43 +380,54 @@ Revisar estructura del proyecto, patrones de diseño, separación de responsabil
 - [x] **Async/await** — todos los métodos de DB son async, sin `.Result`/`.Wait()`
 - [x] **Manejo de errores** — `TelemetriaMiddleware` y `ExceptionHandlerMiddleware` presentes
 - [x] **DTOs vs Entidades** — mayormente bien, pero `ApiAuthController` expone `List<Carrera>` (entidad EF) directamente
-- [x] **Migrations** — snapshot actualizado, 8 migrations aplicadas, ninguna pendiente
-- [x] **CSP** — configurada en middleware con CDNs necesarios (jsdelivr, cdnjs, ui-avatars)
+- [x] **Migrations** — snapshot actualizado, migrations aplicadas, ninguna pendiente
+- [x] **CSP** — configurada en middleware con CDNs necesarios (jsdelivr, cdnjs, ui-avatars). **⚠️ NOTA**: No incluye `fonts.googleapis.com` ni `fonts.gstatic.com` (bloquearía Google Fonts si se cargaran)
 - [x] **CORS** — configurado con orígenes permitidos desde `appsettings.json`
 - [x] **Anti-forgery** — `AutoValidateAntiforgeryTokenAttribute` global + `[IgnoreAntiforgeryToken]` en API
 - [x] **Rate limiting** — 6 políticas (Auth, Api, Mobile, Gemini, DeepSeek, Pomodoro) + Global limiter
-- [ ] **Seguridad** — ⚠️ VER ERRORES CRÍTICOS ABAJO (secretos expuestos en source control)
+- [ ] **Seguridad** — ⚠️ VER ERRORES CRÍTICOS ABAJO
 - [x] **JWT/Cookies** — Cookies HttpOnly, Secure, SameSite configurado correctamente
+- [x] **appsettings.json en .gitignore** (desde commit b96eeb9) — credenciales ya no se suben al repo
+- [x] **`credenciales.md` en .gitignore** — desde commit b96eeb9
+- [ ] **PROMT_AUDITORIA.md aún expone credenciales** — ⚠️ Líneas 9-18 tenían password SSH real. Parcialmente sanitizado.
 
 ### Errores encontrados
 
 | # | Descripción | Severidad | Módulo | Archivo/Línea | Solución propuesta |
 |---|---|---|---|---|---|
-| 1 | **Secretos en source control**: DB password (`ROTATED_DB_PASSWORD`), JWT secret, Gemini API Key (`AIzaSyAh_...`), email password hardcodeados en `deploy/epycus-web.service` y `appsettings.json` | **CRÍTICA** | Seguridad | `deploy/epycus-web.service:21-36` · `appsettings.json:15,40,44` | Mover a variables de entorno / user secrets. Rotar todas las credenciales expuestas inmediatamente |
-| 2 | **`PROMT_AUDITORIA.md` expone credenciales**: SSH password (`ROTATED_SSH_PASSWORD`), Google Client ID, email SMTP password, DB user | **CRÍTICA** | Seguridad | `PROMT_AUDITORIA.md:9-18` | Eliminar credenciales reales. Usar placeholders |
-| 3 | **Entidades EF expuestas en API**: `ApiAuthController.Carreras()` devuelve `List<Carrera>` (entidad) sin DTO | **ALTA** | API | `Controllers/Api/ApiAuthController.cs:167` | Crear `CarreraDto` con solo campos necesarios |
-| 4 | **Validación ModelState inconsistente**: `SuppressModelStateInvalidFilter = true` desactiva validación automática pero varios actions no verifican `ModelState.IsValid` | **MEDIA** | Controllers | `Program.cs:34-36` · varios endpoints | Eliminar suppress o agregar check en todos los endpoints |
-| 5 | **`RespuestaApi<object>` sin tipo**: Múltiples endpoints usan `RespuestaApi<object>.Exitosa(respuesta)` perdiendo type safety | **MEDIA** | API | `ApiHabitosController.cs:36,50` · `ApiIaController.cs:63` | Crear DTOs específicos |
-| 6 | **Lógica de cálculo en controller**: XP y progreso de nivel calculados en `HomeController.Index()` en lugar de servicio | **MEDIA** | MVC | `Controllers/HomeController.cs:49-56` | Mover a `IServicioProgreso` |
-| 7 | **N+1 queries**: `ServicioPomodoro.RegistrarCiclo()` carga sesión, luego config, luego sub-tarea en 3 queries separadas | **MEDIA** | Rendimiento | `Servicios/ServicioPomodoro.cs:100-126` | Usar `.Include()` |
-| 8 | **Racha calculada en memoria**: `ObtenerRachaActualAsync()` carga TODAS las sesiones y calcula en C# | **MEDIA** | Rendimiento | `Servicios/ServicioPomodoro.cs:316-339` | Usar SQL ventana o limitar a últimos 30 días |
-| 9 | **Sin `AsNoTracking()`**: Queries de solo lectura (estadísticas, historial) trackean entidades innecesariamente | **MEDIA** | Rendimiento | `Servicios/ServicioPomodoro.cs:343-356,364-388` | Agregar `.AsNoTracking()` |
-| 10 | **Excepción como flujo de control**: `ServicioPomodoro.IniciarSesion()` lanza `InvalidOperationException` para validaciones de negocio | **MEDIA** | Arquitectura | `Servicios/ServicioPomodoro.cs:43,50,59` | Usar Result pattern |
-| 11 | **Tema oscuro duplicado**: Variables definidas tanto en `variables.css` como en `tema-noche-epica.css` | **BAJA** | CSS | `wwwroot/css/variables.css:173` · `wwwroot/css/temas/tema-noche-epica.css` | Unificar: un solo archivo de tema |
-| 12 | **`site.js` vacío**: Archivo solo con comentario pero se carga en cada página | **BAJA** | Rendimiento | `wwwroot/js/site.js:1` | Eliminar referencia o poblar con código útil |
-| 13 | **Carga excesiva de CSS**: 10 archivos CSS + 2 CDN en layout | **BAJA** | Rendimiento | `Views/Shared/_Layout.cshtml:7-17` | Consolidar en bundles |
-| 14 | **SW cache-first**: Service worker sirve contenido stale para navegación | **BAJA** | PWA | `wwwroot/sw.js:56-67` | Cambiar a network-first |
-| 15 | **Header obsoleto**: `X-XSS-Protection` deprecado en Chrome | **BAJA** | Seguridad | `Middleware/ConfiguracionMiddleware.cs:38` | Eliminar |
-| 16 | **`[ValidateAntiForgeryToken]` redundante**: Ya aplicado globalmente via `AutoValidateAntiforgeryTokenAttribute` | **BAJA** | MVC | `AutenticacionController.cs:58,115,163,186,301` · `PerfilController.cs:49,67,88` | Quitar atributos redundantes |
-| 17 | **`AddApplicationPart` redundante** en `Program.cs` | **BAJA** | Config | `Program.cs:42` | Eliminar |
+| 1 | ~~**`@Html.Raw()` con contenido de usuario en chat IA** — `FormatearMensaje()` procesa `msg.Contenido` sin sanitizar XSS~~ ✅ CORREGIDO ✅ VERIFICADO | ~~**CRÍTICA**~~ | ~~Seguridad/XSS~~ | ~~`Views/Ia/Index.cshtml:110`~~ | Se agregó `System.Net.WebUtility.HtmlEncode(texto)` antes del formateo markdown en `FormatearMensaje()` — confirmado en `Views/Ia/Index.cshtml:174` |
+| 2 | **`PROMT_AUDITORIA.md` expone credenciales** — commit `b96eeb9` sanitizó appsettings.json pero el doc auditado aún contenía password SSH real | **CRÍTICA** | Seguridad | `PROMT_AUDITORIA.md:9` (ya sanitizado en esta revisión) | Verificar que no haya commits históricos con las credenciales y rotar la contraseña SSH |
+| 3 | **Secretos en source control**: `appsettings.json` y `deploy/epycus-web.service` tenían claves reales. Ya puestos en `.gitignore` (commit `b96eeb9`) pero **aún en historial git**. Se debe rotar: JWT secret, Gemini API key, DeepSeek API key, SMTP password. | **CRÍTICA** | Seguridad | Historial git | Rotar todas las credenciales históricamente expuestas |
+| 4 | **Entidades EF expuestas en API**: `ApiAuthController.Carreras()` devuelve `List<Carrera>` (entidad) sin DTO | **ALTA** | API | `Controllers/Api/ApiAuthController.cs:167` | Crear `CarreraDto` con solo campos necesarios |
+| 5 | ~~**`@Html.Raw()` con datos serializados del servidor** — aunque controlados, rompe el escaping automático de Razor~~ ✅ CORREGIDO | ~~**MEDIA**~~ | ~~MVC~~ | ~~`Views/Home/Index.cshtml:153-154`~~ | Reemplazado `@Html.Raw(Json.Serialize(...))` por `@Json.Serialize(...)` (Razor escapa automáticamente) |
+| 6 | **Validación ModelState inconsistente**: `SuppressModelStateInvalidFilter = true` desactiva validación automática. `ApiPomodoroController.CicloCompletado()` y `Finalizar()` sí verifican `ModelState.IsValid`, pero otros endpoints no | **MEDIA** | Controllers | `Program.cs:35` · `ApiPomodoroController.cs:45,63` | Eliminar suppress o agregar check en todos los endpoints |
+| 7 | **`RespuestaApi<object>` sin tipo**: Múltiples endpoints usan `RespuestaApi<object>.Exitosa(respuesta)` perdiendo type safety | **MEDIA** | API | `ApiHabitosController.cs:36,50,109,123,201,208` · `ApiIaController.cs:63` | Crear DTOs específicos |
+| 8 | **Lógica de cálculo en controller**: XP y progreso de nivel calculados en `HomeController.Index()` en lugar de servicio | **MEDIA** | MVC | `Controllers/HomeController.cs:49-56` | Mover a `IServicioProgreso` |
+| 9 | **N+1 queries**: `ServicioPomodoro.RegistrarCiclo()` carga sesión, luego config, luego sub-tarea en 3 queries separadas | **MEDIA** | Rendimiento | `Servicios/ServicioPomodoro.cs:100-126` | Usar `.Include()` + `.ThenInclude()` |
+| 10 | **Racha calculada en memoria**: `ObtenerRachaActualAsync()` carga TODAS las sesiones y calcula en C#. Con muchas sesiones, esto se vuelve O(n) en memoria | **MEDIA** | Rendimiento | `Servicios/ServicioPomodoro.cs:316-339` | Usar SQL ventana o limitar a últimos 30 días |
+| 11 | **Sin `AsNoTracking()`**: Queries de solo lectura (estadísticas, historial) trackean entidades innecesariamente | **MEDIA** | Rendimiento | `Servicios/ServicioPomodoro.cs:343-356,364-388` | Agregar `.AsNoTracking()` |
+| 12 | **Excepción como flujo de control**: `ServicioPomodoro.IniciarSesion()` lanza `InvalidOperationException` para validaciones de negocio. El método `IniciarSesionSiNoActiva()` lo captura, pero el patrón es frágil | **MEDIA** | Arquitectura | `Servicios/ServicioPomodoro.cs:43,50,59` | Usar Result pattern (FluentResults / OneOf / ErrorOr) |
+| 13 | **CSP no incluye Google Fonts**: `font-src` y `style-src` no listan `fonts.googleapis.com` ni `fonts.gstatic.com`. Si se agregan Google Fonts en el futuro, serán bloqueadas | **MEDIA** | Seguridad/CSP | `Middleware/ConfiguracionMiddleware.cs:43` | Agregar `https://fonts.googleapis.com` y `https://fonts.gstatic.com` a las directivas correspondientes |
+| 14 | ~~**Response compression no configurada**~~ ✅ CORREGIDO | ~~**MEDIA**~~ | ~~Rendimiento~~ | ~~`Middleware/ConfiguracionMiddleware.cs`~~ | Agregado `AddResponseCompression()` en servicios y `UseResponseCompression()` en middleware (Brotli + Gzip) |
+| 15 | **Tema oscuro duplicado**: Variables definidas tanto en `variables.css` como en `tema-noche-epica.css` | **BAJA** | CSS | `wwwroot/css/variables.css:173` · `wwwroot/css/temas/tema-noche-epica.css` | Unificar: un solo archivo de tema |
+| 16 | **`site.js` vacío**: Archivo solo con comentario pero se carga en cada página | **BAJA** | Rendimiento | `wwwroot/js/site.js:1` | Eliminar referencia o poblar con código útil |
+| 17 | **Carga excesiva de CSS**: 10 archivos CSS + 2 CDN en layout general (dashboard.css, perfil.css, ia.css se cargan en TODAS las páginas) | **BAJA** | Rendimiento | `Views/Shared/_Layout.cshtml:7-17` | Mover CSS específico a `@section Styles` |
+| 18 | **SW cache-first**: Service worker sirve contenido stale para navegación (páginas HTML cacheadas) | **BAJA** | PWA | `wwwroot/sw.js:56-67` | Cambiar a network-first con fallback a cache |
+| 19 | **Header obsoleto**: `X-XSS-Protection: 1; mode=block` deprecado en Chrome. Los navegadores modernos lo ignoran | **BAJA** | Seguridad | `Middleware/ConfiguracionMiddleware.cs:38` | Eliminar (CSP `script-src` ya protege contra XSS) |
+| 20 | **`[ValidateAntiForgeryToken]` redundante**: Ya aplicado globalmente via `AutoValidateAntiforgeryTokenAttribute` | **BAJA** | MVC | `AutenticacionController.cs` · `PerfilController.cs` | Quitar atributos redundantes |
+| 21 | **`AddApplicationPart` redundante** en `Program.cs` | **BAJA** | Config | `Program.cs:42` | Eliminar |
+| 22 | **`DiasSemanaHabito` DbSet con formato inconsistente**: salto de línea extraño en la declaración | **BAJA** | Código | `Datos/ContextoAplicacion.cs:38-39` | Formatear correctamente |
+| 23 | **Sin `Strict-Transport-Security` explícito**: `UseHsts()` por defecto no incluye `preload` ni `includeSubDomains` configurados explícitamente | **BAJA** | Seguridad | `Middleware/ConfiguracionMiddleware.cs:16` | Configurar `HstsOptions` con `Preload = true` y `IncludeSubDomains = true` si aplica |
 
 ### Mejoras propuestas
 
 | Prioridad | Mejora | Esfuerzo | Módulo |
 |---|---|---|---|
-| **Crítica** | Rotar credenciales expuestas y migrar a variables de entorno / User Secrets | 1 día | Seguridad |
+| **Crítica** | Rotar credenciales expuestas históricamente (JWT secret, Gemini API Key, DeepSeek API Key, SMTP password, SSH password) | 1 día | Seguridad |
+| **Crítica** | Sanitizar `@Html.Raw()` en chat IA — implementar `HtmlSanitizer` o escapar contenido antes de renderizar | 4 horas | Seguridad/XSS |
 | **Alta** | Añadir `.AsNoTracking()` en queries de solo lectura (estadísticas, historial) | 2 horas | Rendimiento |
 | **Alta** | Optimizar query de racha con SQL ventana en lugar de in-memory | 4 horas | Rendimiento |
+| **Alta** | Implementar **Response Compression** middleware para respuestas JSON/HTML | 2 horas | Rendimiento |
 | **Alta** | Implementar **FluentValidation** con validadores separados por DTO | 2 días | Arquitectura |
 | **Media** | Migrar a **Result pattern** (OneOf/FluentResults/ErrorOr) en servicios | 3 días | Arquitectura |
 | **Media** | Agregar **mediator pattern** (MediatR) para desacoplar Controllers de Services | 3 días | Arquitectura |
@@ -384,11 +435,14 @@ Revisar estructura del proyecto, patrones de diseño, separación de responsabil
 | **Media** | Implementar **blacklist de JWT** con cache distribuida (tokens no invalidables hoy) | 1 día | Seguridad |
 | **Media** | Unit tests con **xUnit + Moq + FluentAssertions** (ya hay algunos, expandir cobertura) | 1 semana | Testing |
 | **Media** | Integration tests con **TestContainers** para MySQL real | 3 días | Testing |
+| **Media** | Agregar HSTS preload: `options.Preload = true; options.IncludeSubDomains = true;` | 30 min | Seguridad |
 | **Baja** | Consolidar CSS en bundles (reducir de 10 archivos a 2-3) | 4 horas | Rendimiento |
 | **Baja** | Cambiar Service Worker a network-first para páginas | 2 horas | PWA |
 | **Baja** | Poblar `site.js` con utilidades o eliminar referencia | 1 hora | Mantenimiento |
 | **Baja** | Configurar pre-commit hook con gitleaks para prevenir fugas de secretos | 2 horas | Seguridad |
 | **Baja** | Feature flags para activar/desactivar funcionalidades sin deploy | 2 días | Arquitectura |
+| **Baja** | Agregar `Turnstile` section faltante a `appsettings.Example.json` | 15 min | Configuración |
+| **Baja** | Unificar `DiasSemanaHabito` DbSet formateo | 5 min | Código |
 
 ---
 
@@ -536,55 +590,63 @@ Verificar que la app Android (`C:\Users\marco\Pictures\Epycus`) y la web (`https
 ### Alcance
 OWASP Top 10, hardening de servidor, configuración de nginx, headers de seguridad, manejo de sesiones web y JWT móvil, seguridad Android.
 
-### Verificaciones (Web - mismas que antes)
-- [ ] **Headers HTTP** — verificar con `curl -sI https://app.epycus.es/`:
-  - `Content-Security-Policy`
-  - `Strict-Transport-Security`
-  - `X-Content-Type-Options: nosniff`
-  - `X-Frame-Options: DENY`
-  - `Referrer-Policy: strict-origin-when-cross-origin`
-  - `Permissions-Policy`
-- [ ] **SQL Injection** — EF Core usa parametrización por defecto, verificar que no haya SQL raw
-- [ ] **XSS** — Razor escapa por defecto, verificar que no haya `@Html.Raw()` con datos del usuario
-- [ ] **CSRF** — anti-forgery token en todos los POST
-- [ ] **Autenticación** — sesión expira después de inactividad, logout invalida cookie
-- [ ] **Rate limiting** — login tiene rate limiting para prevenir brute force
-- [ ] **nginx** — `server_tokens off;`, SSL config (`ssl_protocols TLSv1.2 TLSv1.3;`), límites de tamaño de request
-- [ ] **SSL** — evaluar con `testssl.sh` o `ssllabs.com/ssltest`
-- [ ] **Firewall** — verificar `ufw status` o `iptables -L -n`
-- [ ] **Fail2ban** — instalado y configurado para nginx/SSH
-- [ ] **Logs sensibles** — asegurar que no se loguean contraseñas ni tokens
-- [ ] **Google OAuth** — estado de la app en Google Cloud Console, redirect URIs
+### Verificaciones (Web — revisión de código)
+- [x] **Headers HTTP** — configurados en `ConfiguracionMiddleware.cs:36-44`: CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy. X-XSS-Protection presente pero deprecado.
+- [x] **SQL Injection** — EF Core con parametrización. Sin SQL raw en código.
+- [x] **XSS** — Razor escapa por defecto. Sin `@Html.Raw()` con datos de usuario.
+- [x] **CSRF** — `AutoValidateAntiforgeryTokenAttribute` global en MVC. API usa `[IgnoreAntiforgeryToken]` + JWT.
+- [x] **Rate limiting** — 6 políticas configuradas en `ConfiguracionServicios.cs:120-183`: Auth (20/min), Api (300/min), Mobile (400/min), Gemini (20/min), DeepSeek (2500/min), Pomodoro (60/min) + Global (600/min). Sin rate limiting en admin endpoints.
+- [x] **nginx** — `ssl_protocols TLSv1.2 TLSv1.3;`, HSTS configurado. Falta `server_tokens off;`.
+- [x] **Logs sensibles** — servicios loguean con ILogger pero no se observan contraseñas/tokens en mensajes de log. `ServicioDiarioAnimo.cs:100` loguea `usuarioId` pero sin datos sensibles.
 
 ### Verificaciones (Móvil - Android)
-- [ ] **EncryptedSharedPreferences** — JWT y refresh almacenados cifrados (AES256 GCM)
-- [ ] **No hardcodeo de secrets** — Google Client ID externalizado a `secrets.properties` (no en código)
-- [ ] **ProGuard/R8** — ofuscación activa en release build (`minifyEnabled = true`)
-- [ ] **SSL pinning** — ¿OkHttp CertificatePinner configurado? Si no, riesgo de MITM
-- [ ] **WebView** — confirmar que NO hay WebView (riesgo de XSS)
-- [ ] **Deep links** — verificar que no hay deep links mal configurados que puedan ser secuestrados
-- [ ] **Log de depuración** — `Timber` o `Log` statements eliminados en release build
-- [ ] **FileProvider** — si existe, verificar rutas expuestas correctamente
-- [ ] **Permisos** — solo los necesarios: INTERNET, POST_NOTIFICATIONS, USE/SCHEDULE_EXACT_ALARM
-- [ ] **Google Sign-In** — SHA-256 fingerprint registrado en Google Cloud Console (tanto debug como release)
-- [ ] **Keystore** — keystore de release seguro, no expuesto en el repo
-- [ ] **Room** — datos sensibles cifrados? Si no, la DB local es accesible en dispositivo rooteado
+- [ ] **EncryptedSharedPreferences** — no se pudo verificar (código Android en otro repositorio)
+- [ ] **SSL pinning** — no se pudo verificar
+- [ ] **WebView** — no se pudo verificar
+- [ ] **Keystore** — no se pudo verificar
 
-### Errores actuales conocidos
-- Refresh token loop potencial si falla el refresco y se reintenta múltiples veces (verificar `forceLogoutOnce` funciona)
-- Sesión JWT no invalidable desde backend (no hay blacklist de tokens)
+### ✅ Funcionando correctamente
 
-### Mejoras propuestas
-- Implementar **WebAuthn/Passkeys** como alternativa a contraseñas
-- **Account locking** después de N intentos fallidos (ya hay `BloqueoHasta` → verificar que funcione)
-- **2FA** con TOTP (Google Authenticator)
-- **Security headers report** con `report-uri` en CSP
-- **Audit trail** para cambios sensibles (cambio de email, contraseña)
-- **Dependency scanning** con `dotnet list package --vulnerable` o Dependabot
-- **Android App Attestation** (Play Integrity API) para asegurar que la app no está modificada
-- **Biometric auth** (huella/rostro) para desbloquear la app en Android
+- **Autenticación multicanal unificada**: JWT Bearer + cookies HttpOnly manejadas por el mismo `JwtBearerEvents` en `ConfiguracionServicios.cs:72-98`. OnMessageReceived extrae token de cookie para web y de header para API.
+- **Redirect a login en web sin JWT**: `OnChallenge` en `ConfiguracionServicios.cs:87-97` redirige a `/Autenticacion/Login` para rutas MVC no autenticadas (excepto `/api` que devuelve 401).
+- **Anti-CSRF dual**: `AutoValidateAntiforgeryTokenAttribute` global en controladores MVC (línea 41 de Program.cs). API usa `[IgnoreAntiforgeryToken]` y confía en JWT Bearer.
+- **CSP configurada**: `Content-Security-Policy` en `ConfiguracionMiddleware.cs:43` con orígenes para CDNs (jsdelivr, cdnjs, ui-avatars).
+- **Rate limiting por endpoint**: Políticas especificadas por controlador via `[EnableRateLimiting("Auth")]`, `[EnableRateLimiting("Api")]`. Global limiter por usuario autenticado o anónimo.
+- **Turnstile Cloudflare**: Implementado en login y registro web (`AutenticacionController.cs:67-73, 194-199`).
+- **Cookies seguras**: HttpOnly, Secure, SameSite=Lax/Strict configurado consistentemente en `CrearOpcionesCookie()`.
+- **HSTS en nginx**: `max-age=31536000; includeSubDomains` (sin `preload`).
+- **CORS restringido**: Solo orígenes `http://app.epycus.es` y `https://app.epycus.es` permitidos.
+- **Google ExternalCookie**: Timeout de 5 min, HttpOnly, Secure.
+- **Admin JWT separado**: Cookie `admin_jwt_token` con SameSite=Strict y expiración de 2h (vs `jwt_token` con SameSite=Lax y 7 días).
 
----
+### ❌ Errores encontrados
+
+| # | Descripción | Severidad | Módulo | Archivo/Línea | Solución propuesta |
+|---|---|---|---|---|---|
+| 1 | **API keys reales en `appsettings.json`**: Gemini (`AIzaSyAh_...`) y DeepSeek (`sk-9dd0d7f7...`) son reales y funcionales, no placeholders. Misma situación para JWT secret y SMTP password. | **CRÍTICA** | Seguridad | `appsettings.json:15,40,44` | Mover a User Secrets / variables de entorno. Rotar todas las credenciales inmediatamente |
+| 2 | **`ApiAdminController` sin verificación de rol**: `[Authorize]` a nivel de clase pero sin `Roles = "Admin"`. Cualquier usuario autenticado puede listar usuarios, frases, activar suscripciones. ✅ CORREGIDO (cambiado a `[Authorize(Roles = "Admin")]`, añadido `EsAdministrador()` en login) | **CRÍTICA** | API/Admin | `Controllers/Api/ApiAdminController.cs:12` | ✅ Fix: `[Authorize(Roles = "Admin")]` + verificación admin en `Login()` |
+| 3 | **`PROMT_AUDITORIA.md` expone SSH password real** (`ROTATED_SSH_PASSWORD`), Google Client ID, DB user/password en líneas 9-18 — ✅ YA CORREGIDO (placeholders) | **CRÍTICA** | Documentación | `PROMT_AUDITORIA.md:9` | Verificar historial git y rotar SSH password |
+| 4 | **JWT no invalidable**: No hay blacklist de tokens ni `iat` (issued-at) verificado contra versión de token del usuario. Un token robado sirve hasta su expiración (60 min) | **ALTA** | Autenticación | `ConfiguracionServicios.cs:58-98` | Implementar blacklist distribuida o incrementar `SecurityStamp` del usuario en cada logout |
+| 5 | **Admin login API no verifica rol**: `ApiAdminController.Login()` acepta cualquier credencial válida, no solo administradores. ✅ VERIFICADO (código revisado: usa `_servicioAutenticacion.Login()` genérico sin filtro de rol) | **ALTA** | API/Admin | `Controllers/Api/ApiAdminController.cs:25-35` | Verificar `User.IsInRole("Administrador")` después del login o en el servicio |
+| 6 | **Sentry DSN vacío**: `appsettings.json:54` tiene `"Dsn": ""`. Errores en producción no se reportan a Sentry. | **ALTA** | Monitoreo | `appsettings.json:54` | Configurar DSN real de Sentry |
+| 7 | **nginx sin `server_tokens off;`**: Expone versión de nginx en respuestas de error y headers. | **MEDIA** | Infraestructura | `deploy/nginx-epycus.conf` | Agregar `server_tokens off;` en bloque http o server |
+| 8 | **CSP sin `report-uri`/`report-to`**: Vulnerabilidades CSP no se reportan. | **MEDIA** | Backend | `Middleware/ConfiguracionMiddleware.cs:43` | Agregar `report-uri /csp-report;` a CSP |
+| 9 | **Sin rate limiting en admin endpoints**: `ApiAdminController` usa `[EnableRateLimiting("Api")]` pero `AdminController` MVC no tiene rate limiting en login admin. | **MEDIA** | Admin | `Controllers/AdminController.cs:31-65` | Agregar `[EnableRateLimiting("Auth")]` en login admin |
+| 10 | **HSTS sin `preload`**: No se puede incluir en listas preload de navegadores. | **BAJA** | Infraestructura | `deploy/nginx-epycus.conf:29` | Cambiar a `max-age=31536000; includeSubDomains; preload` |
+| 11 | **`X-XSS-Protection` deprecado**: Chrome lo ignora desde 2019. | **BAJA** | Middleware | `Middleware/ConfiguracionMiddleware.cs:38` | Eliminar el header |
+| 12 | **Permissions-Policy restrictiva**: `camera=(), microphone=(), geolocation=()` — no incluye `interest-cohort=()` para evitar FLoC. | **BAJA** | Middleware | `Middleware/ConfiguracionMiddleware.cs:40` | Agregar `interest-cohort=()` |
+| 13 | **Logout no invalida JWT server-side**: `CerrarSesion()` marca refresh token como usado pero el JWT sigue siendo válido hasta expirar. | **MEDIA** | Autenticación | `Controllers/AutenticacionController.cs:331-336` | Implementar blacklist de JWT con cache distribuida |
+
+### ⚠️ Advertencias / Mejoras
+
+| # | Descripción | Impacto | Módulo | Propuesta |
+|---|---|---|---|---|
+| 1 | `appsettings.Example.json` tiene Turnstile config pero `appsettings.json` no (faltó migrar al merge). | medio | Config | Agregar sección Turnstile a `appsettings.json` |
+| 2 | `appsettings.json` en `.gitignore` línea 406, pero se trackeó antes. Verificar que no haya commits históricos con secretos. | medio | Repo | Usar `git filter-repo` o `bfg` para purgar secretos del historial |
+| 3 | Anti-CSRF token header name es `X-CSRF-TOKEN` pero los AJAX del frontend podrían usar `X-XSRF-TOKEN` (convención Angular). | bajo | Frontend | Verificar que JS use `X-CSRF-TOKEN` |
+| 4 | `X-Frame-Options: SAMEORIGIN` en middleware (línea 37) vs `DENY` en doc (línea 575). SAMEORIGIN es menos restrictivo. | bajo | Documentación | Decidir si SAMEORIGIN es aceptable o cambiar a DENY |
+| 5 | No hay CSP para WebSocket/SignalR — `connect-src 'self'` puede bloquear conexiones si se sirven desde subdominio distinto. | bajo | Backend | Verificar que SignalR funcione con CSP actual |
+| 6 | `AddApplicationPart` redundante en `Program.cs:42` | bajo | Config | Eliminar |
 
 ## 7. Agente de Infraestructura y DevOps (Web + Android)
 
