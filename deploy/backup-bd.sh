@@ -8,7 +8,7 @@ set -e
 
 DB_NAME="epicus_db"
 DB_USER="epicus_user"
-DB_PASSWORD="CHANGE_ME_DB_PASSWORD"
+DB_PASSWORD="${DB_PASSWORD:-CHANGE_ME_DB_PASSWORD}"
 BACKUP_DIR="/var/backups/epycus-db"
 RETENTION_DAYS=7
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
