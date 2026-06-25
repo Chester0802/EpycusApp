@@ -31,7 +31,7 @@ namespace EpycusApp.Controllers.Api
                 return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(mensaje));
             }
 
-            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken }));
+            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken, Mensaje = mensaje }));
         }
 
         [HttpPost("refresh")]
@@ -44,7 +44,7 @@ namespace EpycusApp.Controllers.Api
                 return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(mensaje));
             }
 
-            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken }));
+            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken, Mensaje = mensaje }));
         }
 
         [HttpPost("logout")]
@@ -78,7 +78,7 @@ namespace EpycusApp.Controllers.Api
                 return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(mensaje));
             }
 
-            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken }));
+            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken, Mensaje = mensaje }));
         }
 
         [HttpGet("verificar-correo")]
@@ -131,7 +131,7 @@ namespace EpycusApp.Controllers.Api
                 return BadRequest(RespuestaApi<object>.Fallida(mensaje));
             }
 
-            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken }));
+            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken, Mensaje = mensaje }));
         }
 
         [HttpPost("completar-registro-google")]
@@ -156,7 +156,7 @@ namespace EpycusApp.Controllers.Api
                 return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(mensaje));
             }
 
-            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken }));
+            return Ok(RespuestaApi<AuthResponseDto>.Exitosa(new AuthResponseDto { Token = token, RefreshToken = refreshToken, Mensaje = mensaje }));
         }
 
         [HttpGet("carreras")]

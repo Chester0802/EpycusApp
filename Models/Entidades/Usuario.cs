@@ -35,5 +35,6 @@
         public ICollection<Suscripcion> Suscripciones { get; set; } = new List<Suscripcion>();
         public ICollection<TemaUsuario> TemasUsuario { get; set; } = new List<TemaUsuario>();
         public ICollection<TokenRefresh> TokensRefresh { get; set; } = new List<TokenRefresh>();
+    public string ZonaHoraria { get; set; } = "Europe/Madrid";
     }
 }

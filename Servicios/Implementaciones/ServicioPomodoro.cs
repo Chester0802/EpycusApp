@@ -18,6 +18,39 @@ namespace EpycusApp.Servicios.Implementaciones
         private readonly IServicioMisiones _servicioMisiones;
         private readonly ILogger<ServicioPomodoro> _logger;
 
+        private async Task<TimeZoneInfo> ObtenerZonaHorariaUsuario(int usuarioId)
+        {
+            var usuario = await _context.Usuarios
+                .Where(u => u.Id == usuarioId)
+                .Select(u => u.ZonaHoraria)
+                .FirstOrDefaultAsync();
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById(usuario ?? "Europe/Madrid");
+            }
+            catch
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("Europe/Madrid");
+            }
+        }
+
+        private DateTime ConvertirAUsuarioTimeZone(int usuarioId, DateTime utcDateTime)
+        {
+            var tz = _cacheZonaHoraria.GetValueOrDefault(usuarioId);
+            if (tz == null)
+            {
+                var usuario = _context.Usuarios
+                    .Where(u => u.Id == usuarioId)
+                    .Select(u => u.ZonaHoraria)
+                    .FirstOrDefault();
+                tz = TimeZoneInfo.FindSystemTimeZoneById(usuario ?? "Europe/Madrid");
+                _cacheZonaHoraria[usuarioId] = tz;
+            }
+            return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, tz);
+        }
+
+        private readonly Dictionary<int, TimeZoneInfo> _cacheZonaHoraria = new();
+
         public ServicioPomodoro(
             ContextoAplicacion context,
             IServicioGamificacion servicioGamificacion,
@@ -313,25 +346,43 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<int> ObtenerRachaActualAsync(int usuarioId)
         {
-            var sesiones = await _context.SesionesPomodoro
-                .Where(s => s.UsuarioId == usuarioId && s.FueCompletada)
-                .OrderByDescending(s => s.FechaInicio)
-                .Select(s => s.FechaInicio.Date)
-                .Distinct()
+            var hoy = DateTime.UtcNow.Date;
+            var hace30 = hoy.AddDays(-30);
+
+            var sql = @"
+                WITH sesiones_filtradas AS (
+                    SELECT DISTINCT DATE(FechaInicio) AS fecha
+                    FROM sesiones_pomodoro
+                    WHERE UsuarioId = @usuarioId
+                      AND FueCompletada = 1
+                      AND DATE(FechaInicio) >= @hace30
+                ),
+                racha_calc AS (
+                    SELECT
+                        fecha,
+                        LAG(fecha) OVER (ORDER BY fecha DESC) AS fecha_anterior
+                    FROM sesiones_filtradas
+                )
+                SELECT fecha, fecha_anterior
+                FROM racha_calc
+                ORDER BY fecha DESC";
+
+            var resultados = await _context.Database
+                .SqlQueryRaw<(DateTime fecha, DateTime? fecha_anterior)>(sql,
+                    new { usuarioId, hace30 })
                 .ToListAsync();
 
-            if (sesiones.Count == 0) return 0;
+            if (resultados.Count == 0) return 0;
 
-            var hoy = DateTime.UtcNow.Date;
-            var ayer = hoy.AddDays(-1);
-
-            if (sesiones[0] != hoy && sesiones[0] != ayer)
+            var primera = resultados[0].fecha;
+            if (primera != hoy && primera != hoy.AddDays(-1))
                 return 0;
 
             int racha = 1;
-            for (int i = 1; i < sesiones.Count; i++)
+            for (int i = 1; i < resultados.Count; i++)
             {
-                if ((sesiones[i - 1] - sesiones[i]).Days == 1)
+                var dias = (resultados[i - 1].fecha - resultados[i].fecha).Days;
+                if (dias == 1)
                     racha++;
                 else
                     break;
@@ -345,9 +396,11 @@ namespace EpycusApp.Servicios.Implementaciones
                 .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta)
                 .ToListAsync();
 
+            var desdeLocal = ConvertirAUsuarioTimeZone(usuarioId, desde);
+
             return new EstadisticasPomodoroPeriodo
             {
-                Fecha = desde.ToString("yyyy-MM-dd"),
+                Fecha = desdeLocal.ToString("yyyy-MM-dd"),
                 Ciclos = sesiones.Sum(s => s.CiclosCompletados),
                 Minutos = sesiones.Sum(s => s.FechaFin.HasValue
                     ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
@@ -358,11 +411,12 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<List<EstadisticasPomodoroPeriodo>> ObtenerEstadisticasSemanalesAsync(int usuarioId)
         {
-            var hoy = DateTime.UtcNow.Date;
+            var tz = await ObtenerZonaHorariaUsuario(usuarioId);
+            var hoy = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz).Date;
             var hace7 = hoy.AddDays(-6);
 
             var sesiones = await _context.SesionesPomodoro
-                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= hace7)
+                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= TimeZoneInfo.ConvertTimeToUtc(hace7, tz))
                 .ToListAsync();
 
             var resultado = new List<EstadisticasPomodoroPeriodo>();
@@ -371,7 +425,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 var dia = hace7.AddDays(i);
                 var diaSiguiente = dia.AddDays(1);
                 var delDia = sesiones
-                    .Where(s => s.FechaInicio >= dia && s.FechaInicio < diaSiguiente)
+                    .Where(s => s.FechaInicio >= TimeZoneInfo.ConvertTimeToUtc(dia, tz) && s.FechaInicio < TimeZoneInfo.ConvertTimeToUtc(diaSiguiente, tz))
                     .ToList();
 
                 resultado.Add(new EstadisticasPomodoroPeriodo
@@ -390,8 +444,12 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<PomodoroEstadisticasAvanzadasResponse> ObtenerEstadisticasAvanzadasAsync(int usuarioId, DateTime desde, DateTime hasta)
         {
+            var tz = await ObtenerZonaHorariaUsuario(usuarioId);
+            var desdeUtc = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTimeFromUtc(desde, tz), tz);
+            var hastaUtc = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTimeFromUtc(hasta, tz), tz);
+
             var sesiones = await _context.SesionesPomodoro
-                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta)
+                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desdeUtc && s.FechaInicio <= hastaUtc)
                 .ToListAsync();
 
             var diasEnRango = Math.Max(1, (hasta.Date - desde.Date).Days + 1);
@@ -404,12 +462,12 @@ namespace EpycusApp.Servicios.Implementaciones
             var heatmap = Enumerable.Range(0, 24).Select(h => new HeatmapPorHora { Hora = h, Ciclos = 0 }).ToList();
             foreach (var sesion in sesiones.Where(s => s.CiclosCompletados > 0))
             {
-                var hora = sesion.FechaInicio.Hour;
-                heatmap[hora].Ciclos += sesion.CiclosCompletados;
+                var horaLocal = TimeZoneInfo.ConvertTimeFromUtc(sesion.FechaInicio, tz).Hour;
+                heatmap[horaLocal].Ciclos += sesion.CiclosCompletados;
             }
 
             var porMes = sesiones
-                .GroupBy(s => new { s.FechaInicio.Year, s.FechaInicio.Month })
+                .GroupBy(s => new { Year = TimeZoneInfo.ConvertTimeFromUtc(s.FechaInicio, tz).Year, Month = TimeZoneInfo.ConvertTimeFromUtc(s.FechaInicio, tz).Month })
                 .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
                 .Select(g => new EstadisticasPomodoroPeriodo
                 {
@@ -445,7 +503,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<List<TareaPomodoro>> ObtenerTareasEnfoqueAsync(int usuarioId)
         {
-            var habitos = await _context.Habitos
+            var habitosTask = _context.Habitos
                 .Include(h => h.Categoria)
                 .Where(h => h.UsuarioId == usuarioId && h.EstaActivo && h.ConPomodoro)
                 .Select(h => new TareaPomodoro
@@ -456,7 +514,7 @@ namespace EpycusApp.Servicios.Implementaciones
                     Tipo = "Habito"
                 }).ToListAsync();
 
-            var misiones = await _context.Misiones
+            var misionesTask = _context.Misiones
                 .Include(m => m.Categoria)
                 .Where(m => m.UsuarioId == usuarioId && m.Estado != "Completado" && m.ConPomodoro)
                 .Select(m => new TareaPomodoro
@@ -467,9 +525,11 @@ namespace EpycusApp.Servicios.Implementaciones
                     Tipo = "Mision"
                 }).ToListAsync();
 
+            await Task.WhenAll(habitosTask, misionesTask);
+
             var tareas = new List<TareaPomodoro>();
-            tareas.AddRange(habitos);
-            tareas.AddRange(misiones);
+            tareas.AddRange(habitosTask.Result);
+            tareas.AddRange(misionesTask.Result);
             return tareas.DistinctBy(t => new { t.Id, t.Tipo }).ToList();
         }
     }
