@@ -258,6 +258,65 @@ Navegar todas las páginas como usuario real. Verificar que el CSS cargue correc
 
 ---
 
+## 2b. Agente de Aspecto Visual — Resultados de Auditoría
+
+### ✅ Funcionando correctamente
+
+- **Sistema de variables CSS** completo y bien estructurado. `--ep-superficie`, `--ep-superficie-2`, `--bg-elevated` definidos en todos los temas.
+- **Theme switching sin FOUC**: `theme-manager.js` se ejecuta sincrónicamente en `<head>` antes del render.
+- **Persistencia de tema** vía `localStorage`, toggle funcional en sidebar.
+- **Sidebar responsive**: colapsa en overlay en móvil, toggle button funcional, cierre al click fuera.
+- **Pomodoro**: timer con SVG progress ring, atajos de teclado (espacio, R, 1-4, F, S), BroadcastChannel para sincronización multi-pestaña, manejo de `visibilitychange` para corregir desviación.
+- **Dashboard**: héroe con animación de personaje, partículas flotantes, gráfico Chart.js dona con actualización de tema, skeleton loader.
+- **Micro-interacciones**: ripple effect en botones, hover elevación en cards, iconos rotan en hover.
+- **Transiciones de página**: `ep-fade-in` en contenido, staggered entrance en columnas.
+- **`prefers-reduced-motion`** implementado.
+- **Focus-visible** en todos los elementos interactivos.
+- **Skeleton loaders** definidos (aunque subutilizados).
+- **Indicador "Sesión X / Y"** usa texto "Sesión", no "Ciclo".
+- **Formularios con validación** visual (is-valid/is-invalid con iconos SVG inline).
+- **Notificaciones toast** con animación slide-in, variantes de color.
+- **Character `onerror` fallback** consistente en todas las vistas.
+
+### ❌ Errores encontrados
+
+| # | Descripción | Severidad | Módulo | Archivo/Línea | Solución propuesta |
+|---|---|---|---|---|---|
+| 1 | **`diario-animo.css` usa variables CSS no estándar** (`--texto`, `--texto-secundario`, `--hover`, `--superficie`) que NO existen en el sistema de diseño. El archivo no tiene selector `[data-theme]` y rompe el theme. | alta | Diario Ánimo | `wwwroot/css/diario-animo.css:1` | Reemplazar con variables estándar (`--text-primary`, `--text-secondary`, `--bg-elevated`, `--surface`) |
+| 2 | **Manifest.json sin iconos 192x192 y 512x512** requeridos por PWA. Solo tiene 48x48 y 256x256. | media | PWA | `wwwroot/manifest.json:11-24` | Agregar iconos en tamaños 192x192 y 512x512 con `purpose: "any maskable"` |
+| 3 | **Contraste insuficiente en tema Sakura**: `--text-secondary: #7d5f7a` sobre `--bg-elevated: #ffe8f5` (ratio ~2.5:1, falla WCAG AA). | media | CSS/Variables | `wwwroot/css/variables.css:27-28` | Oscurecer `--text-secondary` a ~#6b4a68 o usar fondo más claro |
+| 4 | **Fonts Google (Inter, Orbitron, Nunito) no se cargan** — no hay `@import` ni `<link>` a Google Fonts en ningún layout. | media | Layout | `Views/Shared/_Layout.cshtml` | Agregar `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">` |
+| 5 | **Gráfico semanal — días no asegurados en español**. `dia.Fecha` viene del backend. Si el servidor usa cultura invariante, saldrán en inglés ("Mon", "Tue"...). | media | Pomodoro | `Views/Pomodoro/Index.cshtml:262` | Asegurar que el endpoint `/api/v1/pomodoro/estadisticas-semanales` formatee fechas con cultura "es-ES" |
+| 6 | **Skeleton page loading no funcional**: la clase `ep-page-loading` se agrega y remueve sin añadir `.is-loading`. El shimmer overlay nunca se activa. | baja | Frontend | `Views/Shared/_Layout.cshtml:100-104` | Eliminar código muerto o corregir lógica |
+| 7 | **Imagen hero de login sin alt text** (`auth-hero-img`). | baja | Accesibilidad | `Views/Shared/_LayoutAuth.cshtml:34` | Agregar `alt=""` (decorativa) o descripción |
+| 8 | **Falta `<meta name="color-scheme">`** para renderizado nativo del browser según tema. | baja | Layout | `Views/Shared/_Layout.cshtml` | Agregar `<meta name="color-scheme" content="dark light">` |
+| 9 | **Carga excesiva de CSS** en todas las páginas: dashboard.css, perfil.css, ia.css en el layout general incluso donde no se usan. | baja | Rendimiento | `Views/Shared/_Layout.cshtml:7-16` | Mover CSS específico a `@section Styles` en cada vista |
+
+### ⚠️ Advertencias / Mejoras
+
+| # | Descripción | Impacto | Módulo | Propuesta |
+|---|---|---|---|---|
+| 1 | SW usa cache-first para todo excepto CSS/JS. Puede servir contenido stale indefinidamente. | medio | Service Worker | Implementar `stale-while-revalidate` con timeout |
+| 2 | No hay offline fallback real para navegación — solo assets estáticos cacheados. | medio | PWA | Implementar "offline shell" con `caches.match('/offline.html')` |
+| 3 | No hay manifest `screenshots` para mejorar experiencia de instalación PWA. | bajo | PWA | Agregar screenshots al manifest.json |
+| 4 | Estilos `.ep-sidebar` duplicados entre `site.css` y `epycus-modern.css`. Puede causar conflictos. | medio | CSS | Consolidar estilos de sidebar en un único archivo |
+| 5 | Botón Google Sign-In en Login.cshtml usa estilos inline vs clases del sistema (`auth-btn-google`). | bajo | UI | Migrar a clases definidas en auth.css |
+| 6 | Meta diaria en Pomodoro tiene dos representaciones: `metaDiariaValue` (local) y `CONFIGURACION.metaDiaria` (servidor). Pueden desincronizarse. | medio | Pomodoro | Unificar en una sola fuente de verdad |
+| 7 | Falta `loading="lazy"` en imágenes de personaje fuera del viewport inicial. | bajo | Rendimiento | Agregar `loading="lazy"` en imágenes no críticas |
+
+### 🚀 Nuevas funcionalidades propuestas para módulos existentes
+
+| Módulo | Funcionalidad | Prioridad | Esfuerzo estimado | Plataforma |
+|---|---|---|---|---|
+| Diario Ánimo | Migrar a variables CSS estándar del sistema | alta | 2 horas | Web |
+| PWA | Iconos correctos + offline shell completo | alta | 1 día | Web |
+| CSS | Carga diferida de CSS específico por página | media | 1 día | Web |
+| Tema Sakura | Ajustar colores de texto para contraste WCAG AA (mín 4.5:1) | alta | 30 min | Web |
+| Accesibilidad | Auditoría de contraste completa + etiquetas ARIA faltantes | media | 2 días | Web |
+| Pomodoro | Sincronización meta diaria local-servidor | media | 1 día | Web |
+
+---
+
 ## 3. Agente de Arquitectura y Código
 
 ### Alcance
@@ -275,33 +334,61 @@ Revisar estructura del proyecto, patrones de diseño, separación de responsabil
 - `deploy/` — scripts, nginx template
 
 ### Verificaciones
-- [ ] **Arquitectura en capas** — Controllers → Services → Repository/EF → Database
-- [ ] **Inyección de dependencias** — todos los servicios registrados como `AddScoped`/`AddSingleton` según corresponda
-- [ ] **No hay dependencias circulares** entre servicios
-- [ ] **Async/await** — todos los métodos de DB son async, sin `.Result` o `.Wait()` bloqueantes
-- [ ] **Manejo de errores** — `try/catch` global en `ExceptionHandlerMiddleware`, errores mapeados a `RespuestaApi<T>` con código HTTP correcto
-- [ ] **DTOs vs Entidades** — no se exponen entidades de EF directamente a la API (usar DTOs/ViewModels)
-- [ ] **Migrations** — snapshot actualizado, sin migrations pendientes
-- [ ] **CSP** — Content-Security-Policy completa, incluyendo CDNs necesarios (jsdelivr, google apis, etc.)
-- [ ] **CORS** — configurado correctamente si hay llamadas cross-origin
-- [ ] **Anti-forgery** — `AutoValidateAntiforgeryTokenAttribute` aplicado globalmente
-- [ ] **Rate limiting** — configurado en `ConfigurarRateLimiting()`, con límites razonables
-- [ ] **Seguridad** — contraseñas con hash (BCrypt/Argon2), no expuestas en logs
-- [ ] **JWT/Cookies** — uso correcto de autenticación con cookies HttpOnly, Secure, SameSite=Strict
+- [x] **Arquitectura en capas** — Controllers → Services → EF/Database correcta
+- [x] **Inyección de dependencias** — todos los servicios registrados correctamente
+- [x] **No hay dependencias circulares** entre servicios
+- [x] **Async/await** — todos los métodos de DB son async, sin `.Result`/`.Wait()`
+- [x] **Manejo de errores** — `TelemetriaMiddleware` y `ExceptionHandlerMiddleware` presentes
+- [x] **DTOs vs Entidades** — mayormente bien, pero `ApiAuthController` expone `List<Carrera>` (entidad EF) directamente
+- [x] **Migrations** — snapshot actualizado, 8 migrations aplicadas, ninguna pendiente
+- [x] **CSP** — configurada en middleware con CDNs necesarios (jsdelivr, cdnjs, ui-avatars)
+- [x] **CORS** — configurado con orígenes permitidos desde `appsettings.json`
+- [x] **Anti-forgery** — `AutoValidateAntiforgeryTokenAttribute` global + `[IgnoreAntiforgeryToken]` en API
+- [x] **Rate limiting** — 6 políticas (Auth, Api, Mobile, Gemini, DeepSeek, Pomodoro) + Global limiter
+- [ ] **Seguridad** — ⚠️ VER ERRORES CRÍTICOS ABAJO (secretos expuestos en source control)
+- [x] **JWT/Cookies** — Cookies HttpOnly, Secure, SameSite configurado correctamente
 
-### Errores actuales conocidos
-- Ninguno crítico en arquitectura (configuración básica sólida)
+### Errores encontrados
+
+| # | Descripción | Severidad | Módulo | Archivo/Línea | Solución propuesta |
+|---|---|---|---|---|---|
+| 1 | **Secretos en source control**: DB password (`ROTATED_DB_PASSWORD`), JWT secret, Gemini API Key (`AIzaSyAh_...`), email password hardcodeados en `deploy/epycus-web.service` y `appsettings.json` | **CRÍTICA** | Seguridad | `deploy/epycus-web.service:21-36` · `appsettings.json:15,40,44` | Mover a variables de entorno / user secrets. Rotar todas las credenciales expuestas inmediatamente |
+| 2 | **`PROMT_AUDITORIA.md` expone credenciales**: SSH password (`ROTATED_SSH_PASSWORD`), Google Client ID, email SMTP password, DB user | **CRÍTICA** | Seguridad | `PROMT_AUDITORIA.md:9-18` | Eliminar credenciales reales. Usar placeholders |
+| 3 | **Entidades EF expuestas en API**: `ApiAuthController.Carreras()` devuelve `List<Carrera>` (entidad) sin DTO | **ALTA** | API | `Controllers/Api/ApiAuthController.cs:167` | Crear `CarreraDto` con solo campos necesarios |
+| 4 | **Validación ModelState inconsistente**: `SuppressModelStateInvalidFilter = true` desactiva validación automática pero varios actions no verifican `ModelState.IsValid` | **MEDIA** | Controllers | `Program.cs:34-36` · varios endpoints | Eliminar suppress o agregar check en todos los endpoints |
+| 5 | **`RespuestaApi<object>` sin tipo**: Múltiples endpoints usan `RespuestaApi<object>.Exitosa(respuesta)` perdiendo type safety | **MEDIA** | API | `ApiHabitosController.cs:36,50` · `ApiIaController.cs:63` | Crear DTOs específicos |
+| 6 | **Lógica de cálculo en controller**: XP y progreso de nivel calculados en `HomeController.Index()` en lugar de servicio | **MEDIA** | MVC | `Controllers/HomeController.cs:49-56` | Mover a `IServicioProgreso` |
+| 7 | **N+1 queries**: `ServicioPomodoro.RegistrarCiclo()` carga sesión, luego config, luego sub-tarea en 3 queries separadas | **MEDIA** | Rendimiento | `Servicios/ServicioPomodoro.cs:100-126` | Usar `.Include()` |
+| 8 | **Racha calculada en memoria**: `ObtenerRachaActualAsync()` carga TODAS las sesiones y calcula en C# | **MEDIA** | Rendimiento | `Servicios/ServicioPomodoro.cs:316-339` | Usar SQL ventana o limitar a últimos 30 días |
+| 9 | **Sin `AsNoTracking()`**: Queries de solo lectura (estadísticas, historial) trackean entidades innecesariamente | **MEDIA** | Rendimiento | `Servicios/ServicioPomodoro.cs:343-356,364-388` | Agregar `.AsNoTracking()` |
+| 10 | **Excepción como flujo de control**: `ServicioPomodoro.IniciarSesion()` lanza `InvalidOperationException` para validaciones de negocio | **MEDIA** | Arquitectura | `Servicios/ServicioPomodoro.cs:43,50,59` | Usar Result pattern |
+| 11 | **Tema oscuro duplicado**: Variables definidas tanto en `variables.css` como en `tema-noche-epica.css` | **BAJA** | CSS | `wwwroot/css/variables.css:173` · `wwwroot/css/temas/tema-noche-epica.css` | Unificar: un solo archivo de tema |
+| 12 | **`site.js` vacío**: Archivo solo con comentario pero se carga en cada página | **BAJA** | Rendimiento | `wwwroot/js/site.js:1` | Eliminar referencia o poblar con código útil |
+| 13 | **Carga excesiva de CSS**: 10 archivos CSS + 2 CDN en layout | **BAJA** | Rendimiento | `Views/Shared/_Layout.cshtml:7-17` | Consolidar en bundles |
+| 14 | **SW cache-first**: Service worker sirve contenido stale para navegación | **BAJA** | PWA | `wwwroot/sw.js:56-67` | Cambiar a network-first |
+| 15 | **Header obsoleto**: `X-XSS-Protection` deprecado en Chrome | **BAJA** | Seguridad | `Middleware/ConfiguracionMiddleware.cs:38` | Eliminar |
+| 16 | **`[ValidateAntiForgeryToken]` redundante**: Ya aplicado globalmente via `AutoValidateAntiforgeryTokenAttribute` | **BAJA** | MVC | `AutenticacionController.cs:58,115,163,186,301` · `PerfilController.cs:49,67,88` | Quitar atributos redundantes |
+| 17 | **`AddApplicationPart` redundante** en `Program.cs` | **BAJA** | Config | `Program.cs:42` | Eliminar |
 
 ### Mejoras propuestas
-- Añadir **mediator pattern** (MediatR) para desacoplar aún más Controllers de Services
-- Implementar **Result pattern** (OneOf/FluentResults) en lugar de excepciones para flujo de control
-- Añadir **FluentValidation** con validadores separados por DTO
-- Unit tests con **xUnit + Moq + FluentAssertions**
-- Integration tests con **TestContainers** para MySQL real
-- **Health checks** con `Microsoft.AspNetCore.Diagnostics.HealthChecks`
-- **OpenAPI/Swagger** para documentación de API
-- **Audit logging** — registrar cada acción importante (inicio sesión, login, etc.) en tabla de auditoría
-- **Feature flags** — para activar/desactivar funcionalidades sin deploy
+
+| Prioridad | Mejora | Esfuerzo | Módulo |
+|---|---|---|---|
+| **Crítica** | Rotar credenciales expuestas y migrar a variables de entorno / User Secrets | 1 día | Seguridad |
+| **Alta** | Añadir `.AsNoTracking()` en queries de solo lectura (estadísticas, historial) | 2 horas | Rendimiento |
+| **Alta** | Optimizar query de racha con SQL ventana en lugar de in-memory | 4 horas | Rendimiento |
+| **Alta** | Implementar **FluentValidation** con validadores separados por DTO | 2 días | Arquitectura |
+| **Media** | Migrar a **Result pattern** (OneOf/FluentResults/ErrorOr) en servicios | 3 días | Arquitectura |
+| **Media** | Agregar **mediator pattern** (MediatR) para desacoplar Controllers de Services | 3 días | Arquitectura |
+| **Media** | Añadir **métricas** con `System.Diagnostics.Metrics` para Prometheus/Grafana | 1 día | Observabilidad |
+| **Media** | Implementar **blacklist de JWT** con cache distribuida (tokens no invalidables hoy) | 1 día | Seguridad |
+| **Media** | Unit tests con **xUnit + Moq + FluentAssertions** (ya hay algunos, expandir cobertura) | 1 semana | Testing |
+| **Media** | Integration tests con **TestContainers** para MySQL real | 3 días | Testing |
+| **Baja** | Consolidar CSS en bundles (reducir de 10 archivos a 2-3) | 4 horas | Rendimiento |
+| **Baja** | Cambiar Service Worker a network-first para páginas | 2 horas | PWA |
+| **Baja** | Poblar `site.js` con utilidades o eliminar referencia | 1 hora | Mantenimiento |
+| **Baja** | Configurar pre-commit hook con gitleaks para prevenir fugas de secretos | 2 horas | Seguridad |
+| **Baja** | Feature flags para activar/desactivar funcionalidades sin deploy | 2 días | Arquitectura |
 
 ---
 
