@@ -1051,6 +1051,25 @@ textarea:focus-visible {
   min-height: 1.2rem;
 }
 
+#modalSesionActiva .modal-content {
+  background: var(--ep-superficie);
+  border: 1px solid var(--border-color, #444);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+#modalSesionActiva .modal-dialog {
+  max-width: 360px;
+}
+
+#modalSesionActiva .modal-body p {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+#modalSesionActiva .modal-footer {
+  gap: 0.5rem;
+}
+
 .ep-pomodoro-tabs {
   display: flex;
   justify-content: flex-start;

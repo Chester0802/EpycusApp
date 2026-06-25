@@ -63,7 +63,7 @@ self.addEventListener('fetch', event => {
           });
         }
         return response;
-      });
+      }).catch(() => {});
       return cached || fetchPromise;
     }).catch(() => {
       if (event.request.mode === 'navigate') {
