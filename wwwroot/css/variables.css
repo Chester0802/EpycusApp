@@ -13,6 +13,8 @@
     --bg-elevated: #ffe8f5;
     --bg-hover: #ffd9f0;
     --bg-active: #ffc7ea;
+    --ep-superficie: #ffe8f5;
+    --ep-superficie-2: #ffd9f0;
 
     /* Surface (Cards, Panels) - Pasteles suaves */
     --surface: #ffffff;
@@ -176,6 +178,8 @@ body[data-theme="dark"] {
     --bg-elevated: #161b26;
     --bg-hover: #1d2433;
     --bg-active: #242d40;
+    --ep-superficie: #161b26;
+    --ep-superficie-2: #1d2433;
 
     /* Surface - Oscuro con borde púrpura */
     --surface: #0f1419;
