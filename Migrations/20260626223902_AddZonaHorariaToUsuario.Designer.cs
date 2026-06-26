@@ -4,6 +4,7 @@ using EpycusApp.Datos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EpycusApp.Migrations
 {
     [DbContext(typeof(ContextoAplicacion))]
-    partial class ContextoAplicacionModelSnapshot : ModelSnapshot
+    [Migration("20260626223902_AddZonaHorariaToUsuario")]
+    partial class AddZonaHorariaToUsuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
