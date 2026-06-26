@@ -69,21 +69,21 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<SesionPomodoro> IniciarSesion(int usuarioId, int? habitoId, int? misionId, int? subTareaId = null)
         {
-            if (habitoId.HasValue)
+            if (habitoId.HasValue && habitoId.Value > 0)
             {
                 var habito = await _context.Habitos.FirstOrDefaultAsync(h => h.Id == habitoId && h.UsuarioId == usuarioId);
                 if (habito is null)
                     throw new InvalidOperationException("El h\u00e1bito especificado no existe o no te pertenece.");
             }
 
-            if (misionId.HasValue)
+            if (misionId.HasValue && misionId.Value > 0)
             {
                 var mision = await _context.Misiones.FirstOrDefaultAsync(m => m.Id == misionId && m.UsuarioId == usuarioId);
                 if (mision is null)
                     throw new InvalidOperationException("La misi\u00f3n especificada no existe o no te pertenece.");
             }
 
-            if (subTareaId.HasValue)
+            if (subTareaId.HasValue && subTareaId.Value > 0)
             {
                 var subTarea = await _context.SubTareas
                     .Include(st => st.Mision)
