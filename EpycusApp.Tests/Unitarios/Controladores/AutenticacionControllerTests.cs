@@ -27,6 +27,8 @@ public class AutenticacionControllerTests
         _controller = new AutenticacionController(_authMock.Object, _verificadorTurnstile);
 
         var httpContext = new DefaultHttpContext();
+        httpContext.Request.ContentType = "application/x-www-form-urlencoded";
+        httpContext.Request.Form = new FormCollection(new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>());
         _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
         _controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
     }
@@ -160,9 +162,9 @@ public class AutenticacionControllerTests
     }
 
     [Fact]
-    public void Logout_EliminaCookies_RedirigeLogin()
+    public async Task Logout_EliminaCookies_RedirigeLogin()
     {
-        var resultado = _controller.Logout();
+        var resultado = await _controller.Logout();
 
         resultado.Should().BeOfType<RedirectToActionResult>()
             .Which.ActionName.Should().Be("Login");

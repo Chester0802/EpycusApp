@@ -6,6 +6,7 @@
         {
             try
             {
+                await SemillaRoles.SembrarAsync(contexto);
                 await SemillaCarreras.SembrarAsync(contexto);
                 await SemillaNiveles.SembrarAsync(contexto);
                 await SemillaCategorias.SembrarAsync(contexto);

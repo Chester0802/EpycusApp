@@ -367,21 +367,39 @@ namespace EpycusApp.Servicios.Implementaciones
                 FROM racha_calc
                 ORDER BY fecha DESC";
 
-            var resultados = await _context.Database
-                .SqlQueryRaw<(DateTime fecha, DateTime? fecha_anterior)>(sql,
-                    new { usuarioId, hace30 })
-                .ToListAsync();
+            List<DateTime> fechasDesc;
+            if (_context.Database.IsRelational())
+            {
+                var resultados = await _context.Database
+                    .SqlQueryRaw<(DateTime fecha, DateTime? fecha_anterior)>(sql,
+                        new { usuarioId, hace30 })
+                    .ToListAsync();
+                fechasDesc = resultados.Select(r => r.fecha).ToList();
+            }
+            else
+            {
+                fechasDesc = (await _context.SesionesPomodoro
+                    .Where(s => s.UsuarioId == usuarioId
+                             && s.FueCompletada
+                             && s.FechaInicio >= hace30)
+                    .Select(s => s.FechaInicio)
+                    .ToListAsync())
+                    .Select(f => f.Date)
+                    .Distinct()
+                    .OrderByDescending(f => f)
+                    .ToList();
+            }
 
-            if (resultados.Count == 0) return 0;
+            if (fechasDesc.Count == 0) return 0;
 
-            var primera = resultados[0].fecha;
+            var primera = fechasDesc[0];
             if (primera != hoy && primera != hoy.AddDays(-1))
                 return 0;
 
             int racha = 1;
-            for (int i = 1; i < resultados.Count; i++)
+            for (int i = 1; i < fechasDesc.Count; i++)
             {
-                var dias = (resultados[i - 1].fecha - resultados[i].fecha).Days;
+                var dias = (fechasDesc[i - 1] - fechasDesc[i]).Days;
                 if (dias == 1)
                     racha++;
                 else

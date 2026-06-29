@@ -42,7 +42,10 @@ public class ApiAuthTests : IDisposable
 
         _servicio = new ServicioAutenticacion(_contexto, config, _correoMock.Object, _auditoriaMock.Object, _loggerMock.Object);
 
-        _controller = new ApiAuthController(_servicio);
+        var verificadorTurnstile = new EpycusApp.Ayudantes.VerificadorTurnstile(
+            new HttpClient(),
+            Microsoft.Extensions.Options.Options.Create(new EpycusApp.Ayudantes.TurnstileOptions()));
+        _controller = new ApiAuthController(_servicio, verificadorTurnstile);
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "0") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
@@ -71,7 +74,8 @@ public class ApiAuthTests : IDisposable
             FechaNacimiento = new DateOnly(2000, 1, 1),
             Genero = "Masculino",
             CarreraId = 1,
-            AceptoTerminos = true
+            AceptoTerminos = true,
+            TurnstileToken = "test-token"
         };
 
         var result = await _controller.Registro(dto);
@@ -95,7 +99,8 @@ public class ApiAuthTests : IDisposable
             FechaNacimiento = new DateOnly(2000, 1, 1),
             Genero = "Masculino",
             CarreraId = 1,
-            AceptoTerminos = true
+            AceptoTerminos = true,
+            TurnstileToken = "test-token"
         };
 
         await _controller.Registro(dto);
@@ -159,6 +164,7 @@ public class ApiAuthTests : IDisposable
         var okResult = Assert.IsType<OkObjectResult>(result);
         var apiResp = Assert.IsType<RespuestaApi<List<Carrera>>>(okResult.Value);
         Assert.True(apiResp.Exito);
+        Assert.NotNull(apiResp.Datos);
         Assert.NotEmpty(apiResp.Datos);
     }
 }

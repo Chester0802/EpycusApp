@@ -667,6 +667,8 @@ public class ServicioPomodoroTests
     public async Task EstadisticasAvanzadas_ConSesiones_CalculaCorrectamente()
     {
         var usuarioId = await SeedUsuarioAsync();
+        var usuario = await _contexto.Usuarios.FindAsync(usuarioId);
+        usuario!.ZonaHoraria = "UTC";
         _contexto.ConfiguracionesPomodoro.Add(new ConfiguracionPomodoro { UsuarioId = usuarioId, TiempoEstudioMin = 25 });
         await _contexto.SaveChangesAsync();
 
