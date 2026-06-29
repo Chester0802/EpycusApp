@@ -26,6 +26,9 @@ namespace EpycusApp.Controllers.Api
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AdminLoginRequest request)
         {
+            if (request is null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
+
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.Login(request.Correo, request.Contrasena);
 
             if (!exito)

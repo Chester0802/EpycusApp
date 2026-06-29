@@ -1,0 +1,23 @@
+{
+  "name": "epycusapp",
+  "version": "1.0.0",
+  "description": "Sistema multiplataforma de gamificación de hábitos profesionales inspirado en Solo Leveling, enfocado en universitarios peruanos. Incluye gestión de hábitos, temporizador Pomodoro, misiones, progreso con personajes, niveles y un asistente IA (EDY).",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chester0802/EpycusApp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Chester0802/EpycusApp/issues"
+  },
+  "homepage": "https://github.com/Chester0802/EpycusApp#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.0.1"
+  }
+}

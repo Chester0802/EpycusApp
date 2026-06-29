@@ -445,3 +445,10 @@ package-lock.json
 
 # Acceptance tests
 EpycusApp.AcceptanceTests/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

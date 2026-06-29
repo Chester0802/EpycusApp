@@ -248,7 +248,6 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var hoy = DateOnly.FromDateTime(DateTime.Today);
             return await _contexto.Habitos
-                .Include(h => h.Registros)
                 .Where(h => h.UsuarioId == usuarioId && h.EstaActivo)
                 .CountAsync(h => !h.Registros.Any(r => r.Fecha == hoy && r.Estado == "Completado"));
         }
