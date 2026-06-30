@@ -25,8 +25,11 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginDto? request)
+        public async Task<IActionResult> Login()
         {
+            using var reader = new System.IO.StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
+            var request = System.Text.Json.JsonSerializer.Deserialize<LoginDto>(body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             if (request == null || string.IsNullOrEmpty(request.Correo) || string.IsNullOrEmpty(request.Contrasena))
                 return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Credenciales requeridas"));
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.Login(request.Correo, request.Contrasena);
