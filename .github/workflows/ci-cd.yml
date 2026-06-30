@@ -25,7 +25,9 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore "EpycusApp.csproj"
+        run: |
+          dotnet restore "EpycusApp.csproj"
+          dotnet restore "EpycusApp.Tests/EpycusApp.Tests.csproj"
 
       - name: Format check
         run: dotnet format "EpycusApp.csproj" --verify-no-changes --severity warn || echo "✅ No se requiere formato"
@@ -34,7 +36,7 @@ jobs:
         run: dotnet build "EpycusApp.csproj" --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore -warnaserror
 
       - name: Run unit tests
-        run: dotnet test "EpycusApp.Tests/EpycusApp.Tests.csproj" --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore --verbosity normal
+        run: dotnet test "EpycusApp.Tests/EpycusApp.Tests.csproj" --configuration ${{ env.BUILD_CONFIGURATION }} --verbosity normal
 
   # ── JOB 2: Build y publish ──────────────────────────────────────────
   build:
