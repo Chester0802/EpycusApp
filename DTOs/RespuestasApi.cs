@@ -211,6 +211,9 @@ public class PomodoroSesionActivaResponse
     public int? SesionId { get; set; }
     public DateTime? FechaInicio { get; set; }
     public int? CiclosCompletados { get; set; }
+    // Total de ciclos completados HOY (suma de todas las sesiones del día), para que el
+    // contador "Hoy" del cliente sea robusto y no dependa del estado local.
+    public int CiclosHoy { get; set; }
 }
 
 public class SesionPomodoroDto

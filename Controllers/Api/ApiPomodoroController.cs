@@ -168,16 +168,18 @@ namespace EpycusApp.Controllers.Api
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
 
             var sesionesHoy = await _servicioPomodoro.ObtenerSesionesHoyAsync(usuarioId.Value);
+            int ciclosHoy = sesionesHoy.Sum(s => s.CiclosCompletados);
             var activa = sesionesHoy.FirstOrDefault(s => !s.FechaFin.HasValue);
             if (activa == null)
-                return Ok(RespuestaApi<PomodoroSesionActivaResponse>.Exitosa(new PomodoroSesionActivaResponse { Activa = false }));
+                return Ok(RespuestaApi<PomodoroSesionActivaResponse>.Exitosa(new PomodoroSesionActivaResponse { Activa = false, CiclosHoy = ciclosHoy }));
 
             return Ok(RespuestaApi<PomodoroSesionActivaResponse>.Exitosa(new PomodoroSesionActivaResponse
             {
                 Activa = true,
                 SesionId = activa.Id,
                 FechaInicio = activa.FechaInicio,
-                CiclosCompletados = activa.CiclosCompletados
+                CiclosCompletados = activa.CiclosCompletados,
+                CiclosHoy = ciclosHoy
             }));
         }
 
@@ -188,8 +190,13 @@ namespace EpycusApp.Controllers.Api
             if (usuarioId == null)
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
 
-            var desdeDate = desde ?? DateTime.UtcNow.AddDays(-30);
-            var hastaDate = hasta ?? DateTime.UtcNow;
+            var desdeDate = (desde ?? DateTime.UtcNow.AddDays(-30)).Date;
+            // 'hasta' como fecha debe incluir TODO el día: si se interpreta como medianoche
+            // (00:00), las sesiones de hoy (FechaInicio p.ej. 11:46 > 00:00) quedan fuera y
+            // el historial sale vacío. Se lleva al final del día.
+            var hastaDate = hasta.HasValue
+                ? hasta.Value.Date.AddDays(1).AddTicks(-1)
+                : DateTime.UtcNow;
             tamano = Math.Clamp(tamano, 1, 100);
             // El cliente puede mandar pagina=0; sin esto Skip((0-1)*tamano) = OFFSET negativo -> 500.
             pagina = Math.Max(pagina, 1);
