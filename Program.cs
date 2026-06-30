@@ -39,8 +39,7 @@ public partial class Program
         {
             options.Filters.Add<CargarPersonajeFilter>();
             options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
-        }).AddApplicationPart(typeof(Program).Assembly)
-        .AddJsonOptions(opts =>
+        }).AddJsonOptions(opts =>
         {
             opts.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         });
