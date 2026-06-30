@@ -25,12 +25,9 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login()
+        public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
-            using var reader = new System.IO.StreamReader(Request.Body);
-            var body = await reader.ReadToEndAsync();
-            var request = System.Text.Json.JsonSerializer.Deserialize<LoginDto>(body, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            if (request == null || string.IsNullOrEmpty(request.Correo) || string.IsNullOrEmpty(request.Contrasena))
+            if (string.IsNullOrEmpty(request.Correo) || string.IsNullOrEmpty(request.Contrasena))
                 return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Credenciales requeridas"));
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.Login(request.Correo, request.Contrasena);
             if (!exito || token == null || refreshToken == null)
@@ -43,10 +40,10 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("refresh")]
         [AllowAnonymous]
-        public async Task<IActionResult> Refresh([FromBody] RefreshDto? request)
+        public async Task<IActionResult> Refresh([FromBody] RefreshDto request)
         {
-            if (request == null)
-                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
+            if (string.IsNullOrEmpty(request.RefreshToken))
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Token requerido"));
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.RenovarToken(request.RefreshToken);
             if (!exito || token == null || refreshToken == null)
             {
