@@ -25,10 +25,10 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginDto? request)
+        public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
-            if (request == null)
-                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
+            if (string.IsNullOrEmpty(request.Correo) || string.IsNullOrEmpty(request.Contrasena))
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Credenciales requeridas"));
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.Login(request.Correo, request.Contrasena);
             if (!exito || token == null || refreshToken == null)
             {
