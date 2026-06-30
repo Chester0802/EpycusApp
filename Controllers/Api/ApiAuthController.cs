@@ -25,8 +25,10 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginDto request)
+        public async Task<IActionResult> Login([FromBody] LoginDto? request)
         {
+            if (request == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.Login(request.Correo, request.Contrasena);
             if (!exito || token == null || refreshToken == null)
             {
@@ -38,8 +40,10 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("refresh")]
         [AllowAnonymous]
-        public async Task<IActionResult> Refresh([FromBody] RefreshDto request)
+        public async Task<IActionResult> Refresh([FromBody] RefreshDto? request)
         {
+            if (request == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.RenovarToken(request.RefreshToken);
             if (!exito || token == null || refreshToken == null)
             {
@@ -76,8 +80,10 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("registro")]
         [AllowAnonymous]
-        public async Task<IActionResult> Registro([FromBody] RegistroRequestDto request)
+        public async Task<IActionResult> Registro([FromBody] RegistroRequestDto? request)
         {
+            if (request == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
             if (string.IsNullOrEmpty(request.TurnstileToken) || !await _verificadorTurnstile.VerificarTokenAsync(request.TurnstileToken))
             {
                 return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Verificación de seguridad fallida. Inténtalo de nuevo."));
@@ -120,8 +126,10 @@ namespace EpycusApp.Controllers.Api
         [HttpPost("recuperar-contrasena")]
         [AllowAnonymous]
         [EnableRateLimiting("Auth")]
-        public async Task<IActionResult> RecuperarContrasena([FromBody] RecuperarContrasenaDto request)
+        public async Task<IActionResult> RecuperarContrasena([FromBody] RecuperarContrasenaDto? request)
         {
+            if (request == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
             var resultado = await _servicioAutenticacion.EnviarCorreoRecuperacion(request.Correo);
             if (!resultado)
             {
@@ -134,8 +142,10 @@ namespace EpycusApp.Controllers.Api
         [HttpPost("restablecer-contrasena")]
         [AllowAnonymous]
         [EnableRateLimiting("Auth")]
-        public async Task<IActionResult> RestablecerContrasena([FromBody] RestablecerContrasenaDto request)
+        public async Task<IActionResult> RestablecerContrasena([FromBody] RestablecerContrasenaDto? request)
         {
+            if (request == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
             var resultado = await _servicioAutenticacion.RestablecerContrasena(request.Token, request.NuevaContrasena);
             if (!resultado)
             {
@@ -147,8 +157,10 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("google")]
         [AllowAnonymous]
-        public async Task<IActionResult> GoogleAuth([FromBody] GoogleAuthDto request)
+        public async Task<IActionResult> GoogleAuth([FromBody] GoogleAuthDto? request)
         {
+            if (request == null)
+                return BadRequest(RespuestaApi<object>.Fallida("Solicitud inválida"));
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.ProcesarAutenticacionGoogleAsync(
                 request.GoogleId, request.Correo, request.Nombre, request.FotoUrl);
             if (!exito || token == null || refreshToken == null)
@@ -161,8 +173,10 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("completar-registro-google")]
         [AllowAnonymous]
-        public async Task<IActionResult> CompletarRegistroGoogle([FromBody] CompletarRegistroGoogleDto request)
+        public async Task<IActionResult> CompletarRegistroGoogle([FromBody] CompletarRegistroGoogleDto? request)
         {
+            if (request == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
             var modelo = new CompletarRegistroGoogleViewModel
             {
                 Nombre = request.Nombre,
