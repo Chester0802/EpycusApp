@@ -76,10 +76,17 @@ namespace Microsoft.Extensions.DependencyInjection
                     {
                         OnMessageReceived = context =>
                         {
-                            var esAdmin = context.Request.Path.StartsWithSegments("/admin");
-                            var token = esAdmin
-                                ? context.Request.Cookies["admin_jwt_token"]
-                                : context.Request.Cookies["jwt_token"];
+                            var token = (string?)context.Request.Query["access_token"]
+                                        ?? context.Request.Headers["Authorization"].FirstOrDefault()
+                                            ?.Replace("Bearer ", "");
+
+                            if (string.IsNullOrEmpty(token))
+                            {
+                                var esAdmin = context.Request.Path.StartsWithSegments("/admin");
+                                token = esAdmin
+                                    ? context.Request.Cookies["admin_jwt_token"]
+                                    : context.Request.Cookies["jwt_token"];
+                            }
 
                             if (!string.IsNullOrEmpty(token))
                             {
