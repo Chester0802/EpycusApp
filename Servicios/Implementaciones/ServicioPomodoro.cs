@@ -349,46 +349,20 @@ namespace EpycusApp.Servicios.Implementaciones
             var hoy = DateTime.UtcNow.Date;
             var hace30 = hoy.AddDays(-30);
 
-            var sql = @"
-                WITH sesiones_filtradas AS (
-                    SELECT DISTINCT DATE(FechaInicio) AS fecha
-                    FROM sesiones_pomodoro
-                    WHERE UsuarioId = @usuarioId
-                      AND FueCompletada = 1
-                      AND DATE(FechaInicio) >= @hace30
-                ),
-                racha_calc AS (
-                    SELECT
-                        fecha,
-                        LAG(fecha) OVER (ORDER BY fecha DESC) AS fecha_anterior
-                    FROM sesiones_filtradas
-                )
-                SELECT fecha, fecha_anterior
-                FROM racha_calc
-                ORDER BY fecha DESC";
-
-            List<DateTime> fechasDesc;
-            if (_context.Database.IsRelational())
-            {
-                var resultados = await _context.Database
-                    .SqlQueryRaw<(DateTime fecha, DateTime? fecha_anterior)>(sql,
-                        new { usuarioId, hace30 })
-                    .ToListAsync();
-                fechasDesc = resultados.Select(r => r.fecha).ToList();
-            }
-            else
-            {
-                fechasDesc = (await _context.SesionesPomodoro
+            // Días (en memoria) con al menos una sesión completada en los últimos 30 días.
+            // Se calcula en cliente: el conjunto está acotado (<=30 fechas) y evita la SQL
+            // cruda anterior, que mapeaba a un ValueTuple y pasaba los parámetros como
+            // objeto anónimo (no se enlazaban @usuarioId/@hace30) -> provocaba un 500.
+            var fechasDesc = (await _context.SesionesPomodoro
                     .Where(s => s.UsuarioId == usuarioId
                              && s.FueCompletada
                              && s.FechaInicio >= hace30)
                     .Select(s => s.FechaInicio)
                     .ToListAsync())
-                    .Select(f => f.Date)
-                    .Distinct()
-                    .OrderByDescending(f => f)
-                    .ToList();
-            }
+                .Select(f => f.Date)
+                .Distinct()
+                .OrderByDescending(f => f)
+                .ToList();
 
             if (fechasDesc.Count == 0) return 0;
 

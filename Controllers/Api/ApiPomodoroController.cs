@@ -191,6 +191,8 @@ namespace EpycusApp.Controllers.Api
             var desdeDate = desde ?? DateTime.UtcNow.AddDays(-30);
             var hastaDate = hasta ?? DateTime.UtcNow;
             tamano = Math.Clamp(tamano, 1, 100);
+            // El cliente puede mandar pagina=0; sin esto Skip((0-1)*tamano) = OFFSET negativo -> 500.
+            pagina = Math.Max(pagina, 1);
 
             var historial = await _servicioPomodoro.ObtenerHistorialAsync(usuarioId.Value, desdeDate, hastaDate, pagina, tamano, completada, conXp);
             var dtos = historial?.Select(s => new SesionPomodoroDto
