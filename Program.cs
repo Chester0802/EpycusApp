@@ -41,6 +41,7 @@ public partial class Program
             options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
         }).AddJsonOptions(opts =>
         {
+            opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
             opts.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         });
 
