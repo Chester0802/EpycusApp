@@ -3,12 +3,14 @@ using EpycusApp.Ayudantes;
 using EpycusApp.Datos;
 using EpycusApp.Controllers.Api;
 using EpycusApp.DTOs;
+using EpycusApp.Hubs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Implementaciones;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.Tests.AyudantesTests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -35,7 +37,8 @@ public class ApiHabitosTests : IDisposable
         _gamificacionMock.Setup(g => g.VerificarYOtorgarLogros(It.IsAny<int>()))
             .Returns(Task.CompletedTask);
 
-        _servicio = new ServicioHabitos(_contexto, _gamificacionMock.Object, _loggerMock.Object);
+        var hubMock = new Mock<IHubContext<NotificacionesHub>>();
+        _servicio = new ServicioHabitos(_contexto, _gamificacionMock.Object, hubMock.Object, _loggerMock.Object);
 
         _controller = new ApiHabitosController(_servicio);
 

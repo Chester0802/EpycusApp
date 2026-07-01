@@ -1,9 +1,11 @@
 ﻿using EpycusApp.Ayudantes;
 using EpycusApp.Datos;
 using EpycusApp.DTOs;
+using EpycusApp.Hubs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
@@ -16,6 +18,7 @@ namespace EpycusApp.Servicios.Implementaciones
         private readonly IServicioBienestar _servicioBienestar;
         private readonly IServicioHabitos _servicioHabitos;
         private readonly IServicioMisiones _servicioMisiones;
+        private readonly IHubContext<NotificacionesHub> _hubContext;
         private readonly ILogger<ServicioPomodoro> _logger;
 
         private async Task<TimeZoneInfo> ObtenerZonaHorariaUsuario(int usuarioId)
@@ -57,6 +60,7 @@ namespace EpycusApp.Servicios.Implementaciones
             IServicioBienestar servicioBienestar,
             IServicioHabitos servicioHabitos,
             IServicioMisiones servicioMisiones,
+            IHubContext<NotificacionesHub> hubContext,
             ILogger<ServicioPomodoro> logger)
         {
             _context = context;
@@ -64,6 +68,7 @@ namespace EpycusApp.Servicios.Implementaciones
             _servicioBienestar = servicioBienestar;
             _servicioHabitos = servicioHabitos;
             _servicioMisiones = servicioMisiones;
+            _hubContext = hubContext;
             _logger = logger;
         }
 
@@ -168,6 +173,21 @@ namespace EpycusApp.Servicios.Implementaciones
             await _servicioGamificacion.VerificarYOtorgarLogros(sesion.UsuarioId);
             await _servicioGamificacion.ActualizarRacha(sesion.UsuarioId);
 
+            try
+            {
+                await _hubContext.Clients.Group($"usuario_{sesion.UsuarioId}")
+                    .SendAsync("PomodoroCicloCompletado", new
+                    {
+                        XpGanado = xpGanado,
+                        SugerirDescanso = sugerir,
+                        PausaActiva = pausaActiva?.Descripcion
+                    });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al enviar notificacion SignalR de ciclo pomodoro completado para usuario {UsuarioId}", sesion.UsuarioId);
+            }
+
             return (xpGanado, sugerir, pausaActiva?.Descripcion);
         }
 
@@ -211,6 +231,16 @@ namespace EpycusApp.Servicios.Implementaciones
             }
 
             await _servicioGamificacion.ActualizarRacha(sesion.UsuarioId);
+
+            try
+            {
+                await _hubContext.Clients.Group($"usuario_{sesion.UsuarioId}")
+                    .SendAsync("PomodoroFinalizado", new { XpTotal = sesion.XpOtorgado, SesionGuardada = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al enviar notificacion SignalR de pomodoro finalizado para usuario {UsuarioId}", sesion.UsuarioId);
+            }
 
             return (sesion.XpOtorgado, xpBonus);
         }

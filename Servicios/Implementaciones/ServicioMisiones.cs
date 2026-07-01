@@ -1,8 +1,10 @@
 ﻿using EpycusApp.Ayudantes;
 using EpycusApp.Datos;
+using EpycusApp.Hubs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace EpycusApp.Servicios.Implementaciones
@@ -11,12 +13,14 @@ namespace EpycusApp.Servicios.Implementaciones
     {
         private readonly ContextoAplicacion _contexto;
         private readonly IServicioGamificacion _servicioGamificacion;
+        private readonly IHubContext<NotificacionesHub> _hubContext;
         private readonly ILogger<ServicioMisiones> _logger;
 
-        public ServicioMisiones(ContextoAplicacion contexto, IServicioGamificacion servicioGamificacion, ILogger<ServicioMisiones> logger)
+        public ServicioMisiones(ContextoAplicacion contexto, IServicioGamificacion servicioGamificacion, IHubContext<NotificacionesHub> hubContext, ILogger<ServicioMisiones> logger)
         {
             _contexto = contexto;
             _servicioGamificacion = servicioGamificacion;
+            _hubContext = hubContext;
             _logger = logger;
         }
 
@@ -132,6 +136,16 @@ namespace EpycusApp.Servicios.Implementaciones
             await _servicioGamificacion.SumarXP(usuarioId, xp);
             await _servicioGamificacion.ActualizarRacha(usuarioId);
 
+            try
+            {
+                await _hubContext.Clients.Group($"usuario_{usuarioId}")
+                    .SendAsync("MisionCompletada", new { MisionId = id, XpGanado = xp });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al enviar notificacion SignalR de mision completada para usuario {UsuarioId}", usuarioId);
+            }
+
             return (true, xp);
         }
 
@@ -145,6 +159,16 @@ namespace EpycusApp.Servicios.Implementaciones
             {
                 mision.Estado = estado;
                 await _contexto.SaveChangesAsync();
+
+                try
+                {
+                    await _hubContext.Clients.Group($"usuario_{usuarioId}")
+                        .SendAsync("EstadoCambio", new { Entidad = "Mision", EntidadId = id, NuevoEstado = estado });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error al enviar notificacion SignalR de cambio de estado para usuario {UsuarioId}", usuarioId);
+                }
             }
         }
 

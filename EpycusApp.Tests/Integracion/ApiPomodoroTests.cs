@@ -4,12 +4,14 @@ using EpycusApp.Ayudantes;
 using EpycusApp.Datos;
 using EpycusApp.DTOs;
 using EpycusApp.Controllers.Api;
+using EpycusApp.Hubs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Implementaciones;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.Tests.AyudantesTests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -37,9 +39,10 @@ public class ApiPomodoroTests : IDisposable
         _misionesMock = new Mock<IServicioMisiones>();
         _loggerMock = new Mock<ILogger<ServicioPomodoro>>();
 
+        var hubMock = new Mock<IHubContext<NotificacionesHub>>();
         _servicio = new ServicioPomodoro(
             _contexto, _gamificacionMock.Object, _bienestarMock.Object,
-            _habitosMock.Object, _misionesMock.Object, _loggerMock.Object);
+            _habitosMock.Object, _misionesMock.Object, hubMock.Object, _loggerMock.Object);
 
         _controller = new ApiPomodoroController(_servicio);
 

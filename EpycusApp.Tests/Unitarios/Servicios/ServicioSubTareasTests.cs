@@ -1,10 +1,12 @@
 using EpycusApp.Ayudantes;
 using EpycusApp.Datos;
+using EpycusApp.Hubs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Implementaciones;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.Tests.AyudantesTests;
 using FluentAssertions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -23,7 +25,8 @@ public class ServicioSubTareasTests
         _contexto = DbContextFactory.CrearContexto("SubTareasTest");
         _gamificacionMock = new Mock<IServicioGamificacion>();
         _loggerMock = new Mock<ILogger<ServicioMisiones>>();
-        _servicio = new ServicioMisiones(_contexto, _gamificacionMock.Object, _loggerMock.Object);
+        var hubMock = new Mock<IHubContext<NotificacionesHub>>();
+        _servicio = new ServicioMisiones(_contexto, _gamificacionMock.Object, hubMock.Object, _loggerMock.Object);
     }
 
     private async Task<int> SeedMisionPendienteAsync()

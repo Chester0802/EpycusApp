@@ -1,10 +1,12 @@
 ﻿using System;
 using EpycusApp.DTOs;
+using EpycusApp.Hubs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using EpycusApp.Datos;
 using EpycusApp.Ayudantes;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,12 +18,14 @@ namespace EpycusApp.Servicios.Implementaciones
     {
         private readonly ContextoAplicacion _context;
         private readonly EpycusApp.Servicios.Interfaces.IServicioGamificacion _servicioGamificacion;
+        private readonly IHubContext<NotificacionesHub> _hubContext;
         private readonly ILogger<ServicioHabitos> _logger;
 
-        public ServicioHabitos(ContextoAplicacion context, EpycusApp.Servicios.Interfaces.IServicioGamificacion servicioGamificacion, ILogger<ServicioHabitos> logger)
+        public ServicioHabitos(ContextoAplicacion context, EpycusApp.Servicios.Interfaces.IServicioGamificacion servicioGamificacion, IHubContext<NotificacionesHub> hubContext, ILogger<ServicioHabitos> logger)
         {
             _context = context;
             _servicioGamificacion = servicioGamificacion;
+            _hubContext = hubContext;
             _logger = logger;
         }
 
@@ -280,6 +284,16 @@ namespace EpycusApp.Servicios.Implementaciones
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar racha para usuario {UsuarioId}", usuarioId);
+            }
+
+            try
+            {
+                await _hubContext.Clients.Group($"usuario_{usuarioId}")
+                    .SendAsync("HabitoCompletado", new { HabitoId = id, XpGanado = xpGanado });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al enviar notificacion SignalR de habito completado para usuario {UsuarioId}", usuarioId);
             }
 
             return (true, xpGanado);

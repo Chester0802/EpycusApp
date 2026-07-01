@@ -1,11 +1,13 @@
 using EpycusApp.Ayudantes;
 using EpycusApp.Datos;
 using EpycusApp.DTOs;
+using EpycusApp.Hubs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Implementaciones;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.Tests.AyudantesTests;
 using FluentAssertions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -30,7 +32,8 @@ public class ServicioPomodoroTests
         _habitosMock = new Mock<IServicioHabitos>();
         _misionesMock = new Mock<IServicioMisiones>();
         _loggerMock = new Mock<ILogger<ServicioPomodoro>>();
-        _servicio = new ServicioPomodoro(_contexto, _gamificacionMock.Object, _bienestarMock.Object, _habitosMock.Object, _misionesMock.Object, _loggerMock.Object);
+        var hubMock = new Mock<IHubContext<NotificacionesHub>>();
+        _servicio = new ServicioPomodoro(_contexto, _gamificacionMock.Object, _bienestarMock.Object, _habitosMock.Object, _misionesMock.Object, hubMock.Object, _loggerMock.Object);
 
         _gamificacionMock.Setup(g => g.VerificarYOtorgarLogros(It.IsAny<int>())).Returns(Task.CompletedTask);
     }
