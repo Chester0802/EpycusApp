@@ -202,14 +202,22 @@ namespace EpycusApp.Controllers.Api
         [AllowAnonymous]
         public async Task<IActionResult> Carreras()
         {
+            // No exponer la entidad EF directamente (arrastra la navegacion Usuarios).
             var carreras = await _servicioAutenticacion.ObtenerCarrerasActivas();
-            return Ok(RespuestaApi<List<Carrera>>.Exitosa(carreras));
+            var dto = carreras.Select(c => new CarreraDto { Id = c.Id, Nombre = c.Nombre }).ToList();
+            return Ok(RespuestaApi<List<CarreraDto>>.Exitosa(dto));
         }
 
         public class LoginDto
         {
             public string Correo { get; set; } = string.Empty;
             public string Contrasena { get; set; } = string.Empty;
+        }
+
+        public class CarreraDto
+        {
+            public int Id { get; set; }
+            public string Nombre { get; set; } = string.Empty;
         }
 
         public class RefreshDto

@@ -162,7 +162,7 @@ public class ApiAuthTests : IDisposable
         var result = await _controller.Carreras();
 
         var okResult = Assert.IsType<OkObjectResult>(result);
-        var apiResp = Assert.IsType<RespuestaApi<List<Carrera>>>(okResult.Value);
+        var apiResp = Assert.IsType<RespuestaApi<List<ApiAuthController.CarreraDto>>>(okResult.Value);
         Assert.True(apiResp.Exito);
         Assert.NotNull(apiResp.Datos);
         Assert.NotEmpty(apiResp.Datos);
