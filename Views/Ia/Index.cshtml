@@ -339,8 +339,8 @@
         try {
             var res = await fetch('/health');
             var data = await res.json();
-            var gemini = data.checks ? data.checks.find(function(c) { return c.name === 'Gemini API'; }) : null;
-            if (gemini && gemini.status === 'Healthy') {
+            var deepSeek = data.checks ? data.checks.find(function(c) { return c.name === 'DeepSeek API'; }) : null;
+            if (deepSeek && deepSeek.status === 'Healthy') {
                 statusDot.style.background = 'var(--success)';
                 statusText.textContent = 'En linea';
             } else {

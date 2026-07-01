@@ -169,13 +169,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     opt.QueueLimit = int.Parse(rateLimitConfig["Mobile:QueueLimit"] ?? "10");
                 });
 
-                options.AddFixedWindowLimiter("Gemini", opt =>
-                {
-                    opt.PermitLimit = int.Parse(rateLimitConfig["Gemini:PermitLimit"] ?? "20");
-                    opt.Window = TimeSpan.FromMinutes(int.Parse(rateLimitConfig["Gemini:WindowMinutes"] ?? "1"));
-                    opt.QueueLimit = 0;
-                });
-
                 options.AddFixedWindowLimiter("DeepSeek", opt =>
                 {
                     opt.PermitLimit = int.Parse(rateLimitConfig["DeepSeek:PermitLimit"] ?? "2500");
@@ -246,11 +239,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
             }
 
-            builder.Services.AddHttpClient("Gemini", client =>
-            {
-                client.Timeout = TimeSpan.FromSeconds(30);
-            });
-
             builder.Services.AddHttpClient("DeepSeek", client =>
             {
                 client.Timeout = TimeSpan.FromSeconds(30);
@@ -277,7 +265,6 @@ namespace Microsoft.Extensions.DependencyInjection
             var cadenaConexion = builder.Configuration.GetConnectionString("ConexionPrincipal")!;
             var proveedorDb = builder.Configuration["Database:Provider"];
             var healthChecks = builder.Services.AddHealthChecks()
-                .AddCheck<GeminiHealthCheck>("Gemini API", tags: ["api"])
                 .AddCheck<DeepSeekHealthCheck>("DeepSeek API", tags: ["api"])
                 .AddCheck<DiskHealthCheck>("Disco", tags: ["system"])
                 .AddCheck<MvcHealthCheck>("Pipeline MVC", tags: ["mvc"]);
@@ -300,7 +287,6 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddScoped<IServicioBienestar, ServicioBienestar>();
             builder.Services.AddScoped<IServicioDiarioAnimo, ServicioDiarioAnimo>();
             builder.Services.AddScoped<ConstructorContextoIA>();
-            builder.Services.AddScoped<IProveedorGemini, ProveedorGemini>();
             builder.Services.AddScoped<IProveedorDeepSeek, ProveedorDeepSeek>();
             builder.Services.AddScoped<IServicioIA, ServicioIA>();
             builder.Services.AddResponseCompression(options =>

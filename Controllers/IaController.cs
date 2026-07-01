@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace EpycusApp.Controllers
 {
     [Authorize]
-    [EnableRateLimiting("Gemini")]
+    [EnableRateLimiting("DeepSeek")]
     public class IaController : BaseController
     {
         private readonly IServicioIA _servicioIA;

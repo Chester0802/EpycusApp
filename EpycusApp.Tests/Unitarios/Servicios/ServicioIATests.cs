@@ -4,7 +4,6 @@ using EpycusApp.Servicios.Implementaciones;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.Tests.AyudantesTests;
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
 
@@ -22,15 +21,10 @@ public class ServicioIATests
     {
         _contexto = DbContextFactory.CrearContexto("ServicioIATest");
         var constructor = new ConstructorContextoIA(_contexto);
-        var geminiMock = new Mock<IProveedorGemini>();
         var deepSeekMock = new Mock<IProveedorDeepSeek>();
         _gamificacionMock = new Mock<IServicioGamificacion>();
-        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            ["AI:Provider"] = "DeepSeek"
-        }).Build();
 
-        _servicio = new ServicioIA(_contexto, constructor, geminiMock.Object, deepSeekMock.Object, config, _gamificacionMock.Object);
+        _servicio = new ServicioIA(_contexto, constructor, deepSeekMock.Object, _gamificacionMock.Object);
     }
 
     private MensajeIA NuevoMensaje(string conversacionId, string rol, string contenido, DateTime? fecha = null, int usuarioId = UsuarioId)

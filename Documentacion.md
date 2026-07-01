@@ -118,8 +118,7 @@ C:\Users\marco\Pictures\EpycusApp\
 
 ### APIs externas integradas
 
-- **Google Gemini API** (modelo: gemini-2.0-flash)
-- **DeepSeek API** (modelo: deepseek-v4-flash) — alternativa configurable
+- **DeepSeek API** (modelo: deepseek-v4-flash)
 - **Google OAuth 2.0**
 - **SMTP Gmail** (envío de correos)
 
@@ -245,7 +244,7 @@ C:\Users\marco\Pictures\EpycusApp\
 **Controlador:** `IaController.cs`  
 **Servicio:** `ServicioIA.cs`
 
-- Chat con IA usando Gemini API (gemini-2.0-flash) o DeepSeek API
+- Chat con IA usando DeepSeek API
 - System prompt contextual con datos del usuario (nombre, nivel, XP, racha, hábitos, misiones, estado de ánimo)
 - Historial de conversaciones por usuario
 - Sugerencias personalizadas basadas en el estado del usuario
@@ -639,7 +638,6 @@ Soporta también modo InMemory para desarrollo/testing.
 | Api | 300 | 1 min | 10 |
 | Auth | 20 | 1 min | 0 |
 | Mobile | 400 | 1 min | 10 |
-| Gemini | 20 | 1 min | 0 |
 | DeepSeek | 2500 | 1 min | 0 |
 
 ### Protecciones de seguridad implementadas
@@ -665,7 +663,7 @@ Soporta también modo InMemory para desarrollo/testing.
 ### Middleware de seguridad
 
 - Middleware de telemetría (logs de requests lentos y errores 500+)
-- Health checks de BD, disco, Gemini y DeepSeek
+- Health checks de BD, disco y DeepSeek
 
 ---
 
@@ -749,7 +747,7 @@ ConnectionStrings__ConexionPrincipal=<MariaDB>
 Jwt__Clave=<secreta>
 Google__ClientId / Google__ClientSecret
 Correo__Servidor / Correo__Puerto / Correo__Usuario / Correo__Contrasena
-Gemini__ApiKey / Gemini__Modelo
+DeepSeek__ApiKey / DeepSeek__Modelo
 Cors__OrigenesPermitidos__0 / __1
 ```
 
@@ -830,14 +828,13 @@ Cors__OrigenesPermitidos__0 / __1
 
 | # | Pendiente | Detalle |
 |---|-----------|---------|
-| 1 | Rate limiter de Gemini no aplicado correctamente | No protege efectivamente el controlador |
-| 2 | Sin migraciones automáticas en CI/CD | Las migraciones se aplican manualmente |
-| 3 | Sin caché para datos frecuentes | Carga innecesaria en BD |
-| 4 | Sin graceful shutdown | Pérdida de datos en sesiones activas |
-| 5 | API no versionada | Breaking changes afectan a clients |
-| 6 | Sin logging/auditoría de operaciones sensibles | No se rastrean acciones admin |
-| 7 | Sin análisis de sentimiento en el chat IA | No se detectan estados de ánimo del usuario |
-| 8 | Personajes y logros con imágenes placeholder | Mayoría de carreras sin imágenes reales |
+| 1 | Sin migraciones automáticas en CI/CD | Las migraciones se aplican manualmente |
+| 2 | Sin caché para datos frecuentes | Carga innecesaria en BD |
+| 3 | Sin graceful shutdown | Pérdida de datos en sesiones activas |
+| 4 | API no versionada | Breaking changes afectan a clients |
+| 5 | Sin logging/auditoría de operaciones sensibles | No se rastrean acciones admin |
+| 6 | Sin análisis de sentimiento en el chat IA | No se detectan estados de ánimo del usuario |
+| 7 | Personajes y logros con imágenes placeholder | Mayoría de carreras sin imágenes reales |
 
 ### Testing
 

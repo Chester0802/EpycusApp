@@ -14,24 +14,18 @@ namespace EpycusApp.Servicios.Implementaciones
 
         private readonly ContextoAplicacion _contexto;
         private readonly ConstructorContextoIA _constructorContexto;
-        private readonly IProveedorGemini _proveedorGemini;
         private readonly IProveedorDeepSeek _proveedorDeepSeek;
-        private readonly string _provider;
         private readonly IServicioGamificacion _gamificacion;
 
         public ServicioIA(
             ContextoAplicacion contexto,
             ConstructorContextoIA constructorContexto,
-            IProveedorGemini proveedorGemini,
             IProveedorDeepSeek proveedorDeepSeek,
-            IConfiguration config,
             IServicioGamificacion gamificacion)
         {
             _contexto = contexto;
             _constructorContexto = constructorContexto;
-            _proveedorGemini = proveedorGemini;
             _proveedorDeepSeek = proveedorDeepSeek;
-            _provider = config["AI:Provider"] ?? "Gemini";
             _gamificacion = gamificacion;
         }
 
@@ -194,9 +188,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
                 var resumen = await GenerarResumenSiNecesarioAsync(usuarioId, conversacionId, historial);
 
-                var respuestaTexto = _provider == "DeepSeek"
-                    ? await _proveedorDeepSeek.LlamarAsync(ctxUsuario, historial, resumen)
-                    : await _proveedorGemini.LlamarAsync(ctxUsuario, historial, resumen);
+                var respuestaTexto = await _proveedorDeepSeek.LlamarAsync(ctxUsuario, historial, resumen);
 
                 _contexto.MensajesIA.Add(new MensajeIA
                 {

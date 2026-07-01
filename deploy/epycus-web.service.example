@@ -34,8 +34,6 @@ Environment=Correo__Usuario=CHANGE_ME
 Environment=Correo__Contrasena=CHANGE_ME
 Environment=Correo__NombreRemitente=Epycus App
 Environment=App__UrlBase=https://app.epycus.es
-Environment=Gemini__ApiKey=CHANGE_ME
-Environment=Gemini__Modelo=gemini-2.5-flash-lite
 Environment=Cors__OrigenesPermitidos__0=http://app.epycus.es
 Environment=Cors__OrigenesPermitidos__1=https://app.epycus.es
 

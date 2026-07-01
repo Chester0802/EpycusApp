@@ -15,10 +15,10 @@ Sistema multiplataforma de gamificación de hábitos profesionales inspirado en 
 | Base de datos | MariaDB 11.8 |
 | Autenticación | JWT (cookies HttpOnly) + Google OAuth |
 | Frontend | Razor Views + Bootstrap 5 + Chart.js + Font Awesome |
-| IA | Gemini API 2.5 Flash Lite (asistente EDY) |
+| IA | DeepSeek API (asistente EDY) |
 | Deploy | VPS Debian 13 (Trixie) + Nginx (reverse proxy) |
 | CI/CD | GitHub Actions (build + quality + deploy) |
-| Monitoreo | Health checks (BD, Gemini, disco) + TelemetriaMiddleware |
+| Monitoreo | Health checks (BD, DeepSeek, disco) + TelemetriaMiddleware |
 
 ## Flujo de trabajo (local → GitHub → VPS)
 
@@ -98,7 +98,7 @@ Copia `appsettings.Example.json` a `appsettings.json` y configura:
 | `Jwt:Clave` | Clave secreta JWT (mínimo 32 caracteres) | ✅ |
 | `Google:ClientId` / `ClientSecret` | Credenciales OAuth de Google | ⚠️ Para login con Google |
 | `Correo:*` | Configuración SMTP (Gmail App Password) | ⚠️ Para registro/recuperación |
-| `Gemini:ApiKey` | API Key de Google Gemini | ⚠️ Para asistente IA |
+| `DeepSeek:ApiKey` | API Key de DeepSeek | ⚠️ Para asistente IA |
 | `Database:Provider` | `"InMemory"` para desarrollo sin BD | ❌ Opcional |
 
 En producción todas las credenciales se pasan como variables de entorno en el servicio systemd.
@@ -170,7 +170,7 @@ curl http://localhost:5000/health
 | `/Perfil/*` | Perfil de usuario y personaje |
 | `/admin/*` | Panel de administración |
 | `/api/*` | API REST (para app móvil futura) |
-| `/health` | Health checks (BD, Gemini, disco) |
+| `/health` | Health checks (BD, DeepSeek, disco) |
 | `/swagger` | Documentación OpenAPI |
 
 ## Base de datos
