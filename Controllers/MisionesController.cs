@@ -34,8 +34,15 @@ namespace EpycusApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _servicioMisiones.CrearMision(modelo, ObtenerUsuarioId());
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _servicioMisiones.CrearMision(modelo, ObtenerUsuarioId());
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
 
             await CargarCategorias();

@@ -41,6 +41,11 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task CrearMision(CrearMisionViewModel modelo, int usuarioId)
         {
+            // Evita una FK violation sin manejar (500) si llega un CategoriaId obsoleto o
+            // inexistente (ej. 0 por un fallback en el cliente movil).
+            if (!await _contexto.Categorias.AnyAsync(c => c.Id == modelo.CategoriaId))
+                throw new InvalidOperationException("La categoría seleccionada no es válida.");
+
             var mision = new Mision
             {
                 Nombre = modelo.Nombre,
@@ -63,6 +68,9 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var mision = await _contexto.Misiones.FirstOrDefaultAsync(m => m.Id == modelo.Id && m.UsuarioId == usuarioId);
             if (mision == null) throw new Exception("Misi\u00f3n no encontrada o no autorizada.");
+
+            if (!await _contexto.Categorias.AnyAsync(c => c.Id == modelo.CategoriaId))
+                throw new InvalidOperationException("La categor\u00eda seleccionada no es v\u00e1lida.");
 
             if (!string.IsNullOrEmpty(modelo.Estado) && modelo.Estado != mision.Estado)
             {

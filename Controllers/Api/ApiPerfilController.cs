@@ -44,8 +44,11 @@ namespace EpycusApp.Controllers.Api
         }
 
         [HttpPut]
-        public async Task<IActionResult> Actualizar([FromBody] ActualizarRequestDto request)
+        public async Task<IActionResult> Actualizar([FromBody] ActualizarRequestDto? request)
         {
+            if (request == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
+
             var usuarioId = ObtenerUsuarioId()!.Value;
 
             var modelo = new ActualizarPerfilViewModel
@@ -64,8 +67,11 @@ namespace EpycusApp.Controllers.Api
         }
 
         [HttpPut("cambiar-contrasena")]
-        public async Task<IActionResult> CambiarContrasena([FromBody] CambiarContrasenaRequestDto request)
+        public async Task<IActionResult> CambiarContrasena([FromBody] CambiarContrasenaRequestDto? request)
         {
+            if (request == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
+
             var usuarioId = ObtenerUsuarioId()!.Value;
             var perfil = await _servicioPerfil.ObtenerPerfil(usuarioId);
             if (perfil == null)
@@ -84,8 +90,11 @@ namespace EpycusApp.Controllers.Api
         }
 
         [HttpPut("personaje")]
-        public async Task<IActionResult> CambiarPersonaje([FromBody] PersonajeRequestDto request)
+        public async Task<IActionResult> CambiarPersonaje([FromBody] PersonajeRequestDto? request)
         {
+            if (request == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
+
             var usuarioId = ObtenerUsuarioId()!.Value;
             await _servicioPerfil.CambiarPersonaje(request.PersonajeId, usuarioId);
             var nuevaImagen = ConvertirUrlAbsoluta(await _servicioPerfil.ObtenerImagenPersonajeActual(usuarioId));
@@ -94,8 +103,11 @@ namespace EpycusApp.Controllers.Api
         }
 
         [HttpPut("tema")]
-        public async Task<IActionResult> CambiarTema([FromBody] TemaRequestDto request)
+        public async Task<IActionResult> CambiarTema([FromBody] TemaRequestDto? request)
         {
+            if (request == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
+
             var usuarioId = ObtenerUsuarioId()!.Value;
             var resultado = await _servicioPerfil.CambiarTemaAsync(usuarioId, request.TemaId);
             if (!resultado.EsExitoso)

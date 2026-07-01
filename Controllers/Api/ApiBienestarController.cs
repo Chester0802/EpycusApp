@@ -25,21 +25,22 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
 
-            var alertasTask = _servicioBienestar.ObtenerAlertasActivas(usuarioId);
-            var fraseTask = _servicioBienestar.ObtenerFraseMotivacionalAleatoria();
-            var estadoHoyTask = _servicioBienestar.ObtenerEstadoHoy(usuarioId);
-            var habitosTask = _servicioBienestar.ObtenerHabitosPendientesAsync(usuarioId);
-            var misionesTask = _servicioBienestar.ObtenerMisionesPendientesAsync(usuarioId);
-
-            await Task.WhenAll(alertasTask, fraseTask, estadoHoyTask, habitosTask, misionesTask);
+            // Secuencial: todas comparten el mismo DbContext (scoped), que no admite
+            // operaciones concurrentes. Task.WhenAll producia "A second operation was
+            // started on this context instance..." en practicamente cada llamada.
+            var alertas = await _servicioBienestar.ObtenerAlertasActivas(usuarioId);
+            var frase = await _servicioBienestar.ObtenerFraseMotivacionalAleatoria();
+            var estadoHoy = await _servicioBienestar.ObtenerEstadoHoy(usuarioId);
+            var habitosPendientes = await _servicioBienestar.ObtenerHabitosPendientesAsync(usuarioId);
+            var misionesPendientes = await _servicioBienestar.ObtenerMisionesPendientesAsync(usuarioId);
 
             var resultado = new BienestarResumenResponse
             {
-                Alertas = alertasTask.Result,
-                Frase = fraseTask.Result,
-                EstadoHoy = estadoHoyTask.Result,
-                HabitosPendientes = habitosTask.Result,
-                MisionesPendientes = misionesTask.Result
+                Alertas = alertas,
+                Frase = frase,
+                EstadoHoy = estadoHoy,
+                HabitosPendientes = habitosPendientes,
+                MisionesPendientes = misionesPendientes
             };
 
             return Ok(RespuestaApi<BienestarResumenResponse>.Exitosa(resultado));

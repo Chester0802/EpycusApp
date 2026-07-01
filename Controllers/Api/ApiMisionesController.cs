@@ -56,8 +56,11 @@ namespace EpycusApp.Controllers.Api
         }
 
         [HttpPost]
-        public async Task<IActionResult> Crear([FromBody] CrearMisionDto dto)
+        public async Task<IActionResult> Crear([FromBody] CrearMisionDto? dto)
         {
+            if (dto == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
+
             var usuarioId = ObtenerUsuarioId()!.Value;
 
             var modelo = new CrearMisionViewModel
@@ -71,13 +74,23 @@ namespace EpycusApp.Controllers.Api
                 CategoriaId = dto.CategoriaId ?? 0
             };
 
-            await _servicioMisiones.CrearMision(modelo, usuarioId);
+            try
+            {
+                await _servicioMisiones.CrearMision(modelo, usuarioId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(ex.Message));
+            }
             return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Editar(int id, [FromBody] EditarMisionDto dto)
+        public async Task<IActionResult> Editar(int id, [FromBody] EditarMisionDto? dto)
         {
+            if (dto == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
+
             var usuarioId = ObtenerUsuarioId()!.Value;
 
             var modelo = new EditarMisionViewModel
@@ -92,7 +105,14 @@ namespace EpycusApp.Controllers.Api
                 CategoriaId = dto.CategoriaId
             };
 
-            await _servicioMisiones.EditarMision(modelo, usuarioId);
+            try
+            {
+                await _servicioMisiones.EditarMision(modelo, usuarioId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(ex.Message));
+            }
             return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 

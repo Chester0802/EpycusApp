@@ -21,8 +21,11 @@ namespace EpycusApp.Controllers.Api
         }
 
         [HttpPost("chat")]
-        public async Task<IActionResult> Chat([FromBody] ChatRequest request)
+        public async Task<IActionResult> Chat([FromBody] ChatRequest? request)
         {
+            if (request == null || string.IsNullOrWhiteSpace(request.Mensaje))
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("El mensaje es requerido"));
+
             var usuarioId = ObtenerUsuarioId()!.Value;
             var conversacionId = string.IsNullOrWhiteSpace(request.ConversacionId)
                 ? _servicioIA.NuevaConversacionId()

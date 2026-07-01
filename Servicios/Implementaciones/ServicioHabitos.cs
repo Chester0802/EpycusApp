@@ -185,6 +185,11 @@ namespace EpycusApp.Servicios.Implementaciones
             if (habito is null)
                 return;
 
+            // Evita una FK violation sin manejar (500) si llega un CategoriaId obsoleto o
+            // inexistente; CrearHabito ya validaba esto, EditarHabito no lo hacía.
+            if (!await _context.Categorias.AnyAsync(c => c.Id == modelo.CategoriaId && c.EstaActiva))
+                throw new ArgumentException("Categoría no válida");
+
             habito.Nombre = modelo.Nombre;
             habito.Descripcion = modelo.Descripcion;
             habito.CategoriaId = modelo.CategoriaId;

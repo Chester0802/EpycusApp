@@ -194,6 +194,10 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<RespuestaOperacion> CambiarTemaAsync(int usuarioId, int temaId)
         {
+            // Evita una FK violation sin manejar (500) si llega un TemaId inválido.
+            if (!await _contexto.Temas.AnyAsync(t => t.Id == temaId))
+                return RespuestaOperacion.Fallo("El tema seleccionado no es válido.");
+
             var temaUsuario = await _contexto.TemasUsuario
                 .FirstOrDefaultAsync(tu => tu.UsuarioId == usuarioId);
 

@@ -79,8 +79,11 @@ namespace EpycusApp.Controllers.Api
         }
 
         [HttpPost("frases")]
-        public async Task<IActionResult> CrearFrase([FromBody] CrearFraseRequest request)
+        public async Task<IActionResult> CrearFrase([FromBody] CrearFraseRequest? request)
         {
+            if (request == null || string.IsNullOrWhiteSpace(request.Frase))
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("La frase es requerida"));
+
             await _servicioAdmin.CrearFrase(request.Frase, request.Autor ?? "Anonimo");
             return Created(string.Empty, RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }

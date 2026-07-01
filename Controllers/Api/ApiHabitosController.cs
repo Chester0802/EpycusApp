@@ -124,8 +124,11 @@ namespace EpycusApp.Controllers.Api
         }
 
         [HttpPost]
-        public async Task<IActionResult> Crear([FromBody] CrearHabitoDto dto)
+        public async Task<IActionResult> Crear([FromBody] CrearHabitoDto? dto)
         {
+            if (dto == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
+
             var usuarioId = ObtenerUsuarioId();
             if (!usuarioId.HasValue)
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
@@ -151,13 +154,23 @@ namespace EpycusApp.Controllers.Api
                 EstaActivo = dto.EstaActivo ?? true
             };
 
-            await _servicioHabitos.CrearHabito(modelo, usuarioId.Value);
+            try
+            {
+                await _servicioHabitos.CrearHabito(modelo, usuarioId.Value);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(ex.Message));
+            }
             return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Editar(int id, [FromBody] EditarHabitoDto dto)
+        public async Task<IActionResult> Editar(int id, [FromBody] EditarHabitoDto? dto)
         {
+            if (dto == null)
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Solicitud inválida"));
+
             var usuarioId = ObtenerUsuarioId();
             if (!usuarioId.HasValue)
                 return Unauthorized(RespuestaApi<object>.Fallida("No autenticado"));
@@ -175,7 +188,14 @@ namespace EpycusApp.Controllers.Api
                 EstaActivo = dto.EstaActivo ?? true
             };
 
-            await _servicioHabitos.EditarHabito(modelo, usuarioId.Value);
+            try
+            {
+                await _servicioHabitos.EditarHabito(modelo, usuarioId.Value);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(ex.Message));
+            }
             return Ok(RespuestaApi<SuccessResponseDto>.Exitosa(new SuccessResponseDto()));
         }
 

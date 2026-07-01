@@ -161,55 +161,68 @@ namespace EpycusApp.Servicios.Implementaciones
 
             var ctxUsuario = await _constructorContexto.ConstruirAsync(usuarioId);
 
-            using var transaction = await _contexto.Database.BeginTransactionAsync();
+            // La conexion usa EnableRetryOnFailure (MySqlRetryingExecutionStrategy), que no
+            // admite transacciones iniciadas manualmente: hay que envolver toda la operacion
+            // reintentable con CreateExecutionStrategy().ExecuteAsync(). Sin esto, el primer
+            // mensaje de cualquier chat con Edy fallaba con "does not support user-initiated
+            // transactions" (500 en /api/v1/ia/chat).
+            var estrategia = _contexto.Database.CreateExecutionStrategy();
+            var respuestaTexto = await estrategia.ExecuteAsync(EnviarMensaje);
 
-            try
+            await _gamificacion.SumarXP(usuarioId, XpPorMensaje);
+
+            return respuestaTexto;
+
+            async Task<string> EnviarMensaje()
             {
-                var msgUsuario = new MensajeIA
+                using var transaction = await _contexto.Database.BeginTransactionAsync();
+
+                try
                 {
-                    ConversacionId = conversacionId,
-                    UsuarioId = usuarioId,
-                    Rol = "user",
-                    Contenido = mensaje,
-                    FechaHora = DateTime.UtcNow
-                };
-                _contexto.MensajesIA.Add(msgUsuario);
-                await _contexto.SaveChangesAsync();
+                    var msgUsuario = new MensajeIA
+                    {
+                        ConversacionId = conversacionId,
+                        UsuarioId = usuarioId,
+                        Rol = "user",
+                        Contenido = mensaje,
+                        FechaHora = DateTime.UtcNow
+                    };
+                    _contexto.MensajesIA.Add(msgUsuario);
+                    await _contexto.SaveChangesAsync();
 
-                var historial = (await _contexto.MensajesIA
-                    .Where(m => m.UsuarioId == usuarioId && m.ConversacionId == conversacionId)
-                    .OrderByDescending(m => m.FechaHora)
-                    .ThenByDescending(m => m.Id)
-                    .Take(MaxMensajesHistorial)
-                    .ToListAsync())
-                    .OrderBy(m => m.FechaHora)
-                    .ThenBy(m => m.Id)
-                    .ToList();
+                    var historial = (await _contexto.MensajesIA
+                        .Where(m => m.UsuarioId == usuarioId && m.ConversacionId == conversacionId)
+                        .OrderByDescending(m => m.FechaHora)
+                        .ThenByDescending(m => m.Id)
+                        .Take(MaxMensajesHistorial)
+                        .ToListAsync())
+                        .OrderBy(m => m.FechaHora)
+                        .ThenBy(m => m.Id)
+                        .ToList();
 
-                var resumen = await GenerarResumenSiNecesarioAsync(usuarioId, conversacionId, historial);
+                    var resumen = await GenerarResumenSiNecesarioAsync(usuarioId, conversacionId, historial);
 
-                var respuestaTexto = await _proveedorDeepSeek.LlamarAsync(ctxUsuario, historial, resumen);
+                    var respuesta = await _proveedorDeepSeek.LlamarAsync(ctxUsuario, historial, resumen);
 
-                _contexto.MensajesIA.Add(new MensajeIA
+                    _contexto.MensajesIA.Add(new MensajeIA
+                    {
+                        ConversacionId = conversacionId,
+                        UsuarioId = usuarioId,
+                        Rol = "model",
+                        Contenido = respuesta,
+                        FechaHora = DateTime.UtcNow
+                    });
+                    await _contexto.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+
+                    return respuesta;
+                }
+                catch
                 {
-                    ConversacionId = conversacionId,
-                    UsuarioId = usuarioId,
-                    Rol = "model",
-                    Contenido = respuestaTexto,
-                    FechaHora = DateTime.UtcNow
-                });
-                await _contexto.SaveChangesAsync();
-
-                await transaction.CommitAsync();
-
-                await _gamificacion.SumarXP(usuarioId, XpPorMensaje);
-
-                return respuestaTexto;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
+                    await transaction.RollbackAsync();
+                    throw;
+                }
             }
         }
 
