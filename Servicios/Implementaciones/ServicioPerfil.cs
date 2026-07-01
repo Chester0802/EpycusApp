@@ -94,7 +94,12 @@ namespace EpycusApp.Servicios.Implementaciones
             usuario.Genero = modelo.Genero;
 
             if (modelo.CarreraId.HasValue)
+            {
+                // Evita una FK violation sin manejar (500) si llega un CarreraId obsoleto o inválido.
+                if (!await _contexto.Carreras.AnyAsync(c => c.Id == modelo.CarreraId.Value))
+                    throw new InvalidOperationException("La carrera seleccionada no es válida.");
                 usuario.CarreraId = modelo.CarreraId.Value;
+            }
 
             await _contexto.SaveChangesAsync();
         }
@@ -108,7 +113,11 @@ namespace EpycusApp.Servicios.Implementaciones
             usuario.Nombre = modelo.Nombre;
 
             if (modelo.CarreraId.HasValue)
+            {
+                if (!await _contexto.Carreras.AnyAsync(c => c.Id == modelo.CarreraId.Value))
+                    return RespuestaOperacion.Fallo("La carrera seleccionada no es válida.");
                 usuario.CarreraId = modelo.CarreraId.Value;
+            }
 
             await _contexto.SaveChangesAsync();
             return RespuestaOperacion.Exitosa("Perfil actualizado correctamente.");

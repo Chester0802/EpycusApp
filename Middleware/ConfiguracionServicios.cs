@@ -8,6 +8,7 @@ using EpycusApp.Servicios.Implementaciones;
 using EpycusApp.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -211,6 +212,17 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.ShutdownTimeout = TimeSpan.FromSeconds(30);
             });
 
+            // Sin esto, las claves de Data Protection son efímeras (en memoria) y se regeneran
+            // en cada reinicio del proceso. Como el deploy reinicia el servicio en cada push,
+            // cualquier cookie protegida emitida antes del reinicio (antiforgery, correlación de
+            // OAuth de Google) deja de poder descifrarse -> "The antiforgery token could not be
+            // decrypted" en Cerrar Sesión/formularios, y "Correlation failed" en Google Sign-In.
+            var keysPath = builder.Configuration["DataProtection:KeysPath"]
+                ?? Path.Combine(builder.Environment.ContentRootPath, "keys");
+            builder.Services.AddDataProtection()
+                .SetApplicationName("EpycusApp")
+                .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+
             builder.Services.AddAntiforgery(options =>
             {
                 options.HeaderName = "X-CSRF-TOKEN";
@@ -306,7 +318,18 @@ namespace Microsoft.Extensions.DependencyInjection
             var sentryDsn = builder.Configuration["Sentry:Dsn"];
             if (!string.IsNullOrEmpty(sentryDsn))
             {
-                builder.Services.AddSentry();
+                // AddSentry() sin opciones no enlaza el Dsn desde "Sentry:Dsn" (esa sección no es
+                // el "Logging:Sentry" que espera el logging provider). El SentryHub se creaba de
+                // forma perezosa con Dsn=null en el primer log de nivel Error tras cada reinicio,
+                // y lanzaba "You must supply a DSN" en vez de registrar el error real -> 500
+                // encubriendo otros fallos. UseSentry() fija el Dsn explícitamente.
+                builder.WebHost.UseSentry(options =>
+                {
+                    options.Dsn = sentryDsn;
+                    options.Environment = builder.Configuration["Sentry:Environment"] ?? builder.Environment.EnvironmentName;
+                    options.TracesSampleRate = builder.Configuration.GetValue<double?>("Sentry:TracesSampleRate") ?? 0.2;
+                    options.ProfilesSampleRate = builder.Configuration.GetValue<double?>("Sentry:ProfilesSampleRate") ?? 0.2;
+                });
             }
 
             return builder;

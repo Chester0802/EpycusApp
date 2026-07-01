@@ -58,6 +58,14 @@ namespace EpycusApp.Servicios.Implementaciones
                 return (false, "No existe el rol base de usuario", null, null);
             }
 
+            // Sin esta validación, un CarreraId obsoleto (ej. caché desactualizada en el cliente)
+            // llegaba hasta SaveChangesAsync y rompía con una FK violation sin manejar (500).
+            var existeCarrera = await _contexto.Carreras.AnyAsync(c => c.Id == modelo.CarreraId);
+            if (!existeCarrera)
+            {
+                return (false, "La carrera seleccionada no es válida", null, null);
+            }
+
             string codigoUnico;
             do
             {
@@ -136,50 +144,60 @@ namespace EpycusApp.Servicios.Implementaciones
 
             var refreshHash = HashToken(refreshToken);
 
-            await using var transaction = await _contexto.Database.BeginTransactionAsync();
-            try
+            // La conexión usa EnableRetryOnFailure (MySqlRetryingExecutionStrategy), que no admite
+            // transacciones iniciadas manualmente: hay que envolver toda la operación reintentable
+            // con CreateExecutionStrategy().ExecuteAsync(). Sin esto, cada refresh fallaba con
+            // "does not support user-initiated transactions" (500 en /api/v1/auth/refresh).
+            var estrategia = _contexto.Database.CreateExecutionStrategy();
+            return await estrategia.ExecuteAsync(EjecutarRenovacion);
+
+            async Task<(bool Exito, string Mensaje, string? Token, string? RefreshToken)> EjecutarRenovacion()
             {
-                var tokenGuardado = await _contexto.TokensRefresh
-                    .FirstOrDefaultAsync(t => t.Token == refreshHash && !t.Revocado);
-
-                if (tokenGuardado == null || tokenGuardado.ExpiraEn < DateTime.UtcNow)
+                await using var transaction = await _contexto.Database.BeginTransactionAsync();
+                try
                 {
-                    return (false, "Token expirado", null, null);
+                    var tokenGuardado = await _contexto.TokensRefresh
+                        .FirstOrDefaultAsync(t => t.Token == refreshHash && !t.Revocado);
+
+                    if (tokenGuardado == null || tokenGuardado.ExpiraEn < DateTime.UtcNow)
+                    {
+                        return (false, "Token expirado", null, null);
+                    }
+
+                    var usuario = await _contexto.Usuarios
+                        .Include(u => u.Rol)
+                        .FirstOrDefaultAsync(u => u.Id == tokenGuardado.UsuarioId);
+
+                    if (usuario == null || !usuario.EstaActivo)
+                    {
+                        return (false, "Usuario inválido", null, null);
+                    }
+
+                    tokenGuardado.Revocado = true;
+                    await _contexto.SaveChangesAsync();
+
+                    var nuevoRefresh = GenerarRefreshToken();
+                    var nuevoRefreshHash = HashToken(nuevoRefresh);
+
+                    _contexto.TokensRefresh.Add(new Models.Entidades.TokenRefresh
+                    {
+                        UsuarioId = usuario.Id,
+                        Token = nuevoRefreshHash,
+                        ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
+                    });
+
+                    var token = GenerarToken(usuario);
+                    await _contexto.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+
+                    return (true, "Token renovado", token, nuevoRefresh);
                 }
-
-                var usuario = await _contexto.Usuarios
-                    .Include(u => u.Rol)
-                    .FirstOrDefaultAsync(u => u.Id == tokenGuardado.UsuarioId);
-
-                if (usuario == null || !usuario.EstaActivo)
+                catch
                 {
-                    return (false, "Usuario inválido", null, null);
+                    await transaction.RollbackAsync();
+                    throw;
                 }
-
-                tokenGuardado.Revocado = true;
-                await _contexto.SaveChangesAsync();
-
-                var nuevoRefresh = GenerarRefreshToken();
-                var nuevoRefreshHash = HashToken(nuevoRefresh);
-
-                _contexto.TokensRefresh.Add(new Models.Entidades.TokenRefresh
-                {
-                    UsuarioId = usuario.Id,
-                    Token = nuevoRefreshHash,
-                    ExpiraEn = DateTime.UtcNow.AddDays(ObtenerExpiracionRefreshDias())
-                });
-
-                var token = GenerarToken(usuario);
-                await _contexto.SaveChangesAsync();
-
-                await transaction.CommitAsync();
-
-                return (true, "Token renovado", token, nuevoRefresh);
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
             }
         }
 
@@ -542,6 +560,12 @@ namespace EpycusApp.Servicios.Implementaciones
             if (rolUsuario == null)
             {
                 return (false, "No existe el rol base de usuario", null, null);
+            }
+
+            var existeCarrera = await _contexto.Carreras.AnyAsync(c => c.Id == modelo.CarreraId);
+            if (!existeCarrera)
+            {
+                return (false, "La carrera seleccionada no es válida", null, null);
             }
 
             string codigoUnico;

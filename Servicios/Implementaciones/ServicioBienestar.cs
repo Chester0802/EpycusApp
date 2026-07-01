@@ -218,14 +218,31 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<AlertaBienestar?> RegistrarEstadoAnimo(int usuarioId, string estado, string? nota)
         {
-            _contexto.EstadosAnimo.Add(new EstadoAnimo
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
+            // Upsert: como máximo un registro de ánimo por usuario y día. Antes se insertaba
+            // siempre una fila nueva, y dos registros el mismo día duplicaban la clave "Fecha"
+            // usada en Views/Bienestar/Index.cshtml (ToDictionary), provocando un 500 al listar
+            // el historial en cada carga posterior de la página.
+            var registroHoy = await _contexto.EstadosAnimo
+                .FirstOrDefaultAsync(e => e.UsuarioId == usuarioId && e.Fecha == hoy);
+
+            if (registroHoy != null)
             {
-                UsuarioId = usuarioId,
-                Estado = estado,
-                Nota = nota,
-                Fecha = DateOnly.FromDateTime(DateTime.Today),
-                FechaRegistro = DateTime.UtcNow
-            });
+                registroHoy.Estado = estado;
+                registroHoy.Nota = nota;
+                registroHoy.FechaRegistro = DateTime.UtcNow;
+            }
+            else
+            {
+                _contexto.EstadosAnimo.Add(new EstadoAnimo
+                {
+                    UsuarioId = usuarioId,
+                    Estado = estado,
+                    Nota = nota,
+                    Fecha = hoy,
+                    FechaRegistro = DateTime.UtcNow
+                });
+            }
 
             await _contexto.SaveChangesAsync();
             var alerta = await VerificarAnimoNegativoConsecutivo(usuarioId);

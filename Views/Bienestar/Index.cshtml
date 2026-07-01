@@ -256,7 +256,12 @@
                 <div class="d-flex gap-2 flex-wrap mb-4">
                     @{
                         var hoy = DateOnly.FromDateTime(DateTime.Today);
-                        var historialDict = Model.HistorialAnimo.ToDictionary(e => e.Fecha);
+                        // GroupBy en vez de ToDictionary: si por datos antiguos hay más de un
+                        // registro para la misma fecha, ToDictionary lanzaba una excepción
+                        // (clave duplicada) y la página completa devolvía un 500.
+                        var historialDict = Model.HistorialAnimo
+                            .GroupBy(e => e.Fecha)
+                            .ToDictionary(g => g.Key, g => g.OrderByDescending(e => e.FechaRegistro).First());
                     }
                     @for (int i = 13; i >= 0; i--)
                     {

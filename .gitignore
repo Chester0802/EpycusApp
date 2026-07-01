@@ -6,6 +6,9 @@
 # Credenciales locales (NO subir a GitHub)
 credenciales.md
 
+# Claves de Data Protection (persistidas localmente en dev; en prod viven en /var/www/epycus-web/keys)
+/keys/
+
 # User-specific files
 *.rsuser
 *.suo

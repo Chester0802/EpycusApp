@@ -25,9 +25,9 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginDto request)
+        public async Task<IActionResult> Login([FromBody] LoginDto? request)
         {
-            if (string.IsNullOrEmpty(request.Correo) || string.IsNullOrEmpty(request.Contrasena))
+            if (request == null || string.IsNullOrEmpty(request.Correo) || string.IsNullOrEmpty(request.Contrasena))
                 return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Credenciales requeridas"));
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.Login(request.Correo, request.Contrasena);
             if (!exito || token == null || refreshToken == null)
@@ -40,9 +40,9 @@ namespace EpycusApp.Controllers.Api
 
         [HttpPost("refresh")]
         [AllowAnonymous]
-        public async Task<IActionResult> Refresh([FromBody] RefreshDto request)
+        public async Task<IActionResult> Refresh([FromBody] RefreshDto? request)
         {
-            if (string.IsNullOrEmpty(request.RefreshToken))
+            if (request == null || string.IsNullOrEmpty(request.RefreshToken))
                 return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida("Token requerido"));
             var (exito, mensaje, token, refreshToken) = await _servicioAutenticacion.RenovarToken(request.RefreshToken);
             if (!exito || token == null || refreshToken == null)

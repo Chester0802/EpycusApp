@@ -495,7 +495,11 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<List<TareaPomodoro>> ObtenerTareasEnfoqueAsync(int usuarioId)
         {
-            var habitosTask = _context.Habitos
+            // Secuencial: ambas consultas comparten el mismo DbContext (scoped), que no admite
+            // operaciones concurrentes. Ejecutarlas con Task.WhenAll producía
+            // "A second operation was started on this context instance before a previous
+            // operation completed" y un 500 en /Pomodoro.
+            var habitos = await _context.Habitos
                 .Include(h => h.Categoria)
                 .Where(h => h.UsuarioId == usuarioId && h.EstaActivo && h.ConPomodoro)
                 .Select(h => new TareaPomodoro
@@ -506,7 +510,7 @@ namespace EpycusApp.Servicios.Implementaciones
                     Tipo = "Habito"
                 }).ToListAsync();
 
-            var misionesTask = _context.Misiones
+            var misiones = await _context.Misiones
                 .Include(m => m.Categoria)
                 .Where(m => m.UsuarioId == usuarioId && m.Estado != "Completado" && m.ConPomodoro)
                 .Select(m => new TareaPomodoro
@@ -517,11 +521,9 @@ namespace EpycusApp.Servicios.Implementaciones
                     Tipo = "Mision"
                 }).ToListAsync();
 
-            await Task.WhenAll(habitosTask, misionesTask);
-
             var tareas = new List<TareaPomodoro>();
-            tareas.AddRange(habitosTask.Result);
-            tareas.AddRange(misionesTask.Result);
+            tareas.AddRange(habitos);
+            tareas.AddRange(misiones);
             return tareas.DistinctBy(t => new { t.Id, t.Tipo }).ToList();
         }
     }
