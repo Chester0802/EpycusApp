@@ -40,18 +40,21 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
             return await _contexto.EntradasDiario
+                .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.UsuarioId == usuarioId && e.Fecha == hoy);
         }
 
         public async Task<EntradaDiario?> ObtenerEntradaPorFecha(int usuarioId, DateOnly fecha)
         {
             return await _contexto.EntradasDiario
+                .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.UsuarioId == usuarioId && e.Fecha == fecha);
         }
 
         public async Task<List<EntradaDiario>> ObtenerEntradasMes(int usuarioId, int año, int mes)
         {
             return await _contexto.EntradasDiario
+                .AsNoTracking()
                 .Where(e => e.UsuarioId == usuarioId && e.Fecha.Year == año && e.Fecha.Month == mes)
                 .OrderBy(e => e.Fecha)
                 .ToListAsync();

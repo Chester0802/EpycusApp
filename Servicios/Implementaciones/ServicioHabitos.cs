@@ -33,12 +33,12 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var vm = new EpycusApp.ViewModels.HabitosDashboardViewModel();
 
-            var habitos = await _context.Habitos.Where(h => h.UsuarioId == usuarioId).ToListAsync();
+            var habitos = await _context.Habitos.AsNoTracking().Where(h => h.UsuarioId == usuarioId).ToListAsync();
             vm.TotalHabitos = habitos.Count;
 
             // Conteo registros últimos 7 días
             var desde = DateOnly.FromDateTime(DateTime.Today.AddDays(-6));
-            var registrosSemana = await (from r in _context.RegistrosHabito
+            var registrosSemana = await (from r in _context.RegistrosHabito.AsNoTracking()
                                          join h in _context.Habitos on r.HabitoId equals h.Id
                                          where r.Fecha >= desde && h.UsuarioId == usuarioId
                                          select r).ToListAsync();
@@ -78,6 +78,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<Habito>> ObtenerHabitosDeUsuario(int usuarioId)
         {
             return await _context.Habitos
+                .AsNoTracking()
                 .Include(h => h.Categoria)
                 .Where(h => h.UsuarioId == usuarioId)
                 .ToListAsync();
@@ -87,6 +88,7 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var hoy = DateOnly.FromDateTime(DateTime.Today);
             var habitos = await _context.Habitos
+                .AsNoTracking()
                 .Include(h => h.Categoria)
                 .Include(h => h.DiasSemana)
                 .Include(h => h.Registros)
@@ -115,6 +117,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<Habito?> ObtenerPorId(int id)
         {
             return await _context.Habitos
+                .AsNoTracking()
                 .Include(h => h.Categoria)
                 .Include(h => h.Registros)
                 .FirstOrDefaultAsync(h => h.Id == id);
@@ -123,6 +126,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<EpycusApp.ViewModels.HabitoViewModel?> ObtenerPorIdViewModel(int id)
         {
             var h = await _context.Habitos
+                .AsNoTracking()
                 .Include(x => x.Categoria)
                 .Include(x => x.DiasSemana)
                 .FirstOrDefaultAsync(x => x.Id == id);
@@ -180,7 +184,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<List<EpycusApp.Models.Entidades.Categoria>> ObtenerCategoriasActivas()
         {
-            return await _context.Categorias.Where(c => c.EstaActiva).ToListAsync();
+            return await _context.Categorias.AsNoTracking().Where(c => c.EstaActiva).ToListAsync();
         }
 
         public async Task EditarHabito(EditarHabitoViewModel modelo, int usuarioId)
@@ -340,6 +344,7 @@ namespace EpycusApp.Servicios.Implementaciones
             var hoy = DateOnly.FromDateTime(DateTime.Today);
 
             var habitos = await _context.Habitos
+                .AsNoTracking()
                 .Include(h => h.Categoria)
                 .Include(h => h.Registros)
                 .Where(h => h.UsuarioId == usuarioId)
@@ -360,6 +365,7 @@ namespace EpycusApp.Servicios.Implementaciones
             var hoy = DateOnly.FromDateTime(DateTime.Today);
 
             var habitos = await _context.Habitos
+                .AsNoTracking()
                 .Include(h => h.Registros)
                 .Include(h => h.Categoria)
                 .Where(h => h.UsuarioId == usuarioId && h.EstaActivo)

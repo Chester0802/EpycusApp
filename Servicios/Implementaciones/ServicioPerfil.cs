@@ -29,6 +29,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<PerfilViewModel?> ObtenerPerfilCompletoAsync(int usuarioId)
         {
             var usuario = await _contexto.Usuarios
+                .AsNoTracking()
                 .Include(u => u.Carrera)
                 .Include(u => u.Progreso)
                     .ThenInclude(p => p.NivelActual)
@@ -69,6 +70,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 .FirstOrDefaultAsync();
 
             var personajes = await _contexto.Personajes
+                .AsNoTracking()
                 .Where(p => p.EstaActivo)
                 .Include(p => p.Imagenes)
                 .ToListAsync();
@@ -186,6 +188,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<LogroUsuario>> ObtenerLogrosUsuarioConLogroAsync(int usuarioId)
         {
             return await _contexto.LogrosUsuario
+                .AsNoTracking()
                 .Include(lu => lu.Logro)
                 .Where(lu => lu.UsuarioId == usuarioId)
                 .OrderByDescending(lu => lu.FechaObtenido)

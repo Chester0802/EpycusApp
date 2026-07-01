@@ -161,6 +161,7 @@ namespace EpycusApp.Servicios.Implementaciones
             var hoy = DateOnly.FromDateTime(DateTime.Today);
 
             var habitos = await _contexto.Habitos
+                .AsNoTracking()
                 .Where(h => h.UsuarioId == usuarioId && h.EstaActivo)
                 .ToListAsync();
 

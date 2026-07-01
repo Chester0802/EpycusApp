@@ -187,6 +187,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<FraseMotivacional?> ObtenerFraseMotivacionalAleatoria()
         {
             var frasesActivas = await _contexto.FrasesMotivacionales
+                .AsNoTracking()
                 .Where(f => f.EstaActiva)
                 .ToListAsync();
 
@@ -202,6 +203,7 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var hoy = DateOnly.FromDateTime(DateTime.Today);
             return await _contexto.EstadosAnimo
+                .AsNoTracking()
                 .Where(e => e.UsuarioId == usuarioId && e.Fecha >= hoy)
                 .OrderByDescending(e => e.Fecha)
                 .FirstOrDefaultAsync();
@@ -211,6 +213,7 @@ namespace EpycusApp.Servicios.Implementaciones
         {
             var inicio = DateOnly.FromDateTime(DateTime.Today.AddDays(-dias + 1));
             return await _contexto.EstadosAnimo
+                .AsNoTracking()
                 .Where(e => e.UsuarioId == usuarioId && e.Fecha >= inicio)
                 .OrderByDescending(e => e.Fecha)
                 .ToListAsync();
@@ -256,6 +259,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<EstadoAnimo>> ObtenerHistorialAnimoCompletoAsync(int usuarioId)
         {
             return await _contexto.EstadosAnimo
+                .AsNoTracking()
                 .Where(e => e.UsuarioId == usuarioId)
                 .OrderByDescending(e => e.Fecha)
                 .ToListAsync();

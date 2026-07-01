@@ -19,12 +19,13 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<ProgresoUsuario> ObtenerProgreso(int usuarioId)
         {
             var progreso = await _contexto.ProgresosUsuario
+                .AsNoTracking()
                 .Include(p => p.NivelActual)
                 .FirstOrDefaultAsync(p => p.UsuarioId == usuarioId);
 
             if (progreso == null)
             {
-                var nivelInicial = await _contexto.Niveles.OrderBy(n => n.Numero).FirstOrDefaultAsync();
+                var nivelInicial = await _contexto.Niveles.AsNoTracking().OrderBy(n => n.Numero).FirstOrDefaultAsync();
                 return new ProgresoUsuario
                 {
                     UsuarioId = usuarioId,
@@ -42,6 +43,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<LogroUsuario>> ObtenerLogrosUsuario(int usuarioId)
         {
             return await _contexto.LogrosUsuario
+                .AsNoTracking()
                 .Include(l => l.Logro)
                 .Where(l => l.UsuarioId == usuarioId)
                 .ToListAsync();
@@ -50,6 +52,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<EstadoAnimo>> ObtenerHistorialAnimo(int usuarioId)
         {
             return await _contexto.EstadosAnimo
+                .AsNoTracking()
                 .Where(e => e.UsuarioId == usuarioId)
                 .OrderByDescending(e => e.FechaRegistro)
                 .Take(7)
@@ -58,28 +61,30 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<Nivel?> ObtenerNivelSiguiente(int nivelActualNumero)
         {
-            return await _contexto.Niveles.FirstOrDefaultAsync(n => n.Numero == nivelActualNumero + 1);
+            return await _contexto.Niveles.AsNoTracking().FirstOrDefaultAsync(n => n.Numero == nivelActualNumero + 1);
         }
 
         public async Task<List<Logro>> ObtenerTodosLosLogros()
         {
-            return await _contexto.Logros.Where(l => l.EstaActivo).ToListAsync();
+            return await _contexto.Logros.AsNoTracking().Where(l => l.EstaActivo).ToListAsync();
         }
 
         public async Task<Nivel?> ObtenerNivelInicialAsync()
         {
-            return await _contexto.Niveles.OrderBy(n => n.Numero).FirstOrDefaultAsync();
+            return await _contexto.Niveles.AsNoTracking().OrderBy(n => n.Numero).FirstOrDefaultAsync();
         }
 
         public async Task<string> ObtenerImagenPersonaje(int usuarioId, int nivelActual)
         {
             var personajeActivo = await _contexto.PersonajesUsuario
+                .AsNoTracking()
                 .Where(p => p.UsuarioId == usuarioId)
                 .FirstOrDefaultAsync();
 
             if (personajeActivo == null) return "https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=200";
 
             var img = await _contexto.ImagenesNivelPersonaje
+                .AsNoTracking()
                 .Where(i => i.PersonajeId == personajeActivo.PersonajeId && i.NivelNumero <= nivelActual)
                 .OrderByDescending(i => i.NivelNumero)
                 .FirstOrDefaultAsync();

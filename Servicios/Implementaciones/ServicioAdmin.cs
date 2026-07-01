@@ -18,6 +18,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<Usuario>> ObtenerTodosUsuarios()
         {
             return await _contexto.Usuarios
+                .AsNoTracking()
                 .Include(u => u.Rol)
                 .Include(u => u.Carrera)
                 .Include(u => u.Suscripciones)
@@ -27,6 +28,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<Usuario?> ObtenerUsuarioPorId(int id)
         {
             return await _contexto.Usuarios
+                .AsNoTracking()
                 .Include(u => u.Rol)
                 .Include(u => u.Carrera)
                 .Include(u => u.Suscripciones)
@@ -84,6 +86,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<FraseMotivacional>> ObtenerFrases()
         {
             return await _contexto.FrasesMotivacionales
+                .AsNoTracking()
                 .OrderByDescending(f => f.EstaActiva)
                 .ThenBy(f => f.Frase)
                 .ToListAsync();

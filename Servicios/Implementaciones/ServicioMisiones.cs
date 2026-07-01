@@ -27,6 +27,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<Mision>> ObtenerMisionesDeUsuario(int usuarioId)
         {
             return await _contexto.Misiones
+                .AsNoTracking()
                 .Include(m => m.Categoria)
                 .Include(m => m.SubTareas)
                 .Where(m => m.UsuarioId == usuarioId)
@@ -38,6 +39,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<Mision?> ObtenerPorId(int id)
         {
             return await _contexto.Misiones
+                .AsNoTracking()
                 .Include(m => m.Categoria)
                 .Include(m => m.SubTareas)
                 .FirstOrDefaultAsync(m => m.Id == id);
@@ -175,6 +177,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<Categoria>> ObtenerCategoriasMisionAsync()
         {
             return await _contexto.Categorias
+                .AsNoTracking()
                 .Where(c => c.Tipo == "Mision" || c.Tipo == "Ambos")
                 .ToListAsync();
         }
@@ -216,6 +219,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<SubTarea>> ObtenerSubTareas(int misionId, int usuarioId)
         {
             return await _contexto.SubTareas
+                .AsNoTracking()
                 .Where(st => st.MisionId == misionId && st.Mision.UsuarioId == usuarioId)
                 .OrderBy(st => st.Orden)
                 .ThenBy(st => st.FechaCreacion)
@@ -225,6 +229,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<SubTarea?> ObtenerSubTareaPorId(int id, int usuarioId)
         {
             return await _contexto.SubTareas
+                .AsNoTracking()
                 .Include(st => st.Mision)
                 .FirstOrDefaultAsync(st => st.Id == id && st.Mision.UsuarioId == usuarioId);
         }

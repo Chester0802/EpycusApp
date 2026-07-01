@@ -186,6 +186,10 @@ namespace EpycusApp.Datos
             modelBuilder.Entity<EstadoAnimo>()
                 .HasIndex(e => e.UsuarioId);
 
+            modelBuilder.Entity<EstadoAnimo>()
+                .HasIndex(e => new { e.UsuarioId, e.Fecha })
+                .IsUnique();
+
             modelBuilder.Entity<EntradaDiario>()
                 .HasIndex(e => new { e.UsuarioId, e.Fecha })
                 .IsUnique();

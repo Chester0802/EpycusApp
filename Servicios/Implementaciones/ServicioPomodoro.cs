@@ -276,7 +276,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<ConfiguracionPomodoro> ObtenerConfiguracion(int usuarioId)
         {
-            var cfg = await _context.ConfiguracionesPomodoro.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
+            var cfg = await _context.ConfiguracionesPomodoro.AsNoTracking().FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
             if (cfg is null)
             {
                 cfg = new ConfiguracionPomodoro { UsuarioId = usuarioId };
@@ -342,13 +342,14 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<SesionPomodoro?> ObtenerSesion(int sesionId)
         {
-            return await _context.SesionesPomodoro.FirstOrDefaultAsync(s => s.Id == sesionId);
+            return await _context.SesionesPomodoro.AsNoTracking().FirstOrDefaultAsync(s => s.Id == sesionId);
         }
 
         public async Task<List<SesionPomodoro>> ObtenerSesionesHoyAsync(int usuarioId)
         {
             var hoy = DateTime.UtcNow.Date;
             return await _context.SesionesPomodoro
+                .AsNoTracking()
                 .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= hoy)
                 .OrderByDescending(s => s.FechaInicio)
                 .ToListAsync();
@@ -357,6 +358,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<SesionPomodoro>> ObtenerHistorialAsync(int usuarioId, DateTime desde, DateTime hasta, int pagina = 1, int tamano = 20, bool? completada = null, bool? conXp = null)
         {
             var query = _context.SesionesPomodoro
+                .AsNoTracking()
                 .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta);
 
             if (completada.HasValue)
@@ -415,6 +417,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<EstadisticasPomodoroPeriodo> ObtenerEstadisticasPeriodoAsync(int usuarioId, DateTime desde, DateTime hasta)
         {
             var sesiones = await _context.SesionesPomodoro
+                .AsNoTracking()
                 .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta)
                 .ToListAsync();
 
@@ -438,6 +441,7 @@ namespace EpycusApp.Servicios.Implementaciones
             var hace7 = hoy.AddDays(-6);
 
             var sesiones = await _context.SesionesPomodoro
+                .AsNoTracking()
                 .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= TimeZoneInfo.ConvertTimeToUtc(hace7, tz))
                 .ToListAsync();
 
@@ -471,6 +475,7 @@ namespace EpycusApp.Servicios.Implementaciones
             var hastaUtc = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTimeFromUtc(hasta, tz), tz);
 
             var sesiones = await _context.SesionesPomodoro
+                .AsNoTracking()
                 .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desdeUtc && s.FechaInicio <= hastaUtc)
                 .ToListAsync();
 
@@ -515,6 +520,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<SubTarea>> ObtenerSubTareasDisponibles(int usuarioId, int misionId)
         {
             var mision = await _context.Misiones
+                .AsNoTracking()
                 .Include(m => m.SubTareas)
                 .FirstOrDefaultAsync(m => m.Id == misionId && m.UsuarioId == usuarioId);
             return mision?.SubTareas
