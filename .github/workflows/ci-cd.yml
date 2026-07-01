@@ -161,20 +161,23 @@ jobs:
 
             # HTTP health check con reintentos
             echo "🔍 Verificando health check HTTP..."
-            MAX_RETRIES=3
+            MAX_RETRIES=6
             RETRY_DELAY=5
             HEALTH_URL="https://app.epycus.es/health"
             for i in $(seq 1 $MAX_RETRIES); do
               HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEALTH_URL" 2>/dev/null || echo "000")
               if [ "$HTTP_CODE" = "200" ]; then
                 echo "✅ Health check OK (HTTP 200)"
-                # Verificar que el status en JSON sea Healthy
+                # Aceptamos Healthy o Degraded: Degraded solo indica que una dependencia
+                # externa opcional (ej. Gemini) esta caida, no que la app este rota. Exigir
+                # "Healthy" a secas bloqueaba TODO deploy futuro mientras esa dependencia
+                # siguiera degradada, forzando un rollback automatico permanente.
                 HEALTH_JSON=$(curl -s --max-time 10 "$HEALTH_URL" 2>/dev/null)
-                if echo "$HEALTH_JSON" | grep -q '"status":"Healthy"'; then
-                  echo "✅ Health check: status Healthy"
+                if echo "$HEALTH_JSON" | grep -qE '"status":"(Healthy|Degraded)"'; then
+                  echo "✅ Health check: status $(echo "$HEALTH_JSON" | grep -o '"status":"[^"]*"')"
                   exit 0
                 else
-                  echo "⚠️ Health check responde 200 pero status no es Healthy: $HEALTH_JSON"
+                  echo "⚠️ Health check responde 200 pero status es Unhealthy: $HEALTH_JSON"
                 fi
               else
                 echo "⏳ Intento $i/$MAX_RETRIES: Health check falló (HTTP $HTTP_CODE), reintentando en ${RETRY_DELAY}s..."
