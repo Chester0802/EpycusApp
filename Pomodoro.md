@@ -96,9 +96,12 @@ de sesión por su día calendario **local** en vez de por su día UTC.
 `ServicioPomodoroTests.cs`) — construyen una sesión exactamente 1 minuto antes/después de la
 medianoche local de un usuario en `America/Lima` y verifican que se cuenta en el día correcto.
 
-**Verificado:** build + test (426/426). **No probado visualmente** — para confirmarlo de
-verdad habría que cambiar la zona horaria de un usuario de prueba a algo como `America/Lima` o
-`America/Bogota` y hacer una sesión por la noche, verificando que aparece en "Resumen de hoy".
+**Verificado:** build + test (426/426). **No probado visualmente con un usuario en zona
+horaria distinta a UTC** — sí se confirmó en vivo que la sesión del día actual aparece
+correctamente en "Resumen de hoy" (ver sección 8.4), pero eso no ejercita la conversión de
+zona horaria en sí (el usuario de prueba tenía `ZonaHoraria` por defecto). Para confirmarlo
+de verdad habría que cambiar la zona horaria de un usuario de prueba a algo como
+`America/Lima` o `America/Bogota` y hacer una sesión por la noche.
 
 ### 1.3 — 🔴 "Minutos enfocados" contaba sesiones que nunca completaron ningún ciclo
 
@@ -127,7 +130,10 @@ importar cuánto tiempo estuvo abierta).
 `EstadisticasSemanales_SesionSinCiclos_NoCuentaSusMinutos`,
 `EstadisticasAvanzadas_SesionSinCiclos_NoCuentaSusMinutos` (`ServicioPomodoroTests.cs`).
 
-**Verificado:** build + test (426/426). **No probado visualmente.**
+**Verificado:** build + test (426/426). **Confirmado en vivo** contra el servidor local:
+se completó un ciclo real y "Resumen de hoy"/"Historial de hoy" mostraron números consistentes
+(1 ciclo, 7 min, 15 XP, entrada visible en el historial) — ver también la sección 8, donde se
+encontró y corrigió un bug relacionado (sesiones todavía en curso mostraban 0 min).
 
 ### 1.4 — 🟠 Web: doble-tap en "Iniciar" podía arrancar dos temporizadores en paralelo
 
@@ -488,13 +494,22 @@ Todos en `EpycusApp.Tests`, 426/426 en verde (`dotnet test`, proyecto
 
 ## 6. Prioridad recomendada para la próxima sesión
 
-1. **Confirmar visualmente** los 9 fixes de la sesión original (1.1 a 1.9) y los 6 de la
-   sesión de seguimiento (sección 7) — ninguno se probó en navegador/dispositivo real
-   todavía, solo build+tests+compilación.
-2. Si el usuario vuelve a reportar el síntoma "reloj congelado pero corriendo", el punto 2.2
+> Actualizado tras una ronda de pruebas en vivo contra el servidor local (navegador real, no
+> solo tests automatizados) — ver sección 8.4 y las notas de verificación actualizadas en 1.2,
+> 1.3, 7.3 y 7.4 arriba.
+
+1. **Confirmar en Android real** (emulador o dispositivo): ningún cambio del módulo (1.8, 1.9,
+   7.5) se probó fuera de compilación — es el hueco de verificación más grande que queda.
+2. **Confirmar con dos pestañas de navegador genuinas** el modo espejo (7.4) — lo probado fue
+   la mecánica en una sola pestaña, no la comunicación real entre dos.
+3. **Confirmar fullscreen + modal** (1.6): activar pantalla completa, forzar el modal de
+   "descanso largo sugerido" (`CiclosAntesDescansoLargo=1`), y ver que no queda invisible.
+4. **Confirmar con un usuario en zona horaria no-UTC** (1.2): hacer una sesión de noche con
+   `ZonaHoraria=America/Lima` o similar y verificar que cuenta para "hoy".
+5. Si el usuario vuelve a reportar el síntoma "reloj congelado pero corriendo", el punto 2.2
    ya está resuelto (modo espejo) — confirmar que efectivamente se resolvió antes de asumir
    un bug nuevo.
-3. Backup del keystore de Android y decisión sobre publicación (ver `auditoria.md`), sin
+6. Backup del keystore de Android y decisión sobre publicación (ver `auditoria.md`), sin
    relación con este módulo.
 
 ---
@@ -568,8 +583,9 @@ al `Model`), leerlos del DOM para reconstruir el PUT habría arriesgado pisar es
 valores obsoletos. En cambio, `persistirMetaDiariaDebounced()` primero hace `GET
 /api/v1/pomodoro/configuracion` para traer la configuración real vigente, cambia solo
 `metaDiariaCiclos`, y hace el `PUT` con el resto de campos intactos. Con debounce de 800ms
-para no disparar una petición por cada clic de +/-. **Verificado:** `node --check`. **No
-probado visualmente** (necesita confirmar en navegador que el valor sobrevive a un reload).
+para no disparar una petición por cada clic de +/-. **Verificado:** `node --check` +
+**confirmado en vivo** contra el servidor local: se ajustó de 4 a 5, se recargó la página
+completa, y tanto el control rápido como la tarjeta de progreso mostraron 5 (antes se perdía).
 
 ### 7.4 — Punto 2.2: modo espejo para pestañas secundarias
 
@@ -589,10 +605,13 @@ que confundiría a la pestaña dueña real — ese era justo el riesgo que tení
 de este análisis (documentada en el punto 2.2 original). Si el conteo espejado llega a 0 sin
 recibir un broadcast real de la pestaña dueña en los siguientes 3 segundos (ej. porque esa
 pestaña se cerró de golpe), el modo espejo se cancela solo y se devuelve el control, para no
-dejar la pestaña bloqueada para siempre. **Verificado:** `node --check`. **No probado
-visualmente** (necesita dos pestañas reales para confirmar: iniciar en una, ver que la otra
-sincroniza el conteo con el botón deshabilitado, y que al pausar/completar en la dueña la
-secundaria recupera el control).
+dejar la pestaña bloqueada para siempre. **Verificado:** `node --check` + **parcialmente
+confirmado en vivo**: se invocó `entrarModoEspejo()` directamente en una pestaña real contra
+el servidor local — el botón se deshabilitó, mostró "Otra pestaña", y se auto-recuperó solo
+tras el margen de gracia sin romper el temporizador real que seguía corriendo en paralelo.
+**Lo que falta confirmar:** el flujo completo con **dos pestañas de navegador genuinas**
+comunicándose por `BroadcastChannel` de verdad (lo probado fue la mecánica en una sola
+pestaña, no el mensaje real entre dos contextos separados).
 
 ### 7.5 — Punto 2.6: Android ahora tiene UI para "Meta diaria"
 
