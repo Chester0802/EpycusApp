@@ -415,7 +415,10 @@
             xpTotal: parseInt(document.getElementById('statXpGanado').innerText) || 0,
             ultimoTick: null,
             procesandoCompletado: false,
-            procesandoInicio: false
+            procesandoInicio: false,
+            esEspejo: false,
+            idIntervaloEspejo: null,
+            idEsperaSalirEspejo: null
         };
 
         const elDisplayTimer = document.getElementById('timerDisplay');
@@ -681,24 +684,36 @@
                     if (!msg || !msg.type) return;
                     switch (msg.type) {
                         case 'timer_start':
+                            // Antes solo se marcaba estaCorriendo=true y se pintaba una vez,
+                            // sin crear ningun setInterval propio en esta pestaña -> el botón
+                            // quedaba en "Pausar" pero el reloj se congelaba para siempre
+                            // (hasta el próximo broadcast). Ahora esta pestaña arranca su
+                            // propio "espejo": un conteo regresivo de solo lectura sincronizado
+                            // por timestamp absoluto (finEn), sin tocar la sesión ni el
+                            // servidor -eso lo sigue haciendo únicamente la pestaña dueña-.
+                            if (msg.modo) estadoTimer.modo = msg.modo;
+                            estadoTimer.tiempoTotal = msg.tiempoTotal;
+                            estadoTimer.ciclosCompletados = msg.ciclos;
+                            document.getElementById('statCiclos').innerText = msg.ciclos;
+                            entrarModoEspejo(msg.finEn || (Date.now() + msg.tiempoRestante * 1000));
+                            break;
                         case 'timer_pause':
+                            salirModoEspejo();
                             if (msg.modo) estadoTimer.modo = msg.modo;
                             estadoTimer.tiempoRestante = msg.tiempoRestante;
                             estadoTimer.tiempoTotal = msg.tiempoTotal;
                             estadoTimer.ciclosCompletados = msg.ciclos;
-                            if (msg.type === 'timer_start' && !estadoTimer.estaCorriendo) {
-                                estadoTimer.estaCorriendo = true;
-                            } else if (msg.type === 'timer_pause' && estadoTimer.estaCorriendo) {
-                                estadoTimer.estaCorriendo = false;
-                            }
+                            estadoTimer.estaCorriendo = false;
                             actualizarUI();
                             break;
                         case 'timer_complete':
+                            salirModoEspejo();
                             estadoTimer.ciclosCompletados = msg.ciclos;
                             document.getElementById('statCiclos').innerText = msg.ciclos;
                             actualizarUI();
                             break;
                         case 'mode_change':
+                            salirModoEspejo();
                             estadoTimer.modo = msg.modo;
                             estadoTimer.tiempoRestante = msg.tiempoRestante;
                             estadoTimer.tiempoTotal = msg.tiempoTotal;
@@ -790,6 +805,46 @@
             } catch(e) {}
         }
 
+        // "Modo espejo": esta pestaña NO es dueña de la sesión (otra pestaña la inició), así
+        // que solo refleja el conteo regresivo para que no se vea "congelado pero corriendo".
+        // No hace fetch ni toca sesionId — evita también que un clic accidental en Play/Pausa
+        // desde aquí termine mandando un broadcast de pausa que confundiría a la pestaña real.
+        function entrarModoEspejo(finEnMs) {
+            estadoTimer.esEspejo = true;
+            if (estadoTimer.idIntervaloEspejo) clearInterval(estadoTimer.idIntervaloEspejo);
+            if (estadoTimer.idEsperaSalirEspejo) clearTimeout(estadoTimer.idEsperaSalirEspejo);
+
+            btnPlayPausa.disabled = true;
+            textoPlay.innerText = 'Otra pestaña';
+
+            function tick() {
+                var restante = Math.max(0, Math.round((finEnMs - Date.now()) / 1000));
+                estadoTimer.tiempoRestante = restante;
+                actualizarUI();
+                if (restante <= 0) {
+                    clearInterval(estadoTimer.idIntervaloEspejo);
+                    estadoTimer.idIntervaloEspejo = null;
+                    // Margen para que llegue el broadcast real (mode_change/timer_complete) de
+                    // la pestaña dueña antes de devolver el control — por si esa pestaña se
+                    // cerró de golpe sin avisar, esta no se queda bloqueada para siempre.
+                    estadoTimer.idEsperaSalirEspejo = setTimeout(salirModoEspejo, 3000);
+                }
+            }
+            tick();
+            estadoTimer.idIntervaloEspejo = setInterval(tick, 1000);
+        }
+
+        function salirModoEspejo() {
+            if (!estadoTimer.esEspejo) return;
+            estadoTimer.esEspejo = false;
+            if (estadoTimer.idIntervaloEspejo) { clearInterval(estadoTimer.idIntervaloEspejo); estadoTimer.idIntervaloEspejo = null; }
+            if (estadoTimer.idEsperaSalirEspejo) { clearTimeout(estadoTimer.idEsperaSalirEspejo); estadoTimer.idEsperaSalirEspejo = null; }
+            btnPlayPausa.disabled = false;
+            iconoPlay.classList.remove('bi-pause-fill');
+            iconoPlay.classList.add('bi-play-fill');
+            textoPlay.innerText = 'Iniciar';
+        }
+
         function establecerModo(modo) {
             if (estadoTimer.estaCorriendo) {
                 if (!confirm("Hay un temporizador en curso. ¿Deseas cambiar de modo y detenerlo?")) return;
@@ -832,6 +887,7 @@
                 metaDiariaValue = n;
                 displayCiclos.innerText = n;
                 actualizarTarjetaMetaDiaria();
+                persistirMetaDiariaDebounced(n);
             }
         }
 
@@ -839,8 +895,7 @@
         // (con su barra de progreso) muestran el mismo concepto pero eran dos elementos de UI
         // sin conectar: cambiar uno no actualizaba el otro, así que un usuario podía ajustar
         // su meta del día y ver que la tarjeta de progreso seguía mostrando el valor viejo
-        // hasta recargar la página. Esto sincroniza la tarjeta al instante; la persistencia
-        // real de la meta diaria por defecto sigue siendo la página de Configuración.
+        // hasta recargar la página. Esto sincroniza la tarjeta al instante.
         function actualizarTarjetaMetaDiaria() {
             var metaBarEl = document.getElementById('metaBar');
             var metaTextEl = document.getElementById('metaText');
@@ -848,6 +903,58 @@
             var pct = Math.min(100, (estadoTimer.ciclosCompletados / metaDiariaValue) * 100);
             metaBarEl.style.width = pct + '%';
             metaTextEl.innerText = estadoTimer.ciclosCompletados + ' / ' + metaDiariaValue;
+        }
+
+        var _metaDiariaGuardarTimeout = null;
+
+        // Persiste el ajuste de "Meta diaria" en el servidor (antes se perdía al recargar la
+        // página). El endpoint PUT sobrescribe TODA la configuración, así que primero se pide
+        // la configuración completa vigente (en vez de leerla del DOM: los controles de
+        // sonido/tic-tac de esta pantalla son solo de vista previa local, no reflejan
+        // fielmente el valor guardado -ej. el <select> de sonido siempre arranca en "Campana"
+        // sin importar lo guardado- y usarlos habría arriesgado pisar esos ajustes con
+        // valores obsoletos). Con debounce para no disparar una petición por cada clic de +/-.
+        function persistirMetaDiariaDebounced(valor) {
+            if (_metaDiariaGuardarTimeout) clearTimeout(_metaDiariaGuardarTimeout);
+            _metaDiariaGuardarTimeout = setTimeout(async function() {
+                try {
+                    const respGet = await fetch('/api/v1/pomodoro/configuracion');
+                    if (!respGet.ok) return;
+                    const dataGet = await respGet.json();
+                    const cfg = dataGet && dataGet.datos;
+                    if (!cfg) return;
+
+                    const body = {
+                        tiempoEstudioMin: cfg.tiempoEstudio,
+                        tiempoDescansoMin: cfg.tiempoDescanso,
+                        tiempoDescansoLargoMin: cfg.tiempoDescansoLargo,
+                        ciclosAntesDescansoLargo: cfg.ciclosAntesDescansoLargo,
+                        sonidoActivo: cfg.sonidoActivo,
+                        sonidoSeleccionado: cfg.sonidoSeleccionado,
+                        volumen: cfg.volumen,
+                        autoIniciarDescanso: cfg.autoIniciarDescanso,
+                        autoIniciarEnfoque: cfg.autoIniciarEnfoque,
+                        ticTacActivo: cfg.ticTacActivo,
+                        metaDiariaCiclos: valor,
+                        modoPersonalizadoMin: cfg.modoPersonalizadoMin,
+                        vibracionActiva: cfg.vibracionActiva,
+                        notificacionDesktop: cfg.notificacionDesktop
+                    };
+
+                    const respPut = await fetch('/api/v1/pomodoro/configuracion', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                    if (respPut.ok) {
+                        CONFIGURACION.metaDiaria = valor;
+                    } else {
+                        mostrarError('No se pudo guardar la meta diaria.');
+                    }
+                } catch (e) {
+                    mostrarError('Error de conexión al guardar la meta diaria.');
+                }
+            }, 800);
         }
 
         function seleccionarTarea(element, id, tipo) {
@@ -948,6 +1055,9 @@
             // reloj bajaba al doble de velocidad) y, si el modo era enfoque, hasta dos
             // sesiones nuevas en el backend (POST /iniciar duplicado).
             if (estadoTimer.procesandoInicio) return;
+            // El botón ya queda deshabilitado en modo espejo (entrarModoEspejo), pero se
+            // repite la guarda aquí por si se dispara vía atajo de teclado (Espacio).
+            if (estadoTimer.esEspejo) return;
             if (estadoTimer.estaCorriendo) {
                 pausarTimer();
             } else {
@@ -1003,7 +1113,7 @@
             actualizarIndicadorDND();
 
             estadoTimer.ultimoTick = Date.now();
-            broadcastMensaje('timer_start', { modo: estadoTimer.modo, tiempoRestante: estadoTimer.tiempoRestante, tiempoTotal: estadoTimer.tiempoTotal, ciclos: estadoTimer.ciclosCompletados });
+            broadcastMensaje('timer_start', { modo: estadoTimer.modo, tiempoRestante: estadoTimer.tiempoRestante, tiempoTotal: estadoTimer.tiempoTotal, ciclos: estadoTimer.ciclosCompletados, finEn: Date.now() + estadoTimer.tiempoRestante * 1000 });
             estadoTimer.idIntervalo = setInterval(() => {
                 estadoTimer.ultimoTick = Date.now();
                 estadoTimer.tiempoRestante--;

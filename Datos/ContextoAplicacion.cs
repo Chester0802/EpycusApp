@@ -235,6 +235,24 @@ namespace EpycusApp.Datos
             modelBuilder.Entity<SesionPomodoro>()
                 .HasIndex(s => s.UsuarioId);
 
+            // Índice compuesto para las consultas de "hoy"/historial/estadísticas, que
+            // siempre filtran por UsuarioId + rango de FechaInicio (antes solo existía el
+            // índice de UsuarioId solo, así que el rango de fecha se filtraba en memoria).
+            modelBuilder.Entity<SesionPomodoro>()
+                .HasIndex(s => new { s.UsuarioId, s.FechaInicio });
+
+            // Columna calculada (ver comentario en SesionPomodoro.SesionAbiertaMarcador) +
+            // índice único: la BD rechaza con una violación de constraint cualquier intento
+            // de crear una segunda sesión abierta para el mismo usuario, cerrando la
+            // condición de carrera de IniciarSesionSiNoActiva a nivel de esquema.
+            modelBuilder.Entity<SesionPomodoro>()
+                .Property(s => s.SesionAbiertaMarcador)
+                .HasComputedColumnSql("(CASE WHEN `FechaFin` IS NULL THEN `UsuarioId` ELSE NULL END)", stored: true);
+
+            modelBuilder.Entity<SesionPomodoro>()
+                .HasIndex(s => s.SesionAbiertaMarcador)
+                .IsUnique();
+
             modelBuilder.Entity<LogroUsuario>()
                 .HasIndex(l => l.UsuarioId);
 

@@ -7,6 +7,7 @@ using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 using System.Globalization;
 
 namespace EpycusApp.Servicios.Implementaciones
@@ -115,12 +116,14 @@ namespace EpycusApp.Servicios.Implementaciones
             return sesion;
         }
 
+        private const string MensajeSesionActiva = "Ya tienes una sesi\u00f3n activa. Final\u00edzala o canc\u00e9lala antes de iniciar una nueva.";
+
         public async Task<(bool Exito, SesionPomodoro? Sesion, string? Error)> IniciarSesionSiNoActiva(int usuarioId, int? habitoId, int? misionId, int? subTareaId = null)
         {
             var sesionesHoy = await ObtenerSesionesHoyAsync(usuarioId);
             var activa = sesionesHoy.FirstOrDefault(s => !s.FechaFin.HasValue);
             if (activa != null)
-                return (false, null, "Ya tienes una sesi\u00f3n activa. Final\u00edzala o canc\u00e9lala antes de iniciar una nueva.");
+                return (false, null, MensajeSesionActiva);
 
             try
             {
@@ -131,6 +134,22 @@ namespace EpycusApp.Servicios.Implementaciones
             {
                 return (false, null, ex.Message);
             }
+            catch (DbUpdateException ex) when (EsViolacionDeSesionUnica(ex))
+            {
+                // El check de arriba no es atomico (check-then-insert): dos peticiones casi
+                // simultaneas (doble-tap, dos pestanas, dos dispositivos) pueden pasar el
+                // check antes de que cualquiera termine de insertar. El indice unico sobre
+                // SesionAbiertaMarcador (ver ContextoAplicacion.OnModelCreating) es la
+                // garantia real a nivel de BD; si la insercion choca con el, se traduce al
+                // mismo mensaje amigable en vez de dejar pasar un 500 sin manejar.
+                return (false, null, MensajeSesionActiva);
+            }
+        }
+
+        private static bool EsViolacionDeSesionUnica(DbUpdateException ex)
+        {
+            return ex.InnerException is MySqlException mysqlEx
+                && mysqlEx.ErrorCode == MySqlErrorCode.DuplicateKeyEntry;
         }
 
         public async Task<(int XpGanado, bool SugerirDescanso, string? PausaActiva)> RegistrarCiclo(int sesionId, int ciclosCompletados, int usuarioId)
@@ -365,9 +384,13 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<List<SesionPomodoro>> ObtenerHistorialAsync(int usuarioId, DateTime desde, DateTime hasta, int pagina = 1, int tamano = 20, bool? completada = null, bool? conXp = null)
         {
+            // "Historial" son sesiones ya terminadas: una sesion todavia en curso (FechaFin
+            // null) no pertenece aqui (para eso existe /sesion-activa) -> sin este filtro
+            // aparecia como una entrada mas con "0 ciclos, 0 min", ruido confuso en el
+            // dialogo de Historial de Android (que consume este endpoint directamente).
             var query = _context.SesionesPomodoro
                 .AsNoTracking()
-                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta);
+                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= desde && s.FechaInicio <= hasta && s.FechaFin != null);
 
             if (completada.HasValue)
                 query = query.Where(s => s.FueCompletada == completada.Value);

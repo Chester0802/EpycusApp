@@ -456,8 +456,8 @@ public class ApiPomodoroTests : IDisposable
     public async Task T16_Historial_FiltroCompletadaTrue_RetornaSoloCompletadas()
     {
         await SeedUsuarioAsync();
-        var s1 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
-        var s2 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), CiclosCompletados = 0, XpOtorgado = 0, FueCompletada = false };
+        var s1 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), FechaFin = DateTime.UtcNow.AddHours(-2).AddMinutes(25), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), FechaFin = DateTime.UtcNow.AddHours(-1).AddMinutes(5), CiclosCompletados = 0, XpOtorgado = 0, FueCompletada = false };
         _contexto.SesionesPomodoro.AddRange(s1, s2);
         await _contexto.SaveChangesAsync();
 
@@ -474,8 +474,8 @@ public class ApiPomodoroTests : IDisposable
     public async Task T16_Historial_FiltroConXpTrue_RetornaSoloConXp()
     {
         await SeedUsuarioAsync();
-        var s1 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
-        var s2 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), CiclosCompletados = 1, XpOtorgado = 0, FueCompletada = true };
+        var s1 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), FechaFin = DateTime.UtcNow.AddHours(-2).AddMinutes(25), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), FechaFin = DateTime.UtcNow.AddHours(-1).AddMinutes(25), CiclosCompletados = 1, XpOtorgado = 0, FueCompletada = true };
         _contexto.SesionesPomodoro.AddRange(s1, s2);
         await _contexto.SaveChangesAsync();
 
@@ -492,9 +492,9 @@ public class ApiPomodoroTests : IDisposable
     public async Task T16_Historial_FiltrosCombinados_RetornaCoincidentes()
     {
         await SeedUsuarioAsync();
-        var s1 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-3), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
-        var s2 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), CiclosCompletados = 0, XpOtorgado = 0, FueCompletada = false };
-        var s3 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), CiclosCompletados = 1, XpOtorgado = 15, FueCompletada = true };
+        var s1 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-3), FechaFin = DateTime.UtcNow.AddHours(-3).AddMinutes(25), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-2), FechaFin = DateTime.UtcNow.AddHours(-2).AddMinutes(5), CiclosCompletados = 0, XpOtorgado = 0, FueCompletada = false };
+        var s3 = new SesionPomodoro { UsuarioId = _usuarioId, FechaInicio = DateTime.UtcNow.AddHours(-1), FechaFin = DateTime.UtcNow.AddHours(-1).AddMinutes(25), CiclosCompletados = 1, XpOtorgado = 15, FueCompletada = true };
         _contexto.SesionesPomodoro.AddRange(s1, s2, s3);
         await _contexto.SaveChangesAsync();
 
