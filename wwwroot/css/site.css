@@ -515,8 +515,14 @@ textarea:focus-visible {
   .auth-icon-box { width: 48px !important; height: 48px !important; font-size: 1.5rem !important; }
 }
 
-/* RMOB-17: Sidebar overflow fix */
+/* RMOB-17: Sidebar overflow fix.
+   overflow-y:auto por si solo no hacia nada porque .ep-sidebar solo tenia
+   min-height:100vh (sin tope), asi que el contenido (nav + tema + Cerrar Sesion)
+   simplemente crecia mas alto que la pantalla en vez de activar el scroll interno.
+   El boton de Cerrar Sesion, al ser el ultimo elemento, quedaba fuera del viewport
+   y era inalcanzable en moviles con poca altura. */
 .ep-sidebar {
+  max-height: 100vh;
   overflow-y: auto !important;
 }
 

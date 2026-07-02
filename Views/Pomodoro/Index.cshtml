@@ -413,7 +413,8 @@
             ciclosCompletados: parseInt(document.getElementById('statCiclos').innerText) || 0,
             minutosTotales: parseInt(document.getElementById('statMinutos').innerText) || 0,
             xpTotal: parseInt(document.getElementById('statXpGanado').innerText) || 0,
-            ultimoTick: null
+            ultimoTick: null,
+            procesandoCompletado: false
         };
 
         const elDisplayTimer = document.getElementById('timerDisplay');
@@ -746,8 +747,12 @@
         });
 
         function formatearTiempo(seconds) {
-            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-            const s = (seconds % 60).toString().padStart(2, '0');
+            // Nunca mostrar tiempo negativo (ej. "-1:-1"): si algo deja tiempoRestante sin
+            // resetear tras completar un ciclo (fallo de red, modal que no se muestra en
+            // móvil, etc.), como mínimo se ve "00:00" en vez de un número que decrece sin fin.
+            const safeSeconds = Math.max(0, Math.floor(seconds) || 0);
+            const m = Math.floor(safeSeconds / 60).toString().padStart(2, '0');
+            const s = (safeSeconds % 60).toString().padStart(2, '0');
             return `${m}:${s}`;
         }
 
@@ -1097,10 +1102,22 @@
         document.addEventListener('fullscreenchange', actualizarIconoFullscreen);
 
         async function alCompletarTimer() {
+            // Guarda de reentrancia: el intervalo normal (cada segundo) y la corrección de
+            // visibilitychange (al volver de pantalla bloqueada/pestaña oculta) pueden detectar
+            // la finalización por separado y llamar a esta función dos veces para el mismo
+            // ciclo -> duplicaba el conteo y dejaba el modo a medio cambiar.
+            if (estadoTimer.procesandoCompletado) return;
+            estadoTimer.procesandoCompletado = true;
+
             pausarTimer();
             reproducirSonido('completado');
             notificar('Pomodoro', estadoTimer.modo === 'enfoque' ? '¡Ciclo completado! Tómate un descanso.' : '¡Descanso terminado! Vuelve al enfoque.');
 
+            // Si algo dentro falla de forma inesperada (fetch, DOM, modal de Bootstrap que no
+            // se muestra en móvil, etc.) sin este try/catch la función se abortaba en silencio
+            // dejando tiempoRestante congelado en negativo (ej. "-1:-1") y el modo sin cambiar;
+            // al pulsar "Continuar" el intervalo seguía restando desde ahí ("-1:-2", "-1:-3"...).
+            try {
             if (estadoTimer.modo === 'enfoque' || estadoTimer.modo === 'personalizado') {
                 var prevCiclos = estadoTimer.ciclosCompletados;
                 var prevMinutos = estadoTimer.minutosTotales;
@@ -1265,6 +1282,14 @@
                 if (CONFIGURACION.autoIniciarEnfoque) {
                     setTimeout(function() { alternarTimer(); }, 500);
                 }
+            }
+            } catch (e) {
+                console.error('Error al completar el ciclo de Pomodoro:', e);
+                mostrarError('Ocurrió un error al procesar el ciclo. Se reinició el temporizador.');
+                var siguienteModo = (estadoTimer.modo === 'enfoque' || estadoTimer.modo === 'personalizado') ? 'corto' : 'enfoque';
+                establecerModo(siguienteModo);
+            } finally {
+                estadoTimer.procesandoCompletado = false;
             }
         }
 
