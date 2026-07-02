@@ -377,6 +377,12 @@ public class ServicioPomodoroTests
     }
 
     // T5: ObtenerEstadisticasPeriodoAsync
+    // Regresión: una sesión sin FechaFin (todavía en curso — el usuario no le dio Finalizar
+    // ni llegó a su meta diaria, lo normal en una sesión larga de varios ciclos seguidos) que
+    // ya completó ciclos reales debe estimar minutos = ciclos x duración configurada, no 0.
+    // Antes, "Minutos enfocados" se quedaba en 0 durante TODA una sesión en curso y saltaba a
+    // un número distinto de golpe en el siguiente reload al cerrarse — confuso, reportado en
+    // vivo por el usuario al cambiar la configuración a mitad de una sesión.
     [Fact]
     public async Task EstadisticasPeriodo_CalculaCiclosMinutosXP()
     {
@@ -392,7 +398,7 @@ public class ServicioPomodoroTests
         var stats = await _servicio.ObtenerEstadisticasPeriodoAsync(usuarioId, desde, hasta);
 
         stats.Ciclos.Should().Be(3);
-        stats.Minutos.Should().Be(0);
+        stats.Minutos.Should().Be(3 * 25);
         stats.Xp.Should().Be(45);
     }
 
@@ -449,6 +455,33 @@ public class ServicioPomodoroTests
         stats.Sum(s => s.Ciclos).Should().Be(0);
     }
 
+    // Regresión: una sesión en curso (sin FechaFin) con ciclos reales completados debe estimar
+    // minutos, no contar 0 — ver el mismo comentario en EstadisticasPeriodo_CalculaCiclosMinutosXP.
+    [Fact]
+    public async Task EstadisticasSemanales_SesionEnCursoConCiclos_EstimaMinutos()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var usuario = await _contexto.Usuarios.FindAsync(usuarioId);
+        usuario!.ZonaHoraria = "UTC";
+        _contexto.ConfiguracionesPomodoro.Add(new ConfiguracionPomodoro { UsuarioId = usuarioId, TiempoEstudioMin = 10 });
+        var sesionEnCurso = new SesionPomodoro
+        {
+            UsuarioId = usuarioId,
+            FechaInicio = DateTime.UtcNow.AddMinutes(-15),
+            FechaFin = null,
+            CiclosCompletados = 2,
+            XpOtorgado = 30,
+            FueCompletada = false
+        };
+        _contexto.SesionesPomodoro.Add(sesionEnCurso);
+        await _contexto.SaveChangesAsync();
+
+        var stats = await _servicio.ObtenerEstadisticasSemanalesAsync(usuarioId);
+
+        stats.Sum(s => s.Minutos).Should().Be(2 * 10);
+        stats.Sum(s => s.Ciclos).Should().Be(2);
+    }
+
     [Fact]
     public async Task EstadisticasAvanzadas_SesionSinCiclos_NoCuentaSusMinutos()
     {
@@ -472,6 +505,31 @@ public class ServicioPomodoroTests
 
         stats.TotalMinutos.Should().Be(0);
         stats.TotalCiclos.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task EstadisticasAvanzadas_SesionEnCursoConCiclos_EstimaMinutos()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var usuario = await _contexto.Usuarios.FindAsync(usuarioId);
+        usuario!.ZonaHoraria = "UTC";
+        _contexto.ConfiguracionesPomodoro.Add(new ConfiguracionPomodoro { UsuarioId = usuarioId, TiempoEstudioMin = 10 });
+        var sesionEnCurso = new SesionPomodoro
+        {
+            UsuarioId = usuarioId,
+            FechaInicio = DateTime.UtcNow.AddMinutes(-15),
+            FechaFin = null,
+            CiclosCompletados = 2,
+            XpOtorgado = 30,
+            FueCompletada = false
+        };
+        _contexto.SesionesPomodoro.Add(sesionEnCurso);
+        await _contexto.SaveChangesAsync();
+
+        var stats = await _servicio.ObtenerEstadisticasAvanzadasAsync(usuarioId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow);
+
+        stats.TotalMinutos.Should().Be(2 * 10);
+        stats.TotalCiclos.Should().Be(2);
     }
 
     // Regresión: "hoy" debe calcularse con la zona horaria del usuario, no con la fecha UTC

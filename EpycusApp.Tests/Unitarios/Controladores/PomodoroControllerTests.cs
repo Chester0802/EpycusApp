@@ -88,6 +88,40 @@ public class PomodoroControllerTests
         modelo.HistorialHoy.Should().ContainSingle(s => s.Id == 2);
     }
 
+    // Regresión: reportado en vivo por el usuario — completó ciclos reales en una sesión que
+    // seguía en curso (sin darle Finalizar todavía, lo normal en una sesión de varios ciclos
+    // seguidos) y "Minutos enfocados"/"Historial de hoy" mostraban 0 hasta que la sesión se
+    // cerraba, momento en el que el número cambiaba de golpe (confuso: "cambié la
+    // configuración y el historial pasó de 7 a 0 minutos"). Ahora se estima
+    // ciclos x duración de ciclo configurada mientras la sesión sigue abierta.
+    [Fact]
+    public async Task Index_SesionEnCursoConCiclos_EstimaMinutos()
+    {
+        _pomodoroMock.Setup(p => p.ObtenerConfiguracion(1))
+            .ReturnsAsync(new ConfiguracionPomodoro { UsuarioId = 1, TiempoEstudioMin = 12 });
+        var sesionEnCurso = new SesionPomodoro
+        {
+            Id = 1,
+            UsuarioId = 1,
+            FechaInicio = DateTime.UtcNow.AddMinutes(-20),
+            FechaFin = null,
+            CiclosCompletados = 2,
+            XpOtorgado = 30,
+            FueCompletada = false
+        };
+        _pomodoroMock.Setup(p => p.ObtenerSesionesHoyAsync(1)).ReturnsAsync(new List<SesionPomodoro> { sesionEnCurso });
+
+        var resultado = await _controller.Index();
+
+        var view = resultado.Should().BeOfType<ViewResult>().Subject;
+        var modelo = view.Model.Should().BeOfType<EpycusApp.ViewModels.PomodoroIndexViewModel>().Subject;
+
+        modelo.EstadisticasHoy.CiclosCompletados.Should().Be(2);
+        // 2 ciclos x 12 min configurados = 24, no 0.
+        modelo.EstadisticasHoy.MinutosEnfocados.Should().Be(24);
+        modelo.HistorialHoy.Should().ContainSingle(s => s.Id == 1);
+    }
+
     [Fact]
     public async Task Configuracion_Get_RetornaVistaConDto()
     {

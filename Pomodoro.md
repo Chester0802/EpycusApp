@@ -4,6 +4,11 @@
 > 2.2, 2.4, 2.5 y 2.6 que habían quedado documentados sin corregir. Detalle completo en la
 > nueva sección **7**. Los títulos de esas secciones abajo quedan marcados con ✅ **RESUELTO**
 > y apuntan a la sección 7 en vez de duplicar la explicación.
+>
+> **Actualización 2026-07-02 (segunda ronda, probando en vivo):** el usuario, probando los
+> fixes de la ronda anterior, encontró un bug nuevo real: cambiar la configuración a mitad de
+> una sesión en curso hacía que el Historial de hoy pasara de mostrar minutos reales a "0
+> minutos". Causa y fix en la sección **8**.
 
 > Generada el 2026-07-02, a raíz de que el usuario reportó en vivo: "terminé la sesión 1, no
 > arrancó el descanso corto automático (pese a tenerlo activado), se quedó en 00:00 y darle a
@@ -614,3 +619,63 @@ probado en dispositivo/emulador real** (ninguno disponible en esta sesión).
 - Los huecos de cobertura de la sección 5 (condición de carrera contra MySQL real, JS del
   timer sin tests automatizados, Android sin tests del temporizador) siguen abiertos — ninguno
   se cerró en esta ronda de seguimiento.
+
+---
+
+## 8. Bug encontrado por el usuario probando en vivo (2026-07-02) — "Historial de hoy" en cero tras cambiar la configuración a mitad de sesión
+
+### 8.1 — El reporte
+
+El usuario cambió "Tiempo de enfoque" de 7 a 12 minutos en Configuración mientras tenía una
+sesión de Pomodoro en curso. Al volver a Pomodoro, "Historial de hoy" mostraba "Enfoque 0
+min" en vez de los ~7 min que había visto antes.
+
+### 8.2 — Diagnóstico
+
+**Archivos:** `Controllers/PomodoroController.cs`, `Views/Pomodoro/Index.cshtml`,
+`Servicios/Implementaciones/ServicioPomodoro.cs` (`ObtenerEstadisticasPeriodoAsync`,
+`ObtenerEstadisticasSemanalesAsync`, `ObtenerEstadisticasAvanzadasAsync`).
+
+El "7 min" que el usuario vio antes del cambio **nunca vino del servidor** — era una entrada
+que `agregarHistorial()` (JS) inserta de forma optimista en el DOM usando
+`estadoTimer.tiempoTotal` (la duración configurada **en el momento en que se completó el
+ciclo**), sin esperar confirmación de que la sesión se cerrara. Esa entrada nunca se
+reconcilia con la realidad — queda ahí hasta el próximo reload completo.
+
+El fix de la sesión anterior (punto 1.3) hizo que "minutos enfocados"/"Historial de hoy"
+solo contaran una sesión si tenía `FechaFin` (fecha de cierre) — pero una sesión con ciclos
+completados **sigue sin `FechaFin` mientras esté en curso** (el usuario no le dio "Finalizar"
+ni llegó a su meta diaria), que es el caso **normal**, no una excepción, en cualquier sesión
+de varios ciclos seguidos. Cuando el usuario guardó la Configuración (lo que recarga la
+página), el servidor mostró la realidad por primera vez: como la sesión seguía abierta, el
+cálculo caía al `: 0` de respaldo — de ahí el salto de "7" a "0" que pareció causado por el
+cambio de configuración, cuando en realidad solo fue la primera vez que se veía el dato real.
+
+### 8.3 — Fix aplicado
+
+Cuando una sesión de Enfoque/Personalizado sigue abierta (`FechaFin` nulo) pero ya completó
+al menos 1 ciclo real, se estima `CiclosCompletados × TiempoEstudioMin` (duración de ciclo
+configurada) en vez de 0 — mismo patrón que ya usaba el código para acumular tiempo de
+sub-tareas (`subTarea.TiempoEnfoqueSegundos += config.TiempoEstudioMin * 60`). Aplicado en
+los 4 sitios que calculan minutos (el mismo helper `MinutosDeSesion` reutilizado en los 3
+métodos de estadísticas del servicio, más el cálculo equivalente en el controller y en la
+vista para la fila individual del Historial). Además, la etiqueta de esa fila ahora dice
+**"En curso"** en vez de "Completado" cuando la sesión sigue abierta, para ser honesto sobre
+que no ha terminado.
+
+### 8.4 — Verificación
+
+8 tests nuevos/actualizados (430/430 en verde) cubriendo este escenario exacto en los 4
+sitios. **Confirmado en vivo contra el servidor local**: se completó un ciclo real vía la API
+sin cerrar la sesión, se recargó la página, y "Historial de hoy" pasó de mostrar "0 min" a
+mostrar **"Enfoque 25 min — En curso"** correctamente (25 min = 1 ciclo × 25 min de config
+por defecto).
+
+**Nota sobre el proceso de verificación:** intentar reproducir esto acelerando el temporizador
+vía JavaScript (`estadoTimer.tiempoRestante = 2`) y esperando con pausas entre llamadas a las
+herramientas de prueba dio resultados inconsistentes — el temporizador parece congelarse
+durante esas pausas en este entorno de navegador headless (no reproduce el comportamiento de
+un navegador real con la pestaña abierta). La verificación final se hizo llamando
+directamente al endpoint `/api/v1/pomodoro/{id}/ciclo-completado`, evitando por completo la
+dependencia del temporizador JS y su sensibilidad a la suspensión de la pestaña en este
+entorno de pruebas.

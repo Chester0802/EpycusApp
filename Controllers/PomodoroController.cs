@@ -45,9 +45,19 @@ namespace EpycusApp.Controllers
                 // que quedó abierta y se canceló/finalizó sin completar nada (bug de cliente,
                 // doble pestaña, o cancelación manual) no debe inflar "minutos enfocados"
                 // mientras "ciclos completados"/"XP ganado" se quedan en 0 en el mismo resumen.
-                modelo.EstadisticasHoy.MinutosEnfocados = (int)sesionesHoy
-                    .Where(s => s.FechaFin.HasValue && s.CiclosCompletados > 0)
-                    .Sum(s => (s.FechaFin!.Value - s.FechaInicio).TotalMinutes);
+                // Para una sesión que TODAVÍA sigue abierta (el usuario no le dio Finalizar ni
+                // llegó a su meta diaria — lo normal en un uso de varios ciclos seguidos) pero
+                // ya completó ciclos reales, se estima ciclos x duración de ciclo configurada
+                // en vez de 0: antes, "Minutos enfocados"/"Historial de hoy" se veían vacíos
+                // durante TODA una sesión larga en curso, y ese "0" cambiaba de golpe a un
+                // número distinto en el siguiente reload en cuanto la sesión por fin se
+                // cerraba — confuso, reportado en vivo por el usuario ("cambié la config y el
+                // historial pasó de 7 a 0 min").
+                modelo.EstadisticasHoy.MinutosEnfocados = sesionesHoy
+                    .Where(s => s.CiclosCompletados > 0)
+                    .Sum(s => s.FechaFin.HasValue
+                        ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
+                        : s.CiclosCompletados * modelo.Configuracion.TiempoEstudioMin);
 
                 modelo.EstadisticasHoy.MisionesCompletadas = await _servicioMisiones.ContarCompletadasHoyAsync(usuarioId);
                 modelo.TareasEnfoque = await _servicioPomodoro.ObtenerTareasEnfoqueAsync(usuarioId);

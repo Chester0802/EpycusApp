@@ -331,14 +331,21 @@
                             "DescansoLargo" => "Descanso largo",
                             _ => sesion.XpOtorgado > 0 ? "Enfoque" : "Descanso"
                         };
+                        // Si la sesión todavía sigue abierta (sin FechaFin porque el usuario no
+                        // le dio Finalizar ni llegó a su meta diaria — lo normal en una sesión
+                        // larga de varios ciclos seguidos) pero ya completó ciclos reales, se
+                        // estima ciclos x duración de ciclo configurada en vez de mostrar "0
+                        // min" (que además cambiaba de golpe al número real en el siguiente
+                        // reload, una vez cerrada — confuso).
+                        bool enCurso = !sesion.FechaFin.HasValue && sesion.CiclosCompletados > 0;
                         string tiempoTxt = sesion.FechaFin.HasValue
                             ? $"{(int)(sesion.FechaFin.Value - sesion.FechaInicio).TotalMinutes} min"
-                            : "0 min";
+                            : enCurso ? $"{sesion.CiclosCompletados * (Model?.Configuracion?.TiempoEstudioMin ?? 25)} min" : "0 min";
                         string iconClass = esEnfoque ? "bi-check-circle text-success" : "bi-cup-hot text-warning";
                         string badgeBg = esEnfoque ? "var(--success-bg)" : "var(--warning-bg)";
                         string badgeColor = esEnfoque ? "var(--success)" : "var(--warning)";
                         string badgeBorder = esEnfoque ? "var(--success)" : "var(--warning)";
-                        string badgeText = esEnfoque ? "Completado" : "Descanso";
+                        string badgeText = enCurso ? "En curso" : (esEnfoque ? "Completado" : "Descanso");
 
                         <div class="position-relative mb-3 ps-4">
                             <i class="bi @iconClass position-absolute" style="left: 0; top: 0px; background: var(--ep-superficie); padding-bottom: 5px;"></i>

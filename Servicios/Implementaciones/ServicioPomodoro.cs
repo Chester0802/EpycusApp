@@ -450,6 +450,23 @@ namespace EpycusApp.Servicios.Implementaciones
             return racha;
         }
 
+        // Minutos "reales" de una sesion: si ya termino (FechaFin), la duracion real medida
+        // por reloj; si sigue abierta pero ya completo ciclos (el usuario no le dio Finalizar
+        // ni llego a su meta diaria todavia, algo que pasa en CASI cualquier uso normal: el
+        // Pomodoro se usa en sesiones largas de varios ciclos seguidos), se estima
+        // ciclos completados x duracion de ciclo configurada, en vez de 0. Antes, cualquier
+        // sesion sin FechaFin contaba 0 minutos sin importar cuantos ciclos reales hubiera
+        // completado -> "Minutos enfocados"/"Historial de hoy" se veian vacios o en cero
+        // durante TODA una sesion larga en curso, y encima ese "0" cambiaba a un numero
+        // distinto en el siguiente reload en cuanto la sesion por fin se cerraba - confundia
+        // al usuario (reportado en vivo: "cambie la config y el historial paso de 7 a 0 min").
+        private static int MinutosDeSesion(SesionPomodoro s, int tiempoEstudioMinConfigActual)
+        {
+            if (s.FechaFin.HasValue)
+                return (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes;
+            return s.CiclosCompletados > 0 ? s.CiclosCompletados * tiempoEstudioMinConfigActual : 0;
+        }
+
         public async Task<EstadisticasPomodoroPeriodo> ObtenerEstadisticasPeriodoAsync(int usuarioId, DateTime desde, DateTime hasta)
         {
             var sesiones = await _context.SesionesPomodoro
@@ -458,6 +475,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 .ToListAsync();
 
             var desdeLocal = ConvertirAUsuarioTimeZone(usuarioId, desde);
+            var tiempoEstudioMin = (await ObtenerConfiguracion(usuarioId)).TiempoEstudioMin;
 
             return new EstadisticasPomodoroPeriodo
             {
@@ -468,9 +486,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 // (bug de cliente, doble pestana, o cancelacion manual) no debe inflar
                 // "minutos enfocados" mientras ciclos/XP se quedan en 0 -> esa discrepancia
                 // es justo el sintoma reportado por el usuario probando el Pomodoro en vivo.
-                Minutos = sesiones.Where(s => s.CiclosCompletados > 0).Sum(s => s.FechaFin.HasValue
-                    ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
-                    : 0),
+                Minutos = sesiones.Where(s => s.CiclosCompletados > 0).Sum(s => MinutosDeSesion(s, tiempoEstudioMin)),
                 Xp = sesiones.Sum(s => s.XpOtorgado)
             };
         }
@@ -480,6 +496,7 @@ namespace EpycusApp.Servicios.Implementaciones
             var tz = await ObtenerZonaHorariaUsuario(usuarioId);
             var hoy = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz).Date;
             var hace7 = hoy.AddDays(-6);
+            var tiempoEstudioMin = (await ObtenerConfiguracion(usuarioId)).TiempoEstudioMin;
 
             var sesiones = await _context.SesionesPomodoro
                 .AsNoTracking()
@@ -499,9 +516,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 {
                     Fecha = dia.ToString("ddd", CultureInfo.CreateSpecificCulture("es-ES")),
                     Ciclos = delDia.Sum(s => s.CiclosCompletados),
-                    Minutos = delDia.Where(s => s.CiclosCompletados > 0).Sum(s => s.FechaFin.HasValue
-                        ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
-                        : 0),
+                    Minutos = delDia.Where(s => s.CiclosCompletados > 0).Sum(s => MinutosDeSesion(s, tiempoEstudioMin)),
                     Xp = delDia.Sum(s => s.XpOtorgado)
                 });
             }
@@ -521,10 +536,9 @@ namespace EpycusApp.Servicios.Implementaciones
                 .ToListAsync();
 
             var diasEnRango = Math.Max(1, (hasta.Date - desde.Date).Days + 1);
+            var tiempoEstudioMin = (await ObtenerConfiguracion(usuarioId)).TiempoEstudioMin;
             var totalCiclos = sesiones.Sum(s => s.CiclosCompletados);
-            var totalMinutos = sesiones.Where(s => s.CiclosCompletados > 0).Sum(s => s.FechaFin.HasValue
-                ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
-                : 0);
+            var totalMinutos = sesiones.Where(s => s.CiclosCompletados > 0).Sum(s => MinutosDeSesion(s, tiempoEstudioMin));
             var totalXp = sesiones.Sum(s => s.XpOtorgado);
 
             var heatmap = Enumerable.Range(0, 24).Select(h => new HeatmapPorHora { Hora = h, Ciclos = 0 }).ToList();
@@ -541,9 +555,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 {
                     Fecha = $"{g.Key.Year}-{g.Key.Month:D2}",
                     Ciclos = g.Sum(s => s.CiclosCompletados),
-                    Minutos = g.Where(s => s.CiclosCompletados > 0).Sum(s => s.FechaFin.HasValue
-                        ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
-                        : 0),
+                    Minutos = g.Where(s => s.CiclosCompletados > 0).Sum(s => MinutosDeSesion(s, tiempoEstudioMin)),
                     Xp = g.Sum(s => s.XpOtorgado)
                 }).ToList();
 
