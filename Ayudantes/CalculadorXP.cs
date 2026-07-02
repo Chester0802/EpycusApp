@@ -7,16 +7,18 @@
             return 100 + (nivelActual * 50);
         }
 
+        // Los niveles arrancan en 0 ("Novato", ver SemillaNiveles): los umbrales acumulados
+        // deben coincidir con el XpRequerido sembrado (nivel 1 = 100, 2 = 250, 3 = 450...).
         public static int XpTotalParaNivel(int nivel)
         {
-            if (nivel <= 1)
+            if (nivel <= 0)
             {
                 return 0;
             }
 
             var acumulado = 0;
 
-            for (var i = 1; i < nivel; i++)
+            for (var i = 0; i < nivel; i++)
             {
                 acumulado += XpParaSiguienteNivel(i);
             }
@@ -26,7 +28,7 @@
 
         public static int NivelParaXp(int xpTotal)
         {
-            for (var nivel = 1; nivel < ConstantesGamificacion.NIVEL_MAXIMO; nivel++)
+            for (var nivel = 0; nivel < ConstantesGamificacion.NIVEL_MAXIMO; nivel++)
             {
                 var xpSiguiente = XpTotalParaNivel(nivel + 1);
 

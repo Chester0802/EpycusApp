@@ -76,9 +76,13 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<string> ObtenerImagenPersonaje(int usuarioId, int nivelActual)
         {
+            // Prioriza el personaje seleccionado; si ninguno tiene la marca (datos viejos),
+            // cae al primero como antes.
             var personajeActivo = await _contexto.PersonajesUsuario
                 .AsNoTracking()
                 .Where(p => p.UsuarioId == usuarioId)
+                .OrderByDescending(p => p.EstaSeleccionado)
+                .ThenBy(p => p.Id)
                 .FirstOrDefaultAsync();
 
             if (personajeActivo == null) return "https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff&size=200";

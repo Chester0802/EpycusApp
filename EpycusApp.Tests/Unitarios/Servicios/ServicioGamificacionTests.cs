@@ -23,12 +23,15 @@ public class ServicioGamificacionTests
         _servicio = new ServicioGamificacion(_contexto, _loggerMock.Object);
     }
 
+    // Mismo esquema que SemillaNiveles en producción: los niveles arrancan en 0 y los
+    // umbrales acumulados son 100/250/450 (deben coincidir con CalculadorXP).
     private async Task SeedNivelesAsync()
     {
         _contexto.Niveles.AddRange(
-            new Nivel { Id = 1, Numero = 1, Titulo = "Novato", XpRequerido = 0 },
-            new Nivel { Id = 2, Numero = 2, Titulo = "Aprendiz", XpRequerido = 150 },
-            new Nivel { Id = 3, Numero = 3, Titulo = "Experto", XpRequerido = 350 }
+            new Nivel { Id = 1, Numero = 0, Titulo = "Novato", XpRequerido = 0 },
+            new Nivel { Id = 2, Numero = 1, Titulo = "Curioso", XpRequerido = 100 },
+            new Nivel { Id = 3, Numero = 2, Titulo = "Aprendiz", XpRequerido = 250 },
+            new Nivel { Id = 4, Numero = 3, Titulo = "Estudiante Comprometido", XpRequerido = 450 }
         );
         await _contexto.SaveChangesAsync();
     }
@@ -65,7 +68,23 @@ public class ServicioGamificacionTests
     }
 
     [Fact]
-    public async Task SumarXP_SinProgreso_RetornaCero()
+    public async Task SumarXP_SinProgreso_CreaLaFilaYAcumula()
+    {
+        await SeedNivelesAsync();
+
+        var (xp, subio, nivel) = await _servicio.SumarXP(999, 20);
+
+        xp.Should().Be(20);
+        subio.Should().BeFalse();
+        nivel.Should().Be(0);
+
+        var progreso = await _contexto.ProgresosUsuario.FirstAsync(p => p.UsuarioId == 999);
+        progreso.XpTotal.Should().Be(20);
+        progreso.NivelActualId.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SumarXP_SinProgresoNiNiveles_RetornaCero()
     {
         var (xp, subio, nivel) = await _servicio.SumarXP(999, 100);
 
@@ -80,14 +99,14 @@ public class ServicioGamificacionTests
         await SeedNivelesAsync();
         var usuarioId = await SeedProgresoAsync(1, 0);
 
-        var (xp, subio, nivel) = await _servicio.SumarXP(usuarioId, 100);
+        var (xp, subio, nivel) = await _servicio.SumarXP(usuarioId, 50);
 
-        xp.Should().Be(100);
+        xp.Should().Be(50);
         subio.Should().BeFalse();
-        nivel.Should().Be(1);
+        nivel.Should().Be(0);
 
         var progreso = await _contexto.ProgresosUsuario.FirstAsync(p => p.UsuarioId == usuarioId);
-        progreso.XpTotal.Should().Be(100);
+        progreso.XpTotal.Should().Be(50);
     }
 
     [Fact]
@@ -96,11 +115,11 @@ public class ServicioGamificacionTests
         await SeedNivelesAsync();
         var usuarioId = await SeedProgresoAsync(1, 0);
 
-        var (xp, subio, nivel) = await _servicio.SumarXP(usuarioId, 200);
+        var (xp, subio, nivel) = await _servicio.SumarXP(usuarioId, 100);
 
-        xp.Should().Be(200);
+        xp.Should().Be(100);
         subio.Should().BeTrue();
-        nivel.Should().Be(2);
+        nivel.Should().Be(1);
 
         var progreso = await _contexto.ProgresosUsuario.FirstAsync(p => p.UsuarioId == usuarioId);
         progreso.NivelActualId.Should().Be(2);
@@ -118,7 +137,7 @@ public class ServicioGamificacionTests
         nivel.Should().Be(3);
 
         var progreso = await _contexto.ProgresosUsuario.FirstAsync(p => p.UsuarioId == usuarioId);
-        progreso.NivelActualId.Should().Be(3);
+        progreso.NivelActualId.Should().Be(4);
     }
 
     [Fact]
@@ -255,7 +274,7 @@ public class ServicioGamificacionTests
         });
         await _contexto.SaveChangesAsync();
 
-        var usuarioId = await SeedProgresoAsync(2, 200);
+        var usuarioId = await SeedProgresoAsync(3, 250);
 
         await _servicio.VerificarYOtorgarLogros(usuarioId);
 

@@ -24,7 +24,23 @@ namespace EpycusApp.Servicios.Implementaciones
 
             if (progreso == null)
             {
-                return (0, false, 0);
+                // Cuentas sin fila de progreso (p. ej. sembradas): crearla aquí en vez de
+                // descartar el XP en silencio.
+                var nivelInicial = await _contexto.Niveles.OrderBy(n => n.Numero).FirstOrDefaultAsync();
+                if (nivelInicial == null)
+                {
+                    return (0, false, 0);
+                }
+                progreso = new ProgresoUsuario
+                {
+                    UsuarioId = usuarioId,
+                    NivelActualId = nivelInicial.Id,
+                    NivelActual = nivelInicial,
+                    XpTotal = 0,
+                    RachaActual = 0,
+                    RachaMaxima = 0
+                };
+                _contexto.ProgresosUsuario.Add(progreso);
             }
 
             var xpAnterior = progreso.XpTotal;

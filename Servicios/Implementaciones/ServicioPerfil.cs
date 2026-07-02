@@ -53,7 +53,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 UsaGoogle = !string.IsNullOrEmpty(usuario.GoogleId),
                 FotoGoogleUrl = usuario.FotoGoogleUrl,
                 TemaActualId = usuario.TemaActualId,
-                NivelActual = usuario.Progreso?.NivelActual?.Numero ?? 1,
+                NivelActual = usuario.Progreso?.NivelActual?.Numero ?? 0,
                 XpTotal = usuario.Progreso?.XpTotal ?? 0,
                 RachaActual = usuario.Progreso?.RachaActual ?? 0,
                 RachaMaxima = usuario.Progreso?.RachaMaxima ?? 0,

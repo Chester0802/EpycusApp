@@ -3,9 +3,12 @@ using FluentAssertions;
 
 namespace EpycusApp.Tests.Unitarios.Ayudantes;
 
+// Los valores esperados provienen de SemillaNiveles (nivel 0 = "Novato" con XpRequerido 0;
+// umbrales 100, 250, 450, 700, 1000...): CalculadorXP debe coincidir con la tabla sembrada.
 public class CalculadorXPTests
 {
     [Theory]
+    [InlineData(0, 100)]
     [InlineData(1, 150)]
     [InlineData(2, 200)]
     [InlineData(5, 350)]
@@ -17,23 +20,28 @@ public class CalculadorXPTests
     }
 
     [Theory]
-    [InlineData(1, 0)]
-    [InlineData(2, 150)]
-    [InlineData(3, 350)]
-    [InlineData(4, 600)]
-    [InlineData(5, 900)]
-    public void XpTotalParaNivel_AcumulaCorrectamente(int nivel, int xpEsperado)
+    [InlineData(0, 0)]
+    [InlineData(1, 100)]
+    [InlineData(2, 250)]
+    [InlineData(3, 450)]
+    [InlineData(4, 700)]
+    [InlineData(5, 1000)]
+    [InlineData(6, 1350)]
+    public void XpTotalParaNivel_CoincideConXpRequeridoSembrado(int nivel, int xpEsperado)
     {
         var resultado = CalculadorXP.XpTotalParaNivel(nivel);
         resultado.Should().Be(xpEsperado);
     }
 
     [Theory]
-    [InlineData(0, 1)]
-    [InlineData(50, 1)]
-    [InlineData(149, 1)]
-    [InlineData(150, 2)]
-    [InlineData(350, 3)]
+    [InlineData(0, 0)]
+    [InlineData(50, 0)]
+    [InlineData(99, 0)]
+    [InlineData(100, 1)]
+    [InlineData(249, 1)]
+    [InlineData(250, 2)]
+    [InlineData(450, 3)]
+    [InlineData(1000, 5)]
     [InlineData(10000, 18)]
     public void NivelParaXp_RetornaNivelCorrecto(int xpTotal, int nivelEsperado)
     {
@@ -42,9 +50,9 @@ public class CalculadorXPTests
     }
 
     [Theory]
-    [InlineData(150, 2, 0)]
-    [InlineData(350, 3, 0)]
-    [InlineData(400, 3, 50)]
+    [InlineData(100, 1, 0)]
+    [InlineData(250, 2, 0)]
+    [InlineData(300, 2, 50)]
     public void XpDentroDelNivelActual_CalculaCorrectamente(int xpTotal, int nivelActual, int xpEsperado)
     {
         var resultado = CalculadorXP.XpDentroDelNivelActual(xpTotal, nivelActual);
@@ -52,9 +60,10 @@ public class CalculadorXPTests
     }
 
     [Theory]
-    [InlineData(150, 2, 0)]
-    [InlineData(250, 2, 50)]
-    [InlineData(400, 3, 20)]
+    [InlineData(100, 1, 0)]
+    [InlineData(250, 2, 0)]
+    [InlineData(300, 2, 25)]
+    [InlineData(20, 0, 20)]
     public void PorcentajeProgreso_CalculaCorrectamente(int xpTotal, int nivelActual, decimal porcentajeEsperado)
     {
         var resultado = CalculadorXP.PorcentajeProgreso(xpTotal, nivelActual);
