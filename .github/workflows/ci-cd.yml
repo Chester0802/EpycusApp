@@ -123,6 +123,11 @@ jobs:
           strip_components: 1
 
       # Aplicar migraciones EF Core
+      # dotnet-ef no viene con el SDK; se instala como global tool si falta (idempotente).
+      # El apphost del tool necesita DOTNET_ROOT explícito en este VPS o falla con
+      # "Failed to resolve libhostfxr.so" aunque el runtime esté instalado.
+      # Nota: Program.cs también llama Database.MigrateAsync() al arrancar, así que aunque
+      # este paso fallara la app se auto-migra igual; continue-on-error se deja por eso.
       - name: Apply EF Core migrations
         uses: appleboy/ssh-action@v1.0.3
         continue-on-error: true
@@ -132,8 +137,9 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ env.VPS_PORT }}
           script: |
+            sudo env "DOTNET_ROOT=/usr/share/dotnet" dotnet tool install --global dotnet-ef 2>&1 || true
             cd ${{ env.VPS_APP_PATH }}
-            sudo dotnet ef database update --no-build 2>&1 || echo "⚠️ Migraciones no aplicadas (pueden no requerirse)"
+            sudo env "DOTNET_ROOT=/usr/share/dotnet" /root/.dotnet/tools/dotnet-ef database update --no-build 2>&1 || echo "⚠️ Migraciones no aplicadas (Program.cs las aplica igual al arrancar)"
             echo "✅ Migraciones ejecutadas"
 
       # Reinicio seguro + health check HTTP con retry
