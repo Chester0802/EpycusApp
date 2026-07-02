@@ -17,6 +17,9 @@ namespace EpycusApp.Servicios.Interfaces
         // Cambiar contraseña: correo + actual + nueva
         Task<(bool EsExitoso, string? Mensaje)> CambiarContrasenaAsync(string correo, string contrasenaActual, string nuevaContrasena);
 
+        // Elimina la cuenta del usuario y todos sus datos asociados (borrado en cascada)
+        Task<(bool EsExitoso, string? Mensaje)> EliminarCuentaAsync(int usuarioId, string? contrasena);
+
         Task<(bool Exito, string Mensaje, string? Token, string? RefreshToken)> ProcesarAutenticacionGoogleAsync(
             string googleId, string correo, string nombre, string? fotoUrl);
 

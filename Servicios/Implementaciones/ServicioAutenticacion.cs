@@ -290,6 +290,28 @@ namespace EpycusApp.Servicios.Implementaciones
                     return (true, null);
                 }
 
+                public async Task<(bool EsExitoso, string? Mensaje)> EliminarCuentaAsync(int usuarioId, string? contrasena)
+                {
+                    var usuario = await _contexto.Usuarios.FirstOrDefaultAsync(u => u.Id == usuarioId);
+                    if (usuario == null)
+                        return (false, "Usuario no encontrado");
+
+                    // Cuentas con contraseña (no-Google) deben confirmarla antes de borrar.
+                    // Las cuentas Google-only no tienen ContrasenaHash que verificar.
+                    if (!string.IsNullOrWhiteSpace(usuario.ContrasenaHash))
+                    {
+                        if (string.IsNullOrWhiteSpace(contrasena) || !BCrypt.Net.BCrypt.Verify(contrasena, usuario.ContrasenaHash))
+                            return (false, "Contraseña incorrecta");
+                    }
+
+                    // Log del servidor (no de la tabla Log, que se borraría en cascada con el usuario)
+                    _logger.LogWarning("Cuenta eliminada: UsuarioId={UsuarioId}, Correo={Correo}", usuario.Id, usuario.CorreoElectronico);
+
+                    _contexto.Usuarios.Remove(usuario);
+                    await _contexto.SaveChangesAsync();
+                    return (true, "Cuenta eliminada correctamente");
+                }
+
                 private int ObtenerExpiracionRefreshDias()
                 {
                     var expiracion = _config["Jwt:ExpiracionRefreshDias"];

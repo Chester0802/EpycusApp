@@ -53,6 +53,34 @@ Móvil (Android), **compilado, con commits locales SIN subir a GitHub** (`3a69d5
 16. **`AuthInterceptor` — logout espurio por race condition**: si dos peticiones recibían 401 casi al mismo tiempo, la segunda no esperaba a que la primera terminara de refrescar el token, releía el token viejo, volvía a fallar y forzaba logout en medio de una sesión normal. Ahora usa `refreshLock.wait()`/`notifyAll()`.
 17. **Pomodoro no notificaba en segundo plano** (prioridad alta de la sesión anterior): se implementó `AlarmManager.setExactAndAllowWhileIdle(...)` (con fallback a inexacta si no hay permiso, vía `canScheduleExactAlarms()`) programado/cancelado desde el único punto que ya persistía el estado del timer (`guardarEstadoTimer()`), un `PomodoroAlarmReceiver` nuevo (registrado en el manifest) y una clase `PomodoroNotificador` compartida entre el fragment (primer plano) y el receiver (segundo plano) para que la notificación sea idéntica y no se duplique. Esto también justifica el uso de `USE_EXACT_ALARM`/`SCHEDULE_EXACT_ALARM`, que antes estaban declarados sin usarse en ningún lado. Compilado (`compileDebugJavaWithJavac` en verde), **no probado en dispositivo/emulador real** (ninguno disponible en esta sesión).
 
+26. **Borrado de cuenta implementado** (2026-07-02, sesión nueva — cerraba el único bloqueador
+    de código real para publicación según `auditoria.md` del móvil). Nuevo endpoint
+    `DELETE /api/v1/perfil/cuenta` en `ApiPerfilController`, nuevo método
+    `IServicioAutenticacion.EliminarCuentaAsync(usuarioId, contrasena?)` en
+    `ServicioAutenticacion`. Verifica contraseña actual con BCrypt si el usuario la tiene
+    (`ContrasenaHash`); las cuentas Google-only (sin contraseña) se borran sin pedirla. Borra
+    el `Usuario` con `_contexto.Usuarios.Remove(...)` — investigado explícitamente con un
+    sub-agente el grafo completo de relaciones en `ContextoAplicacion.cs`: todas las FK hacia
+    `UsuarioId` son `Cascade` (explícito o inferido por EF Core), sin ningún `Restrict` que
+    bloquee el borrado (los únicos `Restrict` son en sentido contrario: `Usuario.RolId`/
+    `CarreraId` hacia `Rol`/`Carrera`, que no afectan borrar un Usuario). Se invalida el JWT
+    actual con el mismo mecanismo de blacklist que usa `Logout` (mismo bloque de código,
+    duplicado en el nuevo endpoint por simplicidad — no se extrajo a un helper compartido).
+    Se deja un `_logger.LogWarning` como rastro server-side, ya que la tabla `Log` en sí se
+    borra en cascada con el usuario (no sirve como auditoría post-borrado).
+    **Verificado:** `dotnet build` en verde + 4 tests de integración nuevos
+    (`EpycusApp.Tests/Integracion/EliminarCuentaTests.cs`) que siembran un usuario real con
+    misión+sub-tarea, hábito y refresh token, y confirman borrado en cascada correcto,
+    rechazo de contraseña incorrecta sin borrar nada, cuenta Google-only sin pedir
+    contraseña, y usuario inexistente da error — `dotnet test` 434/434 en verde (430 previos
+    + 4 nuevos). **No probado contra producción ni con un curl manual end-to-end** (el
+    registro por API requiere pasar el CAPTCHA Turnstile, que no se pudo bypassear
+    limpiamente desde curl en esta sesión — se prefirió el test de integración directo sobre
+    el servicio, más determinista). Archivos: `Controllers/Api/ApiPerfilController.cs`,
+    `Servicios/Implementaciones/ServicioAutenticacion.cs`,
+    `Servicios/Interfaces/IServicioAutenticacion.cs`,
+    `EpycusApp.Tests/Integracion/EliminarCuentaTests.cs` (nuevo).
+
 ---
 
 ## 1. Pendiente — Backend / Web

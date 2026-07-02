@@ -134,6 +134,37 @@ namespace EpycusApp.Controllers.Api
             return Ok(RespuestaApi<List<LogroUsuario>>.Exitosa(logros));
         }
 
+        [HttpDelete("cuenta")]
+        public async Task<IActionResult> EliminarCuenta([FromBody] EliminarCuentaRequestDto? request)
+        {
+            var usuarioId = ObtenerUsuarioId()!.Value;
+
+            var (exito, mensaje) = await _servicioAutenticacion.EliminarCuentaAsync(usuarioId, request?.Contrasena);
+            if (!exito)
+            {
+                return BadRequest(RespuestaApi<MensajeResponseDto>.Fallida(mensaje ?? "No se pudo eliminar la cuenta"));
+            }
+
+            // Invalidar el token actual de inmediato, igual que en Logout.
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            {
+                var token = authHeader.Substring("Bearer ".Length).Trim();
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+                var jti = jwtToken.Claims.FirstOrDefault(c => c.Type == Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames.Jti)?.Value;
+                var exp = jwtToken.ValidTo;
+
+                if (!string.IsNullOrEmpty(jti) && exp > DateTime.UtcNow)
+                {
+                    var blacklist = HttpContext.RequestServices.GetRequiredService<EpycusApp.Servicios.Interfaces.IJwtBlacklist>();
+                    await blacklist.AddToBlacklistAsync(jti, exp - DateTime.UtcNow);
+                }
+            }
+
+            return Ok(RespuestaApi<MensajeResponseDto>.Exitosa(new MensajeResponseDto { Mensaje = mensaje ?? "Cuenta eliminada correctamente" }));
+        }
+
         public class ActualizarRequestDto
         {
             public string Nombre { get; set; } = string.Empty;
@@ -154,6 +185,11 @@ namespace EpycusApp.Controllers.Api
         public class TemaRequestDto
         {
             public int TemaId { get; set; }
+        }
+
+        public class EliminarCuentaRequestDto
+        {
+            public string? Contrasena { get; set; }
         }
     }
 }
