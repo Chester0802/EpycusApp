@@ -28,7 +28,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 _logger.LogDebug("Cache miss: Carreras");
                 using var scope = _scopeFactory.CreateScope();
                 var ctx = scope.ServiceProvider.GetRequiredService<ContextoAplicacion>();
-                return await ctx.Carreras.Where(c => c.EstaActiva).ToListAsync();
+                return await ctx.Carreras.AsNoTracking().Where(c => c.EstaActiva).ToListAsync();
             }) ?? [];
         }
 
@@ -40,7 +40,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 _logger.LogDebug("Cache miss: Niveles");
                 using var scope = _scopeFactory.CreateScope();
                 var ctx = scope.ServiceProvider.GetRequiredService<ContextoAplicacion>();
-                return await ctx.Niveles.OrderBy(n => n.Numero).ToListAsync();
+                return await ctx.Niveles.AsNoTracking().OrderBy(n => n.Numero).ToListAsync();
             }) ?? [];
         }
 
@@ -52,7 +52,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 _logger.LogDebug("Cache miss: Categorias");
                 using var scope = _scopeFactory.CreateScope();
                 var ctx = scope.ServiceProvider.GetRequiredService<ContextoAplicacion>();
-                return await ctx.Categorias.Where(c => c.EstaActiva).ToListAsync();
+                return await ctx.Categorias.AsNoTracking().Where(c => c.EstaActiva).ToListAsync();
             }) ?? [];
         }
 
@@ -64,7 +64,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 _logger.LogDebug("Cache miss: FrasesMotivacionales");
                 using var scope = _scopeFactory.CreateScope();
                 var ctx = scope.ServiceProvider.GetRequiredService<ContextoAplicacion>();
-                return await ctx.FrasesMotivacionales.Where(f => f.EstaActiva).ToListAsync();
+                return await ctx.FrasesMotivacionales.AsNoTracking().Where(f => f.EstaActiva).ToListAsync();
             }) ?? [];
         }
 

@@ -18,12 +18,14 @@ namespace EpycusApp.Servicios.Implementaciones
             var hoy = DateOnly.FromDateTime(DateTime.Today);
 
             var animosRecientes = await _contexto.EstadosAnimo
+                .AsNoTracking()
                 .Where(e => e.UsuarioId == usuarioId)
                 .OrderByDescending(e => e.Fecha)
                 .Take(7)
                 .ToListAsync();
 
             var usuario = await _contexto.Usuarios
+                .AsNoTracking()
                 .Include(u => u.Progreso).ThenInclude(p => p.NivelActual)
                 .Include(u => u.Habitos.Where(h => h.EstaActivo)).ThenInclude(h => h.Categoria)
                 .Include(u => u.Misiones.Where(m => m.Estado != "Completado"))

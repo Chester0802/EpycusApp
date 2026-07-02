@@ -52,7 +52,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 return (false, "El correo ya está registrado", null, null);
             }
 
-            var rolUsuario = await _contexto.Roles.FirstOrDefaultAsync(r => r.Nombre == "Usuario");
+            var rolUsuario = await _contexto.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Nombre == "Usuario");
             if (rolUsuario == null)
             {
                 return (false, "No existe el rol base de usuario", null, null);
@@ -93,7 +93,7 @@ namespace EpycusApp.Servicios.Implementaciones
             _contexto.Usuarios.Add(usuario);
             await _contexto.SaveChangesAsync();
 
-            var nivelInicial = await _contexto.Niveles.FirstOrDefaultAsync(n => n.Numero == 0);
+            var nivelInicial = await _contexto.Niveles.AsNoTracking().FirstOrDefaultAsync(n => n.Numero == 0);
             if (nivelInicial != null)
             {
                 _contexto.ProgresosUsuario.Add(new Models.Entidades.ProgresoUsuario
@@ -165,6 +165,7 @@ namespace EpycusApp.Servicios.Implementaciones
                     }
 
                     var usuario = await _contexto.Usuarios
+                        .AsNoTracking()
                         .Include(u => u.Rol)
                         .FirstOrDefaultAsync(u => u.Id == tokenGuardado.UsuarioId);
 
@@ -388,7 +389,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
         private async Task<bool> EnviarCorreoRecuperacionInterno(string correo)
         {
-            var usuario = await _contexto.Usuarios.FirstOrDefaultAsync(u => u.CorreoElectronico == correo);
+            var usuario = await _contexto.Usuarios.AsNoTracking().FirstOrDefaultAsync(u => u.CorreoElectronico == correo);
             if (usuario == null)
             {
                 return false;
@@ -470,6 +471,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<EpycusApp.Models.Entidades.Carrera>> ObtenerCarrerasActivas()
         {
             return await _contexto.Carreras
+                .AsNoTracking()
                 .Where(c => c.EstaActiva)
                 .OrderBy(c => c.Nombre)
                 .ToListAsync();
@@ -556,7 +558,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 return (false, "Esta cuenta de Google ya está vinculada a otro usuario", null, null);
             }
 
-            var rolUsuario = await _contexto.Roles.FirstOrDefaultAsync(r => r.Nombre == "Usuario");
+            var rolUsuario = await _contexto.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Nombre == "Usuario");
             if (rolUsuario == null)
             {
                 return (false, "No existe el rol base de usuario", null, null);
@@ -595,7 +597,7 @@ namespace EpycusApp.Servicios.Implementaciones
             _contexto.Usuarios.Add(usuario);
             await _contexto.SaveChangesAsync();
 
-            var nivelInicial = await _contexto.Niveles.FirstOrDefaultAsync(n => n.Numero == 0);
+            var nivelInicial = await _contexto.Niveles.AsNoTracking().FirstOrDefaultAsync(n => n.Numero == 0);
             if (nivelInicial != null)
             {
                 _contexto.ProgresosUsuario.Add(new Models.Entidades.ProgresoUsuario

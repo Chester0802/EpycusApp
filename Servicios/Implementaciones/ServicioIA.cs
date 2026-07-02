@@ -34,6 +34,7 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<List<MensajeIA>> ObtenerHistorialAsync(int usuarioId, string conversacionId)
         {
             return await _contexto.MensajesIA
+                .AsNoTracking()
                 .Where(m => m.UsuarioId == usuarioId && m.ConversacionId == conversacionId)
                 .OrderBy(m => m.FechaHora)
                 .ToListAsync();
@@ -191,6 +192,7 @@ namespace EpycusApp.Servicios.Implementaciones
                     await _contexto.SaveChangesAsync();
 
                     var historial = (await _contexto.MensajesIA
+                        .AsNoTracking()
                         .Where(m => m.UsuarioId == usuarioId && m.ConversacionId == conversacionId)
                         .OrderByDescending(m => m.FechaHora)
                         .ThenByDescending(m => m.Id)
