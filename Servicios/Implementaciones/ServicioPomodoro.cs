@@ -347,10 +347,18 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<List<SesionPomodoro>> ObtenerSesionesHoyAsync(int usuarioId)
         {
-            var hoy = DateTime.UtcNow.Date;
+            // "Hoy" debe ser el dia calendario del usuario, no el de UTC: para cualquier
+            // usuario al oeste de UTC (toda Latinoamerica) la medianoche UTC cae varias
+            // horas antes que su medianoche real, asi que sesiones hechas por la tarde/noche
+            // ya contaban como "de manana" -> desaparecian de "Resumen de hoy"/"Historial de
+            // hoy" aunque siguieran apareciendo correctamente en el grafico semanal (que si
+            // ya usaba la zona horaria del usuario).
+            var tz = await ObtenerZonaHorariaUsuario(usuarioId);
+            var hoyLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz).Date;
+            var hoyUtc = TimeZoneInfo.ConvertTimeToUtc(hoyLocal, tz);
             return await _context.SesionesPomodoro
                 .AsNoTracking()
-                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= hoy)
+                .Where(s => s.UsuarioId == usuarioId && s.FechaInicio >= hoyUtc)
                 .OrderByDescending(s => s.FechaInicio)
                 .ToListAsync();
         }
@@ -378,8 +386,13 @@ namespace EpycusApp.Servicios.Implementaciones
 
         public async Task<int> ObtenerRachaActualAsync(int usuarioId)
         {
-            var hoy = DateTime.UtcNow.Date;
+            // Igual que en ObtenerSesionesHoyAsync: agrupar por dia calendario del usuario,
+            // no por dia UTC, para que la racha no se rompa/adelante artificialmente para
+            // usuarios al oeste de UTC.
+            var tz = await ObtenerZonaHorariaUsuario(usuarioId);
+            var hoy = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz).Date;
             var hace30 = hoy.AddDays(-30);
+            var hace30Utc = TimeZoneInfo.ConvertTimeToUtc(hace30, tz);
 
             // Días (en memoria) con al menos una sesión completada en los últimos 30 días.
             // Se calcula en cliente: el conjunto está acotado (<=30 fechas) y evita la SQL
@@ -388,10 +401,10 @@ namespace EpycusApp.Servicios.Implementaciones
             var fechasDesc = (await _context.SesionesPomodoro
                     .Where(s => s.UsuarioId == usuarioId
                              && s.FueCompletada
-                             && s.FechaInicio >= hace30)
+                             && s.FechaInicio >= hace30Utc)
                     .Select(s => s.FechaInicio)
                     .ToListAsync())
-                .Select(f => f.Date)
+                .Select(f => TimeZoneInfo.ConvertTimeFromUtc(f, tz).Date)
                 .Distinct()
                 .OrderByDescending(f => f)
                 .ToList();
@@ -427,7 +440,12 @@ namespace EpycusApp.Servicios.Implementaciones
             {
                 Fecha = desdeLocal.ToString("yyyy-MM-dd"),
                 Ciclos = sesiones.Sum(s => s.CiclosCompletados),
-                Minutos = sesiones.Sum(s => s.FechaFin.HasValue
+                // Solo cuenta minutos de sesiones con al menos 1 ciclo real completado: una
+                // sesion que se quedo abierta horas y se cancelo/finalizo sin completar nada
+                // (bug de cliente, doble pestana, o cancelacion manual) no debe inflar
+                // "minutos enfocados" mientras ciclos/XP se quedan en 0 -> esa discrepancia
+                // es justo el sintoma reportado por el usuario probando el Pomodoro en vivo.
+                Minutos = sesiones.Where(s => s.CiclosCompletados > 0).Sum(s => s.FechaFin.HasValue
                     ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
                     : 0),
                 Xp = sesiones.Sum(s => s.XpOtorgado)
@@ -458,7 +476,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 {
                     Fecha = dia.ToString("ddd", CultureInfo.CreateSpecificCulture("es-ES")),
                     Ciclos = delDia.Sum(s => s.CiclosCompletados),
-                    Minutos = delDia.Sum(s => s.FechaFin.HasValue
+                    Minutos = delDia.Where(s => s.CiclosCompletados > 0).Sum(s => s.FechaFin.HasValue
                         ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
                         : 0),
                     Xp = delDia.Sum(s => s.XpOtorgado)
@@ -481,7 +499,7 @@ namespace EpycusApp.Servicios.Implementaciones
 
             var diasEnRango = Math.Max(1, (hasta.Date - desde.Date).Days + 1);
             var totalCiclos = sesiones.Sum(s => s.CiclosCompletados);
-            var totalMinutos = sesiones.Sum(s => s.FechaFin.HasValue
+            var totalMinutos = sesiones.Where(s => s.CiclosCompletados > 0).Sum(s => s.FechaFin.HasValue
                 ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
                 : 0);
             var totalXp = sesiones.Sum(s => s.XpOtorgado);
@@ -500,7 +518,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 {
                     Fecha = $"{g.Key.Year}-{g.Key.Month:D2}",
                     Ciclos = g.Sum(s => s.CiclosCompletados),
-                    Minutos = g.Sum(s => s.FechaFin.HasValue
+                    Minutos = g.Where(s => s.CiclosCompletados > 0).Sum(s => s.FechaFin.HasValue
                         ? (int)(s.FechaFin.Value - s.FechaInicio).TotalMinutes
                         : 0),
                     Xp = g.Sum(s => s.XpOtorgado)

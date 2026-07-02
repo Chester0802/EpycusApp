@@ -41,8 +41,12 @@ namespace EpycusApp.Controllers
                     modelo.EstadisticasHoy.CiclosCompletados += s.CiclosCompletados;
                     modelo.EstadisticasHoy.XpGanado += s.XpOtorgado;
                 }
+                // Solo cuenta minutos de sesiones con al menos 1 ciclo completado: una sesión
+                // que quedó abierta y se canceló/finalizó sin completar nada (bug de cliente,
+                // doble pestaña, o cancelación manual) no debe inflar "minutos enfocados"
+                // mientras "ciclos completados"/"XP ganado" se quedan en 0 en el mismo resumen.
                 modelo.EstadisticasHoy.MinutosEnfocados = (int)sesionesHoy
-                    .Where(s => s.FechaFin.HasValue)
+                    .Where(s => s.FechaFin.HasValue && s.CiclosCompletados > 0)
                     .Sum(s => (s.FechaFin!.Value - s.FechaInicio).TotalMinutes);
 
                 modelo.EstadisticasHoy.MisionesCompletadas = await _servicioMisiones.ContarCompletadasHoyAsync(usuarioId);

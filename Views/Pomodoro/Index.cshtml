@@ -414,7 +414,8 @@
             minutosTotales: parseInt(document.getElementById('statMinutos').innerText) || 0,
             xpTotal: parseInt(document.getElementById('statXpGanado').innerText) || 0,
             ultimoTick: null,
-            procesandoCompletado: false
+            procesandoCompletado: false,
+            procesandoInicio: false
         };
 
         const elDisplayTimer = document.getElementById('timerDisplay');
@@ -629,15 +630,7 @@
                 document.getElementById('statMinutos').innerText = estadoTimer.minutosTotales;
                 document.getElementById('statXpGanado').innerText = estadoTimer.xpTotal;
                 displayCiclos.innerText = metaDiariaValue;
-                if (CONFIGURACION.metaDiaria > 0) {
-                    var metaBarEl = document.getElementById('metaBar');
-                    var metaTextEl = document.getElementById('metaText');
-                    if (metaBarEl && metaTextEl) {
-                        var pctRestore = Math.min(100, (estadoTimer.ciclosCompletados / CONFIGURACION.metaDiaria) * 100);
-                        metaBarEl.style.width = pctRestore + '%';
-                        metaTextEl.innerText = estadoTimer.ciclosCompletados + ' / ' + CONFIGURACION.metaDiaria;
-                    }
-                }
+                actualizarTarjetaMetaDiaria();
 
                 localStorage.removeItem('epycus_pomodoro');
 
@@ -838,7 +831,23 @@
             if (n >= 1 && n <= 50) {
                 metaDiariaValue = n;
                 displayCiclos.innerText = n;
+                actualizarTarjetaMetaDiaria();
             }
+        }
+
+        // El control rápido +/- de "Meta diaria" (junto al reloj) y la tarjeta "Meta diaria"
+        // (con su barra de progreso) muestran el mismo concepto pero eran dos elementos de UI
+        // sin conectar: cambiar uno no actualizaba el otro, así que un usuario podía ajustar
+        // su meta del día y ver que la tarjeta de progreso seguía mostrando el valor viejo
+        // hasta recargar la página. Esto sincroniza la tarjeta al instante; la persistencia
+        // real de la meta diaria por defecto sigue siendo la página de Configuración.
+        function actualizarTarjetaMetaDiaria() {
+            var metaBarEl = document.getElementById('metaBar');
+            var metaTextEl = document.getElementById('metaText');
+            if (!metaBarEl || !metaTextEl || metaDiariaValue <= 0) return;
+            var pct = Math.min(100, (estadoTimer.ciclosCompletados / metaDiariaValue) * 100);
+            metaBarEl.style.width = pct + '%';
+            metaTextEl.innerText = estadoTimer.ciclosCompletados + ' / ' + metaDiariaValue;
         }
 
         function seleccionarTarea(element, id, tipo) {
@@ -931,10 +940,23 @@
         });
 
         async function alternarTimer() {
+            // Guarda de reentrancia: iniciarTimer() es async (espera a obtenerContextoAudio/
+            // ctx.resume() antes de marcar estaCorriendo=true), así que un doble-tap rápido
+            // en el botón de Play (común en móvil) podía llamar a esta función dos veces
+            // antes de que la primera terminara de marcar estaCorriendo -> ambas llamadas
+            // entraban a iniciarTimer(), creando DOS setInterval corriendo en paralelo (el
+            // reloj bajaba al doble de velocidad) y, si el modo era enfoque, hasta dos
+            // sesiones nuevas en el backend (POST /iniciar duplicado).
+            if (estadoTimer.procesandoInicio) return;
             if (estadoTimer.estaCorriendo) {
                 pausarTimer();
             } else {
-                await iniciarTimer();
+                estadoTimer.procesandoInicio = true;
+                try {
+                    await iniciarTimer();
+                } finally {
+                    estadoTimer.procesandoInicio = false;
+                }
             }
         }
 
@@ -1053,7 +1075,9 @@
                     return;
                 }
             }
-            estadoTimer.tiempoRestante = 0;
+            // establecerModo('corto') fija tiempoRestante a la duración completa del
+            // descanso corto, así que asignarle 0 justo antes es una escritura muerta (se
+            // pisa de inmediato) — se quita para no sugerir que "salta" con 0 tiempo restante.
             ocultarBotonFinalizar();
             establecerModo('corto');
         }
@@ -1102,6 +1126,17 @@
             }
         }
 
+        // Los modales de Bootstrap (descanso largo sugerido, meta diaria cumplida) se montan
+        // fuera de #pomodoroCard, así que si el usuario activó pantalla completa en el reloj
+        // (el botón "Pantalla completa" de esta misma pantalla) el navegador no pinta nada
+        // fuera de ese elemento -> el modal queda invisible y el usuario se queda "atascado"
+        // sin poder verlo ni cerrarlo con el mouse/dedo (en móvil no hay tecla Escape/F para
+        // salir). Se sale de pantalla completa antes de mostrar cualquiera de esos modales.
+        async function salirDePantallaCompletaSiActiva() {
+            if (!document.fullscreenElement) return;
+            try { await document.exitFullscreen(); } catch (e) {}
+        }
+
         function actualizarIconoFullscreen() {
             var icon = document.querySelector('#btnFullscreen i');
             if (!icon) return;
@@ -1145,12 +1180,16 @@
                 broadcastMensaje('timer_complete', { ciclos: estadoTimer.ciclosCompletados, xp: estadoTimer.xpTotal });
                 document.getElementById('statMinutos').innerText = estadoTimer.minutosTotales;
 
-                if (CONFIGURACION.metaDiaria > 0) {
-                    const pct = Math.min(100, (estadoTimer.ciclosCompletados / CONFIGURACION.metaDiaria) * 100);
+                if (metaDiariaValue > 0) {
+                    // Usa metaDiariaValue (lo que el usuario ve y puede ajustar con +/- junto
+                    // al reloj) en vez de CONFIGURACION.metaDiaria (el valor guardado en el
+                    // servidor): así la tarjeta "Meta diaria" no revierte al valor viejo en
+                    // cada ciclo si el usuario ajustó su meta de hoy con el control rápido.
+                    const pct = Math.min(100, (estadoTimer.ciclosCompletados / metaDiariaValue) * 100);
                     document.getElementById('metaBar').style.width = pct + '%';
-                    document.getElementById('metaText').innerText = estadoTimer.ciclosCompletados + ' / ' + CONFIGURACION.metaDiaria;
-                    if (estadoTimer.ciclosCompletados >= CONFIGURACION.metaDiaria) {
-                        notificar('¡Meta diaria cumplida!', 'Has alcanzado tu meta de ' + CONFIGURACION.metaDiaria + ' ciclos.');
+                    document.getElementById('metaText').innerText = estadoTimer.ciclosCompletados + ' / ' + metaDiariaValue;
+                    if (estadoTimer.ciclosCompletados >= metaDiariaValue) {
+                        notificar('¡Meta diaria cumplida!', 'Has alcanzado tu meta de ' + metaDiariaValue + ' ciclos.');
                     }
                 }
 
@@ -1205,6 +1244,7 @@
                                 };
                                 modalLargoEl.addEventListener('hidden.bs.modal', modalLargoEl._epycusModalHandler);
                                 window._modalHandled = false;
+                                await salirDePantallaCompletaSiActiva();
                                 modalLargo.show();
                                 return;
                             }
@@ -1226,10 +1266,10 @@
                         estadoTimer.xpTotal = prevXp;
                         document.getElementById('statCiclos').innerText = prevCiclos;
                         document.getElementById('statMinutos').innerText = prevMinutos;
-                        if (CONFIGURACION.metaDiaria > 0) {
-                            const pctRollback = Math.min(100, (prevCiclos / CONFIGURACION.metaDiaria) * 100);
+                        if (metaDiariaValue > 0) {
+                            const pctRollback = Math.min(100, (prevCiclos / metaDiariaValue) * 100);
                             document.getElementById('metaBar').style.width = pctRollback + '%';
-                            document.getElementById('metaText').innerText = prevCiclos + ' / ' + CONFIGURACION.metaDiaria;
+                            document.getElementById('metaText').innerText = prevCiclos + ' / ' + metaDiariaValue;
                         }
                         var histList = document.getElementById('historialList');
                         if (histList.firstChild && histList.firstChild.classList.contains('position-relative')) {
@@ -1267,9 +1307,10 @@
                             }
                         } catch(e) { mostrarError("Error al finalizar la sesión automáticamente."); }
                     }
-                    if (CONFIGURACION.metaDiaria > 0 && estadoTimer.ciclosCompletados >= CONFIGURACION.metaDiaria) {
-                        document.getElementById('modalMetaNumero').innerText = CONFIGURACION.metaDiaria;
+                    if (metaDiariaValue > 0 && estadoTimer.ciclosCompletados >= metaDiariaValue) {
+                        document.getElementById('modalMetaNumero').innerText = metaDiariaValue;
                         var modalMeta = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalMetaCumplida'));
+                        await salirDePantallaCompletaSiActiva();
                         modalMeta.show();
                         mostrarExito('¡Meta diaria cumplida! Sesión finalizada con XP bonus.');
                     } else {

@@ -396,6 +396,142 @@ public class ServicioPomodoroTests
         stats.Xp.Should().Be(45);
     }
 
+    // Regresión: una sesión que estuvo abierta mucho tiempo (ej. atascada por un bug de
+    // cliente, doble pestaña, o cancelada manualmente) y nunca completó ningún ciclo no debe
+    // sumar minutos "enfocados" — de lo contrario Ciclos/Xp quedan en 0 mientras Minutos
+    // muestra un número grande, el desfase exacto reportado por el usuario en producción.
+    [Fact]
+    public async Task EstadisticasPeriodo_SesionSinCiclos_NoCuentaSusMinutos()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var inicio = DateTime.UtcNow.AddHours(-3);
+        var sesionRota = new SesionPomodoro
+        {
+            UsuarioId = usuarioId,
+            FechaInicio = inicio,
+            FechaFin = inicio.AddHours(2), // 120 min de duración real, pero 0 ciclos
+            CiclosCompletados = 0,
+            XpOtorgado = 0,
+            FueCompletada = false
+        };
+        _contexto.SesionesPomodoro.Add(sesionRota);
+        await _contexto.SaveChangesAsync();
+
+        var stats = await _servicio.ObtenerEstadisticasPeriodoAsync(usuarioId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow);
+
+        stats.Ciclos.Should().Be(0);
+        stats.Minutos.Should().Be(0);
+        stats.Xp.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task EstadisticasSemanales_SesionSinCiclos_NoCuentaSusMinutos()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var usuario = await _contexto.Usuarios.FindAsync(usuarioId);
+        usuario!.ZonaHoraria = "UTC";
+        var inicio = DateTime.UtcNow.AddHours(-1);
+        var sesionRota = new SesionPomodoro
+        {
+            UsuarioId = usuarioId,
+            FechaInicio = inicio,
+            FechaFin = DateTime.UtcNow,
+            CiclosCompletados = 0,
+            XpOtorgado = 0,
+            FueCompletada = false
+        };
+        _contexto.SesionesPomodoro.Add(sesionRota);
+        await _contexto.SaveChangesAsync();
+
+        var stats = await _servicio.ObtenerEstadisticasSemanalesAsync(usuarioId);
+
+        stats.Sum(s => s.Minutos).Should().Be(0);
+        stats.Sum(s => s.Ciclos).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task EstadisticasAvanzadas_SesionSinCiclos_NoCuentaSusMinutos()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var usuario = await _contexto.Usuarios.FindAsync(usuarioId);
+        usuario!.ZonaHoraria = "UTC";
+        var inicio = DateTime.UtcNow.AddHours(-3);
+        var sesionRota = new SesionPomodoro
+        {
+            UsuarioId = usuarioId,
+            FechaInicio = inicio,
+            FechaFin = inicio.AddHours(2),
+            CiclosCompletados = 0,
+            XpOtorgado = 0,
+            FueCompletada = false
+        };
+        _contexto.SesionesPomodoro.Add(sesionRota);
+        await _contexto.SaveChangesAsync();
+
+        var stats = await _servicio.ObtenerEstadisticasAvanzadasAsync(usuarioId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow);
+
+        stats.TotalMinutos.Should().Be(0);
+        stats.TotalCiclos.Should().Be(0);
+    }
+
+    // Regresión: "hoy" debe calcularse con la zona horaria del usuario, no con la fecha UTC
+    // del servidor. Para un usuario detrás de UTC (ej. Lima, UTC-5) su medianoche local
+    // ocurre varias horas DESPUÉS de la medianoche UTC del servidor: una sesión hecha justo
+    // tras la medianoche UTC del servidor todavía es "ayer" para ese usuario.
+    [Fact]
+    public async Task ObtenerSesionesHoyAsync_UsaZonaHorariaDelUsuario_NoUtcDelServidor()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var usuario = await _contexto.Usuarios.FindAsync(usuarioId);
+        usuario!.ZonaHoraria = "America/Lima"; // UTC-5, sin horario de verano
+        await _contexto.SaveChangesAsync();
+
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Lima");
+        var hoyLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz).Date;
+        var medianocheLocalEnUtc = TimeZoneInfo.ConvertTimeToUtc(hoyLocal, tz);
+
+        var sesionDeHoy = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = medianocheLocalEnUtc.AddMinutes(1), CiclosCompletados = 1, XpOtorgado = 15, FueCompletada = true };
+        var sesionDeAyer = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = medianocheLocalEnUtc.AddMinutes(-1), CiclosCompletados = 1, XpOtorgado = 15, FueCompletada = true };
+        _contexto.SesionesPomodoro.AddRange(sesionDeHoy, sesionDeAyer);
+        await _contexto.SaveChangesAsync();
+
+        var sesiones = await _servicio.ObtenerSesionesHoyAsync(usuarioId);
+
+        sesiones.Should().ContainSingle();
+        sesiones[0].FechaInicio.Should().Be(sesionDeHoy.FechaInicio);
+    }
+
+    [Fact]
+    public async Task ObtenerRachaActualAsync_UsaZonaHorariaDelUsuario_NoUtcDelServidor()
+    {
+        var usuarioId = await SeedUsuarioAsync();
+        var usuario = await _contexto.Usuarios.FindAsync(usuarioId);
+        usuario!.ZonaHoraria = "America/Lima";
+        await _contexto.SaveChangesAsync();
+
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Lima");
+        var hoyLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz).Date;
+        var medianocheLocalEnUtc = TimeZoneInfo.ConvertTimeToUtc(hoyLocal, tz);
+
+        // Sesión completada 1 minuto después de la medianoche local del usuario, aunque en
+        // UTC pueda seguir siendo "ayer" para el reloj del servidor.
+        var sesion = new SesionPomodoro
+        {
+            UsuarioId = usuarioId,
+            FechaInicio = medianocheLocalEnUtc.AddMinutes(1),
+            FechaFin = medianocheLocalEnUtc.AddMinutes(30),
+            CiclosCompletados = 1,
+            XpOtorgado = 15,
+            FueCompletada = true
+        };
+        _contexto.SesionesPomodoro.Add(sesion);
+        await _contexto.SaveChangesAsync();
+
+        var racha = await _servicio.ObtenerRachaActualAsync(usuarioId);
+
+        racha.Should().Be(1);
+    }
+
     // T6-T7: ObtenerTareasEnfoqueAsync
     [Fact]
     public async Task TareasEnfoque_ConHabitosActivos_RetornaTareas()
