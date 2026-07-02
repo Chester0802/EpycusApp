@@ -603,8 +603,6 @@
                 var modoValido = CONFIGURACION[estado.modo] != null;
                 if (!modoValido) return;
 
-                estadoTimer.modo = estado.modo;
-                estadoTimer.tiempoTotal = CONFIGURACION[estado.modo];
                 estadoTimer.sesionId = estado.sesionId || null;
                 estadoTimer.tareaSeleccionadaId = estado.tareaSeleccionadaId || null;
                 estadoTimer.tareaSeleccionadaTipo = estado.tareaSeleccionadaTipo || null;
@@ -616,17 +614,16 @@
                 estadoTimer.xpTotal = estado.xpTotal || 0;
                 metaDiariaValue = estado.metaDiaria || (CONFIGURACION.metaDiaria > 0 ? CONFIGURACION.metaDiaria : 4);
 
-                if (estado.estaCorriendo && estado.finEn) {
-                    var remaining = Math.max(0, Math.floor((estado.finEn - Date.now()) / 1000));
-                    estadoTimer.tiempoRestante = Math.min(remaining, estadoTimer.tiempoTotal);
-                    if (remaining > 0) {
-                        setTimeout(function() { alternarTimer(); }, 300);
-                    }
-                } else {
-                    estadoTimer.tiempoRestante = estado.tiempoRestante != null
-                        ? Math.min(estado.tiempoRestante, estadoTimer.tiempoTotal)
-                        : estadoTimer.tiempoTotal;
-                }
+                // establecerModo() fija tiempoRestante/tiempoTotal a la duración completa
+                // configurada (para dejar el resto de la UI -tabs, etiquetas, botones- en el
+                // estado correcto) -> se corrige a continuación con el tiempo restante real,
+                // porque antes se llamaba DESPUES de calcularlo y lo pisaba en silencio: tras
+                // recargar la pestaña (ej. el SO la descarga en segundo plano en el móvil) el
+                // temporizador siempre "reaparecía" con la duración completa en vez de
+                // continuar, y si el ciclo ya había terminado mientras tanto nunca se llamaba
+                // a alCompletarTimer(): el ciclo se perdía sin registrar (0 ciclos, sin XP) y
+                // la sesión quedaba abierta en el servidor indefinidamente.
+                establecerModo(estado.modo);
 
                 document.getElementById('statCiclos').innerText = estadoTimer.ciclosCompletados;
                 document.getElementById('statMinutos').innerText = estadoTimer.minutosTotales;
@@ -641,9 +638,27 @@
                         metaTextEl.innerText = estadoTimer.ciclosCompletados + ' / ' + CONFIGURACION.metaDiaria;
                     }
                 }
-                establecerModo(estado.modo);
 
                 localStorage.removeItem('epycus_pomodoro');
+
+                if (estado.estaCorriendo && estado.finEn) {
+                    var remaining = Math.max(0, Math.floor((estado.finEn - Date.now()) / 1000));
+                    if (remaining > 0) {
+                        estadoTimer.tiempoRestante = Math.min(remaining, estadoTimer.tiempoTotal);
+                        actualizarUI();
+                        setTimeout(function() { alternarTimer(); }, 300);
+                    } else {
+                        // El ciclo/descanso ya terminó mientras la pestaña estaba en segundo
+                        // plano: registrarlo igual que si el temporizador hubiera llegado a 0
+                        // de forma normal, en vez de dejarlo sin contabilizar.
+                        estadoTimer.tiempoRestante = 0;
+                        actualizarUI();
+                        setTimeout(function() { alCompletarTimer(); }, 300);
+                    }
+                } else if (estado.tiempoRestante != null) {
+                    estadoTimer.tiempoRestante = Math.min(estado.tiempoRestante, estadoTimer.tiempoTotal);
+                    actualizarUI();
+                }
             } catch(e) {}
         }
 
