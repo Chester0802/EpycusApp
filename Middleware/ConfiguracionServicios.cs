@@ -298,7 +298,6 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddSignalR();
             builder.Services.AddMemoryCache();
             builder.Services.AddSingleton<IServicioCache, ServicioCache>();
-            builder.Services.AddDistributedMemoryCache();
             builder.Services.AddScoped<IJwtBlacklist, JwtBlacklist>();
 
             var sentryDsn = builder.Configuration["Sentry:Dsn"];

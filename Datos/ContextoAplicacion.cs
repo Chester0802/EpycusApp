@@ -41,6 +41,7 @@ namespace EpycusApp.Datos
         public DbSet<EntradaDiario> EntradasDiario { get; set; } = null!;
         public DbSet<Log> Logs { get; set; } = null!;
         public DbSet<SubTarea> SubTareas { get; set; } = null!;
+        public DbSet<TokenRevocado> TokensRevocados { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -239,6 +240,13 @@ namespace EpycusApp.Datos
 
             modelBuilder.Entity<VerificacionCorreo>()
                 .HasIndex(v => v.UsuarioId);
+
+            modelBuilder.Entity<TokenRevocado>()
+                .HasIndex(t => t.Jti)
+                .IsUnique();
+
+            modelBuilder.Entity<TokenRevocado>()
+                .HasIndex(t => t.ExpiraEn);
         }
     }
 }

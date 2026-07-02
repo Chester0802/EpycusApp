@@ -1,36 +1,54 @@
+using EpycusApp.Datos;
+using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
-using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EpycusApp.Servicios.Implementaciones
 {
     public class JwtBlacklist : IJwtBlacklist
     {
-        private readonly IDistributedCache _cache;
+        private readonly ContextoAplicacion _contexto;
         private readonly ILogger<JwtBlacklist> _logger;
-        private const string KeyPrefix = "jwt_blacklist:";
 
-        public JwtBlacklist(IDistributedCache cache, ILogger<JwtBlacklist> logger)
+        public JwtBlacklist(ContextoAplicacion contexto, ILogger<JwtBlacklist> logger)
         {
-            _cache = cache;
+            _contexto = contexto;
             _logger = logger;
         }
 
         public async Task AddToBlacklistAsync(string jti, TimeSpan ttl)
         {
-            var key = KeyPrefix + jti;
-            await _cache.SetStringAsync(key, "revoked", new DistributedCacheEntryOptions
+            var yaExiste = await _contexto.TokensRevocados.AnyAsync(t => t.Jti == jti);
+            if (yaExiste)
             {
-                AbsoluteExpirationRelativeToNow = ttl
+                return;
+            }
+
+            _contexto.TokensRevocados.Add(new TokenRevocado
+            {
+                Jti = jti,
+                ExpiraEn = DateTime.UtcNow.Add(ttl)
             });
+
+            // Limpieza oportunista de entradas ya expiradas para no crecer sin límite.
+            var expirados = await _contexto.TokensRevocados
+                .Where(t => t.ExpiraEn < DateTime.UtcNow)
+                .ToListAsync();
+            if (expirados.Count > 0)
+            {
+                _contexto.TokensRevocados.RemoveRange(expirados);
+            }
+
+            await _contexto.SaveChangesAsync();
             _logger.LogDebug("JWT added to blacklist: {Jti}", jti);
         }
 
         public async Task<bool> IsBlacklistedAsync(string jti)
         {
-            var key = KeyPrefix + jti;
-            var value = await _cache.GetStringAsync(key);
-            return !string.IsNullOrEmpty(value);
+            return await _contexto.TokensRevocados
+                .AsNoTracking()
+                .AnyAsync(t => t.Jti == jti && t.ExpiraEn > DateTime.UtcNow);
         }
     }
 }
