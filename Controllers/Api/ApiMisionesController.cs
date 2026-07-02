@@ -34,7 +34,7 @@ namespace EpycusApp.Controllers.Api
                 NombreCurso = m.NombreCurso,
                 Prioridad = m.Prioridad,
                 Estado = m.Estado,
-                FechaLimite = m.FechaLimite.ToString("yyyy-MM-dd"),
+                FechaLimite = m.FechaLimite == DateOnly.MinValue ? string.Empty : m.FechaLimite.ToString("yyyy-MM-dd"),
                 XpOtorgado = m.XpOtorgado,
                 FechaCreacion = m.FechaCreacion,
                 CategoriaId = m.CategoriaId,
@@ -99,7 +99,7 @@ namespace EpycusApp.Controllers.Api
                 Nombre = dto.Nombre,
                 Descripcion = dto.Descripcion,
                 NombreCurso = dto.NombreCurso,
-                FechaLimite = DateTime.Parse(dto.FechaLimite),
+                FechaLimite = string.IsNullOrEmpty(dto.FechaLimite) ? default : DateTime.Parse(dto.FechaLimite),
                 Prioridad = dto.Prioridad,
                 ConPomodoro = dto.ConPomodoro ?? false,
                 CategoriaId = dto.CategoriaId
