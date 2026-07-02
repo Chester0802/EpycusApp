@@ -61,6 +61,15 @@ namespace EpycusApp.Servicios.Implementaciones
             var logrosActivos = await _contexto.Logros.Where(l => l.EstaActivo).ToListAsync();
             var logrosUsuario = await _contexto.LogrosUsuario.Where(lu => lu.UsuarioId == usuarioId).ToListAsync();
 
+            // Se calculan una sola vez antes del loop (antes se repetía una query por cada
+            // logro activo sin obtener: N+1 sobre RegistrosHabito/Misiones/SesionesPomodoro).
+            var habitosCompletados = await _contexto.RegistrosHabito
+                .CountAsync(r => r.Habito.UsuarioId == usuarioId && r.Estado == "Completado");
+            var misionesCompletadas = await _contexto.Misiones
+                .CountAsync(m => m.UsuarioId == usuarioId && m.Estado == "Completado");
+            var sesionesPomodoroCompletadas = await _contexto.SesionesPomodoro
+                .CountAsync(s => s.UsuarioId == usuarioId && s.FueCompletada);
+
             foreach (var logro in logrosActivos)
             {
                 var yaTiene = logrosUsuario.Any(lu => lu.LogroId == logro.Id);
@@ -71,13 +80,10 @@ namespace EpycusApp.Servicios.Implementaciones
 
                 var cumplido = logro.CondicionTipo switch
                 {
-                    "HabitosCompletados" => await _contexto.RegistrosHabito
-                        .CountAsync(r => r.Habito.UsuarioId == usuarioId && r.Estado == "Completado") >= logro.CondicionValor,
-                    "MisionesCompletadas" => await _contexto.Misiones
-                        .CountAsync(m => m.UsuarioId == usuarioId && m.Estado == "Completado") >= logro.CondicionValor,
+                    "HabitosCompletados" => habitosCompletados >= logro.CondicionValor,
+                    "MisionesCompletadas" => misionesCompletadas >= logro.CondicionValor,
                     "RachaDias" => progreso.RachaActual >= logro.CondicionValor,
-                    "SesionesPomodoro" => await _contexto.SesionesPomodoro
-                        .CountAsync(s => s.UsuarioId == usuarioId && s.FueCompletada) >= logro.CondicionValor,
+                    "SesionesPomodoro" => sesionesPomodoroCompletadas >= logro.CondicionValor,
                     "XpTotal" => progreso.XpTotal >= logro.CondicionValor,
                     "NivelAlcanzado" => progreso.NivelActual.Numero >= logro.CondicionValor,
                     _ => false
