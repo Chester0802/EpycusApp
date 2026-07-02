@@ -675,8 +675,14 @@ public class ServicioPomodoroTests
         _contexto.ConfiguracionesPomodoro.Add(new ConfiguracionPomodoro { UsuarioId = usuarioId, TiempoEstudioMin = 25 });
         await _contexto.SaveChangesAsync();
 
-        var s1 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.Date.AddHours(10), FechaFin = DateTime.UtcNow.Date.AddHours(11), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
-        var s2 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = DateTime.UtcNow.Date.AddDays(-1).AddHours(15), FechaFin = DateTime.UtcNow.Date.AddDays(-1).AddHours(16), CiclosCompletados = 1, XpOtorgado = 15, FueCompletada = true };
+        // Desfases relativos a "ahora" (en vez de horas fijas como 10/15) para que el test
+        // no dependa de la hora del dia en que se ejecute el CI (antes fallaba si corria
+        // entre las 00:00 y las 10:00 UTC, porque "hoy a las 10:00" quedaba en el futuro).
+        var ahora = DateTime.UtcNow;
+        var inicioS1 = ahora.AddHours(-2);
+        var inicioS2 = ahora.AddHours(-27);
+        var s1 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = inicioS1, FechaFin = inicioS1.AddHours(1), CiclosCompletados = 2, XpOtorgado = 30, FueCompletada = true };
+        var s2 = new SesionPomodoro { UsuarioId = usuarioId, FechaInicio = inicioS2, FechaFin = inicioS2.AddHours(1), CiclosCompletados = 1, XpOtorgado = 15, FueCompletada = true };
         _contexto.SesionesPomodoro.AddRange(s1, s2);
         await _contexto.SaveChangesAsync();
 
@@ -688,8 +694,8 @@ public class ServicioPomodoroTests
         stats.PromedioCiclosPorDia.Should().Be(1.0);
         stats.PorMes.Should().NotBeEmpty();
         stats.HeatmapHoras.Should().HaveCount(24);
-        stats.HeatmapHoras.First(h => h.Hora == 10).Ciclos.Should().Be(2);
-        stats.HeatmapHoras.First(h => h.Hora == 15).Ciclos.Should().Be(1);
+        stats.HeatmapHoras.First(h => h.Hora == inicioS1.Hour).Ciclos.Should().Be(2);
+        stats.HeatmapHoras.First(h => h.Hora == inicioS2.Hour).Ciclos.Should().Be(1);
     }
 
     [Fact]
