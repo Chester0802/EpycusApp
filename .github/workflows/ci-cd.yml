@@ -238,7 +238,13 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 (historial completo) porque gitleaks-action escanea el rango
+      # before^..after del push; con el fetch-depth:1 por defecto, un push con 2+
+      # commits no puede resolver ese rango ("unknown revision") y el job falla con
+      # exit 1 sin haber escaneado nada, aparentando (falsamente) un secreto filtrado.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check for secrets in code
         uses: gitleaks/gitleaks-action@v2
