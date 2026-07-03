@@ -148,7 +148,7 @@ namespace EpycusApp.Servicios.Implementaciones
                 .CountAsync(m => m.UsuarioId == usuarioId && m.Rol == "user" && m.FechaHora >= hoy);
         }
 
-        public async Task<string> ChatAsync(int usuarioId, string mensaje, string conversacionId)
+        public async Task<(string Respuesta, int MensajeId)> ChatAsync(int usuarioId, string mensaje, string conversacionId)
         {
             var primerMensaje = await _contexto.MensajesIA
                 .Where(m => m.ConversacionId == conversacionId)
@@ -170,13 +170,13 @@ namespace EpycusApp.Servicios.Implementaciones
             // mensaje de cualquier chat con Edy fallaba con "does not support user-initiated
             // transactions" (500 en /api/v1/ia/chat).
             var estrategia = _contexto.Database.CreateExecutionStrategy();
-            var respuestaTexto = await estrategia.ExecuteAsync(EnviarMensaje);
+            var resultado = await estrategia.ExecuteAsync(EnviarMensaje);
 
             await _gamificacion.SumarXP(usuarioId, XpPorMensaje);
 
-            return respuestaTexto;
+            return resultado;
 
-            async Task<string> EnviarMensaje()
+            async Task<(string Respuesta, int MensajeId)> EnviarMensaje()
             {
                 using var transaction = await _contexto.Database.BeginTransactionAsync();
 
@@ -208,19 +208,20 @@ namespace EpycusApp.Servicios.Implementaciones
 
                     var respuesta = await _proveedorDeepSeek.LlamarAsync(ctxUsuario, historial, resumen);
 
-                    _contexto.MensajesIA.Add(new MensajeIA
+                    var msgModelo = new MensajeIA
                     {
                         ConversacionId = conversacionId,
                         UsuarioId = usuarioId,
                         Rol = "model",
                         Contenido = respuesta,
                         FechaHora = DateTime.UtcNow
-                    });
+                    };
+                    _contexto.MensajesIA.Add(msgModelo);
                     await _contexto.SaveChangesAsync();
 
                     await transaction.CommitAsync();
 
-                    return respuesta;
+                    return (respuesta, msgModelo.Id);
                 }
                 catch
                 {

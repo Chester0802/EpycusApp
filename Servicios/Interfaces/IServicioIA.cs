@@ -5,7 +5,7 @@ namespace EpycusApp.Servicios.Interfaces
 {
     public interface IServicioIA
     {
-        Task<string> ChatAsync(int usuarioId, string mensaje, string conversacionId);
+        Task<(string Respuesta, int MensajeId)> ChatAsync(int usuarioId, string mensaje, string conversacionId);
         Task<List<MensajeIA>> ObtenerHistorialAsync(int usuarioId, string conversacionId);
         string NuevaConversacionId();
         Task<List<string>> ObtenerSugerenciasPersonalizadasAsync(int usuarioId);

@@ -77,12 +77,12 @@ namespace EpycusApp.Controllers
 
             try
             {
-                var respuesta = await _servicioIA.ChatAsync(
+                var resultado = await _servicioIA.ChatAsync(
                     usuarioId,
                     dto.Mensaje,
                     dto.ConversacionId);
 
-                return Ok(new { exito = true, respuesta, mensajeId = 0 });
+                return Ok(new { exito = true, respuesta = resultado.Respuesta, mensajeId = resultado.MensajeId });
             }
             catch (UnauthorizedAccessException)
             {

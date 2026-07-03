@@ -32,7 +32,7 @@ public class ApiIaTests
     public async Task Chat_SinConversacionId_GeneraNuevaYRetornaOk()
     {
         _iaMock.Setup(s => s.NuevaConversacionId()).Returns("nueva");
-        _iaMock.Setup(s => s.ChatAsync(1, "hola", "nueva")).ReturnsAsync("respuesta");
+        _iaMock.Setup(s => s.ChatAsync(1, "hola", "nueva")).ReturnsAsync(("respuesta", 1));
 
         var resultado = await _controller.Chat(new ChatRequest { Mensaje = "hola" });
 
@@ -42,12 +42,25 @@ public class ApiIaTests
     [Fact]
     public async Task Chat_ConConversacionId_RetornaOk()
     {
-        _iaMock.Setup(s => s.ChatAsync(1, "hola", "c1")).ReturnsAsync("respuesta");
+        _iaMock.Setup(s => s.ChatAsync(1, "hola", "c1")).ReturnsAsync(("respuesta", 1));
 
         var resultado = await _controller.Chat(new ChatRequest { Mensaje = "hola", ConversacionId = "c1" });
 
         resultado.Should().BeOfType<OkObjectResult>();
         _iaMock.Verify(s => s.NuevaConversacionId(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Chat_PropagaMensajeIdParaElBotonDeFeedback()
+    {
+        _iaMock.Setup(s => s.ChatAsync(1, "hola", "c1")).ReturnsAsync(("respuesta", 42));
+
+        var resultado = await _controller.Chat(new ChatRequest { Mensaje = "hola", ConversacionId = "c1" });
+
+        var ok = resultado.Should().BeOfType<OkObjectResult>().Subject;
+        var body = ok.Value.Should().BeOfType<RespuestaApi<IaChatResponseDto>>().Subject;
+        body.Datos!.MensajeId.Should().Be(42);
+        body.Datos.Respuesta.Should().Be("respuesta");
     }
 
     [Fact]

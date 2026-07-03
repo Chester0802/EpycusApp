@@ -15,16 +15,35 @@ public class ServicioIATests
     private readonly ContextoAplicacion _contexto;
     private readonly ServicioIA _servicio;
     private readonly Mock<IServicioGamificacion> _gamificacionMock;
+    private readonly Mock<IProveedorDeepSeek> _deepSeekMock;
     private const int UsuarioId = 1;
 
     public ServicioIATests()
     {
         _contexto = DbContextFactory.CrearContexto("ServicioIATest");
         var constructor = new ConstructorContextoIA(_contexto);
-        var deepSeekMock = new Mock<IProveedorDeepSeek>();
+        _deepSeekMock = new Mock<IProveedorDeepSeek>();
         _gamificacionMock = new Mock<IServicioGamificacion>();
 
-        _servicio = new ServicioIA(_contexto, constructor, deepSeekMock.Object, _gamificacionMock.Object);
+        _servicio = new ServicioIA(_contexto, constructor, _deepSeekMock.Object, _gamificacionMock.Object);
+    }
+
+    private async Task SeedUsuarioAsync(int id)
+    {
+        _contexto.Roles.Add(new Rol { Id = 1, Nombre = "Usuario" });
+        _contexto.Carreras.Add(new Carrera { Id = 1, Nombre = "Ingenieria" });
+        _contexto.Usuarios.Add(new Usuario
+        {
+            Id = id,
+            CodigoUnico = $"U{id}",
+            Nombre = "Test",
+            CorreoElectronico = $"u{id}@test.com",
+            FechaNacimiento = new DateOnly(2000, 1, 1),
+            Genero = "Masculino",
+            RolId = 1,
+            CarreraId = 1
+        });
+        await _contexto.SaveChangesAsync();
     }
 
     private MensajeIA NuevoMensaje(string conversacionId, string rol, string contenido, DateTime? fecha = null, int usuarioId = UsuarioId)
@@ -158,6 +177,24 @@ public class ServicioIATests
         ctx.Should().NotBeNull();
         ctx!.DiasAnimoNegativo.Should().Be(2);
         ctx.TieneAlertasActivas.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ChatAsync_CaminoFeliz_DevuelveRespuestaYElIdDelMensajeGuardado()
+    {
+        await SeedUsuarioAsync(UsuarioId);
+        _deepSeekMock.Setup(d => d.LlamarAsync(It.IsAny<ContextoUsuarioIA>(), It.IsAny<List<MensajeIA>>(), It.IsAny<string?>()))
+            .ReturnsAsync("respuesta de edy");
+
+        var resultado = await _servicio.ChatAsync(UsuarioId, "hola edy", "conv-nueva");
+
+        resultado.Respuesta.Should().Be("respuesta de edy");
+        resultado.MensajeId.Should().BeGreaterThan(0);
+
+        var guardado = await _contexto.MensajesIA.FindAsync(resultado.MensajeId);
+        guardado.Should().NotBeNull();
+        guardado!.Rol.Should().Be("model");
+        guardado.Contenido.Should().Be("respuesta de edy");
     }
 
     [Fact]

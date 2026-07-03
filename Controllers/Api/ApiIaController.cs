@@ -33,8 +33,13 @@ namespace EpycusApp.Controllers.Api
 
             try
             {
-                var respuesta = await _servicioIA.ChatAsync(usuarioId, request.Mensaje, conversacionId);
-                return Ok(RespuestaApi<IaChatResponseDto>.Exitosa(new IaChatResponseDto { Respuesta = respuesta, ConversacionId = conversacionId }));
+                var resultado = await _servicioIA.ChatAsync(usuarioId, request.Mensaje, conversacionId);
+                return Ok(RespuestaApi<IaChatResponseDto>.Exitosa(new IaChatResponseDto
+                {
+                    Respuesta = resultado.Respuesta,
+                    ConversacionId = conversacionId,
+                    MensajeId = resultado.MensajeId
+                }));
             }
             catch (UnauthorizedAccessException)
             {

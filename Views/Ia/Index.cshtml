@@ -50,7 +50,7 @@
                         <a asp-action="Index" asp-route-conv="@conv.ConversacionId"
                            class="edy-sidebar-item @(activa ? "active" : "")">
                             <div class="edy-sidebar-item-title">@(conv.Titulo ?? "Conversacion")</div>
-                            <div class="edy-sidebar-item-meta">@conv.CantidadMensajes msgs - @conv.UltimoMensaje.ToLocalTime().ToString("dd/MM HH:mm")</div>
+                            <div class="edy-sidebar-item-meta">@conv.CantidadMensajes msgs - <span data-utc-fecha="@conv.UltimoMensaje.ToString("o")"></span></div>
                         </a>
                     }
                 </div>
@@ -94,12 +94,17 @@
                 {
                     @foreach (var msg in Model.Mensajes)
                     {
-                        var horaLocal = msg.FechaHora.ToLocalTime().ToString("HH:mm");
+                        // La hora se formatea en el cliente (ver el bloque [data-utc] en el
+                        // <script> de abajo): msg.FechaHora esta en UTC, y .ToLocalTime() aqui
+                        // convertiria a la zona horaria del SERVIDOR, no la del usuario -- por
+                        // eso el historial recargado mostraba una hora distinta a la del mensaje
+                        // optimista (que si usa new Date() del navegador).
+                        var utcIso = msg.FechaHora.ToString("o");
                         if (msg.Rol == "user")
                         {
                             <div class="edy-msg edy-msg-user" role="article">
                                 <div class="edy-msg-bubble edy-msg-bubble-user">@msg.Contenido</div>
-                                <div class="edy-msg-meta" aria-label="Enviado a las @horaLocal">@horaLocal</div>
+                                <div class="edy-msg-meta" data-utc="@utcIso" data-aria-prefix="Enviado a las "></div>
                             </div>
                         }
                         else
@@ -109,7 +114,7 @@
                                 <div>
                                     <div class="edy-msg-bubble edy-msg-bubble-edy">@Html.Raw(FormatearMensaje(msg.Contenido))</div>
                                     <div class="edy-msg-meta">
-                                        <span aria-label="Recibido a las @horaLocal">@horaLocal</span>
+                                        <span data-utc="@utcIso" data-aria-prefix="Recibido a las "></span>
                                         @if (msg.FeedbackRecibido != true)
                                         {
                                             <span class="edy-feedback-btns ms-2">
@@ -213,6 +218,28 @@
         messages.scrollTop = messages.scrollHeight;
     }
     scrollToBottom();
+
+    // El historial se renderiza server-side con la fecha en UTC (data-utc/data-utc-fecha):
+    // se formatea aqui con la hora LOCAL DEL NAVEGADOR, igual que agregarMensaje() hace para
+    // los mensajes nuevos. Antes se usaba .ToLocalTime() en el .cshtml, que convierte a la
+    // zona horaria del SERVIDOR (no la del usuario) -- por eso un mensaje enviado a las 21:04
+    // (hora real del usuario) aparecia como "02:04" al recargar la pagina.
+    document.querySelectorAll('[data-utc]').forEach(function (el) {
+        var fecha = new Date(el.getAttribute('data-utc'));
+        if (isNaN(fecha.getTime())) return;
+        var hora = fecha.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+        el.textContent = hora;
+        var prefijo = el.getAttribute('data-aria-prefix');
+        if (prefijo) el.setAttribute('aria-label', prefijo + hora);
+    });
+    document.querySelectorAll('[data-utc-fecha]').forEach(function (el) {
+        var fecha = new Date(el.getAttribute('data-utc-fecha'));
+        if (isNaN(fecha.getTime())) return;
+        var dia = String(fecha.getDate()).padStart(2, '0');
+        var mes = String(fecha.getMonth() + 1).padStart(2, '0');
+        var hora = fecha.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+        el.textContent = dia + '/' + mes + ' ' + hora;
+    });
 
     input.addEventListener('input', function () {
         this.style.height = 'auto';
@@ -320,19 +347,47 @@
 
             typingEl.style.display = 'none';
 
-            if (data.exito) {
-                agregarMensaje('edy', data.respuesta, data.mensajeId || null);
+            // /api/v1/ia/chat devuelve RespuestaApi<T> (exito/mensaje/datos/errores), no un
+            // objeto plano -- la respuesta real vive en datos.respuesta, no en data.respuesta.
+            // Antes de este fix, cualquier mensaje EXITOSO caia aqui con datos.respuesta
+            // undefined, formatearTexto(undefined) lanzaba y el catch de abajo mostraba
+            // "No pude conectarme" aunque el servidor si hubiera guardado y respondido bien
+            // (visible solo al recargar la pagina, que carga el historial real).
+            if (data.exito && data.datos) {
+                agregarMensaje('edy', data.datos.respuesta, data.datos.mensajeId || null);
             } else {
-                agregarMensaje('edy', data.error || 'Ocurrio un error al procesar tu mensaje. Intenta de nuevo.');
+                agregarMensaje('edy', data.mensaje || 'Ocurrio un error al procesar tu mensaje. Intenta de nuevo.');
             }
         } catch (_) {
             typingEl.style.display = 'none';
-            agregarMensaje('edy', 'No pude conectarme. Verifica tu conexion e intenta de nuevo.');
+            // Antes de asumir que no se proceso nada, se reconsulta el historial real: si el
+            // fetch fallo por un corte de red/proxy mientras el servidor seguia esperando a
+            // DeepSeek, la respuesta puede haberse guardado igual del lado del servidor.
+            var recuperado = await intentarRecuperarUltimoMensaje();
+            if (!recuperado) {
+                agregarMensaje('edy', 'No pude conectarme. Verifica tu conexion e intenta de nuevo.');
+            }
         }
 
         sendBtn.disabled = false;
         input.disabled   = false;
         input.focus();
+    }
+
+    async function intentarRecuperarUltimoMensaje() {
+        try {
+            var res = await fetch('/api/v1/ia/historial?conversacionId=' + encodeURIComponent(convId));
+            var data = await res.json();
+            var historial = data.exito && data.datos ? data.datos.historial : null;
+            if (!historial || historial.length === 0) return false;
+
+            var ultimo = historial[historial.length - 1];
+            if (ultimo.rol === 'model') {
+                agregarMensaje('edy', ultimo.contenido, ultimo.id);
+                return true;
+            }
+        } catch (_) { /* sin conexion real: se mantiene el mensaje de error */ }
+        return false;
     }
 
     async function verificarEstadoIA() {

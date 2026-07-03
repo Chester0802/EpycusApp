@@ -139,6 +139,7 @@ public class IaChatResponseDto
 {
     public string Respuesta { get; set; } = string.Empty;
     public string? ConversacionId { get; set; }
+    public int MensajeId { get; set; }
 }
 
 public class MensajeIaDto

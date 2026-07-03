@@ -84,7 +84,7 @@ public class IaControllerTests
     [Fact]
     public async Task Chat_Valido_RetornaOk()
     {
-        _iaMock.Setup(s => s.ChatAsync(1, "hola", "c1")).ReturnsAsync("respuesta IA");
+        _iaMock.Setup(s => s.ChatAsync(1, "hola", "c1")).ReturnsAsync(("respuesta IA", 7));
         var dto = new ChatMensajeDto { Mensaje = "hola", ConversacionId = "c1" };
 
         var resultado = await _controller.Chat(dto);
@@ -107,7 +107,7 @@ public class IaControllerTests
     public async Task Chat_LimiteDiario_RetornaOkConError()
     {
         _iaMock.Setup(s => s.ChatAsync(1, "hola", "c1"))
-            .ThrowsAsync(new InvalidOperationException("Has alcanzado el limite diario de 50 mensajes."));
+            .ThrowsAsync(new InvalidOperationException("Has alcanzado el limite diario de 5 mensajes."));
         var dto = new ChatMensajeDto { Mensaje = "hola", ConversacionId = "c1" };
 
         var resultado = await _controller.Chat(dto);
