@@ -93,6 +93,22 @@ public class ServicioIATests
     }
 
     [Fact]
+    public async Task ObtenerMensajesHoyAsync_NoCuentaRespuestasDeEdy()
+    {
+        _contexto.MensajesIA.AddRange(
+            NuevoMensaje("c1", "user", "hoy1"),
+            NuevoMensaje("c1", "model", "respuesta de edy"),
+            NuevoMensaje("c1", "user", "hoy2"),
+            NuevoMensaje("c1", "model", "otra respuesta")
+        );
+        await _contexto.SaveChangesAsync();
+
+        var cuenta = await _servicio.ObtenerMensajesHoyAsync(UsuarioId);
+
+        cuenta.Should().Be(2);
+    }
+
+    [Fact]
     public async Task RegistrarFeedbackAsync_MarcaMensaje()
     {
         var mensaje = NuevoMensaje("c1", "model", "respuesta");
@@ -158,7 +174,7 @@ public class ServicioIATests
     [Fact]
     public async Task ChatAsync_LimiteDiarioAlcanzado_LanzaInvalidOperation()
     {
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < 5; i++)
             _contexto.MensajesIA.Add(NuevoMensaje("historico", "user", $"msg{i}"));
         await _contexto.SaveChangesAsync();
 

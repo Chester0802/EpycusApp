@@ -30,8 +30,20 @@ namespace EpycusApp.Controllers.Api
             var conversacionId = string.IsNullOrWhiteSpace(request.ConversacionId)
                 ? _servicioIA.NuevaConversacionId()
                 : request.ConversacionId;
-            var respuesta = await _servicioIA.ChatAsync(usuarioId, request.Mensaje, conversacionId);
-            return Ok(RespuestaApi<IaChatResponseDto>.Exitosa(new IaChatResponseDto { Respuesta = respuesta, ConversacionId = conversacionId }));
+
+            try
+            {
+                var respuesta = await _servicioIA.ChatAsync(usuarioId, request.Mensaje, conversacionId);
+                return Ok(RespuestaApi<IaChatResponseDto>.Exitosa(new IaChatResponseDto { Respuesta = respuesta, ConversacionId = conversacionId }));
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("limite diario"))
+            {
+                return StatusCode(429, RespuestaApi<MensajeResponseDto>.Fallida(ex.Message));
+            }
         }
 
         [HttpGet("historial")]
@@ -39,7 +51,14 @@ namespace EpycusApp.Controllers.Api
         {
             var usuarioId = ObtenerUsuarioId()!.Value;
             var historial = await _servicioIA.ObtenerHistorialAsync(usuarioId, conversacionId);
-            return Ok(RespuestaApi<IaHistorialResponse>.Exitosa(new IaHistorialResponse { Historial = historial }));
+            var dto = historial.Select(m => new MensajeIaDto
+            {
+                Id = m.Id,
+                Rol = m.Rol,
+                Contenido = m.Contenido,
+                FechaHora = m.FechaHora
+            }).ToList();
+            return Ok(RespuestaApi<IaHistorialResponse>.Exitosa(new IaHistorialResponse { Historial = dto }));
         }
 
         [HttpGet("conversaciones")]

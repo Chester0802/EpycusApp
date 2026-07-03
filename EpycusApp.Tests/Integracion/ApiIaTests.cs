@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using EpycusApp.Ayudantes;
 using EpycusApp.Controllers.Api;
+using EpycusApp.DTOs;
 using EpycusApp.Models.Entidades;
 using EpycusApp.Servicios.Interfaces;
 using EpycusApp.ViewModels.Ia;
@@ -49,10 +51,48 @@ public class ApiIaTests
     }
 
     [Fact]
+    public async Task Chat_LimiteDiarioAlcanzado_Retorna429()
+    {
+        _iaMock.Setup(s => s.ChatAsync(1, "hola", "c1"))
+            .ThrowsAsync(new InvalidOperationException("Has alcanzado el limite diario de 5 mensajes. Vuelve manana."));
+
+        var resultado = await _controller.Chat(new ChatRequest { Mensaje = "hola", ConversacionId = "c1" });
+
+        var objResult = resultado.Should().BeOfType<ObjectResult>().Subject;
+        objResult.StatusCode.Should().Be(429);
+    }
+
+    [Fact]
+    public async Task Chat_ConversacionDeOtroUsuario_RetornaForbid()
+    {
+        _iaMock.Setup(s => s.ChatAsync(1, "hola", "cAjena"))
+            .ThrowsAsync(new UnauthorizedAccessException());
+
+        var resultado = await _controller.Chat(new ChatRequest { Mensaje = "hola", ConversacionId = "cAjena" });
+
+        resultado.Should().BeOfType<ForbidResult>();
+    }
+
+    [Fact]
     public async Task Historial_RetornaOk()
     {
         _iaMock.Setup(s => s.ObtenerHistorialAsync(1, "c1")).ReturnsAsync(new List<MensajeIA>());
         (await _controller.Historial("c1")).Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task Historial_MapeaAMensajeIaDto_SinExponerLaEntidad()
+    {
+        _iaMock.Setup(s => s.ObtenerHistorialAsync(1, "c1")).ReturnsAsync(new List<MensajeIA>
+        {
+            new() { Id = 1, Rol = "user", Contenido = "hola", FechaHora = new DateTime(2026, 7, 3) }
+        });
+
+        var resultado = await _controller.Historial("c1");
+
+        var ok = resultado.Should().BeOfType<OkObjectResult>().Subject;
+        var body = ok.Value.Should().BeOfType<RespuestaApi<IaHistorialResponse>>().Subject;
+        body.Datos!.Historial.Should().ContainSingle(m => m.Id == 1 && m.Rol == "user" && m.Contenido == "hola");
     }
 
     [Fact]

@@ -9,7 +9,7 @@ namespace EpycusApp.Servicios.Implementaciones
     public class ServicioIA : IServicioIA
     {
         private const int MaxMensajesHistorial = 20;
-        private const int MaxMensajesPorDia = 50;
+        private const int MaxMensajesPorDia = 5;
         private const int XpPorMensaje = 1;
 
         private readonly ContextoAplicacion _contexto;
@@ -142,8 +142,10 @@ namespace EpycusApp.Servicios.Implementaciones
         public async Task<int> ObtenerMensajesHoyAsync(int usuarioId)
         {
             var hoy = DateTime.UtcNow.Date;
+            // Solo cuenta los mensajes que el usuario efectivamente envio ("Rol"=="user"):
+            // las respuestas de Edy no deben consumir su cupo diario.
             return await _contexto.MensajesIA
-                .CountAsync(m => m.UsuarioId == usuarioId && m.FechaHora >= hoy);
+                .CountAsync(m => m.UsuarioId == usuarioId && m.Rol == "user" && m.FechaHora >= hoy);
         }
 
         public async Task<string> ChatAsync(int usuarioId, string mensaje, string conversacionId)

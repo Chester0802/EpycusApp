@@ -141,14 +141,22 @@ public class IaChatResponseDto
     public string? ConversacionId { get; set; }
 }
 
+public class MensajeIaDto
+{
+    public int Id { get; set; }
+    public string Rol { get; set; } = string.Empty;
+    public string Contenido { get; set; } = string.Empty;
+    public DateTime FechaHora { get; set; }
+}
+
 public class IaHistorialResponse
 {
-    public object? Historial { get; set; }
+    public List<MensajeIaDto> Historial { get; set; } = new();
 }
 
 public class IaConversacionesResponse
 {
-    public object? Conversaciones { get; set; }
+    public List<EpycusApp.ViewModels.Ia.ConversacionResumen> Conversaciones { get; set; } = new();
 }
 
 public class IaSugerenciasResponse
