@@ -21,7 +21,7 @@ namespace EpycusApp.Controllers
         [HttpGet("/admin/login")]
         public IActionResult Login()
         {
-            if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Administrador"))
+            if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
             {
                 return RedirectToAction(nameof(Index));
             }
@@ -66,7 +66,7 @@ namespace EpycusApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("/admin/logout")]
         [ValidateAntiForgeryToken]
         public IActionResult Logout()
@@ -75,7 +75,7 @@ namespace EpycusApp.Controllers
             return RedirectToAction(nameof(Login));
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             var usuarios = await _servicioAdmin.ObtenerTodosUsuarios();
@@ -96,14 +96,14 @@ namespace EpycusApp.Controllers
             return View(modelo);
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Usuarios()
         {
             var usuarios = await _servicioAdmin.ObtenerTodosUsuarios();
             return View(usuarios);
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DetalleUsuario(int id)
         {
             var usuario = await _servicioAdmin.ObtenerUsuarioPorId(id);
@@ -115,7 +115,7 @@ namespace EpycusApp.Controllers
             return View(usuario);
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActivarSuscripcion(int usuarioId)
@@ -126,7 +126,7 @@ namespace EpycusApp.Controllers
             return RedirectToAction(nameof(Usuarios));
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DesactivarSuscripcion(int usuarioId)
@@ -136,14 +136,14 @@ namespace EpycusApp.Controllers
             return RedirectToAction(nameof(Usuarios));
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Frases()
         {
             var frases = await _servicioAdmin.ObtenerFrases();
             return View(frases);
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CrearFrase(string frase, string autor)
@@ -153,7 +153,7 @@ namespace EpycusApp.Controllers
             return RedirectToAction(nameof(Frases));
         }
 
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarFrase(int id)

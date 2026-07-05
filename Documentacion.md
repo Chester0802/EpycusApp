@@ -137,7 +137,7 @@ C:\Users\marco\Pictures\EpycusApp\
 - Recuperación y restablecimiento de contraseña
 - Refresh token rotation (SHA256 hasheado en BD)
 - Logout (revocación de tokens refresh)
-- Roles: `Usuario`, `Administrador`
+- Roles: `Usuario`, `Admin`
 
 ### Módulo 2: Hábitos
 **Controladores:** `HabitosController.cs`, `ApiHabitosController.cs`  
@@ -507,7 +507,7 @@ Soporta también modo InMemory para desarrollo/testing.
 | Entidad | Campos clave |
 |---------|--------------|
 | `Usuario` | Id, CodigoUnico, Nombre, CorreoElectronico, ContrasenaHash, FechaNacimiento, Genero, CorreoVerificado, AceptoTerminos, EstaActivo, FechaRegistro, UltimoAcceso, GoogleId, FotoGoogleUrl, RolId, CarreraId, TemaActualId |
-| `Rol` | Id, Nombre — "Usuario" o "Administrador" |
+| `Rol` | Id, Nombre — "Usuario" o "Admin" |
 | `TokenRefresh` | Id, Token, ExpiraEn, Revocado, FechaCreacion, UsuarioId |
 | `RecuperacionContrasena` | Id, Token, ExpiraEn, Usado, FechaCreacion, UsuarioId |
 | `VerificacionCorreo` | Id, Token, ExpiraEn, Usado, FechaCreacion, UsuarioId |
@@ -628,7 +628,7 @@ Soporta también modo InMemory para desarrollo/testing.
 ### Roles
 
 - `Usuario` (rol por defecto al registrarse)
-- `Administrador` (acceso a panel `/admin/*` con autorización `[Authorize(Roles = "Administrador")]`)
+- `Admin` (acceso a panel `/admin/*` con autorización `[Authorize(Roles = "Admin")]`)
 
 ### Rate Limiting
 
