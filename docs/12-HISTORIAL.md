@@ -38,6 +38,38 @@ finge haber probado algo que no probó.
 
 ## 2026-07-28 — Claude
 
+**Qué se hizo:** Reemplazó el diagrama ER parcial de `docs/05-BASE-DATOS.md` §2 (le faltaban
+`participants`, `user_preferences`, `subtasks`, `xp_transactions`, todo `Motivation`,
+`Villains`/`StudyGroups`/`AI` y `telemetry_events`, y no mostraba atributos) por dos diagramas
+Mermaid completos: **2.1 Modelo lógico** (24 entidades con atributos de negocio y tipos
+genéricos, incluidas `session_participants`/`ai_conversations`/`ai_messages` marcadas
+explícitamente como "schema pendiente" en vez de inventarles columnas) y **2.2 Modelo físico**
+(transcripción fiel del DDL real de la sección 3 + `telemetry_events` de
+`docs/02-TELEMETRIA.md`, con tipos/tamaños exactos de MariaDB y solo las relaciones que
+existen de verdad como `FOREIGN KEY` declarada — varias columnas se relacionan
+semánticamente pero no tienen FK real en el DDL, y quedaron marcadas así en vez de dibujar una
+relación que la base no impone). De paso corrigió que el `CREATE TABLE users` del documento no
+reflejaba el `UNIQUE` de `alias` agregado en una sesión anterior.
+
+**Decisiones tomadas:** los tipos con paréntesis de MariaDB (`VARCHAR(120)`, `DECIMAL(3,2)`,
+`DATETIME(3)`) se representan en el diagrama físico con guion bajo (`varchar_120`,
+`decimal_3_2`, `datetime_3`) para que Mermaid no confunda el paréntesis con su propia sintaxis
+de claves — el tipo real con paréntesis sigue estando en el DDL de la sección 3, que manda.
+
+**Verificado cómo:** ambos bloques Mermaid se extrajeron del `.md` y se renderizaron con
+`npx @mermaid-js/mermaid-cli` a SVG/PNG — cero errores de sintaxis, y se inspeccionaron
+visualmente las imágenes generadas antes de dar la tarea por terminada (una versión anterior
+usaba `PK_FK`/`UK_FK` como token único de clave, que no es sintaxis válida de Mermaid — se
+corrigió a `PK, FK` / `UK, FK` tras notarlo).
+
+**Pendiente / qué falta:** si se define el schema de `session_participants`, `ai_conversations`
+o `ai_messages`, hay que agregarlas también al modelo físico (hoy solo están en el lógico,
+marcadas como pendientes).
+
+---
+
+## 2026-07-28 — Claude
+
 **Qué se hizo:** Creó este documento (`docs/12-HISTORIAL.md`) y la regla en
 `docs/11-ESTANDAR-CODIGO.md` §"Antes de cada commit" que obliga a toda IA a agregar una
 entrada aquí antes de terminar su sesión. Implementó `UpdatePreferencesUseCase` completo
