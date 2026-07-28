@@ -18,28 +18,465 @@
 
 ## 2. Modelo entidad-relación
 
+Dos vistas del mismo modelo. La **lógica** es la que se lee para entender el dominio: todas
+las entidades del sistema, sus atributos de negocio y cómo se relacionan, con tipos genéricos.
+La **física** es la que se implementa: tipos y tamaños exactos de MariaDB, cada llave marcada,
+y solo las relaciones que existen de verdad como `FOREIGN KEY` en el DDL de la sección 3 — no
+todo lo que "debería" relacionarse está garantizado por la base, y eso importa.
+
+### 2.1 Modelo lógico
+
 ```mermaid
 erDiagram
     users ||--o| participants : "es"
+    users ||--|| user_preferences : configura
     users ||--o{ habits : crea
+    habits ||--o{ habit_completions : registra
     users ||--o{ pomodoro_sessions : ejecuta
+    missions ||--o{ pomodoro_sessions : "se enfoca en"
     users ||--o{ missions : crea
-    users ||--o{ journal_entries : escribe
+    missions ||--o{ subtasks : contiene
     users ||--|| user_progress : tiene
     users ||--o{ xp_transactions : acumula
-    users ||--|| user_preferences : configura
+    users ||--o{ journal_entries : escribe
+    users ||--o{ user_quote_views : ve
+    motivational_quotes ||--o{ user_quote_views : "se muestra en"
+    users ||--o{ user_tip_views : ve
+    usage_tips ||--o{ user_tip_views : "se muestra en"
     users ||--o{ villain_instances : enfrenta
-    users ||--o{ telemetry_events : genera
-    users ||--o{ ai_conversations : consulta
-
-    habits ||--o{ habit_completions : registra
-    missions ||--o{ subtasks : contiene
-    missions ||--o{ pomodoro_sessions : "se enfoca en"
     villains ||--o{ villain_instances : instancia
+    users ||--o{ study_sessions : hospeda
     study_sessions ||--o{ session_participants : reune
+    users ||--o{ session_participants : participa
     study_sessions ||--o{ chat_messages : contiene
+    users ||--o{ chat_messages : escribe
+    users ||--o{ ai_quotas : consume
+    users ||--o{ ai_conversations : consulta
     ai_conversations ||--o{ ai_messages : contiene
+    users ||--o{ telemetry_events : genera
+
+    users {
+        integer id PK
+        string name
+        string email UK
+        string alias UK
+        enum role
+        string career
+        enum avatar_style
+        enum avatar_gender
+        integer cycle
+        enum institution_type
+    }
+    participants {
+        integer id PK
+        integer user_id FK
+        string participant_code UK
+        string student_code "cifrado"
+        string whatsapp "cifrado"
+        datetime consent_granted_at
+        datetime withdrawn_at
+    }
+    user_preferences {
+        integer id PK
+        integer user_id FK
+        enum surface_mode
+        boolean notifications_enabled
+    }
+    habits {
+        integer id PK
+        integer user_id FK
+        string title
+        enum category
+        json frequency
+        boolean is_active
+    }
+    habit_completions {
+        integer id PK
+        integer habit_id FK
+        integer user_id
+        date completed_for
+        boolean is_late
+        integer xp_awarded
+    }
+    pomodoro_sessions {
+        integer id PK
+        integer user_id FK
+        integer mission_id FK
+        enum state
+        integer planned_minutes
+        integer xp_awarded
+    }
+    missions {
+        integer id PK
+        integer user_id FK
+        string title
+        enum difficulty
+        date due_date
+        boolean is_overdue
+    }
+    subtasks {
+        integer id PK
+        integer mission_id FK
+        string title
+        boolean is_completed
+    }
+    user_progress {
+        integer user_id PK, FK
+        integer total_xp
+        integer current_level
+        integer current_phase
+        integer current_streak
+    }
+    xp_transactions {
+        integer id PK
+        integer user_id FK
+        integer amount
+        string source_type
+        integer source_id
+    }
+    journal_entries {
+        integer id PK
+        integer user_id FK
+        integer mood_score
+        text content "cifrado"
+        date entry_date
+    }
+    motivational_quotes {
+        integer id PK
+        string text_es
+        string author
+    }
+    usage_tips {
+        integer id PK
+        string module_code
+        string text_es
+    }
+    user_quote_views {
+        integer id PK
+        integer user_id FK
+        integer quote_id
+        datetime shown_at
+    }
+    user_tip_views {
+        integer id PK
+        integer user_id FK
+        integer tip_id
+        datetime shown_at
+    }
+    villains {
+        integer id PK
+        string code UK
+        string name
+    }
+    villain_instances {
+        integer id PK
+        integer user_id FK
+        integer villain_id
+        integer week_number
+        integer current_hp
+    }
+    study_sessions {
+        integer id PK
+        integer host_id
+        string name
+        enum state
+    }
+    session_participants {
+        string schema "PENDIENTE de definir"
+    }
+    chat_messages {
+        integer id PK
+        integer session_id FK
+        integer user_id
+        string body
+    }
+    ai_quotas {
+        integer user_id PK, FK
+        date quota_date PK
+        integer used_count
+    }
+    ai_conversations {
+        string schema "PENDIENTE de definir"
+    }
+    ai_messages {
+        string schema "PENDIENTE de definir"
+    }
+    telemetry_events {
+        integer id PK
+        integer user_id FK
+        string event_name
+        string event_category
+        json payload
+        datetime occurred_at
+    }
 ```
+
+`session_participants`, `ai_conversations` y `ai_messages` aparecen porque sus módulos
+(`StudyGroups`, `AiAssistant`) están planeados, pero sus columnas todavía no se decidieron —
+no inventar un schema para ellas hasta que se implemente el módulo correspondiente.
+
+### 2.2 Modelo físico
+
+Transcripción fiel del DDL de la sección 3 (y de `telemetry_events`, definida completa en
+`docs/02-TELEMETRIA.md` §4). Salvo que se indique `(signed)`, todo `bigint`/`int`/`tinyint`/
+`smallint` es `UNSIGNED`, igual que en el DDL real.
+
+```mermaid
+erDiagram
+    users ||--o| participants : "es"
+    users ||--|| user_preferences : configura
+    users ||--o{ habits : crea
+    habits ||--o{ habit_completions : registra
+    users ||--o{ pomodoro_sessions : ejecuta
+    missions ||--o{ pomodoro_sessions : "se enfoca en"
+    users ||--o{ missions : crea
+    missions ||--o{ subtasks : contiene
+    users ||--|| user_progress : tiene
+    users ||--o{ xp_transactions : acumula
+    users ||--o{ journal_entries : escribe
+    users ||--o{ user_quote_views : ve
+    users ||--o{ user_tip_views : ve
+    users ||--o{ villain_instances : enfrenta
+    study_sessions ||--o{ chat_messages : contiene
+    users ||--o{ ai_quotas : consume
+    users ||--o{ telemetry_events : genera
+
+    users {
+        bigint id PK
+        varchar_120 name
+        varchar_180 email UK
+        varchar_255 password
+        varchar_40 alias UK
+        enum role "participant | admin"
+        varchar_60 career
+        enum avatar_style "health | business | technical | systems | law"
+        enum avatar_gender "m | f"
+        tinyint cycle
+        enum institution_type "universidad | instituto"
+        timestamp email_verified_at
+        varchar_100 remember_token
+        timestamp created_at
+        timestamp updated_at
+    }
+    participants {
+        bigint id PK
+        bigint user_id UK, FK
+        varchar_20 participant_code UK
+        varchar_40 student_code "encrypted"
+        varchar_30 whatsapp "encrypted"
+        timestamp consent_granted_at
+        timestamp enrolled_at
+        timestamp withdrawn_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    user_preferences {
+        bigint id PK
+        bigint user_id UK, FK
+        varchar_20 surface_mode "default neumorphism"
+        boolean notifications_enabled "default false"
+        timestamp created_at
+        timestamp updated_at
+    }
+    habits {
+        bigint id PK
+        bigint user_id FK
+        varchar_120 title
+        enum category "estudio | sueno | ejercicio | alimentacion | otro"
+        json frequency
+        varchar_40 icon
+        boolean is_active "default true"
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
+    habit_completions {
+        bigint id PK
+        bigint habit_id FK
+        bigint user_id "sin FK declarada"
+        date completed_for "UK junto a habit_id"
+        datetime completed_at
+        boolean is_late "default false"
+        smallint xp_awarded "default 0"
+        boolean was_capped "default false"
+        timestamp created_at
+    }
+    pomodoro_sessions {
+        bigint id PK
+        bigint user_id FK
+        bigint mission_id "FK, nullable, SET NULL"
+        tinyint planned_minutes
+        tinyint focus_minutes
+        enum state "running | paused | completed | abandoned"
+        datetime started_at
+        datetime completed_at
+        smallint paused_seconds "default 0"
+        smallint xp_awarded "default 0"
+        boolean was_capped "default false"
+        timestamp created_at
+        timestamp updated_at
+    }
+    missions {
+        bigint id PK
+        bigint user_id FK
+        varchar_160 title
+        text description
+        enum difficulty "easy | medium | hard, default medium"
+        date due_date
+        datetime completed_at
+        smallint days_early_or_late "signed"
+        boolean is_overdue "default false"
+        smallint xp_awarded "default 0"
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
+    subtasks {
+        bigint id PK
+        bigint mission_id FK
+        varchar_160 title
+        boolean is_completed "default false"
+        datetime completed_at
+        tinyint sort_order "default 0"
+        timestamp created_at
+        timestamp updated_at
+    }
+    user_progress {
+        bigint user_id PK, FK
+        int total_xp "default 0"
+        tinyint current_level "default 1"
+        tinyint current_phase "default 1"
+        smallint current_streak "default 0"
+        smallint longest_streak "default 0"
+        tinyint grace_days_left "default 3"
+        char_7 grace_month "'YYYY-MM'"
+        date last_activity_on
+        int coins "default 0"
+        timestamp created_at
+        timestamp updated_at
+    }
+    xp_transactions {
+        bigint id PK
+        bigint user_id FK
+        smallint amount
+        smallint base_amount
+        decimal_3_2 multiplier "default 1.00"
+        varchar_32 source_type "habit | pomodoro | mission | journal | villain"
+        bigint source_id
+        boolean was_capped "default false"
+        timestamp created_at "default CURRENT_TIMESTAMP; UK junto a source_type+source_id"
+    }
+    journal_entries {
+        bigint id PK
+        bigint user_id FK
+        tinyint mood_score "1..5"
+        text content "encrypted"
+        json tags
+        date entry_date
+        smallint xp_awarded "default 0"
+        timestamp created_at
+        timestamp updated_at
+    }
+    motivational_quotes {
+        tinyint id PK
+        varchar_280 text_es
+        varchar_80 author
+        enum attribution_confidence "documentada | atribuida"
+        boolean is_active "default true"
+        timestamp created_at
+    }
+    usage_tips {
+        smallint id PK
+        varchar_32 module_code
+        varchar_200 text_es
+        boolean is_active "default true"
+        timestamp created_at
+    }
+    user_quote_views {
+        bigint id PK
+        bigint user_id FK
+        tinyint quote_id "sin FK declarada"
+        timestamp shown_at "default CURRENT_TIMESTAMP"
+    }
+    user_tip_views {
+        bigint id PK
+        bigint user_id FK
+        smallint tip_id "sin FK declarada"
+        timestamp shown_at "default CURRENT_TIMESTAMP"
+        timestamp dismissed_at
+    }
+    villains {
+        tinyint id PK
+        varchar_32 code UK
+        varchar_60 name
+        text description
+        varchar_180 image_path
+        json weakness
+    }
+    villain_instances {
+        bigint id PK
+        bigint user_id FK
+        tinyint villain_id "sin FK declarada"
+        tinyint week_number "UK junto a user_id"
+        smallint max_hp
+        smallint current_hp
+        date starts_on
+        date ends_on
+        datetime defeated_at
+    }
+    study_sessions {
+        bigint id PK
+        bigint host_id "sin FK declarada"
+        varchar_80 name
+        tinyint max_seats "default 8"
+        enum state "open | running | closed, default open"
+        datetime started_at
+        datetime closed_at
+        timestamp created_at
+    }
+    chat_messages {
+        bigint id PK
+        bigint session_id FK
+        bigint user_id "sin FK declarada"
+        varchar_500 body
+        timestamp created_at "default CURRENT_TIMESTAMP"
+    }
+    ai_quotas {
+        bigint user_id PK, FK
+        date quota_date PK
+        tinyint used_count "default 0"
+    }
+    telemetry_events {
+        bigint id PK
+        bigint user_id FK
+        varchar_64 event_name
+        varchar_32 event_category
+        json payload
+        char_36 session_uuid
+        smallint intervention_day "signed"
+        datetime_3 occurred_at "DATETIME(3)"
+        datetime_3 recorded_at "DATETIME(3), default CURRENT_TIMESTAMP(3)"
+        enum source "web | backend, default web"
+    }
+```
+
+Notación: `varchar_120`, `decimal_3_2`, `char_36`, `datetime_3` usan guion bajo donde el tipo
+real de MariaDB lleva paréntesis (`VARCHAR(120)`, `DECIMAL(3,2)`, `CHAR(36)`, `DATETIME(3)`) —
+es solo para que Mermaid no confunda el paréntesis con sintaxis propia. El tipo real, con su
+paréntesis, está siempre en el DDL de la sección 3.
+
+**Por qué faltan líneas que uno esperaría ver:** varias columnas se relacionan semánticamente
+con otra tabla pero **no tienen `FOREIGN KEY` declarada** en el DDL de la sección 3 —
+`habit_completions.user_id`, `user_quote_views.quote_id`, `user_tip_views.tip_id`,
+`villain_instances.villain_id`, `chat_messages.user_id`, `study_sessions.host_id`. Están
+marcadas "sin FK declarada" arriba en vez de dibujarse como relación, porque el modelo físico
+tiene que reflejar lo que la base de datos realmente impone, no lo que el nombre de la columna
+sugiere.
+
+`session_participants`, `ai_conversations` y `ai_messages` quedan fuera del modelo físico
+porque no tienen DDL todavía (ver la nota correspondiente en el modelo lógico) — inventar
+tipos de columna para ellas antes de implementar el módulo correspondiente sería lo mismo que
+ya costó un hallazgo de auditoría: no se adivina un schema, se pregunta.
 
 ---
 
@@ -53,7 +490,7 @@ CREATE TABLE users (
     name              VARCHAR(120) NOT NULL,
     email             VARCHAR(180) NOT NULL UNIQUE,
     password          VARCHAR(255) NOT NULL,
-    alias             VARCHAR(40)  NOT NULL,
+    alias             VARCHAR(40)  NOT NULL UNIQUE,
     role              ENUM('participant','admin') NOT NULL DEFAULT 'participant',
     career            VARCHAR(60)  NULL,
     avatar_style      ENUM('health','business','technical','systems','law') NULL,
