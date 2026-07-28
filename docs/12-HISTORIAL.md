@@ -94,6 +94,38 @@ marcadas como pendientes).
 
 ## 2026-07-28 — Claude
 
+**Qué se hizo:** Corrección pedida por el usuario tras revisar la Fase 0 en pantalla: (1) los
+toggles de superficie (neumorfismo/vidrio) y tema estaban en la barra lateral/header de
+`AppLayout` — se movieron a una página nueva `/settings` (`Settings/Index.vue`,
+`PreferencesController::edit()`); (2) el botón de tema pasó de texto ("Modo oscuro") a ícono
+solo (`ThemeToggle.vue`, sol/luna en SVG); (3) se agregó una segunda paleta de color completa,
+**Bosque** (matiz teal/esmeralda H≈175, claro y oscuro), seleccionable desde Ajustes junto a la
+Kawaii original. `app.css` se reestructuró con un tercer eje (`data-palette`, independiente de
+tema y superficie) — `[data-palette][data-theme]` como selector compuesto para cada paleta.
+
+**Decisiones tomadas:** la paleta Bosque se generó con la fórmula de la skill §8 (L fija por
+token en OKLCH, C/H variables) y se verificó con una conversión OKLCH→sRGB real escrita para
+esta sesión (no coloreada a ojo) — mismos hallazgos que en Kawaii: `border`/`border-strong` no
+llegan a 3:1 (se agregó `border-interactive` con el mismo patrón) y `danger` no sirve como texto
+en claro (se agregó `danger-text`). Paleta es **device-only** (localStorage), igual que tema —
+no se agregó a `UserPreferences` sin que el usuario lo pidiera.
+
+**Verificado cómo:** `composer check` completo (35 tests, Pint/PHPStan/ESLint limpios) y
+`php artisan route:list` confirmando `settings.edit`. La verificación visual completa de las 8
+combinaciones (2 paletas × 2 temas × 2 superficies) quedó parcial — se cortó por límite de
+tokens de la sesión; confirmado por build sin errores y por CSS revisado manualmente, no por
+captura de pantalla de cada combinación.
+
+**Pendiente / qué falta:** verificar visualmente (o con estilos computados) las 4 combinaciones
+de Bosque que todavía no se vieron en un navegador real — el patrón de verificación de Kawaii en
+la sesión anterior encontró bugs que la sola inspección de código no hubiera visto (ver entrada
+anterior), así que no dar Bosque por buena sin ese mismo paso. Notificaciones no incluidas en
+esta página de Ajustes todavía (ver Fase 1).
+
+---
+
+## 2026-07-28 — Claude
+
 **Qué se hizo:** Ejecutó la Fase 0 completa de `docs/13-ROADMAP.md` (fundamentos de frontend):
 tokens de diseño OKLCH en `resources/css/app.css` (paleta claro/oscuro, clases
 `.panel-flat`/`.panel-raised`/`.panel-sunken` que se adaptan solas a `[data-surface]` sin que

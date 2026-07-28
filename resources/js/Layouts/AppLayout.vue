@@ -1,9 +1,8 @@
 <script setup>
 import { ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { useTheme } from '@/composables/useTheme';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import SurfaceModeToggle from '@/Components/SurfaceModeToggle.vue';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
 
 /*
  * Estructura de docs/04-DISENO-VISUAL.md §9 y §14: barra lateral fija en
@@ -13,6 +12,10 @@ import SurfaceModeToggle from '@/Components/SurfaceModeToggle.vue';
  * su propia fase de docs/13-ROADMAP.md. No apuntar un nav item a una ruta
  * que no existe: Ziggy revienta en tiempo de ejecución si `route()` no la
  * conoce.
+ *
+ * Los controles de tema/superficie/paleta viven en /settings (Ajustes),
+ * no acá — corrección del usuario tras ver la Fase 0: la barra de
+ * navegación no es el lugar para eso.
  */
 const navItems = [
     { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
@@ -22,23 +25,19 @@ const navItems = [
 ];
 
 const page = usePage();
-const { theme, setTheme } = useTheme();
 const mobileMenuOpen = ref(false);
-
-function toggleTheme() {
-    setTheme(theme.value === 'dark' ? 'light' : 'dark');
-}
 </script>
 
 <template>
     <div class="min-h-screen bg-bg lg:flex">
         <!-- Barra lateral — solo escritorio -->
         <aside class="hidden w-[260px] shrink-0 border-r border-border lg:flex lg:flex-col">
-            <div class="flex h-16 items-center gap-2 px-6">
+            <div class="flex h-16 items-center justify-between gap-2 px-6">
                 <Link :href="route('dashboard')" class="flex items-center gap-2">
                     <ApplicationLogo class="h-8 w-auto fill-current text-primary-strong" />
                     <span class="font-display text-lg font-semibold text-content-primary">Epycus</span>
                 </Link>
+                <ThemeToggle />
             </div>
 
             <nav class="flex-1 space-y-1 px-4" aria-label="Navegación principal">
@@ -61,15 +60,13 @@ function toggleTheme() {
                 <div class="mb-2 truncate text-sm font-semibold text-content-primary">
                     {{ page.props.auth.user.name }}
                 </div>
-                <SurfaceModeToggle class="mb-2" />
                 <div class="flex items-center gap-2">
-                    <button
-                        type="button"
-                        class="flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded border border-border-interactive px-3 text-sm text-content-secondary hover:text-content-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
-                        @click="toggleTheme"
+                    <Link
+                        :href="route('settings.edit')"
+                        class="flex min-h-[44px] flex-1 items-center justify-center rounded border border-border-interactive px-3 text-sm text-content-secondary hover:text-content-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
                     >
-                        {{ theme === 'dark' ? 'Modo claro' : 'Modo oscuro' }}
-                    </button>
+                        Ajustes
+                    </Link>
                     <Link
                         :href="route('logout')"
                         method="post"
@@ -89,14 +86,7 @@ function toggleTheme() {
                     <ApplicationLogo class="h-7 w-auto fill-current text-primary-strong" />
                 </Link>
                 <div class="flex items-center gap-2">
-                    <button
-                        type="button"
-                        class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-content-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
-                        :aria-label="theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
-                        @click="toggleTheme"
-                    >
-                        {{ theme === 'dark' ? '☀' : '☾' }}
-                    </button>
+                    <ThemeToggle />
                     <button
                         type="button"
                         class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-content-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
@@ -111,9 +101,11 @@ function toggleTheme() {
             <div v-if="mobileMenuOpen" class="border-b border-border px-4 py-3 lg:hidden">
                 <div class="mb-1 text-sm font-semibold text-content-primary">{{ page.props.auth.user.name }}</div>
                 <div class="mb-3 text-sm text-content-secondary">{{ page.props.auth.user.email }}</div>
-                <SurfaceModeToggle class="mb-3" />
                 <Link :href="route('profile.edit')" class="block min-h-[44px] py-2 text-sm text-content-secondary">
                     Perfil
+                </Link>
+                <Link :href="route('settings.edit')" class="block min-h-[44px] py-2 text-sm text-content-secondary">
+                    Ajustes
                 </Link>
                 <Link :href="route('logout')" method="post" as="button" class="block min-h-[44px] py-2 text-sm text-content-secondary">
                     Salir

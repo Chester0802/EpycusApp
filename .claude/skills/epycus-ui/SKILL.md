@@ -340,6 +340,39 @@ Inspirada en el aspecto del anime: azul neón, violeta y carmesí sobre negro az
 
 **Detalle de estilo:** en modo oscuro + vidrio, los bordes de las tarjetas llevan un halo cyan sutil que evoca las ventanas del sistema del anime. Un `box-shadow` de 1px con el cyan al 30%, nada más. Discreto: es un detalle, no un neón parpadeante.
 
+### Bosque (segunda paleta, agregada 2026-07-28)
+
+Matiz teal/esmeralda (H≈175), derivada con la fórmula de §8 y verificada con conversión
+OKLCH→sRGB real (no coloreada a ojo). Selector en `/settings`.
+
+```css
+[data-palette="bosque"][data-theme="light"] {
+  --color-bg:              #F1FBF8;
+  --color-surface:         #FFFFFF;
+  --color-content-primary:   #19342D;  /* 12.67:1 sobre bg  AAA */
+  --color-content-secondary: #4E6A62;  /*  5.59:1 sobre bg  AA  */
+  --color-primary:        #82D8C1;   /* pastel. Texto oscuro encima: 7.99:1 */
+  --color-primary-strong: #008164;   /* sólido. Blanco encima: 4.86:1 */
+  --color-secondary:      #83D4DD;
+  --color-accent:         #A5E0A5;
+  --color-danger:         #FD736D;   /* fondo, no texto — falla 2.53:1 como texto */
+  --color-danger-text:    #B71824;   /* 6.28:1 sobre bg */
+  --color-border-interactive: #3A927D;  /* 3.56:1 */
+}
+
+[data-palette="bosque"][data-theme="dark"] {
+  --color-bg:              #081511;
+  --color-content-primary:   #DEEBE7;  /* 15.23:1  AAA */
+  --color-primary:        #28D4B2;   /* teal neón. 9.91:1 sobre bg. Blanco encima falla (1.88:1) */
+  --color-secondary:      #2CC3D2;
+  --color-accent:         #7BD77F;
+  --color-danger:         #F3625D;   /* sí sirve como texto en oscuro: 5.97:1 */
+  --color-border-interactive: #446D62;  /* 3.21:1 */
+}
+```
+
+Valores completos (todos los tokens) en `resources/css/app.css`.
+
 ---
 
 ## 8. Crear paletas nuevas (personalización futura)

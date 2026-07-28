@@ -19,5 +19,6 @@ Route::middleware(['web', 'auth', 'verified'])->group(function () {
 
     Route::post('/consent', [ConsentController::class, 'store'])->name('consent.store');
 
+    Route::get('/settings', [PreferencesController::class, 'edit'])->name('settings.edit');
     Route::patch('/preferences', [PreferencesController::class, 'update'])->name('preferences.update');
 });

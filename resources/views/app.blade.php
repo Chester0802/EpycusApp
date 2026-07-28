@@ -7,8 +7,8 @@
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         {{--
-            Tema y superficie se fijan aquí, antes de que Vue monte, para
-            que no haya un parpadeo con el tema por defecto (docs/04
+            Tema, superficie y paleta se fijan aquí, antes de que Vue monte,
+            para que no haya un parpadeo con el valor por defecto (docs/04
             §1 y §3). Fuentes autoalojadas en public/fonts/ vía @font-face
             en resources/css/app.css — nunca un CDN externo: registraría la
             IP de los participantes (docs/06-SEGURIDAD.md §7).
@@ -18,8 +18,10 @@
                 var theme = localStorage.getItem('epycus.theme')
                     || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
                 var surface = localStorage.getItem('epycus.surface') || 'neumorphism';
+                var palette = localStorage.getItem('epycus.palette') || 'kawaii';
                 document.documentElement.setAttribute('data-theme', theme);
                 document.documentElement.setAttribute('data-surface', surface);
+                document.documentElement.setAttribute('data-palette', palette);
             })();
         </script>
 

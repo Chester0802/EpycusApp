@@ -102,6 +102,19 @@ Como OKLCH es perceptualmente uniforme, misma luminosidad implica mismo brillo p
 - Cada paleta nueva pasa la verificación de contraste antes de entrar al catálogo
 - Se registra `theme.changed` y `surface.changed` en telemetría
 
+**Catálogo actual (2026-07-28):**
+
+| Paleta | Matiz base | Claro | Oscuro |
+|---|---|---|---|
+| Kawaii | H≈350 (rosa) | pastel rosa/lavanda/menta | cyan sistema/violeta/dorado (Solo Leveling) |
+| Bosque | H≈175 (teal/esmeralda) | pastel teal/celeste/verde lima | teal neón/celeste/verde |
+
+Bosque se agregó siguiendo exactamente la fórmula de §8 (L fija por token, C/H variables) y se
+verificó canal por canal con conversión OKLCH→sRGB real — no coloreada a ojo. Valores completos
+y contrastes medidos en la skill `epycus-ui` §7. Selector en `/settings` (`PaletteToggle.vue`),
+value **device-only por ahora** (localStorage, atributo `data-palette` en `<html>`) — no es
+preferencia de cuenta todavía, igual que el tema claro/oscuro.
+
 ---
 
 ## 4. Regla fundamental: tokens, no colores
@@ -242,6 +255,8 @@ graph TD
 | Persona | Avatar y perfil |
 
 Lo demás (diario, IA, grupos, ranking, ajustes) va en un menú secundario. **El ranking no aparece en la navegación principal**, por la razón explicada en `docs/03-GAMIFICACION.md` §7: debe requerir una decisión deliberada.
+
+**El "tema" del header (`AppLayout`) es solo el botón sol/luna** (claro/oscuro, `ThemeToggle.vue`) — nunca texto, siempre ícono. Los controles de superficie (neumorfismo/vidrio) y de paleta van **exclusivamente en `/settings` (Ajustes)**, no en el header ni en la barra lateral — corrección del 2026-07-28 tras revisar la Fase 0 en pantalla, ver `docs/12-HISTORIAL.md`. Implementado: `SurfaceModeToggle.vue` y `PaletteToggle.vue` viven en `resources/js/Pages/Settings/Index.vue`.
 
 ### Dashboard — orden de bloques
 

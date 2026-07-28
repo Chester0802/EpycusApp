@@ -36,12 +36,18 @@
 
 @layer base {
     /*
-     * Eje B — Tema de color. Claro (Kawaii) es el valor por defecto de :root
-     * para que la app tenga colores correctos incluso antes de que el script
-     * de tema aplique el atributo real (evita un flash sin estilo).
+     * Eje B (tema claro/oscuro) × Eje C (paleta) — docs/04-DISENO-VISUAL.md
+     * §3. Dos ejes independientes del Eje A (superficie, más abajo). Cada
+     * paleta define las cuatro combinaciones tema×paleta con sus propios
+     * valores OKLCH, verificados por separado (skill epycus-ui §4) — el
+     * contraste de una paleta NUNCA se asume válido para otra.
+     *
+     * "kawaii" + claro es el valor por defecto de :root para que la app
+     * tenga colores correctos incluso antes de que el script de tema
+     * aplique el atributo real (evita un flash sin estilo).
      */
     :root,
-    [data-theme='light'] {
+    [data-palette='kawaii'][data-theme='light'] {
         --color-bg: #fff8fb;
         --color-surface: #ffffff;
         --color-surface-raised: #fdf0f6;
@@ -93,7 +99,7 @@
         --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
     }
 
-    [data-theme='dark'] {
+    [data-palette='kawaii'][data-theme='dark'] {
         --color-bg: #0a0e1a;
         --color-surface: #131a2b;
         --color-surface-raised: #1c2540;
@@ -127,6 +133,77 @@
         --color-border-strong: #3a4a73;
         /* border-strong da 2.21:1 contra bg, sigue bajo 3:1. Medido: 4.75:1. */
         --color-border-interactive: #5a7ec0;
+
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 40%, transparent);
+        --color-backdrop: color-mix(in oklch, black 60%, transparent);
+    }
+
+    /*
+     * Paleta "Bosque" — segunda paleta verificada (skill epycus-ui §7),
+     * matiz teal/esmeralda (H=175) en vez del rosa de kawaii o el
+     * cyan/violeta de la oscura de kawaii. Derivada con la fórmula de §8
+     * (L fija por token, C y H variables) y verificada canal por canal con
+     * conversión OKLCH→sRGB real, no estimada — agregada 2026-07-28.
+     */
+    [data-palette='bosque'][data-theme='light'] {
+        --color-bg: #f1fbf8;
+        --color-surface: #ffffff;
+        --color-surface-raised: #e5f6f1;
+        --color-surface-sunken: #dbf1ea;
+
+        --color-content-primary: #19342d;
+        --color-content-secondary: #4e6a62;
+        --color-content-muted: #83938e;
+
+        --color-primary: #82d8c1;
+        --color-primary-strong: #008164;
+        --color-secondary: #83d4dd;
+        --color-accent: #a5e0a5;
+
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: #ffffff;
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #61bd67;
+        --color-warning: #e7b643;
+        --color-danger: #fd736d;
+        --color-danger-text: #b71824;
+
+        --color-border: #cbe5dd;
+        --color-border-strong: #8fc4b5;
+        --color-border-interactive: #3a927d;
+
+        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+    }
+
+    [data-palette='bosque'][data-theme='dark'] {
+        --color-bg: #081511;
+        --color-surface: #0c221c;
+        --color-surface-raised: #102f28;
+        --color-surface-sunken: #040b09;
+
+        --color-content-primary: #deebe7;
+        --color-content-secondary: #9bb0aa;
+        --color-content-muted: #667671;
+
+        --color-primary: #28d4b2;
+        --color-primary-strong: #28d4b2;
+        --color-secondary: #2cc3d2;
+        --color-accent: #7bd77f;
+
+        --color-on-primary: var(--color-bg);
+        --color-on-primary-strong: var(--color-bg);
+        --color-on-accent: var(--color-bg);
+
+        --color-success: #65c86b;
+        --color-warning: #eab532;
+        --color-danger: #f3625d;
+        --color-danger-text: var(--color-danger);
+
+        --color-border: #1b4037;
+        --color-border-strong: #29574b;
+        --color-border-interactive: #446d62;
 
         --shadow-md: 0 4px 16px color-mix(in oklch, black 40%, transparent);
         --color-backdrop: color-mix(in oklch, black 60%, transparent);

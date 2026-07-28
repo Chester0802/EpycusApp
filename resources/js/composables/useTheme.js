@@ -2,18 +2,21 @@ import { ref } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
 
 /**
- * Eje A (superficie) y Eje B (tema de color) de docs/04-DISENO-VISUAL.md §1.
- * Son dos preferencias independientes — nunca acopladas.
+ * Tres ejes independientes — nunca acoplados entre sí:
+ * - Eje A (superficie): docs/04-DISENO-VISUAL.md §1 — neumorfismo | vidrio
+ * - Eje B (tema): claro | oscuro
+ * - Eje C (paleta): docs/04-DISENO-VISUAL.md §3 — kawaii | bosque
  *
- * `surface` es la única de las dos que hoy vive en el backend
- * (`user_preferences.surface_mode`, ver docs/05-BASE-DATOS.md). `theme`
- * (claro/oscuro) todavía no tiene columna propia — el usuario nunca
- * confirmó que deba ser una preferencia de cuenta y no de dispositivo, así
- * que por ahora solo se persiste en localStorage. Si eso cambia, agregar la
+ * `surface` es el único de los tres que hoy vive en el backend
+ * (`user_preferences.surface_mode`, ver docs/05-BASE-DATOS.md). `theme` y
+ * `palette` todavía no tienen columna propia — el usuario nunca confirmó
+ * que deban ser preferencia de cuenta y no de dispositivo, así que por
+ * ahora solo se persisten en localStorage. Si eso cambia, agregar la
  * columna y sincronizarla igual que surfaceMode aquí abajo — no antes.
  */
 const theme = ref(document.documentElement.getAttribute('data-theme') || 'light');
 const surface = ref(document.documentElement.getAttribute('data-surface') || 'neumorphism');
+const palette = ref(document.documentElement.getAttribute('data-palette') || 'kawaii');
 
 function applyTheme(value) {
     theme.value = value;
@@ -25,6 +28,12 @@ function applySurface(value) {
     surface.value = value;
     document.documentElement.setAttribute('data-surface', value);
     localStorage.setItem('epycus.surface', value);
+}
+
+function applyPalette(value) {
+    palette.value = value;
+    document.documentElement.setAttribute('data-palette', value);
+    localStorage.setItem('epycus.palette', value);
 }
 
 /**
@@ -74,5 +83,9 @@ export function useTheme() {
         }
     }
 
-    return { theme, surface, setTheme, setSurface };
+    function setPalette(value) {
+        applyPalette(value);
+    }
+
+    return { theme, surface, palette, setTheme, setSurface, setPalette };
 }

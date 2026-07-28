@@ -8,10 +8,17 @@ use App\Modules\Identity\Application\DTOs\UpdatePreferencesDTO;
 use App\Modules\Identity\Application\UseCases\UpdatePreferencesUseCase;
 use App\Modules\Identity\Presentation\Requests\UpdatePreferencesRequest;
 use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
 
 final readonly class PreferencesController
 {
     public function __construct(private UpdatePreferencesUseCase $updatePreferences) {}
+
+    public function edit(): Response
+    {
+        return Inertia::render('Settings/Index');
+    }
 
     public function update(UpdatePreferencesRequest $request): RedirectResponse
     {
