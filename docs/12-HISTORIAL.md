@@ -38,6 +38,30 @@ finge haber probado algo que no probó.
 
 ## 2026-07-28 — Claude
 
+**Qué se hizo:** Creó `docs/13-ROADMAP.md`: la hoja de ruta de desarrollo del sistema completo,
+a pedido explícito del usuario ("no programes todavía, vamos a hacer un plan de tareas").
+Definió 13 fases: Fase 0 (fundamentos de frontend — tokens, componentes base, se construye una
+sola vez), Fase 1 (cerrar el frontend de Identity, que tiene el backend completo pero
+`CompleteProfile.vue` no existe pese a que el controlador ya intenta renderizarla), Fase 2
+(Telemetry, antes que cualquier módulo de contenido porque todos van a emitir eventos hacia
+él), y de la Fase 3 en adelante un módulo completo por vez en el orden que impone el mapa de
+eventos de `docs/01-MODULOS.md` (Habits → Gamification → Pomodoro → Missions → Wellbeing →
+Villains/Ranking/Personalization → StudyGroups → AiAssistant → Admin al final).
+
+**Decisiones tomadas:** el usuario confirmó explícitamente arrancar por la Fase 0 antes de
+tocar cualquier pantalla (no saltar directo a Identity con estilos genéricos), y guardar el
+plan en `docs/` en vez de dejarlo solo en el chat.
+
+**Verificado cómo:** el diagrama Mermaid del documento se renderizó con
+`@mermaid-js/mermaid-cli` antes de commitear — sin errores de sintaxis.
+
+**Pendiente / qué falta:** ejecutar la Fase 0. No se escribió código en esta sesión — fue
+explícitamente solo planificación, a pedido del usuario.
+
+---
+
+## 2026-07-28 — Claude
+
 **Qué se hizo:** Reemplazó el diagrama ER parcial de `docs/05-BASE-DATOS.md` §2 (le faltaban
 `participants`, `user_preferences`, `subtasks`, `xp_transactions`, todo `Motivation`,
 `Villains`/`StudyGroups`/`AI` y `telemetry_events`, y no mostraba atributos) por dos diagramas
