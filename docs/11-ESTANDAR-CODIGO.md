@@ -319,6 +319,30 @@ public function test_xp_is_not_awarded_beyond_the_daily_cap(): void
 
 Las dos primeras son innegociables: si fallan en silencio, se pierde el estudio y no hay forma de recuperarlo.
 
+### Prueba de ida y vuelta para todo Mapper — obligatoria
+
+Cada `Mapper` de un módulo (`toDomain()` / `toPersistence()`) lleva **una prueba que reconstruye
+la entidad y verifica que ningún campo se perdió en el camino**. No es opcional ni "recomendada":
+dos bugs reales de este proyecto (`UserMapper` no persistía `password`, `ParticipantMapper` no
+reconstruía `consent_granted_at`/`withdrawn_at`) eran exactamente esto — un campo que existía en
+la entidad pero no en el mapper — y ninguno de los dos se habría colado con esta prueba en su
+lugar. El patrón es mecánico, cópialo:
+
+```php
+public function test_participant_survives_a_round_trip_through_the_mapper(): void
+{
+    $model = ParticipantModel::factory()->create(['whatsapp' => '+51999999999']);
+
+    $domain = $mapper->toDomain($model->fresh());
+
+    $this->assertSame($model->whatsapp, $domain->whatsapp());
+    // ...un assert por cada campo del constructor de la entidad.
+}
+```
+
+Si agregas un campo a una entidad o a su tabla, esta prueba **debe fallar** hasta que actualices
+el mapper en ambas direcciones. Esa es la señal de que está haciendo su trabajo.
+
 ---
 
 ## 6. Git
