@@ -442,16 +442,16 @@ npm i -D eslint prettier eslint-plugin-vue   # frontend
 
 `pint.json` con preset `laravel`. `phpstan.neon` en **nivel 6** como mínimo.
 
-Antes de un pull request:
+Antes de un pull request, un solo comando corre los cuatro:
 
 ```bash
-./vendor/bin/pint
-./vendor/bin/phpstan analyse
-php artisan test
-npm run lint
+composer check
 ```
 
-Los cuatro deben pasar. Sin excepciones.
+(equivale a `pint --test` + `phpstan analyse` + `php artisan test` + `npm run lint`, en ese
+orden — corta en el primero que falle). Los cuatro deben pasar. Sin excepciones. Si vas a
+reportar "listo" o "0 errores" a quien te dio la tarea, **pega la salida real de
+`composer check`**, no una paráfrasis. Un resumen sin la salida real no es verificable.
 
 ---
 

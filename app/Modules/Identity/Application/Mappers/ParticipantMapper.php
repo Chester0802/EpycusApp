@@ -16,16 +16,25 @@ final class ParticipantMapper
         return new Participant(
             userId: new UserId($model->user_id),
             participantCode: new ParticipantCode($model->participant_code),
+            studentCode: $model->student_code,
+            whatsapp: $model->whatsapp,
+            consentGrantedAt: $model->consent_granted_at?->toDateTimeImmutable(),
+            enrolledAt: $model->enrolled_at?->toDateTimeImmutable(),
+            withdrawnAt: $model->withdrawn_at?->toDateTimeImmutable(),
         );
     }
 
+    /** @return array<string, mixed> */
     public function toPersistence(Participant $participant): array
     {
         return [
             'user_id' => $participant->userId()->value(),
             'participant_code' => $participant->participantCode()->value(),
-            'consent_granted_at' => $participant->hasConsented() ? now() : null,
-            'withdrawn_at' => $participant->isActive() ? null : now(),
+            'student_code' => $participant->studentCode(),
+            'whatsapp' => $participant->whatsapp(),
+            'consent_granted_at' => $participant->consentGrantedAt(),
+            'enrolled_at' => $participant->enrolledAt(),
+            'withdrawn_at' => $participant->withdrawnAt(),
         ];
     }
 }

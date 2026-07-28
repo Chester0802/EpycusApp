@@ -6,6 +6,9 @@ namespace App\Shared\Domain\Exceptions;
 
 abstract class ForbiddenException extends DomainException
 {
+    /**
+     * @param  array<string, mixed>  $context
+     */
     public function __construct(
         string $message = 'No tienes permiso para realizar esta acción.',
         string $code = 'FORBIDDEN',

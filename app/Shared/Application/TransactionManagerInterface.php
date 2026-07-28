@@ -6,5 +6,11 @@ namespace App\Shared\Application;
 
 interface TransactionManagerInterface
 {
-    public function run(callable $operation): mixed;
+    /**
+     * @template T
+     *
+     * @param  \Closure(): T  $operation
+     * @return T
+     */
+    public function run(\Closure $operation): mixed;
 }

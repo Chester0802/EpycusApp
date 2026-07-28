@@ -31,6 +31,7 @@ final class UserMapper
         );
     }
 
+    /** @return array<string, mixed> */
     public function toPersistence(User $user): array
     {
         return [

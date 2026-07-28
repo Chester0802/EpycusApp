@@ -5,11 +5,21 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Infrastructure\Models;
 
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-final class UserModel extends Authenticatable
+/**
+ * @property string $alias
+ * @property string $role
+ * @property string|null $career
+ * @property string|null $avatar_style
+ * @property string|null $avatar_gender
+ * @property int|null $cycle
+ * @property string|null $institution_type
+ */
+final class UserModel extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;

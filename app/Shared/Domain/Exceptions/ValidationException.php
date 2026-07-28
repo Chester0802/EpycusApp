@@ -6,6 +6,9 @@ namespace App\Shared\Domain\Exceptions;
 
 abstract class ValidationException extends DomainException
 {
+    /**
+     * @param  array<string, mixed>  $context
+     */
     public function __construct(
         string $message = 'Error de validación.',
         string $code = 'VALIDATION_ERROR',

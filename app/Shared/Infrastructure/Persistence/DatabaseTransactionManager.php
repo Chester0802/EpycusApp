@@ -9,7 +9,13 @@ use Illuminate\Support\Facades\DB;
 
 final class DatabaseTransactionManager implements TransactionManagerInterface
 {
-    public function run(callable $operation): mixed
+    /**
+     * @template T
+     *
+     * @param  \Closure(): T  $operation
+     * @return T
+     */
+    public function run(\Closure $operation): mixed
     {
         return DB::transaction($operation, attempts: 3);
     }

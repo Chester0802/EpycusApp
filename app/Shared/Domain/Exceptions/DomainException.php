@@ -8,8 +8,12 @@ abstract class DomainException extends \RuntimeException
 {
     private string $errorCode;
 
+    /** @var array<string, mixed> */
     private array $context;
 
+    /**
+     * @param  array<string, mixed>  $context
+     */
     public function __construct(
         string $message = '',
         string $code = 'DOMAIN_ERROR',
@@ -21,6 +25,7 @@ abstract class DomainException extends \RuntimeException
         $this->context = $context;
     }
 
+    /** @return array<string, mixed> */
     public function context(): array
     {
         return $this->context;

@@ -10,6 +10,7 @@ use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
+    /** @return array<string, list<mixed>> */
     public function rules(): array
     {
         return [

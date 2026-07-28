@@ -31,13 +31,12 @@ final readonly class EloquentParticipantRepository implements ParticipantReposit
 
     public function save(Participant $participant): void
     {
+        $data = $this->mapper->toPersistence($participant);
+        unset($data['user_id']);
+
         ParticipantModel::updateOrCreate(
             ['user_id' => $participant->userId()->value()],
-            [
-                'participant_code' => $participant->participantCode()->value(),
-                'consent_granted_at' => $participant->hasConsented() ? now() : null,
-                'withdrawn_at' => $participant->isActive() ? null : now(),
-            ],
+            $data,
         );
     }
 }

@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Presentation\Requests;
 
+use App\Modules\Identity\Domain\ValueObjects\Career;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class CompleteProfileRequest extends FormRequest
 {
+    /** @return array<string, list<string>> */
     public function rules(): array
     {
-        $allCareers = collect(config('careers.styles'))->flatten()->values()->all();
+        $allCareers = Career::all();
 
         return [
             'career' => ['required', 'string', 'in:'.implode(',', $allCareers)],

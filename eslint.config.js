@@ -14,6 +14,8 @@ export default [
         languageOptions: {
             globals: {
                 ...globals.browser,
+                // Ziggy inyecta route() como global del lado del cliente.
+                route: 'readonly',
             },
         },
         rules: {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Domain\Entities;
 
+use App\Modules\Identity\Domain\Exceptions\ConsentAlreadyGrantedException;
 use App\Modules\Identity\Domain\ValueObjects\ParticipantCode;
 use App\Modules\Identity\Domain\ValueObjects\UserId;
 
@@ -29,8 +30,39 @@ final class Participant
         return $this->participantCode;
     }
 
+    public function studentCode(): ?string
+    {
+        return $this->studentCode;
+    }
+
+    public function whatsapp(): ?string
+    {
+        return $this->whatsapp;
+    }
+
+    public function enrolledAt(): ?\DateTimeImmutable
+    {
+        return $this->enrolledAt;
+    }
+
+    public function consentGrantedAt(): ?\DateTimeImmutable
+    {
+        return $this->consentGrantedAt;
+    }
+
+    public function withdrawnAt(): ?\DateTimeImmutable
+    {
+        return $this->withdrawnAt;
+    }
+
     public function grantConsent(): void
     {
+        // El timestamp de consentimiento es un registro de ética/estudio:
+        // nunca se reescribe una vez otorgado.
+        if ($this->hasConsented()) {
+            throw new ConsentAlreadyGrantedException($this->userId->value());
+        }
+
         $this->consentGrantedAt = new \DateTimeImmutable;
     }
 

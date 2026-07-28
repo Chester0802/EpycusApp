@@ -6,6 +6,9 @@ namespace App\Shared\Domain\Exceptions;
 
 abstract class ConflictException extends DomainException
 {
+    /**
+     * @param  array<string, mixed>  $context
+     */
     public function __construct(
         string $message = 'Conflicto con el estado actual del recurso.',
         string $code = 'CONFLICT',
