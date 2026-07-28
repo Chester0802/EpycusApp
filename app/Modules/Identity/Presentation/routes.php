@@ -13,12 +13,16 @@ use Illuminate\Support\Facades\Route;
 // Sin él, no hay sesión/CSRF en estas rutas y auth() falla en silencio con
 // 401 pese a que el usuario esté logueado — encontrado en la Fase 0
 // probando de verdad contra un navegador, no con actingAs() de los tests.
-Route::middleware(['web', 'auth', 'verified'])->group(function () {
+Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/profile/complete', [ProfileController::class, 'edit'])->name('profile.complete');
     Route::patch('/profile/complete', [ProfileController::class, 'update']);
 
+    // GET muestra la pantalla de consentimiento; POST lo registra.
+    // Ambos necesitaban existir — el GET faltaba en el controlador original.
+    Route::get('/consent', [ConsentController::class, 'show'])->name('consent.show');
     Route::post('/consent', [ConsentController::class, 'store'])->name('consent.store');
 
     Route::get('/settings', [PreferencesController::class, 'edit'])->name('settings.edit');
     Route::patch('/preferences', [PreferencesController::class, 'update'])->name('preferences.update');
+
 });

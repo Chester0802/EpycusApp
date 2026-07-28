@@ -29,12 +29,21 @@ final class SecurityHeaders
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
         $response->headers->set('X-XSS-Protection', '0');
         $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+
+        // En desarrollo, Vite corre en 127.0.0.1:5173 (origen distinto al
+        // de Laravel). Hay que permitir sus scripts, estilos y la conexión
+        // WebSocket del HMR; sin esto el navegador los bloquea por CSP y
+        // la app no arranca. En producción solo se permite 'self'.
+        $viteOrigin = app()->isLocal() ? ' http://127.0.0.1:5173 http://127.0.0.1:5174' : '';
+        $viteWs = app()->isLocal() ? ' ws://127.0.0.1:5173 ws://127.0.0.1:5174' : '';
+
         $response->headers->set('Content-Security-Policy',
             "default-src 'self'; ".
-            "script-src 'self' 'nonce-{$nonce}'; ".
+            "script-src 'self' 'nonce-{$nonce}'{$viteOrigin}; ".
+            "style-src 'self' 'unsafe-inline'{$viteOrigin}; ".
             "img-src 'self' data:; ".
             "font-src 'self'; ".
-            "connect-src 'self' https://api.deepseek.com; ".
+            "connect-src 'self' https://api.deepseek.com{$viteOrigin}{$viteWs}; ".
             "frame-ancestors 'none';"
         );
 

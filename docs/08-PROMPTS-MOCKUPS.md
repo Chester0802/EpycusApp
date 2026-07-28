@@ -395,7 +395,7 @@ La última fila decide. **Enseña los mockups a varios beta-testers y pregunta c
 
 1. Actualizar `docs/04-DISENO-VISUAL.md` con el estilo elegido y sus paletas definitivas
 2. Verificar cada combinación de color con una herramienta de contraste
-3. Construir los componentes de `resources/js/components/ui/` con ese estilo
+3. Construir los componentes de `resources/js/Components/ui/` con ese estilo
 4. Renombrar este archivo a `08-PROMPTS-MOCKUPS-CERRADO.md`
 
 **Lo que NO cambia al elegir estilo:** arquitectura, módulos, telemetría, base de datos y lógica de gamificación. Por eso se trabaja con tokens semánticos desde el principio: cambiar de estilo es reescribir variables CSS y componentes base, no la aplicación.

@@ -7,7 +7,7 @@ import PaletteToggle from '@/Components/PaletteToggle.vue';
 import { useTheme } from '@/composables/useTheme';
 import { Head } from '@inertiajs/vue3';
 
-const { theme } = useTheme();
+const { theme, surface } = useTheme();
 </script>
 
 <template>
@@ -19,8 +19,12 @@ const { theme } = useTheme();
         <div class="space-y-6">
             <BaseCard>
                 <h2 class="mb-1 text-xl text-content-primary">Tema</h2>
-                <p class="mb-4 text-sm text-content-secondary">Claro u oscuro.</p>
-                <div class="flex items-center gap-3">
+                <p v-if="surface === 'glass'" class="mb-4 text-sm text-content-secondary">
+                    Vidrio usa el fondo de pantalla fijo, siempre en oscuro — cambia a
+                    Neumorfismo para elegir claro u oscuro.
+                </p>
+                <p v-else class="mb-4 text-sm text-content-secondary">Claro u oscuro.</p>
+                <div v-if="surface !== 'glass'" class="flex items-center gap-3">
                     <ThemeToggle />
                     <span class="text-sm text-content-secondary">
                         {{ theme === 'dark' ? 'Oscuro' : 'Claro' }}

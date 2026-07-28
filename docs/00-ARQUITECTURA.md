@@ -491,8 +491,12 @@ return [
     'xp' => [
         'habit_completed'   => env('XP_HABIT', 10),
         'pomodoro_completed'=> env('XP_POMODORO', 15),
-        'mission_completed' => env('XP_MISSION', 25),
+        'mission_easy'      => env('XP_MISSION_EASY', 20),
+        'mission_medium'    => env('XP_MISSION_MEDIUM', 30),
+        'mission_hard'      => env('XP_MISSION_HARD', 40),
+        'subtask_completed' => env('XP_SUBTASK', 5),
         'journal_entry'     => env('XP_JOURNAL', 10),
+        'villain_defeated'  => env('XP_VILLAIN', 100),
     ],
     'daily_caps' => [
         'habits'    => env('CAP_HABITS', 5),
@@ -500,13 +504,33 @@ return [
         'missions'  => env('CAP_MISSIONS', 3),
         'journal'   => 1,
     ],
+    'level_curve' => [
+        'base'      => 100,
+        'increment' => 45,
+        'max_level' => 50,
+    ],
+    'phases' => [
+        'total'            => 10,
+        'levels_per_phase' => 5,
+    ],
     'streak' => [
         'grace_days_per_month' => env('STREAK_GRACE', 3),
         'bonus_per_week'       => 0.10,
         'bonus_max'            => 0.50,
+        'min_daily_actions'    => 1,
+    ],
+    'villains' => [
+        'base_hp'            => 100,
+        'damage_per_action'  => 10,
+        'difficulty_by_week' => [/* 1.0 en semanas normales, 0.8 al inicio, 1.2 al final — ver docs/03-GAMIFICACION.md */],
+    ],
+    'wallet' => [
+        'xp_per_coin' => 10,
     ],
 ];
 ```
+
+Ejemplo verificado contra el archivo real en cada sesión — si difiere, el archivo real manda.
 
 Los valores de gamificación son configurables **a propósito**: si durante el piloto se ve que la curva está mal calibrada, se ajusta sin tocar código. Una vez iniciada la intervención el 07/09, **estos valores se congelan** — cambiarlos a mitad del estudio invalida los datos.
 

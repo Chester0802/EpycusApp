@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Infrastructure\Models;
 
+use App\Modules\Habits\Infrastructure\Models\HabitModel;
 use Database\Factories\UserFactory;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -19,7 +20,7 @@ use Illuminate\Notifications\Notifiable;
  * @property int|null $cycle
  * @property string|null $institution_type
  */
-final class UserModel extends Authenticatable implements MustVerifyEmail
+final class UserModel extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -51,6 +52,14 @@ final class UserModel extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'cycle' => 'integer',
         ];
+    }
+
+    /**
+     * @return HasMany<HabitModel, $this>
+     */
+    public function habits(): HasMany
+    {
+        return $this->hasMany(HabitModel::class, 'user_id');
     }
 
     /**

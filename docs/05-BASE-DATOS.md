@@ -243,16 +243,16 @@ erDiagram
 
     users {
         bigint id PK
-        varchar_120 name
-        varchar_180 email UK
+        varchar_255 name
+        varchar_255 email UK
         varchar_255 password
         varchar_40 alias UK
-        enum role "participant | admin"
+        varchar_20 role "default participant"
         varchar_60 career
-        enum avatar_style "health | business | technical | systems | law"
-        enum avatar_gender "m | f"
+        varchar_20 avatar_style "health | business | technical | systems | law"
+        varchar_1 avatar_gender "m | f"
         tinyint cycle
-        enum institution_type "universidad | instituto"
+        varchar_20 institution_type "universidad | instituto"
         timestamp email_verified_at
         varchar_100 remember_token
         timestamp created_at
@@ -487,23 +487,24 @@ ya costó un hallazgo de auditoría: no se adivina un schema, se pregunta.
 ```sql
 CREATE TABLE users (
     id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name              VARCHAR(120) NOT NULL,
-    email             VARCHAR(180) NOT NULL UNIQUE,
+    name              VARCHAR(255) NOT NULL,
+    email             VARCHAR(255) NOT NULL UNIQUE,
     password          VARCHAR(255) NOT NULL,
     alias             VARCHAR(40)  NOT NULL UNIQUE,
-    role              ENUM('participant','admin') NOT NULL DEFAULT 'participant',
+    role              VARCHAR(20)  NOT NULL DEFAULT 'participant',
     career            VARCHAR(60)  NULL,
-    avatar_style      ENUM('health','business','technical','systems','law') NULL,
-    avatar_gender     ENUM('m','f') NULL,
+    avatar_style      VARCHAR(20)  NULL,
+    avatar_gender     VARCHAR(1)   NULL,
     cycle             TINYINT UNSIGNED NULL,
-    institution_type  ENUM('universidad','instituto') NULL,
+    institution_type  VARCHAR(20)  NULL,
     email_verified_at TIMESTAMP NULL,
     remember_token    VARCHAR(100) NULL,
     created_at        TIMESTAMP NULL,
-    updated_at        TIMESTAMP NULL,
-    INDEX idx_role (role)
+    updated_at        TIMESTAMP NULL
 ) ENGINE=InnoDB;
 ```
+
+`role`, `avatar_style`, `avatar_gender` e `institution_type` son `VARCHAR`, no `ENUM`: la migración real (`app/Modules/Identity/Infrastructure/Migrations/2026_08_01_000002_update_users_table.php`) los declara como string con longitud fija. El valor cerrado se valida en el dominio (value objects) y contra `config/careers.php`, no a nivel de motor de base de datos — así un cambio en la lista de valores válidos no exige una migración de esquema.
 
 `career`, `cycle` e `institution_type` se pueblan **solo desde listas cerradas** definidas en `config/careers.php`. El backend valida contra esa lista. Decisión D-16 del proyecto.
 

@@ -50,7 +50,7 @@ Dos atributos independientes. Las variables CSS se resuelven por combinación.
 
 ---
 
-## 2. Las dos paletas base
+## 2. Las paletas base
 
 Definidas con sus valores y contrastes medidos en la skill `epycus-ui` §7. Resumen:
 
@@ -108,12 +108,12 @@ Como OKLCH es perceptualmente uniforme, misma luminosidad implica mismo brillo p
 |---|---|---|---|
 | Kawaii | H≈350 (rosa) | pastel rosa/lavanda/menta | cyan sistema/violeta/dorado (Solo Leveling) |
 | Bosque | H≈175 (teal/esmeralda) | pastel teal/celeste/verde lima | teal neón/celeste/verde |
+| Océano | H≈235 (azul índigo) | azul-niebla muy suave/lavanda/celeste | azul eléctrico/violeta/cyan (navy profundo) |
+| Nube | H≈271 claro / H≈267 oscuro (base casi sin croma) + acento H=295 | gris-violeta casi monocromático, un único acento violeta saturado | mismo gris-violeta oscuro, mismo acento violeta |
 
-Bosque se agregó siguiendo exactamente la fórmula de §8 (L fija por token, C/H variables) y se
-verificó canal por canal con conversión OKLCH→sRGB real — no coloreada a ojo. Valores completos
-y contrastes medidos en la skill `epycus-ui` §7. Selector en `/settings` (`PaletteToggle.vue`),
-value **device-only por ahora** (localStorage, atributo `data-palette` en `<html>`) — no es
-preferencia de cuenta todavía, igual que el tema claro/oscuro.
+Bosque, Océano y Nube se agregaron siguiendo exactamente la fórmula de §8 (L fija por token, C/H variables) y se verificaron canal por canal con conversión OKLCH→sRGB real — no coloreadas a ojo. Valores completos y contrastes medidos en la skill `epycus-ui` §7. Selector en `/settings` (`PaletteToggle.vue`), value **device-only por ahora** (localStorage, atributo `data-palette` en `<html>`) — no es preferencia de cuenta todavía, igual que el tema claro/oscuro.
+
+**Nube es distinta a las otras tres**: no deriva sus tokens neutros del matiz de la paleta con croma alto, sino que los mantiene casi en gris puro (croma ≈0.01–0.02) y concentra todo el color en un único acento saturado (`primary`/`primary-strong`). Es la paleta pensada para acompañar al modo Neumorfismo (§1): `bg` y `surface` comparten un tono casi idéntico a propósito, que es justo lo que ese modo necesita para que la doble sombra funcione.
 
 ---
 
@@ -136,7 +136,7 @@ Con 2 temas × 2 superficies × N paletas futuras, los colores literales harían
 
 Estas decisiones no son estéticas, vienen de las buenas prácticas documentadas de diseño de modo oscuro.
 
-**Nunca negro puro (`#000000`).** Produce contraste excesivo y provoca *smearing* en pantallas OLED al hacer scroll. El fondo base es `#121016`, un gris muy oscuro con matiz violeta que armoniza con el tema claro.
+**Nunca negro puro (`#000000`).** Produce contraste excesivo y provoca *smearing* en pantallas OLED al hacer scroll. El fondo base es `#0A0E1A`, azul casi negro — la base del tema Solo Leveling (§2).
 
 **La elevación se expresa con superposición de blanco, no con sombras.** En modo oscuro las sombras casi no se ven; lo que comunica jerarquía es que la superficie sea más clara. Sistema:
 
@@ -162,14 +162,14 @@ El estilo pastel tiene un riesgo de accesibilidad concreto: **los colores pastel
 Reglas para evitarlo:
 
 1. **El pastel es para superficies y acentos decorativos, jamás para texto.**
-2. El texto principal es `#3D2C3A` — un violeta muy oscuro, no gris neutro. Mantiene la calidez del tema y alcanza contraste 11:1 sobre `#FFF9FB`.
-3. Un botón primario `#E58BB4` con texto blanco **no pasa** contraste (2.4:1). Solución: texto oscuro sobre botón pastel, o un tono más profundo para botones con texto blanco.
+2. El texto principal es `#3D2C3A` — un violeta muy oscuro, no gris neutro. Mantiene la calidez del tema y alcanza contraste 12.39:1 sobre `#FFF8FB`.
+3. Un botón primario `#F2B8D4` con texto blanco **no pasa** contraste (2.42:1). Solución: texto oscuro sobre botón pastel, o un tono más profundo (`--color-primary-strong`) para botones con texto blanco.
 
 ```html
-<!-- MAL: rosa pastel con texto blanco, contraste 2.4:1 -->
+<!-- MAL: rosa pastel con texto blanco, contraste 2.42:1 -->
 <button class="bg-primary text-white">Completar</button>
 
-<!-- BIEN: rosa pastel con texto oscuro, contraste 7.1:1 -->
+<!-- BIEN: rosa pastel con texto oscuro, contraste 7.77:1 -->
 <button class="bg-primary text-content-primary">Completar</button>
 ```
 

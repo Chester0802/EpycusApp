@@ -250,7 +250,7 @@ LOG_DAILY_DAYS=14
 
 DEEPSEEK_API_KEY=
 DEEPSEEK_TIMEOUT=30
-AI_DAILY_QUOTA=10
+AI_DAILY_QUOTA=5
 
 # Fechas de la intervención — usadas para calcular intervention_day
 INTERVENTION_START=2026-09-07

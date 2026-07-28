@@ -29,14 +29,16 @@ Las escalas modulares derivan de intervalos musicales. La **tercera mayor (1.25)
 16 ÷ 1.25 = 12.8 → 12    (redondeado a la rejilla de 4)
 16 ÷ 1.25 ≈ 14           (paso intermedio, para etiquetas densas)
 16                        BASE
+18                        (paso intermedio, subtítulos y texto destacado)
 16 × 1.25 = 20
 20 × 1.25 = 25 → 24      (redondeado a la rejilla)
 24 × 1.25 = 30
 30 × 1.25 = 37.5 → 36
-36 × 1.25 = 45 → 44
 ```
 
-Se redondea a múltiplos de 4 para que la tipografía caiga sobre la misma rejilla que el espaciado. Sin ese redondeo, el ritmo vertical se descuadra.
+Se redondea a múltiplos de 4 para que la tipografía caiga sobre la misma rejilla que el espaciado, salvo el paso de 18 (intermedio, tomado tal cual de la escala de la skill `epycus-ui` §9). Sin ese redondeo, el ritmo vertical se descuadra.
+
+**Los números de gran formato (temporizador Pomodoro, XP) no forman parte de esta escala de lectura**: son cifras de display, no texto corrido, y usan el tamaño que fija su propia especificación (§6), no un token `text-*`.
 
 ---
 
@@ -47,11 +49,11 @@ Se redondea a múltiplos de 4 para que la tipografía caiga sobre la misma rejil
 | `text-xs` | 12 | 16 | 400 | Metadatos, marcas de tiempo. **Nunca para leer** |
 | `text-sm` | 14 | 20 | 400 | Etiquetas, texto secundario |
 | `text-base` | **16** | 24 | 400 | **Cuerpo. Mínimo absoluto para leer** |
+| `text-md` | 18 | 26 | 500 | Subtítulo, texto destacado dentro de párrafo |
 | `text-lg` | 20 | 28 | 600 | Texto destacado, título de tarjeta |
 | `text-xl` | 24 | 32 | 600 | Título de sección |
 | `text-2xl` | 30 | 36 | 600 | Título de página |
 | `text-3xl` | 36 | 40 | 700 | Números grandes, XP |
-| `text-4xl` | 44 | 48 | 700 | Temporizador Pomodoro |
 
 **Regla del interlineado:** cuerpo a 1.5×, títulos a 1.2×. El texto pequeño necesita más aire relativo; el grande, menos.
 
@@ -71,7 +73,7 @@ Aquí hay tres estándares distintos y conviene saber cuál se aplica.
 | Apple HIG | 44×44 pt | Recomendación de plataforma |
 | Material Design | 48×48 dp | Recomendación de plataforma |
 
-**Epycus adopta 48×48 px como mínimo**, por encima de los tres. Razón: la investigación muestra que usuarios con dificultades motoras tienen entre 50% y 80% más errores con objetivos de 44×44, y necesitan entre 60 y 100 pt para alcanzar precisión equivalente. Con 48 px se cubre el caso general con margen.
+**Epycus adopta 44×44 px como mínimo**, el estándar de Apple HIG, alineado con el checklist de la skill `epycus-ui` (§11: "Área táctil ≥44×44px"). Está por encima del mínimo de accesibilidad WCAG (24×24) y es compatible con Material Design (48×48): nada impide que un componente concreto use 48 o más cuando el layout lo permite, el mínimo solo fija el piso, no el techo. Ver la tabla de medidas por componente más abajo para los tamaños reales usados en cada caso.
 
 ### El dato que suele ignorarse
 
@@ -278,7 +280,7 @@ Todo icono decorativo lleva `aria-hidden="true"`. Todo icono que es la única se
 ## 10. Verificación numérica antes de entregar
 
 - [ ] Ningún valor fuera de las tres progresiones de la sección 1
-- [ ] Todo elemento táctil ≥48×48 px
+- [ ] Todo elemento táctil ≥44×44 px
 - [ ] Separación entre táctiles ≥8 px (≥16 si uno es destructivo)
 - [ ] Ningún texto de lectura por debajo de 16 px
 - [ ] Longitud de línea entre 45 y 75 caracteres

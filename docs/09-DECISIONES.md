@@ -388,5 +388,99 @@ Esa inversión de prioridades —el instrumento por encima del producto— es lo
 | `00-ARQUITECTURA.md` | Estructura y capas que materializan D-Q |
 | `02-TELEMETRIA.md` | Catálogo de eventos, sostiene D-A, D-B, D-N |
 | `03-GAMIFICACION.md` | Parámetros de D-A, D-D, D-F, D-G, D-J |
-| `06-SEGURIDAD.md` | Implementación de D-H, D-R, D-S, D-T |
+| `06-SEGURIDAD.md` | Implementación de D-H, D-R, D-S, D-T, D-U, D-V |
 | `07-DEPLOY.md` | Restricciones que originan D-M, D-N, D-O, D-P |
+| `01-MODULOS.md` | Casos de uso de Identity que materializan D-U, D-V, D-W, D-X |
+
+---
+
+## D-U · Google OAuth como método de autenticación adicional
+
+**Fecha:** 2026-07-28. **Solicitante:** usuario (marcó).
+
+**Contexto:** La autenticación propia (email + contraseña) ya está implementada. El registro y login manual funciona. Se solicita agregar Google como alternativa para reducir fricción de entrada.
+
+**Alternativas evaluadas:**
+
+| Alternativa | Problema |
+|---|---|
+| Solo Google OAuth, sin credenciales propias | Crea dependencia de tercero para el inicio del estudio. Si Google revoca credenciales OAuth o hay un corte, los participantes no pueden acceder — inaceptable para una intervención de 66 días con fecha fija |
+| Google OAuth reemplazando el flujo actual | Mismos riesgos de dependencia. Además, requeriría migrar los usuarios ya registrados |
+| Google OAuth adicional (coexiste con el flujo actual) | ✅ **La elegida** |
+
+**Decisión:** Google OAuth es un flujo **adicional y opcional**. El botón "Continuar con Google" aparece en las pantallas de login y registro junto al formulario existente, separado visualmente. Ambos flujos desembocan en el mismo resultado del dominio.
+
+**Fundamento técnico:**
+
+1. **`laravel/socialite`** para manejar el callback OAuth — no reimplementar el protocolo.
+2. El flujo social **debe crear `Participant` y generar `participant_code`** igual que `RegisterUserUseCase`. La seudonimización es un pilar del estudio y no depende del método de autenticación. Si se salta este paso en el flujo OAuth, los datos de telemetría de ese usuario no tienen `participant_code` y quedan fuera del dataset.
+3. La columna `google_id` se añade a la tabla `users` como `VARCHAR(100) NULL UNIQUE`. No es `NOT NULL` porque los usuarios con credenciales propias no lo tienen. No se guarda el access token de Google — no hay razón para ello y añade superficie de ataque.
+4. Al hacer login con Google de un email que ya existe en `users` (registrado con contraseña), se vincula la cuenta (se rellena `google_id`) y se loguea. No se crean dos cuentas.
+
+**Impacto en la validez del estudio:** neutro. El método de registro no correlaciona con ninguna variable del estudio. La asignación a grupo experimental/control sigue siendo aleatoria al momento de `CompleteProfile`.
+
+**Costo asumido:**
+- Dependencia de la disponibilidad de los servidores de Google durante el onboarding (no durante la intervención activa — una vez registrado, el login con Google requiere que Google responda, pero el usuario puede cambiarse a email+contraseña si lo pierde).
+- Requiere configurar `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en Hostinger, con la URL de callback registrada en Google Cloud Console apuntando al dominio de producción.
+- El dominio debe tener SSL válido para que Google acepte el callback — ya está contemplado en `docs/07-DEPLOY.md`.
+
+**Implementación pendiente (Fase 1):**
+- Migración: `ALTER TABLE users ADD COLUMN google_id VARCHAR(100) NULL UNIQUE AFTER password;`
+- `SocialAuthController` con métodos `redirect()` y `callback()`
+- Ruta `GET /auth/google/redirect` y `GET /auth/google/callback` en el grupo `web` del `IdentityServiceProvider` (con middleware `web` explícito — ver bug documentado en `docs/12-HISTORIAL.md`)
+- `SocialRegisterUserUseCase` (o reutilizar `RegisterUserUseCase` con un `SocialUserDTO`) — **debe llamar `CreateParticipantUseCase` igual que el flujo normal**
+- Botón en `Login.vue` y `Register.vue` cuando se haga el restyling de Fase 1
+
+---
+
+## D-V · Eliminación de la verificación de correo obligatoria (multi-institución, presupuesto de servidor)
+
+**Fecha:** 2026-07-28. **Solicitante:** usuario (marcó).
+
+**Contexto:** La muestra del estudio incluye estudiantes de múltiples institutos y universidades (públicas y privadas), no limitada exclusivamente a UPN. Actualmente no se dispone de presupuesto para contratar servicios de correo corporativo por dominio en Hostinger para cada entidad institucional (contando únicamente con un servidor de correo transaccional del dominio `@soltecto.com`). Requerir verificación obligatoria por enlace de correo (`MustVerifyEmail`) generaría altas tasas de rebote y bloqueo en spam de correos institucionales, impidiendo el ingreso de los participantes.
+
+**Decisión:** Desactivar la verificación de correo por email (`MustVerifyEmail`). Tras registrarse o iniciar sesión con sus credenciales, los usuarios ingresan de forma inmediata a la plataforma y continúan el flujo de onboarding/intervención sin bloqueos de middleware `verified`.
+
+---
+
+## D-W · Especificaciones UX de login, registro, términos y condiciones, y mapeo género-avatar
+
+**Fecha:** 2026-07-28. **Solicitante:** usuario (marcó).
+
+**Contexto:** Se requiere estandarizar visual y funcionalmente las pantallas públicas de autenticación y consentimiento para maximizar la conversión y asegurar el cumplimiento ético del estudio.
+
+**Decisiones de interfaz:**
+1. **Login**:
+   - Layout: Hero visual (`login-hero.webp`) + Logo (`logo.webp`).
+   - Saludo: *"Bienvenido a Epycus."* acompañado de frase motivadora (*"Transforma tu rutina y domina tus metas de estudio."*).
+   - Acciones: Correo, Contraseña, enlace "¿Olvidaste tu contraseña?" (envío de enlace de restablecimiento), casilla "Mantener sesión iniciada", botón Ingresar y botón Continuar con Google.
+2. **Registro**:
+   - Campos: Nombre completo, correo, contraseña, fecha de nacimiento, género (Masculino / Femenino / Prefiero no decir), carrera.
+   - **Mapeo Género → Avatar**: La opción *"Prefiero no decir"* asigna por defecto el avatar de género masculino (`m`), permitiendo al usuario modificarlo posteriormente en su perfil.
+   - **Términos y Condiciones**: Checkbox obligatorio "Acepto los términos y condiciones" con enlace a la página `/terms` creada para el proyecto.
+3. **Página /terms**: Se crea la ruta `/terms` y la vista `Terms.vue` que detalla los términos del servicio y del estudio.
+
+---
+
+## D-X · Flujo de registro con Google ("Casi listo") y cuestionario pre-uso futuro
+
+**Fecha:** 2026-07-28. **Solicitante:** usuario (marcó).
+
+**Contexto:** Se especifica el comportamiento cuando un nuevo usuario ingresa con Google OAuth y la inclusión futura de un cuestionario de entrada.
+
+**Decisiones de arquitectura:**
+1. **Pantalla "Casi listo" (Google OAuth)**: Cuando un usuario se registra vía Google y faltan datos clave del estudio, se muestra la pantalla *"Casi listo"* para completar: Nombre, Fecha de nacimiento, Género y Carrera.
+
+---
+
+## D-Y · Omisión de textos explícitos de intervención en la interfaz (uso natural)
+
+**Fecha:** 2026-07-28. **Solicitante:** usuario (marcó).
+
+**Contexto:** Para garantizar la validez ecológica de la investigación longitudinal de 66 días, los participantes no deben ser constantemente recordados de que forman parte de un "estudio" o "intervención" dentro de la interfaz cotidiana de la plataforma. El uso debe sentirse 100% natural, como cualquier otra aplicación comercial de hábitos y productividad.
+
+**Decisión:**
+1. **Interfaz Limpia y Natural**: Se omitirán términos como *"intervención"*, *"estudio"* o *"experimento"* en los textos visibles de la aplicación (subtítulos, dashboards, botones y módulos de contenido).
+2. **Ubicación Exclusiva en Términos y Condiciones**: Toda la información detallada del protocolo de investigación, derechos del participante y consentimiento ético permanecerá exclusivamente en la página de Términos y Condiciones (`/terms`) enlazada durante el registro y login.
+
+

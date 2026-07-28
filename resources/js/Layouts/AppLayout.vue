@@ -3,15 +3,17 @@ import { ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
+import BaseBadge from '@/Components/ui/BaseBadge.vue';
+import { useTheme } from '@/composables/useTheme';
 
 /*
  * Estructura de docs/04-DISENO-VISUAL.md §9 y §14: barra lateral fija en
  * escritorio, barra inferior en móvil. Los 5 destinos de la navegación
- * principal son fijos (Inicio, Hábitos, Pomodoro, Misiones, Avatar), pero
- * solo "Inicio" y "Perfil" tienen página real hoy — el resto se agrega en
- * su propia fase de docs/13-ROADMAP.md. No apuntar un nav item a una ruta
- * que no existe: Ziggy revienta en tiempo de ejecución si `route()` no la
- * conoce.
+ * principal son fijos (Inicio, Hábitos, Pomodoro, Misiones, Avatar).
+ * Hábitos ya tiene ruta real (Fase 3, `habits.index`); Pomodoro, Misiones
+ * y Avatar se muestran como "Pronto" (sin `routeName`, deshabilitados)
+ * hasta que exista su ruta — no apuntar un nav item a una ruta que no
+ * existe: Ziggy revienta en tiempo de ejecución si `route()` no la conoce.
  *
  * Los controles de tema/superficie/paleta viven en /settings (Ajustes),
  * no acá — corrección del usuario tras ver la Fase 0: la barra de
@@ -19,41 +21,55 @@ import ThemeToggle from '@/Components/ThemeToggle.vue';
  */
 const navItems = [
     { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
-    // Hábitos (Fase 3), Pomodoro (Fase 5), Misiones (Fase 6): se agregan
-    // acá cuando exista su ruta real.
+    { label: 'Hábitos', routeName: 'habits.index', icon: 'habits' },
+    { label: 'Pomodoro', comingSoon: true, icon: 'pomodoro' },
+    { label: 'Misiones', comingSoon: true, icon: 'missions' },
+    { label: 'Avatar', comingSoon: true, icon: 'avatar' },
     { label: 'Perfil', routeName: 'profile.edit', icon: 'user' },
 ];
 
 const page = usePage();
 const mobileMenuOpen = ref(false);
+const { surface } = useTheme();
 </script>
 
 <template>
     <div class="min-h-screen bg-bg lg:flex">
+        <!-- Fondo de pantalla — solo modo Vidrio (skill epycus-ui §2, §6) -->
+        <div v-if="surface === 'glass'" class="app-background" aria-hidden="true" />
         <!-- Barra lateral — solo escritorio -->
-        <aside class="hidden w-[260px] shrink-0 border-r border-border lg:flex lg:flex-col">
+        <aside class="panel-nav relative z-10 hidden w-[260px] shrink-0 lg:flex lg:flex-col">
             <div class="flex h-16 items-center justify-between gap-2 px-6">
                 <Link :href="route('dashboard')" class="flex items-center gap-2">
                     <ApplicationLogo class="h-8 w-auto fill-current text-primary-strong" />
                     <span class="font-display text-lg font-semibold text-content-primary">Epycus</span>
                 </Link>
-                <ThemeToggle />
+                <ThemeToggle v-if="surface !== 'glass'" />
             </div>
 
             <nav class="flex-1 space-y-1 px-4" aria-label="Navegación principal">
-                <Link
-                    v-for="item in navItems"
-                    :key="item.routeName"
-                    :href="route(item.routeName)"
-                    class="flex min-h-[44px] items-center gap-3 rounded px-3 text-sm font-semibold transition-colors duration-150"
-                    :class="
-                        route().current(item.routeName)
-                            ? 'bg-primary text-on-primary'
-                            : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
-                    "
-                >
-                    {{ item.label }}
-                </Link>
+                <template v-for="item in navItems" :key="item.label">
+                    <Link
+                        v-if="item.routeName"
+                        :href="route(item.routeName)"
+                        class="flex min-h-[44px] items-center gap-3 rounded px-3 text-sm font-semibold transition-colors duration-150"
+                        :class="
+                            route().current(item.routeName)
+                                ? 'bg-primary text-on-primary'
+                                : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
+                        "
+                    >
+                        {{ item.label }}
+                    </Link>
+                    <span
+                        v-else
+                        class="flex min-h-[44px] cursor-not-allowed items-center justify-between gap-3 rounded px-3 text-sm font-semibold text-content-muted opacity-50"
+                        aria-disabled="true"
+                    >
+                        {{ item.label }}
+                        <BaseBadge variant="neutral">Pronto</BaseBadge>
+                    </span>
+                </template>
             </nav>
 
             <div class="border-t border-border p-4">
@@ -86,7 +102,7 @@ const mobileMenuOpen = ref(false);
                     <ApplicationLogo class="h-7 w-auto fill-current text-primary-strong" />
                 </Link>
                 <div class="flex items-center gap-2">
-                    <ThemeToggle />
+                    <ThemeToggle v-if="surface !== 'glass'" />
                     <button
                         type="button"
                         class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-content-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
@@ -119,22 +135,30 @@ const mobileMenuOpen = ref(false);
 
         <!-- Barra inferior — solo móvil -->
         <nav
-            class="panel-raised fixed inset-x-0 bottom-0 z-40 flex justify-around border-t border-border py-2 lg:hidden"
+            class="panel-nav fixed inset-x-0 bottom-0 z-40 flex justify-around py-2 lg:hidden"
             aria-label="Navegación principal"
         >
-            <Link
-                v-for="item in navItems"
-                :key="item.routeName"
-                :href="route(item.routeName)"
-                class="flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded px-3 text-xs font-semibold"
-                :class="
-                    route().current(item.routeName)
-                        ? 'text-primary-strong'
-                        : 'text-content-secondary'
-                "
-            >
-                {{ item.label }}
-            </Link>
+            <template v-for="item in navItems" :key="item.label">
+                <Link
+                    v-if="item.routeName"
+                    :href="route(item.routeName)"
+                    class="flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded px-3 text-xs font-semibold"
+                    :class="
+                        route().current(item.routeName)
+                            ? 'text-primary-strong'
+                            : 'text-content-secondary'
+                    "
+                >
+                    {{ item.label }}
+                </Link>
+                <span
+                    v-else
+                    class="flex min-h-[44px] min-w-[44px] cursor-not-allowed flex-col items-center justify-center gap-0.5 rounded px-3 text-xs font-semibold text-content-muted opacity-50"
+                    aria-disabled="true"
+                >
+                    {{ item.label }}
+                </span>
+            </template>
         </nav>
     </div>
 </template>

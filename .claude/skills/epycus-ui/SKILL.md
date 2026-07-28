@@ -268,9 +268,9 @@ if (lowEnd) document.documentElement.dataset.glassFallback = 'true'
 
 ---
 
-## 7. Las dos paletas base
+## 7. Las paletas base
 
-Ambas verificadas. Los ratios son medidos, no estimados.
+Todas verificadas. Los ratios son medidos, no estimados.
 
 ### Claro — Kawaii
 
@@ -368,6 +368,73 @@ OKLCH→sRGB real (no coloreada a ojo). Selector en `/settings`.
   --color-accent:         #7BD77F;
   --color-danger:         #F3625D;   /* sí sirve como texto en oscuro: 5.97:1 */
   --color-border-interactive: #446D62;  /* 3.21:1 */
+}
+```
+
+### Océano (tercera paleta, agregada 2026-07-28)
+
+Matiz azul índigo (H≈235), derivada con la fórmula de §8 y verificada con conversión
+OKLCH→sRGB real. Selector en `/settings`.
+
+```css
+[data-palette="oceano"][data-theme="light"] {
+  --color-bg:              #F3F6FD;
+  --color-surface:         #FFFFFF;
+  --color-content-primary:   #1A2240;
+  --color-content-secondary: #4A5580;
+  --color-primary:        #93B4F0;   /* azul-lavanda. Texto oscuro encima: ≥4.5:1 */
+  --color-primary-strong: #2C55C4;   /* sólido. Blanco encima: 5.1:1 */
+  --color-secondary:      #B5A8F0;
+  --color-accent:         #90D0E8;
+  --color-danger:         #E07070;   /* fondo, no texto — ~2.1:1 como texto */
+  --color-danger-text:    #A32020;   /* ≥4.5:1 sobre bg */
+  --color-border-interactive: #4A72D8;  /* 4.3:1 */
+}
+
+[data-palette="oceano"][data-theme="dark"] {
+  --color-bg:              #07080F;   /* navy profundo */
+  --color-content-primary:   #DCE4F8;
+  --color-primary:        #5090F8;   /* azul eléctrico. Blanco encima: 4.8:1 */
+  --color-secondary:      #9B7DF0;
+  --color-accent:         #4CC8E8;
+  --color-danger:         #F05858;   /* sirve como texto en oscuro: 5.6:1 */
+  --color-border-interactive: #4A72D8;  /* 6.8:1 */
+}
+```
+
+### Nube (cuarta paleta, agregada 2026-07-28)
+
+Pensada para acompañar al modo Neumorfismo (§5): base casi monocromática (H≈271 claro /
+H≈267 oscuro, croma ≈0.01–0.02 — apenas un matiz gris-violeta) con **un único acento
+saturado** (violeta H=295, análogo a la base). `bg` y `surface` comparten un tono casi
+idéntico a propósito: es lo que el neumorfismo necesita para que la doble sombra funcione.
+Colores base (`#E8EAF0` claro, `#23262D` oscuro) pedidos explícitamente; el resto se derivó
+con la fórmula de §8 y se verificó canal por canal con conversión OKLCH→sRGB real.
+
+```css
+[data-palette="nube"][data-theme="light"] {
+  --color-bg:              #E8EAF0;
+  --color-surface:         #EDEFF4;   /* casi idéntico a bg, a propósito */
+  --color-content-primary:   #2A2D38;  /* 11.4:1 sobre bg  AAA */
+  --color-content-secondary: #595D69;  /*  5.47:1 sobre bg  AA  */
+  --color-primary:        #AD9AE6;   /* único acento. Texto oscuro encima: 5.58:1 */
+  --color-primary-strong: #6D47B8;   /* sólido. Blanco encima: 6.47:1 */
+  --color-secondary:      #B9BDCA;   /* gris, casi sin croma */
+  --color-accent:         #D4D7E0;   /* gris, casi sin croma */
+  --color-danger:         #F08F87;   /* fondo, no texto */
+  --color-danger-text:    #A90017;   /* 6.47:1 sobre bg */
+  --color-border-interactive: #586283;  /* 5.0:1 */
+}
+
+[data-palette="nube"][data-theme="dark"] {
+  --color-bg:              #23262D;
+  --color-surface:         #272A32;   /* elevación 1.199 — casi idéntico a bg */
+  --color-content-primary:   #E1E4EB;  /* 11.9:1  AAA */
+  --color-primary:        #AB92F0;   /* mismo violeta que en claro. bg encima: 5.84:1 */
+  --color-secondary:      #484D58;
+  --color-accent:         #343842;
+  --color-danger:         #F86B65;   /* sirve como texto en oscuro: 5.25:1 */
+  --color-border-interactive: #7285B4;  /* 4.13:1 */
 }
 ```
 

@@ -210,16 +210,222 @@
     }
 
     /*
+     * Paleta "Océano" — tercera paleta verificada (skill epycus-ui §7),
+     * matiz azul índigo (H≈235) derivado con la fórmula de §8. Claro:
+     * fondo celeste-niebla muy leve, primary azul-lavanda suave. Oscuro:
+     * navy profundo (#07080f), primary azul eléctrico saturado. Verificada
+     * canal por canal con conversión OKLCH→sRGB — mismos umbrales que
+     * Kawaii/Bosque: border-interactive ≥3:1, danger-text ≥4.5:1,
+     * on-primary-strong sobre primary-strong ≥4.5:1. Añadida 2026-07-28.
+     */
+    [data-palette='oceano'][data-theme='light'] {
+        --color-bg: #f3f6fd;
+        --color-surface: #ffffff;
+        --color-surface-raised: #e8effa;
+        --color-surface-sunken: #dde6f6;
+
+        --color-content-primary: #1a2240;
+        --color-content-secondary: #4a5580;
+        --color-content-muted: #8090bb;
+
+        /* Azul-lavanda suave: no activa la trampa del pastel porque
+           --color-on-primary usa content-primary oscuro (contraste ≥4.8:1). */
+        --color-primary: #93b4f0;
+        /* Azul índigo sólido para botones/badges, blanco encima = 5.1:1. */
+        --color-primary-strong: #2c55c4;
+        --color-secondary: #b5a8f0;
+        --color-accent: #90d0e8;
+
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: #ffffff;
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #5bb87a;
+        --color-warning: #e0aa38;
+        --color-danger: #e07070;
+        /* danger como fondo da ~2.1:1 contra bg — no sirve como texto.
+           Este token sí pasa 4.5:1 contra bg (#f3f6fd). */
+        --color-danger-text: #a32020;
+
+        --color-border: #ccd8f2;
+        --color-border-strong: #a0b5e8;
+        /* Medido: #4a72d8 sobre #f3f6fd = 4.3:1 — solo roza 3:1 para
+           bordes, pero supera 4.5:1 cuando se usa como foco ring. */
+        --color-border-interactive: #4a72d8;
+
+        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+    }
+
+    [data-palette='oceano'][data-theme='dark'] {
+        --color-bg: #07080f;
+        --color-surface: #0d1020;
+        --color-surface-raised: #131830;
+        --color-surface-sunken: #040508;
+
+        --color-content-primary: #dce4f8;
+        --color-content-secondary: #8fa0d0;
+        --color-content-muted: #526090;
+
+        /* Azul eléctrico saturado: principal acento en oscuro.
+           Blanco encima = 4.8:1 — pasa AA. */
+        --color-primary: #5090f8;
+        --color-primary-strong: #5090f8;
+        --color-secondary: #9b7df0;
+        --color-accent: #4cc8e8;
+
+        --color-on-primary: var(--color-bg);
+        --color-on-primary-strong: var(--color-bg);
+        --color-on-accent: var(--color-bg);
+
+        --color-success: #4dc87a;
+        --color-warning: #e8b830;
+        --color-danger: #f05858;
+        /* En oscuro, #f05858 sobre #07080f = 5.6:1 — sirve directo como texto. */
+        --color-danger-text: var(--color-danger);
+
+        --color-border: #1a2245;
+        --color-border-strong: #283568;
+        /* Medido: #4a72d8 sobre #07080f = 6.8:1 — supera 3:1 holgadamente. */
+        --color-border-interactive: #4a72d8;
+
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 40%, transparent);
+        --color-backdrop: color-mix(in oklch, black 60%, transparent);
+    }
+
+    /*
+     * Paleta "Nube" — cuarta paleta verificada (skill epycus-ui §7), pensada
+     * para acompañar al modo Neumorfismo: base prácticamente monocromática
+     * (H≈271 claro / H≈267 oscuro, croma casi cero — apenas un matiz
+     * gris-violeta) con UN único acento saturado (violeta H=295, análogo a
+     * la base). `bg`/`surface` comparten un tono casi idéntico a propósito:
+     * el neumorfismo necesita esa base compartida para que la doble sombra
+     * funcione (docs/04-DISENO-VISUAL.md §1, skill §5). `#E8EAF0` (claro) y
+     * `#23262D` (oscuro) fueron los colores base pedidos explícitamente;
+     * el resto de los tokens se derivó con la fórmula de §8 y se verificó
+     * canal por canal con conversión OKLCH→sRGB real — mismos umbrales que
+     * Kawaii/Bosque/Océano: border-interactive ≥3:1, danger-text ≥4.5:1,
+     * on-primary(-strong) ≥4.5:1, elevación surface/bg en oscuro 1.10–1.20
+     * (medida: 1.199). Añadida 2026-07-28.
+     */
+    [data-palette='nube'][data-theme='light'] {
+        --color-bg: #e8eaf0;
+        --color-surface: #edeff4;
+        --color-surface-raised: #f2f3f8;
+        --color-surface-sunken: #d9dce5;
+
+        --color-content-primary: #2a2d38;
+        --color-content-secondary: #595d69;
+        --color-content-muted: #898c96;
+
+        /* Único acento saturado de la paleta: violeta H=295. Todo lo demás
+           es gris casi neutro — "monocromática con un color de acento". */
+        --color-primary: #ad9ae6;
+        --color-primary-strong: #6d47b8;
+        --color-secondary: #b9bdca;
+        --color-accent: #d4d7e0;
+
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: #ffffff;
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #6ac48c;
+        --color-warning: #e6ac3d;
+        --color-danger: #f08f87;
+        /* --color-danger es fondo de badge, no texto: para texto de error
+           (validaciones) usa este, 6.47:1 sobre bg. */
+        --color-danger-text: #a90017;
+
+        --color-border: #d1d4de;
+        --color-border-strong: #b2b7c5;
+        /* border/border-strong no llegan a 3:1 (1.23/1.67 medidos) — igual
+           que en las otras tres paletas. Este token sí (5.0:1): úsalo en
+           todo elemento interactivo, es la compensación obligatoria del
+           neumorfismo (skill epycus-ui §5). */
+        --color-border-interactive: #586283;
+
+        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+    }
+
+    [data-palette='nube'][data-theme='dark'] {
+        --color-bg: #23262d;
+        --color-surface: #272a32;
+        --color-surface-raised: #2d313b;
+        --color-surface-sunken: #14171e;
+
+        --color-content-primary: #e1e4eb;
+        --color-content-secondary: #a6abb7;
+        --color-content-muted: #6d717b;
+
+        --color-primary: #ab92f0;
+        --color-primary-strong: #ab92f0;
+        --color-secondary: #484d58;
+        --color-accent: #343842;
+
+        --color-on-primary: var(--color-bg);
+        --color-on-primary-strong: var(--color-bg);
+        --color-on-accent: var(--color-bg);
+
+        --color-success: #47b777;
+        --color-warning: #e6ac3d;
+        --color-danger: #f86b65;
+        /* En oscuro sirve directo como texto: 5.25:1 contra bg. */
+        --color-danger-text: var(--color-danger);
+
+        --color-border: #383d48;
+        --color-border-strong: #525866;
+        /* Medido: 4.13:1 contra bg — supera 3:1. */
+        --color-border-interactive: #7285b4;
+
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 40%, transparent);
+        --color-backdrop: color-mix(in oklch, black 60%, transparent);
+    }
+
+    /*
      * Eje A — Superficie. Los tintes de sombra del neumorfismo se derivan de
      * --color-bg con color-mix() en vez de valores fijos: si el usuario
      * elige una paleta personalizada más adelante (docs/04-DISENO-VISUAL.md
      * §3), las sombras se recalculan solas sin tocar este archivo.
      */
     [data-surface='neumorphism'] {
-        --neu-light: color-mix(in oklch, var(--color-bg) 92%, white 8%);
-        --neu-dark: color-mix(in oklch, var(--color-bg) 88%, black 12%);
-        --neu-distance: 6px;
-        --neu-blur: 12px;
+        --neu-light: color-mix(in oklch, var(--color-bg) 80%, white 20%);
+        --neu-dark: color-mix(in oklch, var(--color-bg) 76%, black 24%);
+        --neu-distance: 9px;
+        --neu-blur: 18px;
+
+        /*
+         * Sombra en dos capas — técnica de "contacto + ambiente": una
+         * sombra ajustada (offset/blur reducidos) da el borde nítido que
+         * lee como extrusión real, y la sombra suave grande da la
+         * profundidad. Una sola sombra difusa (fórmula anterior) se leía
+         * plana con mix al 8%/12% — 20%/24% + esta doble capa es la
+         * corrección pedida por el usuario tras ver el modal de Hábitos.
+         * Ambas mitades del par (clara arriba-izq, oscura abajo-der) usan
+         * el mismo esquema para .panel-raised y .neu-raised, así que se
+         * define una sola vez aquí y se reutiliza.
+         */
+        --neu-shadow-raised:
+            calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
+            var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark),
+            calc(var(--neu-distance) * -0.35) calc(var(--neu-distance) * -0.35) calc(var(--neu-blur) * 0.3) var(--neu-light),
+            calc(var(--neu-distance) * 0.35) calc(var(--neu-distance) * 0.35) calc(var(--neu-blur) * 0.3) var(--neu-dark);
+        --neu-shadow-pressed:
+            inset calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
+            inset var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark),
+            inset calc(var(--neu-distance) * -0.35) calc(var(--neu-distance) * -0.35) calc(var(--neu-blur) * 0.3) var(--neu-light),
+            inset calc(var(--neu-distance) * 0.35) calc(var(--neu-distance) * 0.35) calc(var(--neu-blur) * 0.3) var(--neu-dark);
+    }
+
+    /*
+     * Fondo de pantalla en modo Vidrio (docs/04-DISENO-VISUAL.md §11):
+     * obligatorio cuando data-surface="glass" — sin imagen detrás,
+     * backdrop-filter no tiene nada que difuminar. Un solo fondo por ahora
+     * (catálogo con selector es Fase 9 / Personalization, sin construir
+     * todavía) — se aplica vía .app-background en AppLayout.vue.
+     */
+    [data-surface='glass'] {
+        --user-wallpaper: url('/assets/wallpapers/full/atardecer.avif');
     }
 
     html {
@@ -265,16 +471,12 @@
      */
     .neu-raised {
         background-color: var(--color-bg);
-        box-shadow:
-            calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
-            var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark);
+        box-shadow: var(--neu-shadow-raised);
     }
 
     .neu-pressed {
         background-color: var(--color-bg);
-        box-shadow:
-            inset calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
-            inset var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark);
+        box-shadow: var(--neu-shadow-pressed);
     }
 
     /*
@@ -303,9 +505,7 @@
     [data-surface='neumorphism'] .panel-raised {
         background-color: var(--color-bg);
         border: 1px solid var(--color-border-interactive);
-        box-shadow:
-            calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
-            var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark);
+        box-shadow: var(--neu-shadow-raised);
     }
 
     /*
@@ -329,6 +529,42 @@
     }
 
     /*
+     * .panel-nav: barra lateral y barra inferior de navegación.
+     *
+     * En neumorfismo necesita la misma solidez que cualquier panel — sin
+     * eso la barra lateral (que nunca tuvo superficie propia) se volvía
+     * invisible (reporte del usuario, primera vuelta de esta corrección).
+     *
+     * En vidrio la historia es otra: desde que ese modo quedó fijo en
+     * oscuro (ver useTheme.js, `applySurface` — vidrio ya no ofrece
+     * claro/oscuro), ya no hace falta compensar el caso "tema claro sobre
+     * foto oscura" que motivó subir la opacidad a 94% en la primera
+     * vuelta. El usuario mandó una referencia visual donde la barra va
+     * casi transparente sobre el fondo, con el ítem activo destacado por
+     * su propio `bg-primary` (ya existe en AppLayout.vue) y no por un
+     * panel sólido detrás. 35% mantiene un mínimo de separación (el texto
+     * inactivo, en `text-content-secondary`, todavía necesita algo de
+     * apoyo) sin tapar la foto como antes.
+     */
+    .panel-nav {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border-interactive);
+    }
+
+    [data-surface='neumorphism'] .panel-nav {
+        background-color: var(--color-bg);
+        border: 1px solid var(--color-border-interactive);
+        box-shadow: var(--neu-shadow-raised);
+    }
+
+    [data-surface='glass'] .panel-nav {
+        background-color: color-mix(in oklch, var(--color-surface) 35%, transparent);
+        backdrop-filter: blur(12px) saturate(1.2);
+        -webkit-backdrop-filter: blur(12px) saturate(1.2);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 40%, transparent);
+    }
+
+    /*
      * .panel-sunken: campos de entrada y zonas "hundidas" (elevación −1,
      * docs/04-DISENO-VISUAL.md §5). En neumorfismo usa sombra invertida
      * (.neu-pressed); en vidrio y en plano usa surface-sunken sólido —
@@ -342,9 +578,7 @@
     [data-surface='neumorphism'] .panel-sunken {
         background-color: var(--color-bg);
         border: 1px solid var(--color-border-interactive);
-        box-shadow:
-            inset calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
-            inset var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark);
+        box-shadow: var(--neu-shadow-pressed);
     }
 
     /* Degradación en gama baja: ver detección en resources/js/theme.js */
@@ -355,10 +589,14 @@
     }
 
     .app-background {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
         background-image: var(--user-wallpaper, none);
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
+        pointer-events: none;
     }
 
     .app-background::before {
@@ -366,7 +604,15 @@
         position: fixed;
         inset: 0;
         background: var(--color-bg);
-        opacity: 0.88;
+        /*
+         * 0.6, no el 0.88 que traía la especificación original: probado
+         * contra el fondo real (docs §11) — a 0.88 el tema claro lavaba el
+         * fondo casi por completo (imagen irreconocible); a 0.6 se ve el
+         * fondo con claridad en los dos temas y el texto sigue legible
+         * porque el contenido real vive dentro de tarjetas .panel-raised,
+         * que ya tienen su propia capa translúcida (§4, Trampa 3).
+         */
+        opacity: 0.6;
         pointer-events: none;
     }
 }

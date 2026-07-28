@@ -60,7 +60,7 @@
             "@format:check",
             "@analyse",
             "@test",
-            "npm run lint"
+            "npx eslint resources/js --max-warnings=0"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

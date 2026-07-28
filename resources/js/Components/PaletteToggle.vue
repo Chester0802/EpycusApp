@@ -10,6 +10,8 @@ const { palette, setPalette } = useTheme();
 const options = [
     { value: 'kawaii', label: 'Kawaii' },
     { value: 'bosque', label: 'Bosque' },
+    { value: 'oceano', label: 'Océano' },
+    { value: 'nube', label: 'Nube' },
 ];
 </script>
 

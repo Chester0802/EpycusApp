@@ -138,34 +138,34 @@ Sesiones de enfoque cronometradas.
 
 ### Historial integrado
 
-El historial vive **dentro del propio modulo Pomodoro**, no en una pantalla aparte. Tres bloques en la misma vista, debajo del temporizador:
+El historial vive **dentro del propio módulo Pomodoro**, no en una pantalla aparte. Tres bloques en la misma vista, debajo del temporizador:
 
-**1. Sesiones de hoy** — lista compacta con hora de inicio, duracion, mision vinculada y resultado:
+**1. Sesiones de hoy** — lista compacta con hora de inicio, duración, misión vinculada y resultado:
 
 ```
 Hoy: 3 de 8 sesiones                     75 min de foco
 --------------------------------------------------------
-09:15  25 min  Ensayo de Metodologia     completada
-11:40  25 min  Calculo - practica 4      completada
-14:20   8 min  Calculo - practica 4      abandonada
+09:15  25 min  Ensayo de Metodología     completada
+11:40  25 min  Cálculo - práctica 4      completada
+14:20   8 min  Cálculo - práctica 4      abandonada
 ```
 
-**2. Resumen de la semana** — barras de minutos de foco por dia, con la media marcada.
+**2. Resumen de la semana** — barras de minutos de foco por día, con la media marcada.
 
-**3. Estadisticas del periodo** — cuatro numeros:
+**3. Estadísticas del período** — cuatro números:
 
-| Metrica | Calculo |
+| Métrica | Cálculo |
 |---|---|
 | Sesiones completadas | conteo con estado `completed` |
-| Tasa de finalizacion | completadas / iniciadas |
+| Tasa de finalización | completadas / iniciadas |
 | Minutos de foco totales | suma de `focus_minutes` |
-| Racha de dias con al menos 1 Pomodoro | dias consecutivos |
+| Racha de días con al menos 1 Pomodoro | días consecutivos |
 
-La **tasa de finalizacion** es la mas informativa de las cuatro para el estudio: mide capacidad real de sostener el foco, no solo intencion. Un participante que inicia 10 y termina 3 tiene un patron muy distinto de uno que inicia 4 y termina 4, aunque el conteo de intentos se parezca.
+La **tasa de finalización** es la más informativa de las cuatro para el estudio: mide capacidad real de sostener el foco, no solo intención. Un participante que inicia 10 y termina 3 tiene un patrón muy distinto de uno que inicia 4 y termina 4, aunque el conteo de intentos se parezca.
 
-**Filtros del historial:** hoy, ultimos 7 dias, ultimos 30 dias, todo el periodo.
+**Filtros del historial:** hoy, últimos 7 días, últimos 30 días, todo el período.
 
-**Rendimiento:** el historial se pagina de 20 en 20 y las estadisticas se cachean 10 minutos. Con un solo nucleo de CPU, recalcular agregados en cada visita es desperdicio.
+**Rendimiento:** el historial se pagina de 20 en 20 y las estadísticas se cachean 10 minutos. Con un solo núcleo de CPU, recalcular agregados en cada visita es desperdicio.
 
 
 **Validación anti-manipulación:**
@@ -178,9 +178,9 @@ if ($completedAt->diff($startedAt)->i < $plannedMinutes * 0.95) {
 
 ---
 
-## 4. Missions — Gestion de tareas academicas
+## 4. Missions — Gestión de tareas académicas
 
-Sistema de gestion de tareas con descomposicion en subtareas.
+Sistema de gestión de tareas con descomposición en subtareas.
 
 **Entidades:** `Mission`, `Subtask`
 
@@ -205,26 +205,26 @@ stateDiagram-v2
 | `pending` | Creada, sin avance | neutro |
 | `in_progress` | Al menos una subtarea hecha, o Pomodoro vinculado iniciado | primario |
 | `completed` | Terminada | exito |
-| `overdue` | Vencio sin completarse | peligro |
+| `overdue` | Venció sin completarse | peligro |
 
-El paso a `in_progress` es **automatico**. No hay que marcarlo a mano: se deduce de actividad real, lo que da un dato de telemetria mas fiable que un cambio de estado manual.
+El paso a `in_progress` es **automático**. No hay que marcarlo a mano: se deduce de actividad real, lo que da un dato de telemetría más fiable que un cambio de estado manual.
 
-### Descomposicion en subtareas
+### Descomposición en subtareas
 
-La funcion central del modulo: **partir una tarea grande en pasos manejables.**
+La función central del módulo: **partir una tarea grande en pasos manejables.**
 
 | Regla | Valor |
 |---|---|
-| Subtareas por mision | 0 a 20 |
-| Reordenables | Si, arrastrando |
-| Completar todas | Completa la mision automaticamente |
-| Subtarea con fecha propia | No, la fecha es de la mision |
+| Subtareas por misión | 0 a 20 |
+| Reordenables | Sí, arrastrando |
+| Completar todas | Completa la misión automáticamente |
+| Subtarea con fecha propia | No, la fecha es de la misión |
 
-Al crear una mision dificil sin subtareas, el sistema **sugiere** dividirla, sin obligar:
+Al crear una misión difícil sin subtareas, el sistema **sugiere** dividirla, sin obligar:
 
-> *"Las tareas grandes se sienten menos pesadas por partes. Quieres dividirla?"*
+> *"Las tareas grandes se sienten menos pesadas por partes. ¿Quieres dividirla?"*
 
-Esta sugerencia responde al hallazgo del diagnostico: el 14,3% de la muestra senalo "no se por donde empezar" como su mayor obstaculo. La descomposicion es la respuesta directa a esa barrera, y por eso el modulo se llama Misiones y no Tareas.
+Esta sugerencia responde al hallazgo del diagnóstico: el 14,3% de la muestra señaló "no sé por dónde empezar" como su mayor obstáculo. La descomposición es la respuesta directa a esa barrera, y por eso el módulo se llama Misiones y no Tareas.
 
 ### Prioridad y ordenamiento
 
@@ -232,34 +232,34 @@ Prioridad: `baja`, `normal`, `alta`. Por defecto `normal`.
 
 Orden por defecto de la lista:
 
-1. Vencidas (primero, mas antigua arriba)
+1. Vencidas (primero, más antigua arriba)
 2. Vence hoy
 3. Vence esta semana, por prioridad
 4. Resto, por fecha
 5. Completadas (al final, colapsadas)
 
-El usuario puede reordenar por: fecha, prioridad, dificultad o creacion.
+El usuario puede reordenar por: fecha, prioridad, dificultad o creación.
 
-### Vistas del modulo
+### Vistas del módulo
 
 | Vista | Contenido |
 |---|---|
 | **Lista** (principal) | Todas las misiones agrupadas por estado |
-| **Detalle** | Mision con subtareas, boton de Pomodoro vinculado |
+| **Detalle** | Misión con subtareas, botón de Pomodoro vinculado |
 | **Calendario** | Misiones ubicadas por fecha de vencimiento |
 | **Completadas** | Historial, con `days_early_or_late` visible |
 
-### La metrica que importa
+### La métrica que importa
 
-`days_early_or_late` se calcula al completar: negativo si fue antes del vencimiento, positivo si despues.
+`days_early_or_late` se calcula al completar: negativo si fue antes del vencimiento, positivo si después.
 
-> Es **la medida conductual de procrastinacion mas directa del sistema**. Se calcula siempre, se registra siempre, y **nunca se recalcula despues**.
+> Es **la medida conductual de procrastinación más directa del sistema**. Se calcula siempre, se registra siempre, y **nunca se recalcula después**.
 
 **Reglas de dominio:**
-- Maximo 3 misiones con XP por dia
-- Una mision sin fecha de vencimiento no genera `days_early_or_late` ni puede vencer
-- Eliminar conserva el historial (borrado logico)
-- Completar una subtarea de una mision ya completada no da XP
+- Máximo 3 misiones con XP por día
+- Una misión sin fecha de vencimiento no genera `days_early_or_late` ni puede vencer
+- Eliminar conserva el historial (borrado lógico)
+- Completar una subtarea de una misión ya completada no da XP
 
 **Casos de uso:** `CreateMission`, `UpdateMission`, `DeleteMission`, `AddSubtask`, `UpdateSubtask`, `ReorderSubtasks`, `CompleteSubtask`, `CompleteMission`, `ListUserMissions`, `GetMissionDetail`, `GetMissionsCalendar`
 
@@ -269,31 +269,31 @@ El usuario puede reordenar por: fecha, prioridad, dificultad o creacion.
 
 ---
 
-## 5. Wellbeing — Diario de animo con calendario
+## 5. Wellbeing — Diario de ánimo con calendario
 
 Registro emocional del participante. **Es una de las tres fuentes de contexto del asistente de IA.**
 
-**Entidades:** `JournalEntry`, `DayMood` (agregado del dia)
+**Entidades:** `JournalEntry`, `DayMood` (agregado del día)
 
 **Objetos de valor:** `MoodScore` (1-5), `EntryTags`
 
 ### Modelo de uso
 
-El participante escribe **cuando quiera**: puede ser una vez al dia o cuatro. No hay obligacion ni horario.
+El participante escribe **cuando quiera**: puede ser una vez al día o cuatro. No hay obligación ni horario.
 
 | Aspecto | Regla |
 |---|---|
-| Entradas por dia | Ilimitadas |
-| Texto | **Opcional**. Se puede registrar solo el animo |
-| Animo | Obligatorio en cada entrada (1-5) |
-| XP | Solo la **primera entrada de cada dia** otorga XP |
+| Entradas por día | Ilimitadas |
+| Texto | **Opcional**. Se puede registrar solo el ánimo |
+| Ánimo | Obligatorio en cada entrada (1-5) |
+| XP | Solo la **primera entrada de cada día** otorga XP |
 | Visibilidad | Solo el autor. Ni el administrador |
 
-El XP solo en la primera entrada evita acumular experiencia escribiendo veinte veces seguidas, sin impedir que alguien registre su animo varias veces al dia, que es justamente lo que da riqueza al dato.
+El XP solo en la primera entrada evita acumular experiencia escribiendo veinte veces seguidas, sin impedir que alguien registre su ánimo varias veces al día, que es justamente lo que da riqueza al dato.
 
 ### El calendario
 
-La vista principal del modulo es un **calendario mensual**. Cada dia muestra el emoji del animo de ese dia, y **ese emoji se queda de forma permanente**: al abrir el mes se ve de un vistazo como fue la racha emocional.
+La vista principal del módulo es un **calendario mensual**. Cada día muestra el emoji del ánimo de ese día, y **ese emoji se queda de forma permanente**: al abrir el mes se ve de un vistazo como fue la racha emocional.
 
 ```
 +-------------------------------------------------+
@@ -310,11 +310,11 @@ La vista principal del modulo es un **calendario mensual**. Cada dia muestra el 
       . = sin registro       * = feriado
 ```
 
-**Cuando hay varias entradas en un dia**, el emoji mostrado es el del **promedio redondeado** de ese dia. Al tocar el dia se abre el detalle con todas las entradas y sus horas.
+**Cuando hay varias entradas en un día**, el emoji mostrado es el del **promedio redondeado** de ese día. Al tocar el día se abre el detalle con todas las entradas y sus horas.
 
-Por que el promedio y no la ultima: si alguien registra `2` por la manana y `4` por la noche, el dia no fue "un 4". El promedio representa mejor la jornada, y el detalle conserva la evolucion.
+Por qué el promedio y no la última: si alguien registra `2` por la mañana y `4` por la noche, el día no fue "un 4". El promedio representa mejor la jornada, y el detalle conserva la evolución.
 
-### Escala de animo
+### Escala de ánimo
 
 | Valor | Emoji | Etiqueta |
 |---|---|---|
@@ -324,47 +324,47 @@ Por que el promedio y no la ultima: si alguien registra `2` por la manana y `4` 
 | 4 | cara contenta | Bien |
 | 5 | cara feliz | Muy bien |
 
-Cinco puntos, no siete ni diez. Con mas opciones la gente se concentra en el centro y se pierde varianza; con menos no se distingue "mal" de "muy mal".
+Cinco puntos, no siete ni diez. Con más opciones la gente se concentra en el centro y se pierde varianza; con menos no se distingue "mal" de "muy mal".
 
-Los emojis se sirven como SVG propios en `public/assets/moods/`, no como emoji de sistema: asi se ven igual en Android, iOS y escritorio.
+Los emojis se sirven como SVG propios en `public/assets/moods/`, no como emoji de sistema: así se ven igual en Android, iOS y escritorio.
 
 ### Etiquetas
 
-Catalogo cerrado, seleccion multiple, opcional: `estres`, `motivado`, `cansado`, `tranquilo`, `agobiado`, `enfocado`, `disperso`, `satisfecho`.
+Catálogo cerrado, selección multiple, opcional: `estrés`, `motivado`, `cansado`, `tranquilo`, `agobiado`, `enfocado`, `disperso`, `satisfecho`.
 
-Cerrado a proposito: con texto libre habria cientos de variantes y no se podria agrupar. Es el mismo error de la encuesta 2 que origino la decision D-16.
+Cerrado a propósito: con texto libre habría cientos de variantes y no se podria agrupar. Es el mismo error de la encuesta 2 que originó la decisión D-16.
 
-### Vistas del modulo
+### Vistas del módulo
 
 | Vista | Contenido |
 |---|---|
-| **Calendario** (principal) | Mes con emoji por dia. Navegacion entre meses |
-| **Detalle de dia** | Todas las entradas de ese dia, con hora, animo, texto y etiquetas |
-| **Nueva entrada** | Selector de animo, texto opcional, etiquetas |
-| **Tendencia** | Grafico de linea de los ultimos 30 dias con el promedio diario |
+| **Calendario** (principal) | Mes con emoji por día. Navegación entre meses |
+| **Detalle de día** | Todas las entradas de ese día, con hora, ánimo, texto y etiquetas |
+| **Nueva entrada** | Selector de ánimo, texto opcional, etiquetas |
+| **Tendencia** | Gráfico de línea de los últimos 30 días con el promedio diario |
 
 ### Contexto para el asistente de IA
 
-Este modulo alimenta al asistente. **Lo que se le envia y lo que no:**
+Este módulo alimenta al asistente. **Lo que se le envía y lo que no:**
 
-| Se envia | NO se envia |
+| Se envía | NO se envía |
 |---|---|
-| Promedio de animo de los ultimos 7 dias | El texto de las entradas |
+| Promedio de ánimo de los últimos 7 días | El texto de las entradas |
 | Tendencia (subiendo, estable, bajando) | Etiquetas individuales por entrada |
-| Etiquetas mas frecuentes del periodo | Fechas concretas |
-| Numero de dias con registro | |
+| Etiquetas más frecuentes del período | Fechas concretas |
+| Número de días con registro | |
 
-**El texto del diario nunca sale del sistema.** El asistente recibe un resumen numerico del tipo *"animo medio 2.8 en 7 dias, tendencia a la baja, etiquetas frecuentes: cansado, agobiado"*. Con eso puede dar un consejo pertinente sin que el contenido personal viaje al proveedor de IA.
+**El texto del diario nunca sale del sistema.** El asistente recibe un resumen numérico del tipo *"ánimo medio 2.8 en 7 días, tendencia a la baja, etiquetas frecuentes: cansado, agobiado"*. Con eso puede dar un consejo pertinente sin que el contenido personal viaje al proveedor de IA.
 
-No es solo proteccion de datos: es lo que permite declarar en el expediente de etica que ningun contenido sensible se transfiere a un tercero.
+No es solo protección de datos: es lo que permite declarar en el expediente de ética que ningún contenido sensible se transfiere a un tercero.
 
 **Casos de uso:** `CreateJournalEntry`, `EditJournalEntry`, `DeleteJournalEntry`, `GetMonthCalendar`, `GetDayDetail`, `GetMoodTrend`, `GetAiContextSummary`
 
 **Eventos:** `JournalEntryCreated`, `JournalEntryEdited`
 
-> **Proteccion de datos critica:** el contenido se cifra en reposo, nunca aparece en telemetria (solo `mood_score` y longitud), ni en logs, ni en exportaciones. El panel de administracion solo ve promedios agregados.
+> **Protección de datos crítica:** el contenido se cifra en reposo, nunca aparece en telemetría (solo `mood_score` y longitud), ni en logs, ni en exportaciones. El panel de administración solo ve promedios agregados.
 
-**Alerta de bienestar:** si el promedio diario es <=2 durante 5 dias consecutivos, se muestra **solo al participante** el contacto de una ong. No se notifica a administradores: violaria la confidencialidad y desincentivaria el uso honesto.
+**Alerta de bienestar:** si el promedio diario es <=2 durante 5 días consecutivos, se muestra **solo al participante** el contacto de una ONG. No se notifica a administradores: violaría la confidencialidad y desincentivaría el uso honesto.
 
 ---
 
@@ -586,155 +586,155 @@ Logros e insignias desbloqueables.
 
 ---
 
-## 15. Motivation — Frases y consejos de uso
+## 14. Motivation — Frases y consejos de uso
 
-Dos tipos de contenido curado, con el mismo mecanismo de rotacion por debajo. **No otorga XP, no tiene reglas de negocio complejas: es contenido, no gamificacion.**
+Dos tipos de contenido curado, con el mismo mecanismo de rotación por debajo. **No otorga XP, no tiene reglas de negocio complejas: es contenido, no gamificación.**
 
 **Entidades:** `MotivationalQuote`, `UsageTip`, `UserQuoteView`, `UserTipView`
 
-### 15.1 Frase motivacional
+### 14.1 Frase motivacional
 
-Una frase al **iniciar sesion**, mostrada en el Dashboard. No en cada visita al dashboard dentro de la misma sesion, solo al entrar de nuevo.
+Una frase al **iniciar sesión**, mostrada en el Dashboard. No en cada visita al dashboard dentro de la misma sesión, solo al entrar de nuevo.
 
-**Catalogo inicial: 10 frases**, extensible sin limite. Cada una con su nivel de respaldo declarado, porque muchas frases celebres circulan mal atribuidas y no vale la pena arriesgar credibilidad por una cita falsa:
+**Catálogo inicial: 10 frases**, extensible sin límite. Cada una con su nivel de respaldo declarado, porque muchas frases célebres circulan mal atribuidas y no vale la pena arriesgar credibilidad por una cita falsa:
 
 | # | Frase | Autor | Respaldo |
 |---|---|---|---|
-| 1 | "Aunque no seamos personas muy brillantes, con perseverancia y dedicacion conseguiremos todo lo que nos propongamos." | Santiago Ramon y Cajal | Documentada (escritos propios) |
-| 2 | "Todo ser humano, si se lo propone, puede ser escultor de su propio cerebro." | Santiago Ramon y Cajal | Documentada (escritos propios) |
-| 3 | "Saber mas es ser mas libre." | Cesar Vallejo | Documentada |
-| 4 | "Enseñar exige respeto a los saberes de los educandos." | Paulo Freire | Documentada (Pedagogia de la autonomia) |
-| 5 | "La educacion es el arma mas poderosa que puedes usar para cambiar el mundo." | Nelson Mandela | Documentada (discurso 2003) |
+| 1 | "Aunque no seamos personas muy brillantes, con perseverancia y dedicación conseguiremos todo lo que nos propongamos." | Santiago Ramón y Cajal | Documentada (escritos propios) |
+| 2 | "Todo ser humano, si se lo propone, puede ser escultor de su propio cerebro." | Santiago Ramón y Cajal | Documentada (escritos propios) |
+| 3 | "Saber más es ser más libre." | César Vallejo | Documentada |
+| 4 | "Enseñar exige respeto a los saberes de los educandos." | Paulo Freire | Documentada (Pedagogía de la autonomía) |
+| 5 | "La educación es el arma más poderosa que puedes usar para cambiar el mundo." | Nelson Mandela | Documentada (discurso 2003) |
 | 6 | "En la vida, nada es para temer, todo es para ser comprendido." | Marie Curie | Documentada |
-| 7 | "Nunca consideres el estudio como una obligacion, sino como una oportunidad para penetrar en el bello mundo del saber." | Albert Einstein | Atribuida, sin fuente primaria confirmada |
-| 8 | "No fracase, solo descubri formas que no funcionan." | Thomas Edison | Atribuida, popularizada tras su muerte |
-| 9 | "El que tiene un porque para vivir puede soportar casi cualquier como." | Viktor Frankl | Documentada (El hombre en busca de sentido) |
-| 10 | "No hay camino para el aprendizaje, el aprendizaje es el camino." | Proverbio, tradicion oriental | Atribuida, sin autor unico verificable |
+| 7 | "Nunca consideres el estudio como una obligación, sino como una oportunidad para penetrar en el bello mundo del saber." | Albert Einstein | Atribuida, sin fuente primaria confirmada |
+| 8 | "No fracase, solo descubrí formas que no funcionan." | Thomas Edison | Atribuida, popularizada tras su muerte |
+| 9 | "El que tiene un porqué para vivir puede soportar casi cualquier cómo." | Viktor Frankl | Documentada (El hombre en busca de sentido) |
+| 10 | "No hay camino para el aprendizaje, el aprendizaje es el camino." | Proverbio, tradición oriental | Atribuida, sin autor único verificable |
 
-**Nota de honestidad:** solo 6 de las 10 tienen fuente primaria confirmada. Las otras 4 se marcan como "atribuida" en el catalogo y se muestran igual, porque son frases que el publico reconoce y transmiten la idea correcta, pero el sistema **no las presenta como cita textual verificada**. Al ampliar el catalogo, seguir el mismo criterio: verificar antes de agregar, y marcar honestamente cuando no se pueda confirmar.
+**Nota de honestidad:** solo 6 de las 10 tienen fuente primaria confirmada. Las otras 4 se marcan como "atribuida" en el catálogo y se muestran igual, porque son frases que el público reconoce y transmiten la idea correcta, pero el sistema **no las presenta como cita textual verificada**. Al ampliar el catálogo, seguir el mismo criterio: verificar antes de agregar, y marcar honestamente cuando no se pueda confirmar.
 
-**Recomendacion para ampliar:** priorizar mas figuras peruanas y latinoamericanas de la educacion (por ahora solo Vallejo representa esa voz). Jorge Basadre, Gabriela Mistral y Ricardo Palma son candidatos naturales, pendientes de verificar cita exacta antes de sumarlos.
+**Recomendación para ampliar:** priorizar más figuras peruanas y latinoamericanas de la educación (por ahora solo Vallejo representa esa voz). Jorge Basadre, Gabriela Mistral y Ricardo Palma son candidatos naturales, pendientes de verificar cita exacta antes de sumarlos.
 
-### 15.2 Consejos de uso por modulo
+### 14.2 Consejos de uso por módulo
 
-Un consejo practico, breve, mostrado como tarjeta descartable dentro de cada modulo. No es motivacion generica: es una sugerencia concreta de como sacarle mejor provecho a esa funcion.
+Un consejo práctico, breve, mostrado como tarjeta descartable dentro de cada módulo. No es motivación genérica: es una sugerencia concreta de cómo sacarle mejor provecho a esa función.
 
-| Modulo | Consejo |
+| Módulo | Consejo |
 |---|---|
-| Habitos | Empieza con 2 o 3 habitos. Diez habitos abandonados a la semana desmotivan mas que tres sostenidos todo el mes. |
-| Habitos | Si un habito lleva varios dias sin marcarse, quizas es momento de ajustarlo, no de forzarlo. |
+| Hábitos | Empieza con 2 o 3 hábitos. Diez hábitos abandonados a la semana desmotivan más que tres sostenidos todo el mes. |
+| Hábitos | Si un hábito lleva varios días sin marcarse, quizás es momento de ajustarlo, no de forzarlo. |
 | Pomodoro | Si te cuesta concentrarte al inicio, prueba sesiones de 15 minutos antes de saltar a 25. |
-| Pomodoro | Vincula el Pomodoro a una mision concreta: enfocarte en algo especifico rinde mas que "estudiar en general". |
+| Pomodoro | Vincula el Pomodoro a una misión concreta: enfocarte en algo específico rinde más que "estudiar en general". |
 | Misiones | Si una tarea te parece enorme, divide en subtareas de 20 a 30 minutos cada una. |
-| Misiones | Registra la fecha limite real, no una fecha optimista. El sistema mide mejor con datos honestos. |
-| Diario de animo | No hace falta escribir mucho. Registrar solo el emoji ya sirve para ver tu patron en el mes. |
-| Diario de animo | Si notas varios dias seguidos con animo bajo, revisa la seccion de apoyo en Ajustes. |
+| Misiones | Registra la fecha límite real, no una fecha optimista. El sistema mide mejor con datos honestos. |
+| Diario de ánimo | No hace falta escribir mucho. Registrar solo el emoji ya sirve para ver tu patrón en el mes. |
+| Diario de ánimo | Si notas varios días seguidos con ánimo bajo, revisa la sección de apoyo en Ajustes. |
 | Avatar | Cada fase representa un paso real en tu constancia, no en tu suerte. Se gana con XP acumulado, sin atajos. |
-| Villano semanal | Fijate en que villano te toco: suele coincidir con tu obstaculo mas frecuente. Atacalo con esa informacion. |
-| Asistente IA | Cuentale contexto especifico ("tengo examen el viernes de Calculo") en vez de preguntas generales: la respuesta sera mas util. |
-| Sesiones grupales | Estudiar acompañado ayuda a sostener el enfoque, pero elige companeros con una meta similar a la tuya. |
-| Ranking | El ranking es solo un dato mas. Tu propio progreso frente a ti mismo importa mas que tu posicion. |
+| Villano semanal | Fíjate en qué villano te tocó: suele coincidir con tu obstáculo más frecuente. Atácalo con esa información. |
+| Asistente IA | Cuéntale contexto específico ("tengo examen el viernes de Cálculo") en vez de preguntas generales: la respuesta será más útil. |
+| Sesiones grupales | Estudiar acompañado ayuda a sostener el enfoque, pero elige compañeros con una meta similar a la tuya. |
+| Ranking | El ranking es solo un dato más. Tu propio progreso frente a ti mismo importa más que tu posición. |
 
-**Catalogo inicial: entre 1 y 2 consejos por modulo**, extensible. Se pueden agregar mas sin limite, siguiendo el mismo tono: especifico, breve, accionable — nunca generico tipo "tu puedes lograrlo".
+**Catálogo inicial: entre 1 y 2 consejos por módulo**, extensible. Se pueden agregar más sin límite, siguiendo el mismo tono: específico, breve, accionable — nunca genérico tipo "tú puedes lograrlo".
 
-### Mecanismo de rotacion (compartido entre frases y consejos)
+### Mecanismo de rotación (compartido entre frases y consejos)
 
-Ambos usan el mismo servicio de dominio, para no duplicar logica:
+Ambos usan el mismo servicio de dominio, para no duplicar lógica:
 
 ```php
 // Shared/Domain/Services/NoRepeatPicker.php
 final class NoRepeatPicker
 {
     /**
-     * Elige un elemento al azar de $pool que NO este en $alreadyShown.
+     * Elige un elemento al azar de $pool que NO esté en $alreadyShown.
      * Si ya se mostraron todos, reinicia el ciclo y elige de nuevo.
      */
     public function pick(array $pool, array $alreadyShown): mixed
     {
         $remaining = array_diff($pool, $alreadyShown);
         if (empty($remaining)) {
-            $remaining = $pool;   // se agoto el ciclo, se reinicia
+            $remaining = $pool;   // se agotó el ciclo, se reinicia
         }
         return $remaining[array_rand($remaining)];
     }
 }
 ```
 
-**Por que ciclo completo y no aleatorio puro:** con 10 frases, un azar puro puede repetir la misma 3 veces en una semana y tardar meses en mostrar otra. El ciclo garantiza que las 10 se vean antes de que cualquiera se repita — mejor sensacion de variedad con el mismo catalogo pequeño.
+**Por qué ciclo completo y no aleatorio puro:** con 10 frases, un azar puro puede repetir la misma 3 veces en una semana y tardar meses en mostrar otra. El ciclo garantiza que las 10 se vean antes de que cualquiera se repita — mejor sensación de variedad con el mismo catálogo pequeño.
 
-**Frases:** una eleccion por login, registrada en `user_quote_views`.
-**Consejos:** una eleccion por modulo la primera vez que se visita en la sesion, descartable, registrada en `user_tip_views`. Si el usuario descarta un consejo, no vuelve a aparecer ese mismo hasta agotar el ciclo del modulo.
+**Frases:** una elección por login, registrada en `user_quote_views`.
+**Consejos:** una elección por módulo la primera vez que se visita en la sesión, descartable, registrada en `user_tip_views`. Si el usuario descarta un consejo, no vuelve a aparecer ese mismo hasta agotar el ciclo del módulo.
 
-### Excepcion a la regla de congelamiento
+### Excepción a la regla de congelamiento
 
-`docs/07-DEPLOY.md` prohibe desplegar a produccion durante los 66 dias, salvo fallo critico. **El catalogo de frases y consejos es la unica excepcion explicita:** agregar contenido nuevo aqui no modifica ninguna variable medida del estudio (a diferencia de tocar `config/gamification.php`), asi que se puede ampliar durante la intervencion sin comprometer la validez. Cualquier adicion igual se registra en la bitacora, por transparencia.
+`docs/07-DEPLOY.md` prohíbe desplegar a producción durante los 66 días, salvo fallo crítico. **El catálogo de frases y consejos es la única excepción explícita:** agregar contenido nuevo aquí no modifica ninguna variable medida del estudio (a diferencia de tocar `config/gamification.php`), así que se puede ampliar durante la intervención sin comprometer la validez. Cualquier adición igual se registra en la bitácora, por transparencia.
 
 **Casos de uso:** `GetQuoteForLogin`, `GetTipForModule`, `DismissTip`, `ListQuotes` (admin), `ListTips` (admin)
 
 **Eventos:** `QuoteShown`, `TipShown`, `TipDismissed` — los tres se registran en Telemetry para saber que contenido efectivamente circula.
 
-**No emite eventos de dominio hacia otros modulos.** Es contenido de presentacion, no logica de negocio.
+**No emite eventos de dominio hacia otros módulos.** Es contenido de presentación, no lógica de negocio.
 
 ---
 
-## 16. Calendar — Calendario peruano
+## 15. Calendar — Calendario peruano
 
 Servicio de calendario compartido. **No tiene interfaz propia**: provee datos a Wellbeing, Missions y Dashboard.
 
 **Entidades:** `Holiday`, `AcademicPeriod`
 
-### Por que existe como modulo
+### Por qué existe como módulo
 
-Tres modulos necesitan saber que dia es y que significa ese dia: el diario de animo lo pinta en su calendario, las misiones calculan vencimientos, y el analisis necesita distinguir un dia lectivo de un feriado. Si cada uno resolviera esto por su cuenta, habria tres implementaciones distintas de la misma logica.
+Tres módulos necesitan saber qué día es y qué significa ese día: el diario de ánimo lo pinta en su calendario, las misiones calculan vencimientos, y el análisis necesita distinguir un día lectivo de un feriado. Si cada uno resolviera esto por su cuenta, habría tres implementaciones distintas de la misma lógica.
 
-### Feriados nacionales del Peru
+### Feriados nacionales del Perú
 
-Son 16 al ano. Se cargan por seeder desde `config/holidays.php`.
+Son 16 al año. Se cargan por seeder desde `config/holidays.php`.
 
 | Fecha | Feriado | Tipo |
 |---|---|---|
-| 1 enero | Ano Nuevo | Fijo |
-| Jueves Santo | Semana Santa | **Movil** |
-| Viernes Santo | Semana Santa | **Movil** |
-| 1 mayo | Dia del Trabajo | Fijo |
-| 7 junio | Batalla de Arica y Dia de la Bandera | Fijo |
+| 1 enero | Año Nuevo | Fijo |
+| Jueves Santo | Semana Santa | **Móvil** |
+| Viernes Santo | Semana Santa | **Móvil** |
+| 1 mayo | Día del Trabajo | Fijo |
+| 7 junio | Batalla de Arica y Día de la Bandera | Fijo |
 | 29 junio | San Pedro y San Pablo | Fijo |
-| 23 julio | Dia de la Fuerza Aerea | Fijo |
+| 23 julio | Día de la Fuerza Aérea | Fijo |
 | 28 julio | Fiestas Patrias | Fijo |
 | 29 julio | Fiestas Patrias | Fijo |
-| 6 agosto | Batalla de Junin | Fijo |
+| 6 agosto | Batalla de Junín | Fijo |
 | 30 agosto | Santa Rosa de Lima | Fijo |
 | 8 octubre | Combate de Angamos | Fijo |
 | 1 noviembre | Todos los Santos | Fijo |
-| 8 diciembre | Inmaculada Concepcion | Fijo |
+| 8 diciembre | Inmaculada Concepción | Fijo |
 | 9 diciembre | Batalla de Ayacucho | Fijo |
 | 25 diciembre | Navidad | Fijo |
 
-**Para 2026:** Jueves Santo cae el **2 de abril** y Viernes Santo el **3 de abril** (Domingo de Resurreccion: 5 de abril).
+**Para 2026:** Jueves Santo cae el **2 de abril** y Viernes Santo el **3 de abril** (Domingo de Resurrección: 5 de abril).
 
-> **Verificar antes de cargar los datos.** La lista de feriados por ley es estable, pero el Ejecutivo publica cada ano **dias no laborables adicionales** por decreto supremo, que no son lo mismo que un feriado. Confirmar en gob.pe/feriados antes de sembrar la tabla, y anotar la fecha de consulta.
+> **Verificar antes de cargar los datos.** La lista de feriados por ley es estable, pero el Ejecutivo publica cada año **días no laborables adicionales** por decreto supremo, que no son lo mismo que un feriado. Confirmar en gob.pe/feriados antes de sembrar la tabla, y anotar la fecha de consulta.
 
-### Distincion importante
+### Distinción importante
 
-| Concepto | Definicion | En el sistema |
+| Concepto | Definición | En el sistema |
 |---|---|---|
-| **Feriado** | Establecido por ley. Obliga a descanso en sector publico y privado | `type = 'holiday'` |
-| **Dia no laborable** | Medida excepcional del Ejecutivo, suele aplicar solo al sector publico | `type = 'non_working'` |
+| **Feriado** | Establecido por ley. Obliga a descanso en sector público y privado | `type = 'holiday'` |
+| **Día no laborable** | Medida excepcional del Ejecutivo, suele aplicar solo al sector público | `type = 'non_working'` |
 
-Se guardan ambos pero se distinguen, porque para un estudiante de universidad privada un dia no laborable del sector publico probablemente si sea dia de clases.
+Se guardan ambos pero se distinguen, porque para un estudiante de universidad privada un día no laborable del sector público probablemente sí sea día de clases.
 
-### Feriados dentro de la intervencion
+### Feriados dentro de la intervención
 
 Del 07/09 al 11/11/2026 caen dos:
 
-| Fecha | Feriado | Dia de intervencion |
+| Fecha | Feriado | Día de intervención |
 |---|---|---|
-| 8 octubre | Combate de Angamos | Dia 32 |
-| 1 noviembre | Todos los Santos | Dia 56 |
+| 8 octubre | Combate de Angamos | Día 32 |
+| 1 noviembre | Todos los Santos | Día 56 |
 
-**Esto importa para el analisis.** Es esperable que la adherencia caiga esos dias, y hay que poder distinguir una caida por feriado de una caida por desmotivacion. El campo `is_holiday` viaja en los agregados diarios de telemetria justamente para eso.
+**Esto importa para el análisis.** Es esperable que la adherencia caiga esos días, y hay que poder distinguir una caída por feriado de una caída por desmotivación. El campo `is_holiday` viaja en los agregados diarios de telemetría justamente para eso.
 
-### Periodo academico
+### Período académico
 
 ```php
 // config/academic.php
@@ -751,7 +751,7 @@ return [
 ];
 ```
 
-Las semanas de examenes se marcan en el calendario del diario. Igual que con los feriados: una caida de adherencia en semana de parciales tiene una explicacion distinta a una caida en semana normal, y el analisis debe poder separarlas.
+Las semanas de exámenes se marcan en el calendario del diario. Igual que con los feriados: una caída de adherencia en semana de parciales tiene una explicación distinta a una caída en semana normal, y el análisis debe poder separarlas.
 
 ### Contratos de lectura que expone
 
@@ -772,11 +772,11 @@ interface CalendarReaderInterface
 
 **No emite eventos.** Es un servicio de consulta.
 
-**Rendimiento:** los feriados del año se cargan una vez y se cachean 24 horas. Son 16 filas: no tiene sentido consultarlas en cada peticion.
+**Rendimiento:** los feriados del año se cargan una vez y se cachean 24 horas. Son 16 filas: no tiene sentido consultarlas en cada petición.
 
 ---
 
-## 17. Admin
+## 16. Admin
 
 Panel de administración para el equipo de investigación.
 
@@ -806,7 +806,7 @@ La última es especialmente importante: si un administrador puede editar los dat
 
 ---
 
-## 18. Orden de construcción sugerido
+## 17. Orden de construcción sugerido
 
 Con 20 días de fase de construcción y dos personas, este es el orden que minimiza bloqueos:
 
@@ -814,13 +814,13 @@ Con 20 días de fase de construcción y dos personas, este es el orden que minim
 |---|---|---|
 | 1 | `Shared` + `Identity` | Todo depende de esto |
 | 2 | **`Telemetry`** | **Primero que todo lo demás.** Si se deja para el final, se hace mal |
-| 3 | `Calendar` | Feriados y periodo academico. Lo necesitan Wellbeing y Missions |
+| 3 | `Calendar` | Feriados y período académico. Lo necesitan Wellbeing y Missions |
 | 4 | `Habits` | Módulo más simple, sirve para validar la arquitectura completa |
 | 5 | `Gamification` | Necesario para que Habits tenga sentido |
 | 6 | `Pomodoro` | Segunda fuente de datos del Pilar 3 |
 | 7 | `Missions` | |
 | 8 | `Personalization` | Temas y fondos, desbloquea trabajo visual en paralelo |
-| 9 | `Motivation` | Contenido estatico, sin dependencias reales. Se hace en paralelo a cualquier otro |
+| 9 | `Motivation` | Contenido estático, sin dependencias reales. Se hace en paralelo a cualquier otro |
 | 10 | `Villains` | Depende de Habits, Pomodoro y Missions |
 | 11 | `Wellbeing` | Independiente, se puede hacer en paralelo |
 | 12 | `AiAssistant` | Depende de tener datos que analizar |

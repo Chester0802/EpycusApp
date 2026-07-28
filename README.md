@@ -82,9 +82,13 @@ Detalles completos en `docs/07-DEPLOY.md`.
 | 07 | [`docs/07-DEPLOY.md`](docs/07-DEPLOY.md) | Entornos, staging, despliegue, cron |
 | — | [`.claude/skills/epycus-ui/`](.claude/skills/epycus-ui/SKILL.md) | **Skill de UI/UX.** Cárgala para cualquier trabajo visual: matemática del color, contraste, modos de superficie |
 | 08 | [`docs/08-PROMPTS-MOCKUPS.md`](docs/08-PROMPTS-MOCKUPS.md) | Prompts para generar y comparar mockups. **Temporal**: se archiva al elegir estilo |
-| 10 | [`docs/10-ESPECIFICACIONES-UI.md`](docs/10-ESPECIFICACIONES-UI.md) | **Medidas exactas.** Tamanos, espaciado, areas tactiles, con su fundamento |
-| 11 | [`docs/11-ESTANDAR-CODIGO.md`](docs/11-ESTANDAR-CODIGO.md) | **Estandar de codigo.** Reglas mecanicas, plantillas, prohibiciones |
 | 09 | [`docs/09-DECISIONES.md`](docs/09-DECISIONES.md) | **Por qué el sistema es como es.** Argumentación de cada decisión. Base de la defensa ante el jurado y de la sección 3.4 del artículo |
+| 10 | [`docs/10-ESPECIFICACIONES-UI.md`](docs/10-ESPECIFICACIONES-UI.md) | **Medidas exactas.** Tamaños, espaciado, áreas táctiles, con su fundamento |
+| 11 | [`docs/11-ESTANDAR-CODIGO.md`](docs/11-ESTANDAR-CODIGO.md) | **Estándar de código.** Reglas mecánicas, plantillas, prohibiciones |
+| 12 | [`docs/12-HISTORIAL.md`](docs/12-HISTORIAL.md) | **Bitácora de sesiones de IA.** Qué se hizo, qué se decidió, cómo se verificó, qué queda pendiente — toda IA agrega una entrada antes de terminar |
+| 13 | [`docs/13-ROADMAP.md`](docs/13-ROADMAP.md) | Hoja de ruta de desarrollo por fases. Antes de programar, mira qué fase está en curso |
+
+**Contexto del proyecto de investigación (fuera de este repositorio):** la carpeta de Drive del equipo (`G:\Mi unidad\Epycus\Equipo` en las máquinas del equipo) tiene `CONTEXTO-IA.md`, pensado para pegarse al inicio de una conversación con cualquier IA cuando la tarea es sobre el paper (metodología, ISO, muestra, cronograma), no sobre este código. Si una IA necesita ese contexto y tiene acceso a la carpeta, ese es el archivo.
 
 ---
 
@@ -106,9 +110,9 @@ Detalles completos en `docs/07-DEPLOY.md`.
 | Sesiones de estudio grupal + chat | Confirmado (versión básica) |
 | Ranking | Confirmado (básico, **instrumentado como variable de control**) |
 | Fondos de pantalla seleccionables | Confirmado |
-| Calendario peruano (feriados y periodo academico) | Confirmado |
-| Frases motivacionales al iniciar sesion (10 iniciales) | Confirmado |
-| Consejos de uso por modulo | Confirmado |
+| Calendario peruano (feriados y período académico) | Confirmado |
+| Frases motivacionales al iniciar sesión (10 iniciales) | Confirmado |
+| Consejos de uso por módulo | Confirmado |
 | Tema claro (Kawaii) + tema oscuro (Solo Leveling) | Confirmado |
 | Modos de superficie: neumorfismo y vidrio | Confirmado |
 | Logros e insignias | Confirmado |

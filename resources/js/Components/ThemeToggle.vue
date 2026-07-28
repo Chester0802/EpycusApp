@@ -1,7 +1,7 @@
 <script setup>
 import { useTheme } from '@/composables/useTheme';
 
-const { theme, setTheme } = useTheme();
+const { theme, surface, setTheme } = useTheme();
 
 function toggle() {
     setTheme(theme.value === 'dark' ? 'light' : 'dark');
@@ -9,7 +9,15 @@ function toggle() {
 </script>
 
 <template>
+    <!--
+        Vidrio no ofrece el selector de tema: fuerza oscuro en useTheme.js
+        (el fondo de pantalla es una foto fija que se ve mal en claro,
+        feedback directo del usuario tras ver capturas reales). Mostrar el
+        botón igual invitaría a un cambio que la propia app va a revertir
+        sola — mejor no mostrar un control que no hace nada útil.
+    -->
     <button
+        v-if="surface !== 'glass'"
         type="button"
         class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-content-secondary hover:text-content-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
         :aria-label="theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"

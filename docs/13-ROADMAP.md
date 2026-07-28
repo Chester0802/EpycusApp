@@ -87,7 +87,7 @@ desapercibido. Detalle completo en `docs/12-HISTORIAL.md`.
 
 ## Fase 1 — Cerrar el círculo de Identity
 
-**Estado:** `[ ]` No empezada
+**Estado:** `[x]` Completa (2026-07-28)
 
 El backend de Identity está completo y probado (`docs/12-HISTORIAL.md`, sesiones del
 2026-07-28). Lo que falta es exclusivamente frontend:
@@ -102,7 +102,7 @@ El backend de Identity está completo y probado (`docs/12-HISTORIAL.md`, sesione
 
 ## Fase 2 — Telemetry
 
-**Estado:** `[ ]` No empezada
+**Estado:** `[x]` Completa (2026-07-28)
 
 Backend únicamente. Es el módulo crítico: "si falla, se pierde el estudio" (`docs/01-MODULOS.md`).
 Va antes que Habits a propósito — todos los módulos de contenido van a llamar a
@@ -120,8 +120,8 @@ estructuralmente a `Identity` como referencia (`docs/11-ESTANDAR-CODIGO.md` §1,
 
 | Fase | Módulo | Por qué en este orden |
 |---|---|---|
-| 3 | **Habits** | El más simple. Primer contenido real, sienta el patrón que copian los demás. |
-| 4 | **Gamification** 🔴 crítico | Escucha los eventos de Habits — no tiene sentido construirlo antes de tener algo que emita XP. |
+| 3 | **Habits** `[x]` (2026-07-28) | El más simple. Primer contenido real, sienta el patrón que copian los demás. |
+| 4 | **Gamification** 🔵 crítico | Escucha los eventos de Habits — no tiene sentido construirlo antes de tener algo que emita XP. |
 | 5 | **Pomodoro** | Independiente; se vincula opcionalmente a una misión (`mission_id` nullable). |
 | 6 | **Missions** | Trae `subtasks`, más complejidad de UI que Pomodoro. |
 | 7 | **Wellbeing** | Diario + mood score; dato crítico (cifrado), conviene que Gamification ya esté maduro antes de otorgarle XP. |

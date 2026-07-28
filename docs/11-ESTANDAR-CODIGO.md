@@ -481,7 +481,7 @@ reportar "listo" o "0 errores" a quien te dio la tarea, **pega la salida real de
 
 ---
 
-## 9.1 Regla de cableado — la causa más común de fallas en este proyecto
+### 9.1 Regla de cableado — la causa más común de fallas en este proyecto
 
 **Escribir una clase no la activa.** Pint y PHPStan analizan el código que existe; no saben si algo lo invoca. Esto ya causó fallas reales: un middleware y un manejador de excepciones que se escribieron completos y correctos pero nunca se registraron en `bootstrap/app.php`, y un caso de uso de registro al que le faltaba persistir la contraseña — nadie lo notó porque nadie ejecutó el registro de verdad, solo se leyó el código.
 
