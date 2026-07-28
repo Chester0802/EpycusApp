@@ -87,6 +87,8 @@ Interpretación del estilo del anime: azul neón, violeta y carmesí sobre negro
 
 > **Trampa del neón:** el cyan da 9.61 contra el fondo (excelente para texto), pero **blanco sobre ese cyan da 2.0 y falla**. En botones de acento neón el texto va en el color del fondo oscuro, no en blanco.
 
+> **Trampa del borde (hallazgo del 2026-07-28, ver `docs/12-HISTORIAL.md`):** `border`/`border-strong` de las dos paletas no llegan al mínimo de 3:1 para elementos de interfaz — dan entre 1.25:1 y 2.21:1 contra `bg`, medido. Se agregó `border-interactive` a ambas paletas (`#B06A90` claro, 3.78:1; `#5A7EC0` oscuro, 4.75:1) para el borde de cualquier elemento interactivo. Detalle completo en la skill `epycus-ui` §4, Trampa 4.
+
 ---
 
 ## 3. Personalización de paletas

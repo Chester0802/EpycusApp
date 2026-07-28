@@ -57,18 +57,31 @@ Gamification. Todo lo que viene después depende de que esos dos estén sólidos
 
 ## Fase 0 — Fundamentos de frontend
 
-**Estado:** `[ ]` No empezada
+**Estado:** `[x]` Completa (2026-07-28)
 
 Se construye **una sola vez**. Saltarla significa rehacer cada pantalla de Identity cuando
 llegue el sistema de diseño real.
 
-- Tokens de diseño en Tailwind (paleta OKLCH, `data-theme` claro/oscuro, `data-surface`
-  neumorfismo/vidrio) — ver `docs/04-DISENO-VISUAL.md` y cargar la skill `epycus-ui`
-- Componentes base que reemplazan los de Breeze (`BaseButton`, `BaseInput`, `BaseCard`, etc. —
-  nomenclatura de `docs/11-ESTANDAR-CODIGO.md` §3)
-- Layout autenticado principal
-- Selector de `surface_mode` conectado a `UserPreferences` (backend ya existe, ver
-  `PATCH /preferences`)
+- [x] Tokens de diseño en Tailwind (paleta OKLCH, `data-theme` claro/oscuro, `data-surface`
+      neumorfismo/vidrio) — `resources/css/app.css` + `tailwind.config.js`
+- [x] Componentes base que reemplazan los de Breeze: `BaseButton`, `BaseCard`, `BaseInput`,
+      `BaseSelect`, `BaseModal`, `BaseBadge`, `EmptyState`, `LoadingSpinner` en
+      `resources/js/Components/ui/`. `ProgressBar`/`StreakFlame`/`AvatarDisplay`/`MoodSelector`
+      quedan para sus fases (Gamification, Wellbeing) — no se inventó su forma final ahora.
+- [x] Layout autenticado principal (`AppLayout.vue`) — barra lateral desktop, barra inferior
+      móvil, reemplaza `AuthenticatedLayout.vue` de Breeze (borrado)
+- [x] Selector de `surface_mode` conectado a `UserPreferences` (`SurfaceModeToggle.vue` +
+      `PATCH /preferences`)
+
+**Hallazgo importante de esta fase:** las rutas de Identity (`/consent`, `/preferences`,
+`/profile/complete`) no tenían el middleware `web` — se cargan vía
+`IdentityServiceProvider::loadRoutesFrom()`, que no hereda el grupo `web` que
+`bootstrap/app.php` aplica solo a `routes/web.php`. Sin `web` no hay sesión/CSRF real y
+`auth()` fallaba en silencio con 401, **pese a que el usuario estuviera logueado de verdad**.
+Ningún test con `actingAs()` lo detectaba porque ese helper no pasa por el middleware de
+sesión basado en cookies — solo lo reveló probar contra un navegador real. Corregido, y se
+agregó `tests/Feature/Identity/RoutesHaveWebMiddlewareTest.php` para que no vuelva a pasar
+desapercibido. Detalle completo en `docs/12-HISTORIAL.md`.
 
 ---
 

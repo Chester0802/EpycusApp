@@ -161,6 +161,8 @@ Sobre pastel va texto oscuro. El blanco solo va sobre el acento sólido (variant
 
 **Trampa 3 — Texto sobre vidrio.** El contraste depende de la imagen que haya detrás, que cambia. Solución: la capa de vidrio nunca baja del 85% de opacidad efectiva del color de superficie. Con eso el contraste queda garantizado (~12.9:1 medido) sin importar el fondo.
 
+**Trampa 4 — `--color-border` no alcanza 3:1.** Los tokens `border`/`border-strong` de las dos paletas (§7) dan entre 1.25:1 y 2.21:1 contra `bg` — fallan el mínimo de elementos de interfaz, incluida la compensación obligatoria de neumorfismo (§5, "borde de 1px... con contraste ≥3:1"). Usa `--color-border-interactive` (agregado en §7) para el borde de cualquier elemento interactivo — `border`/`border-strong` quedan solo para separadores decorativos donde el contraste no es crítico. Encontrado midiendo, no asumiendo: es exactamente el tipo de error que esta sección pide no cometer.
+
 ---
 
 ## 5. Reglas del modo Neumorfismo
@@ -296,6 +298,11 @@ Fundamento: los pastel se caracterizan por **luminosidad alta y saturación baja
 
   --color-border:        #F0DCE6;
   --color-border-strong: #DCC0D2;
+  /* Ni border ni border-strong llegan al mínimo de 3:1 para elementos de
+     interfaz (medido: 1.25:1 y 1.60:1 contra bg, ambos fallan §4). Usar
+     este token en el borde de todo elemento interactivo (compensación
+     obligatoria del neumorfismo, §5) — medido: 3.78:1. */
+  --color-border-interactive: #B06A90;
 }
 ```
 
@@ -325,6 +332,9 @@ Inspirada en el aspecto del anime: azul neón, violeta y carmesí sobre negro az
 
   --color-border:        #253150;
   --color-border-strong: #3A4A73;
+  /* Mismo problema que en claro: border-strong da 2.21:1 contra bg,
+     todavía bajo el mínimo de 3:1. Medido: 4.75:1. */
+  --color-border-interactive: #5A7EC0;
 }
 ```
 

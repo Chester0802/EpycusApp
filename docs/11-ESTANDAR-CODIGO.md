@@ -495,6 +495,7 @@ Antes de dar una clase por terminada, contesta esto:
 | Un caso de uso que crea una entidad | **Ejecutaste el flujo HTTP completo al menos una vez**, no solo revisaste que compile |
 | Un campo obligatorio en una migración (`NOT NULL` sin default) | Algo en el caso de uso lo persiste — revisa el Mapper `toPersistence()`, no asumas |
 | Una tabla nueva relacionada a otra (ej. `participants` ↔ `users`) | El flujo que crea la primera también crea la segunda, si la spec dice que van juntas |
+| Rutas de un módulo (`Presentation/routes.php`, cargadas vía `loadRoutesFrom()` desde su `ServiceProvider`) | Llevan `'web'` explícito en el `Route::middleware([...])` — a diferencia de `routes/web.php`, **no heredan el grupo `web` solas**. Sin él no hay sesión ni CSRF reales y `auth()` falla con 401 aunque el usuario esté logueado (bug real de la Fase 0, ver `docs/12-HISTORIAL.md`) |
 
 **No basta con que `pint`/`phpstan`/`npm run lint` pasen.** Esas herramientas no detectan una clase huérfana. El requisito real de la sección 9 es `php artisan test` — y eso solo sirve si las pruebas ejercitan el camino feliz de verdad (registrar un usuario, no solo que la página cargue). Si el módulo no tiene pruebas para su caso de uso principal todavía, ejecútalo manualmente una vez con `php artisan tinker` antes de reportar la tarea como terminada.
 

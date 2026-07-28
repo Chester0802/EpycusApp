@@ -6,12 +6,25 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        {{--
+            Tema y superficie se fijan aquí, antes de que Vue monte, para
+            que no haya un parpadeo con el tema por defecto (docs/04
+            §1 y §3). Fuentes autoalojadas en public/fonts/ vía @font-face
+            en resources/css/app.css — nunca un CDN externo: registraría la
+            IP de los participantes (docs/06-SEGURIDAD.md §7).
+        --}}
+        <script nonce="{{ $cspNonce }}">
+            (function () {
+                var theme = localStorage.getItem('epycus.theme')
+                    || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                var surface = localStorage.getItem('epycus.surface') || 'neumorphism';
+                document.documentElement.setAttribute('data-theme', theme);
+                document.documentElement.setAttribute('data-surface', surface);
+            })();
+        </script>
 
         <!-- Scripts -->
-        @routes
+        @routes(nonce: $cspNonce)
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>

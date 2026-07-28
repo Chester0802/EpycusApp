@@ -94,6 +94,70 @@ marcadas como pendientes).
 
 ## 2026-07-28 — Claude
 
+**Qué se hizo:** Ejecutó la Fase 0 completa de `docs/13-ROADMAP.md` (fundamentos de frontend):
+tokens de diseño OKLCH en `resources/css/app.css` (paleta claro/oscuro, clases
+`.panel-flat`/`.panel-raised`/`.panel-sunken` que se adaptan solas a `[data-surface]` sin que
+ningún componente Vue tenga que decidir en JS), `tailwind.config.js` con los colores/radios
+semánticos, 8 componentes base en `resources/js/Components/ui/` (`BaseButton`, `BaseCard`,
+`BaseInput`, `BaseSelect`, `BaseModal`, `BaseBadge`, `EmptyState`, `LoadingSpinner`),
+`AppLayout.vue` (barra lateral/inferior responsive, reemplaza y borra `AuthenticatedLayout.vue`
+de Breeze junto con `Dropdown`/`DropdownLink`/`NavLink`/`ResponsiveNavLink` que quedaron sin
+uso), `useTheme.js` (composable de tema/superficie) y `SurfaceModeToggle.vue`. Fuentes
+Nunito/Quicksand descargadas y autoalojadas en `public/fonts/` — de paso se sacó el CDN de
+Bunny Fonts que `app.blade.php` todavía cargaba (Breeze default), justo lo que
+`docs/06-SEGURIDAD.md` pide evitar.
+
+**Decisiones tomadas:** la skill `epycus-ui` tenía un error real de accesibilidad — `border`/
+`border-strong` de las dos paletas no llegan a 3:1 contra `bg` (medido: 1.25–2.21:1), pese a
+que la misma skill exige ese mínimo para bordes de elementos interactivos. Se agregó
+`--color-border-interactive` a ambas paletas (verificado con la fórmula de contraste de la
+skill, no estimado) y se corrigió la skill + `docs/04-DISENO-VISUAL.md` con la nota. Mismo
+patrón para texto: `--color-danger`/`success`/`warning` sirven de *fondo* pero no de *texto*
+(ninguna combinación con blanco o con `content-primary` pasa 4.5:1 en los dos temas a la vez) —
+se agregó `--color-on-accent` y `--color-danger-text`, verificados por cálculo. `theme`
+(claro/oscuro) se mantiene solo en `localStorage`, no en `UserPreferences`: el usuario nunca
+confirmó que deba ser preferencia de cuenta.
+
+**Verificado cómo — esta es la parte que importa de la sesión:** se probó todo contra un
+navegador real (Chrome vía MCP), no solo `composer check`. Eso reveló y permitió corregir tres
+bugs reales que ningún test automatizado había atrapado:
+
+1. **CSP bloqueaba los scripts inline.** El `SecurityHeaders` de una sesión anterior no tenía
+   `script-src`, así que caía a `default-src 'self'` — bloqueaba el script de `@routes` de
+   Ziggy (`window.route` nunca se definía, toda la app rompía en cada página) y el script de
+   tema. Corregido con nonce por request (`View::share('cspNonce', ...)`,
+   `@routes(nonce: $cspNonce)`), la forma correcta documentada por Ziggy — no `'unsafe-inline'`.
+2. **El formulario de registro real nunca pedía `alias`**, pese a que el backend lo exige desde
+   la auditoría anterior — nadie podría haberse registrado nunca por la UI de verdad. Los tests
+   con payload manual no lo detectaban porque arman el POST a mano, sin pasar por el formulario.
+   Se agregó el campo a `Register.vue` (parche mínimo, el restyling completo es de la Fase 1).
+3. **Las rutas de Identity (`/consent`, `/preferences`, `/profile/complete`) no tenían el
+   middleware `web`** — se cargan vía `IdentityServiceProvider::loadRoutesFrom()`, que no
+   hereda el grupo `web` que `bootstrap/app.php` aplica solo a `routes/web.php`. Sin sesión ni
+   CSRF reales, `auth()` fallaba con 401 pese a una sesión válida. Costó una sesión de
+   depuración larga (probé con una ruta de diagnóstico + `Log::warning` directo en el
+   controlador para descartar CSRF, cookies, caché de rutas, `authorize()` de FormRequest, antes
+   de encontrar que el propio grupo de rutas nunca tuvo `web`). `tests/Feature/*` con
+   `actingAs()` nunca lo iban a atrapar porque ese helper no pasa por sesión basada en cookies.
+   Se agregó `tests/Feature/Identity/RoutesHaveWebMiddlewareTest.php`, que revisa el middleware
+   registrado de verdad en vez de simular la petición.
+
+Con eso corregido: registro real por la UI, dashboard, y el toggle de neumorfismo/vidrio
+probados de punta a punta — confirmado con estilos computados reales en el navegador (box-shadow
+de doble sombra en neumorfismo, `backdrop-filter: blur(12px)` + `color-mix()` en vidrio, ambos
+con los valores exactos que definen los tokens). `composer check` completo: 35 tests, Pint y
+PHPStan sin errores, ESLint limpio.
+
+**Pendiente / qué falta:** Fase 1 completa (`CompleteProfile.vue` no existe todavía —
+`ProfileController::edit()` ya intenta renderizarla —, pantalla de consentimiento, pantalla de
+preferencias completa, restyling de Login/Register/Dashboard). Si se agrega otro módulo con
+rutas propias vía `loadRoutesFrom()`, **recordar el middleware `web` explícito** — no es
+automático fuera de `routes/web.php`.
+
+---
+
+## 2026-07-28 — Claude
+
 **Qué se hizo:** Creó este documento (`docs/12-HISTORIAL.md`) y la regla en
 `docs/11-ESTANDAR-CODIGO.md` §"Antes de cada commit" que obliga a toda IA a agregar una
 entrada aquí antes de terminar su sesión. Implementó `UpdatePreferencesUseCase` completo

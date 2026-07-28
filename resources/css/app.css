@@ -1,3 +1,295 @@
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/nunito-400.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/fonts/nunito-600.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/nunito-700.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Quicksand';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/fonts/quicksand-600.woff2') format('woff2');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    /*
+     * Eje B — Tema de color. Claro (Kawaii) es el valor por defecto de :root
+     * para que la app tenga colores correctos incluso antes de que el script
+     * de tema aplique el atributo real (evita un flash sin estilo).
+     */
+    :root,
+    [data-theme='light'] {
+        --color-bg: #fff8fb;
+        --color-surface: #ffffff;
+        --color-surface-raised: #fdf0f6;
+        --color-surface-sunken: #f9e8f1;
+
+        --color-content-primary: #3d2c3a;
+        --color-content-secondary: #6b5a67;
+        --color-content-muted: #9a8b96;
+
+        --color-primary: #f2b8d4;
+        --color-primary-strong: #c4477e;
+        --color-secondary: #c9b8f2;
+        --color-accent: #b8eddc;
+
+        /* Texto encima de --color-primary / --color-primary-strong.
+           Nunca hardcodear blanco u oscuro en un componente: la trampa
+           del pastel y la trampa del neón se resuelven aquí, una vez. */
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: #ffffff;
+
+        /* Texto encima de danger/success/warning/accent sólidos. Ni blanco
+           ni --color-content-primary pasan contraste en los dos temas a la
+           vez (medido: danger claro vs blanco = 2.50, danger oscuro vs
+           content-primary oscuro = 2.87 — ambos fallan el mínimo 4.5:1).
+           Esta combinación sí pasa en los cuatro colores, medido, no
+           estimado — ver skill epycus-ui §4. Si se agrega un color de
+           acento nuevo, verificar de nuevo antes de asumir que aplica. */
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #7bc49a;
+        --color-warning: #f7d9a0;
+        --color-danger: #e58b8b;
+        /* --color-danger es fondo, no texto: da 2.39:1 contra bg, falla
+           4.5:1. Para texto de error (mensajes de validación) usa esta. */
+        --color-danger-text: #a32828;
+
+        --color-border: #f0dce6;
+        --color-border-strong: #dcc0d2;
+        /* border/border-strong no llegan a 3:1 (1.25/1.60 medidos) — ver
+           skill epycus-ui §4, Trampa 4. Este token sí (3.78:1): úsalo en
+           todo elemento interactivo, no border/border-strong. */
+        --color-border-interactive: #b06a90;
+
+        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        /* Fondo detrás de modales. En var() con color-mix(), no como
+           opacidad de Tailwind: los tokens de este archivo no están en
+           formato rgb/hsl, así que `bg-x/40` no se puede confiar en que
+           module la opacidad correctamente. */
+        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+    }
+
+    [data-theme='dark'] {
+        --color-bg: #0a0e1a;
+        --color-surface: #131a2b;
+        --color-surface-raised: #1c2540;
+        --color-surface-sunken: #060911;
+
+        --color-content-primary: #e8edf7;
+        --color-content-secondary: #a8b4cc;
+        --color-content-muted: #6b7899;
+
+        --color-primary: #4fc3f7;
+        /* En oscuro no hay variante "strong" separada: el cyan ya es el
+           acento sólido. Blanco encima falla contraste (2.0:1) — ver
+           skill epycus-ui §4, Trampa 2. */
+        --color-primary-strong: #4fc3f7;
+        --color-secondary: #9d7bea;
+        --color-accent: #f5c85c;
+
+        --color-on-primary: var(--color-bg);
+        --color-on-primary-strong: var(--color-bg);
+        /* Medido: danger oscuro vs bg oscuro = 5.71:1 — coincide con el
+           número que ya trae docs/04-DISENO-VISUAL.md §2. */
+        --color-on-accent: var(--color-bg);
+
+        --color-success: #5cd9a6;
+        --color-warning: #f5c85c;
+        --color-danger: #f2555a;
+        /* En oscuro sí sirve como texto tal cual: 5.71:1 contra bg. */
+        --color-danger-text: var(--color-danger);
+
+        --color-border: #253150;
+        --color-border-strong: #3a4a73;
+        /* border-strong da 2.21:1 contra bg, sigue bajo 3:1. Medido: 4.75:1. */
+        --color-border-interactive: #5a7ec0;
+
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 40%, transparent);
+        --color-backdrop: color-mix(in oklch, black 60%, transparent);
+    }
+
+    /*
+     * Eje A — Superficie. Los tintes de sombra del neumorfismo se derivan de
+     * --color-bg con color-mix() en vez de valores fijos: si el usuario
+     * elige una paleta personalizada más adelante (docs/04-DISENO-VISUAL.md
+     * §3), las sombras se recalculan solas sin tocar este archivo.
+     */
+    [data-surface='neumorphism'] {
+        --neu-light: color-mix(in oklch, var(--color-bg) 92%, white 8%);
+        --neu-dark: color-mix(in oklch, var(--color-bg) 88%, black 12%);
+        --neu-distance: 6px;
+        --neu-blur: 12px;
+    }
+
+    html {
+        font-family: 'Nunito', sans-serif;
+    }
+
+    body {
+        background-color: var(--color-bg);
+        color: var(--color-content-primary);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 600;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+@layer components {
+    /*
+     * Neumorfismo: doble sombra sobre un fondo que comparte color con la
+     * página. Nunca se usa junto con .glass-card en el mismo elemento — el
+     * modo de superficie es exclusivo (skill epycus-ui §2).
+     * Estas dos son de bajo nivel — para "hundido" puntual (input con foco,
+     * botón presionado). Para una tarjeta o botón normal usa .panel-raised
+     * o .panel-flat más abajo: se adaptan solas al modo de superficie, así
+     * ningún componente Vue tiene que decidir en JS cuál aplicar.
+     */
+    .neu-raised {
+        background-color: var(--color-bg);
+        box-shadow:
+            calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
+            var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark);
+    }
+
+    .neu-pressed {
+        background-color: var(--color-bg);
+        box-shadow:
+            inset calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
+            inset var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark);
+    }
+
+    /*
+     * .panel-raised / .panel-flat: la superficie "por defecto" de tarjetas,
+     * botones y campos. Se resuelven solas según [data-surface] en <html> —
+     * cambiar de modo reconfigura toda la interfaz sin tocar un componente
+     * (docs/04-DISENO-VISUAL.md §1). No usar .neu-raised/.glass-card sueltas
+     * en componentes nuevos: usa estas.
+     */
+    /*
+     * El borde usa --color-border-interactive, no --color-border: ver
+     * skill epycus-ui §4, Trampa 4 — border/border-strong no llegan a 3:1.
+     */
+    .panel-flat {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border-interactive);
+    }
+
+    .panel-raised {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border-interactive);
+        box-shadow: var(--shadow-md);
+    }
+
+    [data-surface='neumorphism'] .panel-flat,
+    [data-surface='neumorphism'] .panel-raised {
+        background-color: var(--color-bg);
+        border: 1px solid var(--color-border-interactive);
+        box-shadow:
+            calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
+            var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark);
+    }
+
+    /*
+     * Vidrio: opacidad efectiva nunca baja de 85% (garantiza contraste sin
+     * importar el fondo — skill epycus-ui §4, Trampa 3). Máximo 4 elementos
+     * con vidrio por pantalla — eso lo controla quien arma la página, no el
+     * CSS. .panel-flat no se vuelve vidrio: solo .panel-raised, para no
+     * pasarse ese límite con tarjetas secundarias.
+     */
+    [data-surface='glass'] .panel-raised {
+        background-color: color-mix(in oklch, var(--color-surface) 85%, transparent);
+        backdrop-filter: blur(12px) saturate(1.2);
+        -webkit-backdrop-filter: blur(12px) saturate(1.2);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 60%, transparent);
+    }
+
+    [data-theme='dark'][data-surface='glass'] .panel-raised {
+        box-shadow:
+            var(--shadow-md),
+            0 0 0 1px color-mix(in oklch, var(--color-primary) 30%, transparent);
+    }
+
+    /*
+     * .panel-sunken: campos de entrada y zonas "hundidas" (elevación −1,
+     * docs/04-DISENO-VISUAL.md §5). En neumorfismo usa sombra invertida
+     * (.neu-pressed); en vidrio y en plano usa surface-sunken sólido —
+     * un campo hundido translúcido sería ilegible.
+     */
+    .panel-sunken {
+        background-color: var(--color-surface-sunken);
+        border: 1px solid var(--color-border-interactive);
+    }
+
+    [data-surface='neumorphism'] .panel-sunken {
+        background-color: var(--color-bg);
+        border: 1px solid var(--color-border-interactive);
+        box-shadow:
+            inset calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
+            inset var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark);
+    }
+
+    /* Degradación en gama baja: ver detección en resources/js/theme.js */
+    [data-glass-fallback='true'][data-surface='glass'] .panel-raised {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background-color: var(--color-surface);
+    }
+
+    .app-background {
+        background-image: var(--user-wallpaper, none);
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    .app-background::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: var(--color-bg);
+        opacity: 0.88;
+        pointer-events: none;
+    }
+}
