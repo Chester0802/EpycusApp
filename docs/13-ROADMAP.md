@@ -121,7 +121,7 @@ estructuralmente a `Identity` como referencia (`docs/11-ESTANDAR-CODIGO.md` §1,
 | Fase | Módulo | Por qué en este orden |
 |---|---|---|
 | 3 | **Habits** `[x]` (2026-07-28) | El más simple. Primer contenido real, sienta el patrón que copian los demás. |
-| 4 | **Gamification** 🔵 crítico | Escucha los eventos de Habits — no tiene sentido construirlo antes de tener algo que emita XP. |
+| 4 | **Gamification** `[x]` (2026-07-28) 🔵 crítico | XP, niveles, fases, racha con gracia y monedero — completo y con tests. Achievements y Villains NO se tocaron: van en sus propias fases (§17 de docs/01-MODULOS.md los ubica después de Ranking). Los 400 assets Funko Pop del avatar tampoco existen (encargo de arte, no de código) — el Dashboard muestra el progreso en texto/números, sin imagen. |
 | 5 | **Pomodoro** | Independiente; se vincula opcionalmente a una misión (`mission_id` nullable). |
 | 6 | **Missions** | Trae `subtasks`, más complejidad de UI que Pomodoro. |
 | 7 | **Wellbeing** | Diario + mood score; dato crítico (cifrado), conviene que Gamification ya esté maduro antes de otorgarle XP. |

@@ -29,7 +29,7 @@ interface HabitRepositoryInterface
 
     public function delete(HabitModel $habit): bool;
 
-    public function completeForDate(HabitModel $habit, string $date, int $xpAwarded = 10, bool $isLate = false): HabitCompletionModel;
+    public function completeForDate(HabitModel $habit, string $date, bool $isLate = false): HabitCompletionModel;
 
     public function uncompleteForDate(HabitModel $habit, string $date): bool;
 

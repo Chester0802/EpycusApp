@@ -34,6 +34,207 @@ Revisar código no es verificar que funciona — ver `docs/11-ESTANDAR-CODIGO.md
 verdad no se corrió nada, escribir eso tal cual; es más útil una entrada honesta que una que
 finge haber probado algo que no probó.
 
+## 2026-07-28 — Claude [Fase 4: Gamification completa]
+
+**Qué se hizo:** Implementó Gamification (motor de XP/niveles/fases/racha/monedero) siguiendo
+`docs/03-GAMIFICACION.md` y `docs/01-MODULOS.md §6`, con foco explícito en que la lógica quede
+clara para la siguiente IA (pedido directo del usuario). Resumen de piezas:
+
+1. **Habits dejó de calcular XP.** `ToggleHabitCompletionUseCase` tenía `$isLate ? 5 : 10`
+   hardcodeado — duplicaba una regla que le pertenece a Gamification (y que, revisando
+   `docs/03-GAMIFICACION.md §3`, en realidad **nunca existió** como regla oficial: no hay tope
+   "5 XP por tardío" documentado, solo un flat 10). Se agregaron los eventos de dominio que
+   `docs/01-MODULOS.md §2` ya prometía y nunca existían (`HabitCreated`, `HabitCompleted`,
+   `HabitUncompleted`, `HabitDeleted`), y se quitaron las columnas `xp_awarded`/`was_capped` de
+   `habit_completions` (migración nueva) — `xp_transactions` es ahora la única fuente de verdad.
+2. **Gamification nuevo** (`app/Modules/Gamification`, estructura calcada de Habits per
+   `docs/11-ESTANDAR-CODIGO.md §1`): tablas `user_progress`/`xp_transactions` exactas a
+   `docs/05-BASE-DATOS.md` (+1 columna, `grace_pending_since`, documentada ahí mismo — hace
+   falta para distinguir "gracia ya concedida, sin redimir" de "hueco nuevo"). `AwardXpUseCase`
+   idempotente (`insertOrIgnore` sobre `uq_idempotency`), con tope diario, multiplicador de
+   racha y cruce de nivel/fase. `LevelCalculator` implementa la fórmula exacta de §4 — **la
+   columna "XP acumulado" de ese mismo documento no coincide con la fórmula sumada término a
+   término** (para nivel 6 da 950, el doc dice 1.000); se documentó en el código para que nadie
+   intente forzar el cálculo a encajar con esa tabla aproximada.
+3. **Racha con gracia**, `EvaluateStreaksUseCase` + comando `gamification:evaluate-streaks`
+   agendado diario a las 00:10 hora de Lima (`routes/console.php`) — reproduce el ejemplo
+   literal del documento (racha 20 → falla día 21 con gracia → sigue en 20 → día 22 decide) y es
+   idempotente si el cron corre dos veces el mismo día (probado, no asumido).
+4. **Zona horaria:** toda la lógica de "hoy"/"ayer" de Gamification usa `America/Lima`
+   explícito, no el default de la app (`config('app.timezone')` es `UTC`) — el estudio es de
+   estudiantes peruanos, "hoy" tiene que ser el de ellos.
+5. **Anti-farming real:** `source_id` de `xp_transactions` para hábitos se codifica como
+   `habit_id * 100_000_000 + Ymd(completed_for)`, no el id de la fila de `habit_completions` —
+   esa fila se borra y recrea (id nuevo) cada vez que se apaga/prende el mismo hábito el mismo
+   día, así que usar ese id como clave de idempotencia habría permitido farmear XP a punta de
+   toggle. Cubierto por test.
+6. **Dashboard** (`/dashboard`) ahora tiene controlador propio (`DashboardController`, ya no un
+   closure en `routes/web.php`) con una tarjeta real de progreso (nivel/fase/XP/racha/monedas) —
+   sin imagen de avatar, porque los 400 assets Funko Pop no existen (arte, no código).
+   `UserProgressReaderInterface` (ya declarada en Shared desde antes, sin implementar) ganó un
+   quinto getter (`getCoinsFor`) que faltaba pese a que `UserWallet` ya figuraba como entidad.
+7. **Se descubrió y corrigió un bug de SQLite** (motor de los tests): `xp_transactions` usaba
+   nombres de índice cortos (`idx_xp`, `idx_user_date`) que ya existían en otras tablas —
+   MariaDB no se queja (nombres únicos por tabla), SQLite sí (únicos por base completa). Toda la
+   suite fallaba hasta prefijar los nombres. Vale la pena tenerlo en cuenta para futuras
+   migraciones.
+
+**Decisiones tomadas:** Achievements (catálogo de logros) **no se construyó** — pese a que
+`docs/03-GAMIFICACION.md §8-bis` describe sus reglas, `docs/01-MODULOS.md §17` (orden de
+construcción) lo ubica explícitamente después de Villains y Ranking, no dentro de Gamification.
+Construirlo ahora habría sido saltar fases sin que el usuario lo pidiera. Tampoco se tocó
+Villains ni Ranking (fases propias). El quinto getter de `UserProgressReaderInterface` se agregó
+sin preguntar porque `UserWallet` ya estaba en la lista de entidades del propio documento — no
+es una decisión de producto nueva, es cerrar un hueco entre dos secciones del mismo doc.
+
+**Verificado cómo:** `composer check` completo (Pint ✅, PHPStan nivel 6 ✅, ESLint ✅) y
+**51/51 tests pasando (145 aserciones)**, incluyendo dos suites nuevas escritas para esta
+sesión: `tests/Feature/Gamification/AwardXpTest.php` (XP idempotente, tope diario con 6 hábitos
+reales vía HTTP, no revocar XP al descompletar, cruce exacto de nivel/fase contra la fórmula) y
+`tests/Feature/Gamification/StreakTest.php` (los 5 escenarios del ejemplo de racha con gracia,
+simulados día por día con `CarbonImmutable::setTestNow`, incluyendo que el cron sea idempotente
+corrido dos veces el mismo día). `npm run build` limpio. No se verificó en navegador real esta
+vez (sesión cerrada por límite de contexto) — la siguiente sesión debería completar un hábito de
+verdad en `/habits` y confirmar la tarjeta de progreso en `/dashboard` antes de asumir que la UI
+se ve bien, aunque la lógica de backend ya está probada de punta a punta.
+
+**Pendiente / qué falta:** verificación visual en navegador (ver arriba). Achievements,
+Villains, Ranking, Personalization: fases propias, no empezadas. Los 400 assets de avatar no
+existen — cuando se aborde Personalization/arte, `AvatarDisplay.vue` (mencionado en
+`docs/04-DISENO-VISUAL.md`) sigue sin construirse a propósito. La prueba de carga (70 usuarios,
+checklist §10 de `docs/02-TELEMETRIA.md`) no aplica acá pero tampoco se hizo una equivalente
+para Gamification — razonable dejarla para antes del día 43, no en una sesión de desarrollo.
+
+---
+
+## 2026-07-28 — Claude [rediseño de nav completo + fix de Telemetría]
+
+**Qué se hizo:** Cerró los pendientes #2-4 de la entrada de handoff (íconos, píldora activa,
+insignia del logo) y luego varias rondas de feedback en vivo del usuario sobre la misma barra de
+navegación, más una verificación pedida explícitamente de Telemetría:
+
+1. **Íconos por `navItem`** — `resources/js/Components/NavIcon.vue` (nuevo), 8 glifos SVG
+   inline (`home`, `habits`, `pomodoro`, `missions`, `user`, `settings`, y dos que se agregaron y
+   luego se quitaron en la misma sesión, ver punto 5) con `stroke="currentColor"` para heredar el
+   color activo/inactivo sin hardcodear, tal como pedía el handoff.
+2. **Píldora activa más redondeada** — `rounded` (12px) → `rounded-xl` (24px) en los links de
+   `navItems`, en sidebar y barra inferior móvil. En la barra inferior el activo ahora también
+   lleva `bg-primary text-on-primary` (antes solo cambiaba el color del texto, sin fondo — no
+   había píldora que redondear ahí hasta ahora).
+3. **Insignia del logo** — el logo real (`logo.webp`, una ilustración cuadrada ya con esquinas
+   propias, no un ícono plano) se envuelve en `rounded-lg bg-primary-strong p-1` en vez de
+   `rounded-xl`: medido con `getComputedStyle` que `rounded-xl` en una caja de 36px da un radio
+   ≥ la mitad del lado, es decir, círculo perfecto, no la insignia cuadrada del mockup —
+   `rounded-lg` sí deja ver las esquinas. Verificado visualmente antes/después, no asumido.
+4. **Bug real encontrado probando en navegador, no visible leyendo el código:** la cabecera móvil
+   (`<header>`) y su menú desplegable de cuenta quedaban completamente invisibles en modo Vidrio
+   — `elementFromPoint` seguía encontrando el logo y los botones (porque `.app-background` tiene
+   `pointer-events: none`), pero visualmente el wallpaper los tapaba. Causa: un elemento estático
+   (sin `position`) pinta *antes* que uno posicionado con `z-index:0` en el mismo contexto de
+   apilamiento, sin importar el orden en el DOM — `.app-background` es `position:fixed` con
+   `z-index:0`, y el `<header>` no tenía ninguno de los dos. `<aside>` y la barra inferior ya
+   tenían `z-10`/`z-40` por eso mismo y por eso sí se veían. Corregido con `panel-nav relative
+   z-10` en el `<header>` y en su dropdown — mismo tratamiento que ya tenían sidebar/barra
+   inferior, así que de paso quedan legibles en Vidrio en vez de flotar transparentes sobre
+   cualquier wallpaper futuro.
+5. **Reorganización pedida por el usuario tras ver la primera versión ya en pantalla** (varias
+   correcciones seguidas, todas en la misma sesión):
+   - "Ajustes" salió del footer (donde compartía fila con "Salir") y pasó a ser un ítem más de la
+     lista de navegación del sidebar, debajo de "Perfil", con su propio ícono (`settings`, un
+     glifo de tres sliders). El footer del sidebar quedó solo con **Salir**, ahora de ancho
+     completo y con tono marcado (`border-danger-text text-danger-text`, antes
+     `border-border-interactive text-content-secondary` igual que Ajustes) — es la única acción
+     que queda ahí, tiene sentido que se note más. Nota: el primer intento usó
+     `bg-danger/10 border-danger-text/40 hover:bg-danger/20` (opacidades) y **no compilaba
+     ninguna clase** — confirmado con `grep` sobre el CSS compilado tras `npm run build`, cero
+     coincidencias — porque los tokens de color personalizados de este proyecto están definidos
+     como `var(--color-x)` plano en `tailwind.config.js`, no en el formato que Tailwind necesita
+     para inyectar opacidad. Se corrigió a tonos sólidos (`border-danger-text`, sin modificador).
+     El mismo bug ya existía de antes en otros 3 archivos (`Login.vue`, `CompleteProfile.vue`,
+     `Consent.vue`) — no se tocaron en esta sesión (fuera de alcance de lo pedido), se dejó una
+     tarea aparte documentada abajo.
+   - Del menú de tres puntos en móvil se quitó el link "Perfil" — el usuario notó que era
+     redundante porque Perfil ya está en la barra inferior. Quedan Ajustes y Salir.
+   - Se quitó "Avatar" de `navItems` (afecta sidebar y barra inferior a la vez, mismo arreglo) —
+     el usuario no ve la necesidad de un módulo entero solo para eso. Se verificó contra
+     `docs/08-PROMPTS-MOCKUPS.md` línea 104 que el avatar grande ya estaba documentado como
+     contenido de la pantalla de Perfil, no como destino de navegación propio — la decisión del
+     usuario coincide con lo que ya decían los docs, no lo contradice. Se dejó un comentario en
+     `AppLayout.vue` explicando la decisión para que nadie la reintroduzca sin leerlo, y se quitó
+     el ícono `avatar` de `NavIcon.vue` por quedar sin uso.
+   - `Habits/Index.vue` **no usaba `AppLayout`** — tenía su propio `<div class="min-h-screen ...">`
+     suelto, así que la página de Hábitos nunca mostró la barra de navegación desde que
+     Antigravity la construyó en la Fase 3. El usuario lo notó y se corrigió: ahora envuelve su
+     contenido en `<AppLayout>` igual que `Dashboard.vue`. De paso se sacaron los dos usos del
+     mismo bug de opacidad rota en este archivo (`shadow-primary/30` en el toast de XP,
+     `shadow-primary/20` en el botón de hábito completado) ya que se estaba tocando el archivo de
+     todas formas.
+6. **Verificación de Telemetría pedida explícitamente por el usuario** ("verifica acerca la
+   Telemetría si esta todo bien, para seguir") — se revisó contra `docs/02-TELEMETRIA.md` punto
+   por punto, no solo leyendo el código:
+   - Cálculo de `intervention_day` en los bordes (día 1 y día 66): probado invocando
+     `RecordEventBatchUseCase::execute()` de verdad vía tinker con fechas sintéticas
+     (día-antes-de-inicio, día 1, día 66, día 67) — los cuatro casos dieron exactamente el
+     resultado esperado (`NULL`, `1`, `66`, `NULL`).
+   - Inserción en lote: confirmado con `DB::enableQueryLog()` que un batch de 5 eventos genera
+     **una sola query** `INSERT ... VALUES (...), (...), ...`, no 5 inserts sueltos.
+   - CSRF: el endpoint `POST /api/v1/telemetry/batch` ya está excluido de verificación CSRF en
+     `bootstrap/app.php` (`validateCsrfTokens(except: ['api/*', 'api/v1/telemetry/batch'])`) —
+     las cabeceras `X-CSRF-TOKEN`/`X-XSRF-TOKEN` que arma `useTelemetry.js` no hacen nada dañino
+     pero tampoco hace falta que existan; no se tocó, es inofensivo.
+   - **Gap real encontrado y corregido:** `docs/02-TELEMETRIA.md` §6 marca `navigator.sendBeacon`
+     como "esencial" para no perder eventos al cerrar la pestaña de golpe, y la compuerta §10
+     tiene ese ítem explícito en el checklist — pero `useTelemetry.js` nunca lo implementaba, el
+     único listener de `beforeunload` llamaba a `flush()` (basado en `fetch`), que en la práctica
+     puede cancelarse a medio camino cuando el documento se descarga. Se agregó `flushWithBeacon`
+     (usa `navigator.sendBeacon`, sin cabeceras porque la API no lo permite y de todas formas la
+     ruta no exige CSRF) enganchado a `beforeunload`, `pagehide` y `visibilitychange` (este
+     último no está en el documento pero sí en el ejemplo de código que lo acompaña, y es
+     necesario en la práctica: `beforeunload` no es fiable en Safari móvil cuando el usuario
+     cambia de app, que es exactamente el caso que más importa para no perder el cierre real de
+     una sesión).
+
+**Decisiones tomadas:** todas las de producto fueron del usuario en vivo (Ajustes fuera del
+footer, Salir solo y marcado, quitar Perfil del menú móvil, quitar Avatar del todo, envolver
+Hábitos en AppLayout). Decisiones técnicas propias: `rounded-lg` en vez de `rounded-xl` para la
+insignia del logo (medido, no a ojo); `panel-nav relative z-10` en la cabecera móvil para
+igualarla al resto de la nav y de paso arreglar la invisibilidad en Vidrio; tonos sólidos en vez
+de opacidad rota para "Salir"; `visibilitychange`+`pagehide` además de `beforeunload` para el
+flush con beacon, por la fragilidad conocida de `beforeunload` en Safari móvil, relevante en un
+estudio con estudiantes que van a usar celulares de gama variada.
+
+**Verificado cómo:** navegador real de principio a fin, no solo build/lint — usuarios de prueba
+`navdebug2@example.com` y `navdebug3@example.com` (borrados junto con sus filas relacionadas al
+terminar). Nav: las 6 combinaciones relevantes revisadas (oscuro+vidrio escritorio y móvil,
+claro+neumorfismo escritorio, oscuro+neumorfismo móvil), confirmando con `getComputedStyle` los
+colores/contraste de la píldora activa (`#F2B8D4`/`#3D2C3A` = 7.77:1, ya documentado en la skill)
+y que los 6→5 íconos de `navItems` renderizan sin roto (conteo de hijos SVG por ícono). Bug de la
+cabecera invisible: reproducido y confirmado corregido con capturas antes/después en Vidrio
+móvil, más el menú de cuenta abierto encima del wallpaper. Modal de "Nuevo Hábito" abierto y
+probado en una pestaña nueva del navegador tras envolver la página en `AppLayout` (una pestaña
+vieja mostró un falso bug — HMR de Vite había quedado en un estado roto por un error de sintaxis
+transitorio de una edición anterior a medio hacer; una pestaña nueva confirmó que el código en
+disco funciona bien, lección para no confundir estado de HMR con estado real del código).
+Telemetría: los tres puntos del checklist de la sección 10 mencionados arriba se probaron
+ejecutando el código real (tinker con fechas límite, query log, y un `sendBeacon` real disparado
+simulando `visibilitychange` a `hidden` con un spy sobre `navigator.sendBeacon`, confirmando por
+`SELECT` directo en `telemetry_events` que la fila llegó). `composer check` completo al cierre:
+Pint ✅, PHPStan nivel 6 ✅ (0 errores), 40/40 tests ✅, ESLint ✅ (0 warnings), `npm run build`
+limpio.
+
+**Pendiente / qué falta:** el mismo bug de modificador de opacidad roto (`bg-x/NN` sobre tokens
+de color personalizados de este proyecto, que a diferencia de los colores literales de Tailwind
+no compilan ninguna clase) sigue sin corregir en `Login.vue` (`border-border-interactive/30`),
+`CompleteProfile.vue` (`bg-danger/20`, una caja de alerta sin tinte visible) y `Consent.vue`
+(`bg-primary/20`, un estado de selección que nunca se nota) — quedó como tarea aparte, no se tocó
+en esta sesión por ser trabajo no pedido y de otro alcance. El resto del checklist de
+Telemetría §10 (prueba de carga con 70 usuarios simulados, exportación CSV, inspección manual de
+que ningún evento tenga PII) no se probó esta sesión — son verificaciones de mayor escala que no
+corresponden a una revisión rápida antes de seguir, quedan para cuando se acerque el día 43
+mencionado en el propio documento como compuerta obligatoria.
+
+---
+
 ## 2026-07-28 — Claude [cierre de la vuelta anterior + commit]
 
 **Nota de concurrencia:** esta entrada la escribe la sesión que dejó el "handoff" de abajo —

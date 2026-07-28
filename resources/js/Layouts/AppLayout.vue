@@ -3,17 +3,28 @@ import { ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
+import NavIcon from '@/Components/NavIcon.vue';
 import BaseBadge from '@/Components/ui/BaseBadge.vue';
 import { useTheme } from '@/composables/useTheme';
 
 /*
  * Estructura de docs/04-DISENO-VISUAL.md §9 y §14: barra lateral fija en
- * escritorio, barra inferior en móvil. Los 5 destinos de la navegación
- * principal son fijos (Inicio, Hábitos, Pomodoro, Misiones, Avatar).
- * Hábitos ya tiene ruta real (Fase 3, `habits.index`); Pomodoro, Misiones
- * y Avatar se muestran como "Pronto" (sin `routeName`, deshabilitados)
- * hasta que exista su ruta — no apuntar un nav item a una ruta que no
- * existe: Ziggy revienta en tiempo de ejecución si `route()` no la conoce.
+ * escritorio, barra inferior en móvil. Hábitos ya tiene ruta real (Fase 3,
+ * `habits.index`); Pomodoro y Misiones se muestran como "Pronto" (sin
+ * `routeName`, deshabilitados) hasta que exista su ruta — no apuntar un
+ * nav item a una ruta que no existe: Ziggy revienta en tiempo de ejecución
+ * si `route()` no la conoce.
+ *
+ * Sin "Avatar" a propósito: no es un destino de navegación propio, es
+ * contenido embebido en Perfil (docs/08-PROMPTS-MOCKUPS.md línea 104: el
+ * avatar grande va "en perfil", no en su propia pantalla) — corrección del
+ * usuario tras ver un módulo entero reservado para algo que ya tenía dueño.
+ * Si Gamificación (docs/03-GAMIFICACION.md §2) termina necesitando su
+ * propia pantalla de personalización, que viva dentro de Perfil o Ajustes,
+ * no acá.
+ *
+ * Ajustes no está en este arreglo — es un `<Link>` fijo agregado después
+ * del `v-for`, no un item más de la lista (ver más abajo).
  *
  * Los controles de tema/superficie/paleta viven en /settings (Ajustes),
  * no acá — corrección del usuario tras ver la Fase 0: la barra de
@@ -24,7 +35,6 @@ const navItems = [
     { label: 'Hábitos', routeName: 'habits.index', icon: 'habits' },
     { label: 'Pomodoro', comingSoon: true, icon: 'pomodoro' },
     { label: 'Misiones', comingSoon: true, icon: 'missions' },
-    { label: 'Avatar', comingSoon: true, icon: 'avatar' },
     { label: 'Perfil', routeName: 'profile.edit', icon: 'user' },
 ];
 
@@ -41,8 +51,21 @@ const { surface } = useTheme();
         <aside class="panel-nav relative z-10 hidden w-[260px] shrink-0 lg:flex lg:flex-col">
             <div class="flex h-16 items-center justify-between gap-2 px-6">
                 <Link :href="route('dashboard')" class="flex items-center gap-2">
-                    <ApplicationLogo class="h-8 w-auto fill-current text-primary-strong" />
-                    <span class="font-display text-lg font-semibold text-content-primary">Epycus</span>
+                    <!-- Insignia del logo: cuadrado rounded-lg con el logo real
+                         adentro (skill epycus-ui, referencia visual del usuario).
+                         `bg-primary-strong p-1` deja un marco visible alrededor
+                         de la imagen, que ya es cuadrada con esquinas propias.
+                         rounded-xl (24px) se ve como círculo perfecto en una
+                         caja de 36px — probado, no asumido; rounded-lg (16px)
+                         sí deja ver las esquinas. -->
+                    <span
+                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-strong p-1"
+                    >
+                        <ApplicationLogo class="h-full w-full rounded" />
+                    </span>
+                    <span class="font-display text-lg font-semibold text-content-primary"
+                        >Epycus</span
+                    >
                 </Link>
                 <ThemeToggle v-if="surface !== 'glass'" />
             </div>
@@ -52,54 +75,81 @@ const { surface } = useTheme();
                     <Link
                         v-if="item.routeName"
                         :href="route(item.routeName)"
-                        class="flex min-h-[44px] items-center gap-3 rounded px-3 text-sm font-semibold transition-colors duration-150"
+                        class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150"
                         :class="
                             route().current(item.routeName)
                                 ? 'bg-primary text-on-primary'
                                 : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
                         "
                     >
+                        <NavIcon :name="item.icon" />
                         {{ item.label }}
                     </Link>
                     <span
                         v-else
-                        class="flex min-h-[44px] cursor-not-allowed items-center justify-between gap-3 rounded px-3 text-sm font-semibold text-content-muted opacity-50"
+                        class="flex min-h-[44px] cursor-not-allowed items-center justify-between gap-3 rounded-xl px-3 text-sm font-semibold text-content-muted opacity-50"
                         aria-disabled="true"
                     >
-                        {{ item.label }}
+                        <span class="flex items-center gap-3">
+                            <NavIcon :name="item.icon" />
+                            {{ item.label }}
+                        </span>
                         <BaseBadge variant="neutral">Pronto</BaseBadge>
                     </span>
                 </template>
+                <!-- Ajustes va con el resto de la navegación, debajo de Perfil
+                     (corrección del usuario: no debe compartir el footer con
+                     Salir) -->
+                <Link
+                    :href="route('settings.edit')"
+                    class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150"
+                    :class="
+                        route().current('settings.edit')
+                            ? 'bg-primary text-on-primary'
+                            : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
+                    "
+                >
+                    <NavIcon name="settings" />
+                    Ajustes
+                </Link>
             </nav>
 
+            <!-- Solo Salir acá — tono más marcado que un nav item normal,
+                 porque es la única acción que queda en esta zona separada
+                 (corrección del usuario tras ver Ajustes al lado). -->
             <div class="border-t border-border p-4">
                 <div class="mb-2 truncate text-sm font-semibold text-content-primary">
                     {{ page.props.auth.user.name }}
                 </div>
-                <div class="flex items-center gap-2">
-                    <Link
-                        :href="route('settings.edit')"
-                        class="flex min-h-[44px] flex-1 items-center justify-center rounded border border-border-interactive px-3 text-sm text-content-secondary hover:text-content-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
-                    >
-                        Ajustes
-                    </Link>
-                    <Link
-                        :href="route('logout')"
-                        method="post"
-                        as="button"
-                        class="flex min-h-[44px] items-center justify-center rounded border border-border-interactive px-3 text-sm text-content-secondary hover:text-content-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
-                    >
-                        Salir
-                    </Link>
-                </div>
+                <Link
+                    :href="route('logout')"
+                    method="post"
+                    as="button"
+                    class="flex min-h-[44px] w-full items-center justify-center rounded-xl border border-danger-text px-3 text-sm font-semibold text-danger-text transition-colors duration-150 hover:bg-surface-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
+                >
+                    Salir
+                </Link>
             </div>
         </aside>
 
         <div class="flex min-h-screen flex-1 flex-col">
-            <!-- Cabecera — solo móvil -->
-            <header class="flex h-16 items-center justify-between border-b border-border px-4 lg:hidden">
+            <!-- Cabecera — solo móvil. `panel-nav relative z-10`: sin esto queda
+                 detrás de `.app-background` (position:fixed) en Vidrio — un
+                 elemento estático sin posición propia pinta antes que uno
+                 posicionado con z-index:0, aunque venga después en el DOM
+                 (encontrado probando en navegador, no en el código a simple
+                 vista: `elementFromPoint` seguía encontrando el logo y los
+                 botones porque `.app-background` tiene pointer-events:none,
+                 pero visualmente quedaban tapados). -->
+            <header
+                class="panel-nav relative z-10 flex h-16 items-center justify-between px-4 lg:hidden"
+            >
                 <Link :href="route('dashboard')" class="flex items-center gap-2">
-                    <ApplicationLogo class="h-7 w-auto fill-current text-primary-strong" />
+                    <span
+                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-strong p-1"
+                    >
+                        <ApplicationLogo class="h-full w-full rounded" />
+                    </span>
                 </Link>
                 <div class="flex items-center gap-2">
                     <ThemeToggle v-if="surface !== 'glass'" />
@@ -114,16 +164,27 @@ const { surface } = useTheme();
                 </div>
             </header>
 
-            <div v-if="mobileMenuOpen" class="border-b border-border px-4 py-3 lg:hidden">
-                <div class="mb-1 text-sm font-semibold text-content-primary">{{ page.props.auth.user.name }}</div>
-                <div class="mb-3 text-sm text-content-secondary">{{ page.props.auth.user.email }}</div>
-                <Link :href="route('profile.edit')" class="block min-h-[44px] py-2 text-sm text-content-secondary">
-                    Perfil
-                </Link>
-                <Link :href="route('settings.edit')" class="block min-h-[44px] py-2 text-sm text-content-secondary">
+            <div v-if="mobileMenuOpen" class="panel-nav relative z-10 px-4 py-3 lg:hidden">
+                <div class="mb-1 text-sm font-semibold text-content-primary">
+                    {{ page.props.auth.user.name }}
+                </div>
+                <div class="mb-3 text-sm text-content-secondary">
+                    {{ page.props.auth.user.email }}
+                </div>
+                <!-- Perfil no va acá: ya está en la barra inferior, sería
+                     redundante (corrección del usuario). -->
+                <Link
+                    :href="route('settings.edit')"
+                    class="block min-h-[44px] py-2 text-sm text-content-secondary"
+                >
                     Ajustes
                 </Link>
-                <Link :href="route('logout')" method="post" as="button" class="block min-h-[44px] py-2 text-sm text-content-secondary">
+                <Link
+                    :href="route('logout')"
+                    method="post"
+                    as="button"
+                    class="block min-h-[44px] py-2 text-sm text-content-secondary"
+                >
                     Salir
                 </Link>
             </div>
@@ -142,20 +203,22 @@ const { surface } = useTheme();
                 <Link
                     v-if="item.routeName"
                     :href="route(item.routeName)"
-                    class="flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded px-3 text-xs font-semibold"
+                    class="flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-xl px-3 text-xs font-semibold"
                     :class="
                         route().current(item.routeName)
-                            ? 'text-primary-strong'
+                            ? 'bg-primary text-on-primary'
                             : 'text-content-secondary'
                     "
                 >
+                    <NavIcon :name="item.icon" />
                     {{ item.label }}
                 </Link>
                 <span
                     v-else
-                    class="flex min-h-[44px] min-w-[44px] cursor-not-allowed flex-col items-center justify-center gap-0.5 rounded px-3 text-xs font-semibold text-content-muted opacity-50"
+                    class="flex min-h-[44px] min-w-[44px] cursor-not-allowed flex-col items-center justify-center gap-0.5 rounded-xl px-3 text-xs font-semibold text-content-muted opacity-50"
                     aria-disabled="true"
                 >
+                    <NavIcon :name="item.icon" />
                     {{ item.label }}
                 </span>
             </template>

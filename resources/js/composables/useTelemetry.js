@@ -51,14 +51,14 @@ export function useTelemetry() {
     /**
      * Envía el lote acumulado al endpoint POST /api/v1/telemetry/batch.
      */
-function getCsrfToken() {
-    if (typeof document === 'undefined') return '';
-    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-    if (match) {
-        return decodeURIComponent(match[1]);
+    function getCsrfToken() {
+        if (typeof document === 'undefined') return '';
+        const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+        if (match) {
+            return decodeURIComponent(match[1]);
+        }
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     }
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-}
 
     const flush = async () => {
         if (flushTimer) {
@@ -77,7 +77,7 @@ function getCsrfToken() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                     'X-CSRF-TOKEN': token,
                     'X-XSRF-TOKEN': token,
                 },
@@ -91,9 +91,44 @@ function getCsrfToken() {
         }
     };
 
-    // Auto-flush al descargar la página
+    /**
+     * Envía el buffer con sendBeacon — a diferencia de fetch(), sobrevive al
+     * cierre/descarga de la pestaña (docs/02-TELEMETRIA.md §6: "esencial", y
+     * compuerta §10: "sendBeacon funciona al cerrar la pestaña de golpe").
+     * Un fetch() disparado en beforeunload puede cancelarse a medio camino
+     * cuando el documento se descarga; sendBeacon está diseñado para eso.
+     * Sin cabecera CSRF a propósito: `api/v1/telemetry/batch` ya está
+     * excluido en bootstrap/app.php, y sendBeacon no permite headers
+     * personalizados de todas formas.
+     */
+    const flushWithBeacon = () => {
+        if (flushTimer) {
+            clearTimeout(flushTimer);
+            flushTimer = null;
+        }
+
+        if (buffer.length === 0) return;
+
+        const eventsToSend = buffer.splice(0, buffer.length);
+        const blob = new Blob([JSON.stringify({ events: eventsToSend })], {
+            type: 'application/json',
+        });
+        const accepted = navigator.sendBeacon('/api/v1/telemetry/batch', blob);
+
+        if (!accepted) {
+            buffer.unshift(...eventsToSend);
+        }
+    };
+
+    // beforeunload no es fiable en Safari móvil (no siempre se dispara al
+    // cambiar de app) — visibilitychange + pagehide cubren ese caso, igual
+    // que pide la sección 6 del documento de telemetría.
     if (typeof window !== 'undefined') {
-        window.addEventListener('beforeunload', flush);
+        window.addEventListener('beforeunload', flushWithBeacon);
+        window.addEventListener('pagehide', flushWithBeacon);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') flushWithBeacon();
+        });
     }
 
     return {
@@ -101,4 +136,3 @@ function getCsrfToken() {
         flush,
     };
 }
-

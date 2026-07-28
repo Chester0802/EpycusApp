@@ -15,8 +15,6 @@ use Illuminate\Support\Carbon;
  * @property string $completed_for
  * @property string $completed_at
  * @property bool $is_late
- * @property int $xp_awarded
- * @property bool $was_capped
  * @property Carbon|null $created_at
  * @property-read HabitModel $habit
  */
@@ -32,8 +30,6 @@ final class HabitCompletionModel extends Model
         'completed_for',
         'completed_at',
         'is_late',
-        'xp_awarded',
-        'was_capped',
         'created_at',
     ];
 
@@ -41,8 +37,6 @@ final class HabitCompletionModel extends Model
     {
         return [
             'is_late' => 'boolean',
-            'was_capped' => 'boolean',
-            'xp_awarded' => 'integer',
         ];
     }
 

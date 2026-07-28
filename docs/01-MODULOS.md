@@ -385,8 +385,13 @@ interface UserProgressReaderInterface
     public function getPhaseFor(int $userId): int;
     public function getTotalXpFor(int $userId): int;
     public function getCurrentStreakFor(int $userId): int;
+    public function getCoinsFor(int $userId): int;
 }
 ```
+
+`getCoinsFor` se agregó al implementar el módulo (Fase 4, 2026-07-28): `UserWallet` ya
+figuraba en la lista de entidades de más arriba, pero la interfaz no tenía getter — sin él,
+ningún módulo podía leer el saldo sin tocar clases internas de Gamification.
 
 **Casos de uso:** `AwardXp`, `RecalculateLevel`, `ExtendStreak`, `BreakStreak`, `UseGraceDay`, `GetUserProgress`
 

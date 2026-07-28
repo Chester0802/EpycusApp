@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
+import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
 import BaseSelect from '@/Components/ui/BaseSelect.vue';
@@ -69,27 +70,31 @@ const toggleHabit = (habit) => {
     const originalState = habit.is_completed_today;
     habit.is_completed_today = !originalState;
 
-    router.post(route('habits.toggle', { id: habit.id }), { date: props.todayDate }, {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: () => {
-            const wasCompleted = habit.is_completed_today;
-            const xp = wasCompleted ? 10 : 0;
+    router.post(
+        route('habits.toggle', { id: habit.id }),
+        { date: props.todayDate },
+        {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                const wasCompleted = habit.is_completed_today;
+                const xp = wasCompleted ? 10 : 0;
 
-            track('toggle_habit_completion', 'habits', {
-                habit_id: habit.id,
-                completed: wasCompleted,
-                xp_awarded: xp,
-            });
+                track('toggle_habit_completion', 'habits', {
+                    habit_id: habit.id,
+                    completed: wasCompleted,
+                    xp_awarded: xp,
+                });
 
-            if (wasCompleted) {
-                triggerXpToast('+10 XP ¡Excelente hábito!');
-            }
+                if (wasCompleted) {
+                    triggerXpToast('+10 XP ¡Excelente hábito!');
+                }
+            },
+            onError: () => {
+                habit.is_completed_today = originalState;
+            },
         },
-        onError: () => {
-            habit.is_completed_today = originalState;
-        },
-    });
+    );
 };
 
 const deleteHabit = (habitId) => {
@@ -110,7 +115,7 @@ const triggerXpToast = (msg) => {
 <template>
     <Head title="Mis Hábitos — Epycus" />
 
-    <div class="min-h-screen bg-bg text-content-primary p-4 md:p-8">
+    <AppLayout>
         <!-- Toast XP -->
         <Transition
             enter-active-class="transition duration-300 ease-out transform"
@@ -122,7 +127,7 @@ const triggerXpToast = (msg) => {
         >
             <div
                 v-if="xpNotification"
-                class="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-on-primary shadow-lg shadow-primary/30 backdrop-blur-md"
+                class="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-on-primary shadow-lg backdrop-blur-md"
             >
                 <span class="text-xl">⭐</span>
                 <span>{{ xpNotification }}</span>
@@ -140,9 +145,7 @@ const triggerXpToast = (msg) => {
                         Construye consistencia día a día en tus metas.
                     </p>
                 </div>
-                <BaseButton @click="openModal">
-                    + Nuevo Hábito
-                </BaseButton>
+                <BaseButton @click="openModal"> + Nuevo Hábito </BaseButton>
             </header>
 
             <!-- Lista de hábitos -->
@@ -158,8 +161,8 @@ const triggerXpToast = (msg) => {
                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-lg transition-all"
                             :class="[
                                 habit.is_completed_today
-                                    ? 'bg-primary text-on-primary border-primary shadow-md shadow-primary/20 scale-105'
-                                    : 'bg-bg border-border-interactive text-content-muted hover:border-primary'
+                                    ? 'bg-primary text-on-primary border-primary shadow-md scale-105'
+                                    : 'bg-bg border-border-interactive text-content-muted hover:border-primary',
                             ]"
                             @click="toggleHabit(habit)"
                         >
@@ -200,13 +203,13 @@ const triggerXpToast = (msg) => {
                 class="panel-raised flex flex-col items-center justify-center p-12 text-center"
             >
                 <span class="text-4xl mb-3">🌱</span>
-                <h2 class="text-lg font-semibold text-content-primary">No tienes hábitos registrados</h2>
+                <h2 class="text-lg font-semibold text-content-primary">
+                    No tienes hábitos registrados
+                </h2>
                 <p class="mt-1 text-sm text-content-secondary max-w-sm">
                     Crea tu primer hábito diario para comenzar a acumular racha y ganar experiencia.
                 </p>
-                <BaseButton class="mt-6" @click="openModal">
-                    Crear mi primer hábito
-                </BaseButton>
+                <BaseButton class="mt-6" @click="openModal"> Crear mi primer hábito </BaseButton>
             </div>
         </div>
 
@@ -241,5 +244,5 @@ const triggerXpToast = (msg) => {
                 </div>
             </form>
         </BaseModal>
-    </div>
+    </AppLayout>
 </template>

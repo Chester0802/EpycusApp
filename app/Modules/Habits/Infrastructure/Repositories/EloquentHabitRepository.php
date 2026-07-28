@@ -49,7 +49,7 @@ final class EloquentHabitRepository implements HabitRepositoryInterface
         return (bool) $habit->delete();
     }
 
-    public function completeForDate(HabitModel $habit, string $date, int $xpAwarded = 10, bool $isLate = false): HabitCompletionModel
+    public function completeForDate(HabitModel $habit, string $date, bool $isLate = false): HabitCompletionModel
     {
         return HabitCompletionModel::create([
             'habit_id' => $habit->id,
@@ -57,8 +57,6 @@ final class EloquentHabitRepository implements HabitRepositoryInterface
             'completed_for' => $date,
             'completed_at' => Carbon::now()->toDateTimeString(),
             'is_late' => $isLate,
-            'xp_awarded' => $xpAwarded,
-            'was_capped' => false,
             'created_at' => Carbon::now(),
         ]);
     }

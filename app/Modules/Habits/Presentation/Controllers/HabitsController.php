@@ -7,8 +7,10 @@ namespace App\Modules\Habits\Presentation\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Habits\Application\DTOs\CreateHabitDTO;
 use App\Modules\Habits\Application\UseCases\CreateHabitUseCase;
+use App\Modules\Habits\Application\UseCases\DeleteHabitUseCase;
 use App\Modules\Habits\Application\UseCases\ToggleHabitCompletionUseCase;
 use App\Modules\Habits\Domain\Contracts\HabitRepositoryInterface;
+use App\Shared\Domain\Contracts\UserProgressReaderInterface;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +24,9 @@ final class HabitsController extends Controller
     public function __construct(
         private HabitRepositoryInterface $repository,
         private CreateHabitUseCase $createHabit,
-        private ToggleHabitCompletionUseCase $toggleCompletion
+        private ToggleHabitCompletionUseCase $toggleCompletion,
+        private DeleteHabitUseCase $deleteHabit,
+        private UserProgressReaderInterface $progress,
     ) {}
 
     public function index(): Response
@@ -80,10 +84,25 @@ final class HabitsController extends Controller
         $userId = (int) Auth::id();
         $date = $request->input('date', Carbon::now()->toDateString());
 
+        // El XP real se lee de Gamification por diferencia de totales, no
+        // se le pregunta directamente cuánto otorgó: `ToggleHabitCompletionUseCase`
+        // dispara el evento de forma síncrona, así que al volver de
+        // `execute()` el total ya quedó actualizado (o sin cambios, si
+        // tocó tope o era un reintento — ver AwardXpUseCase). Esto evita
+        // inventar un método nuevo en `UserProgressReaderInterface`
+        // (docs/01-MODULOS.md §6 ya define esa interfaz con 4 getters
+        // exactos; no hacía falta un quinto).
+        $xpBefore = $this->progress->getTotalXpFor($userId);
         $result = $this->toggleCompletion->execute($id, $userId, is_string($date) ? $date : null);
+        $xpAfter = $this->progress->getTotalXpFor($userId);
+
+        $payload = [
+            'completed' => $result['completed'],
+            'xp_awarded' => max(0, $xpAfter - $xpBefore),
+        ];
 
         if ($request->wantsJson() && ! $request->header('X-Inertia')) {
-            return response()->json($result);
+            return response()->json($payload);
         }
 
         return back();
@@ -95,7 +114,7 @@ final class HabitsController extends Controller
         $habit = $this->repository->findByIdAndUser($id, $userId);
 
         if ($habit) {
-            $this->repository->delete($habit);
+            $this->deleteHabit->execute($habit);
         }
 
         return back()->with('success', 'Hábito eliminado.');
