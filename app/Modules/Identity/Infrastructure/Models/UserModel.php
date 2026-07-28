@@ -42,4 +42,13 @@ final class UserModel extends Authenticatable
             'cycle' => 'integer',
         ];
     }
+
+    /**
+     * UserModel no vive en App\Models, así que la convención de nombres de
+     * HasFactory no encuentra la factory sola: hay que indicarla explícitamente.
+     */
+    protected static function newFactory(): UserFactory
+    {
+        return UserFactory::new();
+    }
 }

@@ -17,6 +17,7 @@ final class User
         private UserId $id,
         private string $name,
         private string $email,
+        private string $password,
         private string $alias,
         private ?Career $career = null,
         private ?AvatarStyle $avatarStyle = null,
@@ -38,6 +39,15 @@ final class User
     public function email(): string
     {
         return $this->email;
+    }
+
+    /**
+     * Contraseña en texto plano al registrar, o ya cifrada al leer de BD.
+     * El cast `hashed` de UserModel evita el doble cifrado (Hash::isHashed()).
+     */
+    public function password(): string
+    {
+        return $this->password;
     }
 
     public function alias(): string

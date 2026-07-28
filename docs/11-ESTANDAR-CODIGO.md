@@ -455,6 +455,27 @@ Los cuatro deben pasar. Sin excepciones.
 
 ---
 
+## 9.1 Regla de cableado — la causa más común de fallas en este proyecto
+
+**Escribir una clase no la activa.** Pint y PHPStan analizan el código que existe; no saben si algo lo invoca. Esto ya causó fallas reales: un middleware y un manejador de excepciones que se escribieron completos y correctos pero nunca se registraron en `bootstrap/app.php`, y un caso de uso de registro al que le faltaba persistir la contraseña — nadie lo notó porque nadie ejecutó el registro de verdad, solo se leyó el código.
+
+Antes de dar una clase por terminada, contesta esto:
+
+| Si escribiste... | Verifica que... |
+|---|---|
+| Un middleware | Está en `bootstrap/app.php` → `withMiddleware()` |
+| Un `ServiceProvider` | Está listado en `bootstrap/providers.php` |
+| Un manejador de excepciones o `render()` custom | Está enlazado en `bootstrap/app.php` → `withExceptions()`, o registrado en el contenedor (`ExceptionHandler::class`) |
+| Un caso de uso que crea una entidad | **Ejecutaste el flujo HTTP completo al menos una vez**, no solo revisaste que compile |
+| Un campo obligatorio en una migración (`NOT NULL` sin default) | Algo en el caso de uso lo persiste — revisa el Mapper `toPersistence()`, no asumas |
+| Una tabla nueva relacionada a otra (ej. `participants` ↔ `users`) | El flujo que crea la primera también crea la segunda, si la spec dice que van juntas |
+
+**No basta con que `pint`/`phpstan`/`npm run lint` pasen.** Esas herramientas no detectan una clase huérfana. El requisito real de la sección 9 es `php artisan test` — y eso solo sirve si las pruebas ejercitan el camino feliz de verdad (registrar un usuario, no solo que la página cargue). Si el módulo no tiene pruebas para su caso de uso principal todavía, ejecútalo manualmente una vez con `php artisan tinker` antes de reportar la tarea como terminada.
+
+**Nunca reportes "0 errores" sin decir en qué nivel/alcance corriste la herramienta.** `phpstan.neon` de este proyecto exige nivel 6 — "PHPStan en 0 errores" corrido a un nivel distinto es información falsa, aunque no sea intencional.
+
+---
+
 ## 10. Si tienes una duda
 
 En este orden:

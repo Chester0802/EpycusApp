@@ -7,6 +7,7 @@ namespace App\Shared\Domain\Exceptions;
 abstract class DomainException extends \RuntimeException
 {
     private string $errorCode;
+
     private array $context;
 
     public function __construct(
