@@ -90,6 +90,26 @@ CREATE TABLE participants (
 
 > Esta tabla es la única que vincula identidad real con el código del estudio. **Nunca aparece en exportaciones.** `student_code` y `whatsapp` se cifran con `Crypt::encryptString()`. Ver `docs/06-SEGURIDAD.md`.
 
+```sql
+CREATE TABLE user_preferences (
+    id                     BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id                BIGINT UNSIGNED NOT NULL UNIQUE,
+    surface_mode           VARCHAR(20) NOT NULL DEFAULT 'neumorphism',  -- 'neumorphism' | 'glass'
+    notifications_enabled  BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at             TIMESTAMP NULL,
+    updated_at             TIMESTAMP NULL,
+    CONSTRAINT fk_preferences_user FOREIGN KEY (user_id)
+        REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+```
+
+> Se crea automáticamente al registrar (relación 1:1 obligatoria con `users`, ver diagrama
+> arriba), con `surface_mode = 'neumorphism'` por defecto — ver `docs/04-DISENO-VISUAL.md` §2
+> para los dos modos de superficie. `notifications_enabled` empieza en `false`: se activa
+> explícitamente cuando el usuario acepta el permiso del navegador, nunca antes. **No hay
+> campo de idioma**: toda la interfaz es en español, no existe selector (decisión del
+> 2026-07-28, ver `docs/12-HISTORIAL.md`).
+
 ### Habits
 
 ```sql

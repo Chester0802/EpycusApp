@@ -7,12 +7,15 @@ namespace App\Modules\Identity\Application\UseCases;
 use App\Modules\Identity\Application\DTOs\RegisterUserDTO;
 use App\Modules\Identity\Application\DTOs\UserDTO;
 use App\Modules\Identity\Domain\Contracts\ParticipantRepositoryInterface;
+use App\Modules\Identity\Domain\Contracts\UserPreferencesRepositoryInterface;
 use App\Modules\Identity\Domain\Contracts\UserRepositoryInterface;
 use App\Modules\Identity\Domain\Entities\Participant;
 use App\Modules\Identity\Domain\Entities\User;
+use App\Modules\Identity\Domain\Entities\UserPreferences;
 use App\Modules\Identity\Domain\Events\UserRegistered;
 use App\Modules\Identity\Domain\Exceptions\EmailAlreadyTakenException;
 use App\Modules\Identity\Domain\ValueObjects\ParticipantCode;
+use App\Modules\Identity\Domain\ValueObjects\SurfaceMode;
 use App\Modules\Identity\Domain\ValueObjects\UserId;
 use App\Shared\Application\TransactionManagerInterface;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -22,6 +25,7 @@ final readonly class RegisterUserUseCase
     public function __construct(
         private UserRepositoryInterface $users,
         private ParticipantRepositoryInterface $participants,
+        private UserPreferencesRepositoryInterface $preferences,
         private TransactionManagerInterface $transaction,
         private Dispatcher $events,
     ) {}
@@ -49,6 +53,13 @@ final readonly class RegisterUserUseCase
                 participantCode: ParticipantCode::generate(),
             );
             $this->participants->save($participant);
+
+            // users <-> user_preferences es 1:1 obligatorio (docs/05-BASE-DATOS.md).
+            $preferences = new UserPreferences(
+                userId: $user->id(),
+                surfaceMode: SurfaceMode::default(),
+            );
+            $this->preferences->save($preferences);
 
             return $user;
         });

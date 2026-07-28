@@ -6,8 +6,10 @@ namespace Tests\Feature\Identity;
 
 use App\Modules\Identity\Application\Mappers\ParticipantMapper;
 use App\Modules\Identity\Application\Mappers\UserMapper;
+use App\Modules\Identity\Application\Mappers\UserPreferencesMapper;
 use App\Modules\Identity\Infrastructure\Models\ParticipantModel;
 use App\Modules\Identity\Infrastructure\Models\UserModel;
+use App\Modules\Identity\Infrastructure\Models\UserPreferencesModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -50,5 +52,19 @@ class MapperRoundTripTest extends TestCase
         $this->assertTrue($domain->hasConsented());
         $this->assertNotNull($domain->enrolledAt());
         $this->assertTrue($domain->isActive());
+    }
+
+    public function test_user_preferences_survive_a_round_trip_through_the_mapper(): void
+    {
+        $model = UserPreferencesModel::factory()->create([
+            'surface_mode' => 'glass',
+            'notifications_enabled' => true,
+        ]);
+
+        $domain = (new UserPreferencesMapper)->toDomain($model->fresh());
+
+        $this->assertSame($model->user_id, $domain->userId()->value());
+        $this->assertSame($model->surface_mode, $domain->surfaceMode()->value());
+        $this->assertSame($model->notifications_enabled, $domain->notificationsEnabled());
     }
 }

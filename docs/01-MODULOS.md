@@ -48,7 +48,7 @@ Los módulos rojo y azul son los críticos: si fallan, se pierde el estudio.
 
 Autenticación, perfil y consentimiento del participante.
 
-**Entidades:** `User`, `Participant`, `Consent`
+**Entidades:** `User`, `Participant`, `UserPreferences`
 
 **Campos clave del perfil:**
 
@@ -62,6 +62,15 @@ Autenticación, perfil y consentimiento del participante.
 | `participant_code` | string único | **Código seudonimizado del estudio** |
 
 El campo `career` alimenta directamente el estilo visual del avatar. La razón de que sea cerrado está documentada: en la encuesta 2 hubo 25 variantes de texto para 11 carreras reales, lo que hizo imposible agrupar. Ese error no se repite.
+
+**Preferencias del usuario (`UserPreferences`, 1:1 obligatorio con `User`, se crea al registrar):**
+
+| Campo | Tipo | Nota |
+|---|---|---|
+| `surface_mode` | enum | `neumorphism` \| `glass` — default `neumorphism`. Ver `docs/04-DISENO-VISUAL.md` §2 |
+| `notifications_enabled` | boolean | Default `false`. Se activa solo cuando el usuario acepta el permiso del navegador, nunca antes |
+
+No hay preferencia de idioma: toda la interfaz es en español, no existe selector ni se planea uno.
 
 **Casos de uso:** `RegisterUser`, `LoginUser`, `CompleteProfile`, `RecordConsent`, `UpdatePreferences`
 

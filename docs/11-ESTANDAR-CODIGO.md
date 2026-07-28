@@ -380,6 +380,8 @@ En imperativo y en español. Máximo 72 caracteres en la primera línea.
 - [ ] Sin credenciales ni claves
 - [ ] Sin código comentado "por si acaso"
 - [ ] Sin importaciones sin usar
+- [ ] **Se agregó una entrada en `docs/12-HISTORIAL.md`** con lo que se hizo, las decisiones
+      tomadas y cómo se verificó — antes de dar la sesión por terminada, no después
 
 ---
 
