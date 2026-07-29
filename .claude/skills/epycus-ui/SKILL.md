@@ -440,6 +440,40 @@ con la fórmula de §8 y se verificó canal por canal con conversión OKLCH→sR
 
 Valores completos (todos los tokens) en `resources/css/app.css`.
 
+### Mono (quinta paleta, agregada 2026-07-28)
+
+Croma cero en todos los tokens. `bg` y `surface` son exactamente el mismo color — la jerarquía visual se logra únicamente por contraste de luminosidad y sombras neumórficas. Sin acento de color. Pensada para máxima concentración visual.
+
+```css
+[data-palette="mono"][data-theme="light"] {
+  --color-bg:              #E8ECF2;
+  --color-surface:         #E8ECF2;   /* = bg, a propósito */
+  --color-content-primary:   #1C212E;  /* 11.9:1 sobre bg  AAA */
+  --color-content-secondary: #545B6B;  /*  5.34:1 sobre bg  AA  */
+  --color-primary:        #BAC2D0;   /* gris suave. Texto oscuro encima: 6.15:1 */
+  --color-primary-strong: #4F5B70;   /* sólido. Blanco encima: 6.52:1 */
+  --color-secondary:      #CFD5E0;
+  --color-accent:         #C5CCD8;
+  --color-danger:         #E07A7A;
+  --color-danger-text:    #B02A2A;   /* 5.57:1 sobre bg */
+  --color-border-interactive: #7A879C;  /* 3.03:1 */
+}
+
+[data-palette="mono"][data-theme="dark"] {
+  --color-bg:              #1E232A;
+  --color-surface:         #1E232A;   /* = bg */
+  --color-content-primary:   #E2E6EC;  /* 12.51:1  AAA */
+  --color-primary:        #353C47;   /* gris oscuro */
+  --color-primary-strong: #6B7B90;   /* bg encima: 5.34:1 */
+  --color-secondary:      #2C323D;
+  --color-accent:         #262C35;
+  --color-danger:         #F06A6A;   /* sirve como texto: 5.03:1 */
+  --color-border-interactive: #6A7A90;  /* 3.9:1 */
+}
+```
+
+Valores completos en `resources/css/app.css`.
+
 ---
 
 ## 8. Crear paletas nuevas (personalización futura)

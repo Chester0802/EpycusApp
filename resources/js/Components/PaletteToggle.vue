@@ -12,6 +12,7 @@ const options = [
     { value: 'bosque', label: 'Bosque' },
     { value: 'oceano', label: 'Océano' },
     { value: 'nube', label: 'Nube' },
+    { value: 'mono', label: 'Mono' },
 ];
 </script>
 

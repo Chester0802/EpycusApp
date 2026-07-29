@@ -110,10 +110,13 @@ Como OKLCH es perceptualmente uniforme, misma luminosidad implica mismo brillo p
 | Bosque | H≈175 (teal/esmeralda) | pastel teal/celeste/verde lima | teal neón/celeste/verde |
 | Océano | H≈235 (azul índigo) | azul-niebla muy suave/lavanda/celeste | azul eléctrico/violeta/cyan (navy profundo) |
 | Nube | H≈271 claro / H≈267 oscuro (base casi sin croma) + acento H=295 | gris-violeta casi monocromático, un único acento violeta saturado | mismo gris-violeta oscuro, mismo acento violeta |
+| Mono | neutro (sin croma) | gris suave, fondo y superficie idénticos, profundidad solo por sombras | gris oscuro, fondo y superficie idénticos, misma lógica neumórfica |
 
 Bosque, Océano y Nube se agregaron siguiendo exactamente la fórmula de §8 (L fija por token, C/H variables) y se verificaron canal por canal con conversión OKLCH→sRGB real — no coloreadas a ojo. Valores completos y contrastes medidos en la skill `epycus-ui` §7. Selector en `/settings` (`PaletteToggle.vue`), value **device-only por ahora** (localStorage, atributo `data-palette` en `<html>`) — no es preferencia de cuenta todavía, igual que el tema claro/oscuro.
 
 **Nube es distinta a las otras tres**: no deriva sus tokens neutros del matiz de la paleta con croma alto, sino que los mantiene casi en gris puro (croma ≈0.01–0.02) y concentra todo el color en un único acento saturado (`primary`/`primary-strong`). Es la paleta pensada para acompañar al modo Neumorfismo (§1): `bg` y `surface` comparten un tono casi idéntico a propósito, que es justo lo que ese modo necesita para que la doble sombra funcione.
+
+**Mono es la quinta paleta, la más extrema en esa dirección**: croma cero en todos los tokens. `bg` y `surface` son exactamente el mismo color (`#E8ECF2` claro, `#1E232A` oscuro). No hay acento de color — la jerarquía visual se logra únicamente por contraste de luminosidad entre `content-primary`, `content-secondary` y `content-muted`, más las sombras neumórficas. Diseñada para quienes quieren la máxima concentración visual, sin distracción cromática. Funciona mejor en neumorfismo, pero vidrio también se ve consistente por la ausencia total de tono.
 
 ---
 
