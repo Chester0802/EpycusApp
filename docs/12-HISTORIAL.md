@@ -34,6 +34,48 @@ Revisar código no es verificar que funciona — ver `docs/11-ESTANDAR-CODIGO.md
 verdad no se corrió nada, escribir eso tal cual; es más útil una entrada honesta que una que
 finge haber probado algo que no probó.
 
+## 2026-07-28 — Claude [primer bloque de assets de avatar]
+
+**Qué se hizo:** El usuario entregó 36 PNG sin fondo en la raíz del repo (`Base_Fem_1{1-4}`,
+`Base_Masc_1{1-4}`, `Medicina_{Fem,Masc}_{2,3,4}{1-4}`, `Tecnico_Fem_2{1-4}`) y pidió
+conectarlos al Dashboard con rotación aleatoria por recarga, avisando que es "el primer bloque,
+faltan muchas". Se movieron a `public/assets/avatars/` (planas, mismo nombre) y se construyó
+`App\Shared\Domain\Services\AvatarAssetResolver` (resuelve por `avatarStyle`/`avatarGender`/
+`current_phase` con `file_exists`, sin lista hardcodeada, para no tener que tocar código cuando
+lleguen más assets — cae hacia fases más bajas del mismo estilo, y en último caso a `Base`).
+`DashboardController` lo inyecta, baraja el orden **en el servidor** (una recarga = una petición
+nueva = orden nuevo, sin JS) y lo pasa como prop `avatarImages`. `Dashboard.vue` ahora muestra la
+primera imagen grande y las otras 3 chicas debajo, dentro de la tarjeta "Tu progreso" ya
+existente de la Fase 4. Documentado a fondo en `docs/04-DISENO-VISUAL.md` ("AvatarDisplay —
+assets reales"), reemplazando un ejemplo de código anterior que nunca se había implementado así.
+
+**Decisiones tomadas:** el dígito que el usuario llama "nivel" en el nombre de archivo se
+interpretó como `current_phase` (1-10), no `current_level` (1-50) — el número entregado
+(1 para Base, 2/3/4 para Medicina) encaja con fases, no con niveles; se documentó explícito para
+que ninguna IA futura lo reinterprete mal. Mapeo estilo→prefijo de archivo
+(`health→Medicina`, `technical→Tecnico`) inferido del ejemplo del usuario ("Medicina" ya es una
+carrera de estilo `health` en `Career.php`); `business`/`systems`/`law` quedan sin prefijo hasta
+que lleguen sus imágenes, cayendo a `Base` mientras tanto — no se inventó un nombre de archivo
+para carreras que todavía no tienen arte.
+
+**Verificado cómo:** navegador real — usuario de prueba con `avatar_style=health`,
+`avatar_gender=f`: en fase 1 cargaron las 4 `Base_Fem_1X.png` (confirmado
+`naturalWidth`/`complete` de cada `<img>` por JS, no solo que no tirara 404 visualmente); subida
+manual a fase 3 vía tinker → recarga → cambian a `Medicina_Fem_3X.png` correctamente (fallback
+por fase funcionando). `composer check` completo tras el cambio: Pint ✅, PHPStan ✅, 51/51 tests
+✅, ESLint ✅. Usuario de prueba y sus filas relacionadas borrados al terminar.
+
+**Pendiente / qué falta:** bloques 2+ de assets (`business`/`systems`/`law`, fases 5-10 de
+Medicina, `Tecnico` masculino y fases 3-4, ver la tabla nueva en `docs/04-DISENO-VISUAL.md`).
+No se verificó el caso "carrera sin ningún estilo mapeado todavía" en navegador (solo se probó
+`health`) — debería comportarse igual (cae a `Base`) pero vale la pena confirmarlo la próxima
+vez que se toque esto. El resto del layout "bonito" del Dashboard (saludo, villano semanal,
+próximas misiones, selector de ánimo del mockup de `docs/04-DISENO-VISUAL.md` §9) sigue sin
+construir — se agregó la imagen de avatar a la tarjeta ya existente, no se rediseñó el
+Dashboard completo, que depende de módulos que todavía no existen (Missions, Wellbeing, Villains).
+
+---
+
 ## 2026-07-28 — Claude [Fase 4: Gamification completa]
 
 **Qué se hizo:** Implementó Gamification (motor de XP/niveles/fases/racha/monedero) siguiendo

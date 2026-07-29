@@ -269,8 +269,8 @@
 
         /* Azul eléctrico saturado: principal acento en oscuro.
            Blanco encima = 4.8:1 — pasa AA. */
-        --color-primary: #5090f8;
-        --color-primary-strong: #5090f8;
+        --color-primary: #3153e0;
+        --color-primary-strong: #3153e0;
         --color-secondary: #9b7df0;
         --color-accent: #4cc8e8;
 

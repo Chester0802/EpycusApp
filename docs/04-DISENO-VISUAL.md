@@ -296,25 +296,58 @@ ui/
 └── LoadingSpinner.vue
 ```
 
-### AvatarDisplay
+### AvatarDisplay — assets reales (bloque 1, 2026-07-28)
 
-```vue
-<script setup>
-const props = defineProps({
-    style:    { type: String, required: true },  // health|business|technical|systems|law
-    gender:   { type: String, required: true },  // m|f
-    phase:    { type: Number, required: true },  // 1..10
-    position: { type: String, default: 'frontal' },
-})
+**Esta sección reemplaza un ejemplo anterior que nunca se implementó así.** El path real de los
+archivos y la resolución en `App\Shared\Domain\Services\AvatarAssetResolver` (con tests
+indirectos vía `DashboardController`) son los que mandan.
 
-const src = computed(() => {
-    const phase = String(props.phase).padStart(2, '0')
-    return `/assets/avatars/${props.style}/${props.gender}/fase-${phase}/${props.position}.png`
-})
-</script>
-```
+**Convención de archivo real:** `{Prefijo}_{Fem|Masc}_{fase}{orden}.png`, todos sueltos (sin
+subcarpetas) en `public/assets/avatars/`. Ejemplos entregados por el usuario:
+`Base_Fem_11.png`, `Base_Masc_14.png`, `Medicina_Masc_24.png`.
 
-La ruta se construye por convención. Si un asset no sigue el patrón de `docs/03-GAMIFICACION.md` §2, la imagen no carga.
+- **`Fem`/`Masc`** = género del avatar (`users.avatar_gender`, valores `f`/`m`; "Prefiero no
+  decir" cae a `m` por decisión D-W).
+- **Primer dígito tras el género = FASE** (`current_phase`, 1-10) — **no es `current_level`**
+  (ese va de 1 a 50). El usuario que entregó las imágenes lo llamó
+  coloquialmente "nivel", pero el número solo llega hasta donde hay fases (por ahora 1-4), no
+  hasta 50 — encaja con fase, no con nivel. Cualquier IA que retome esto: no reinterpretes el
+  dígito como `current_level`.
+- **Segundo dígito = orden de presentación**, 1 a 4 (hasta 4 variantes por fase/género/prefijo).
+- **`Base`** es el prefijo de la **fase 1, para cualquier carrera** — antes de que el estudiante
+  tenga suficiente fase como para mostrar el estilo de su carrera.
+- Desde fase 2, cada **estilo** de carrera (`Career::avatarStyle()`: `health`, `business`,
+  `technical`, `systems`, `law`) tiene su propio prefijo de archivo. Mapeo conocido hoy (en
+  `AvatarAssetResolver::STYLE_PREFIXES`):
+
+  | Estilo (`avatarStyle()`) | Prefijo de archivo | Fases con arte hoy |
+  |---|---|---|
+  | `health` (Medicina, Enfermería, Obstetricia) | `Medicina` | 2, 3, 4 (Fem y Masc completas) |
+  | `technical` (Ing. Civil/Industrial/Minas, Arquitectura) | `Tecnico` | 2 (solo Fem, solo 4 variantes) |
+  | `business` | *(sin asignar)* | ninguna — cae a `Base` |
+  | `systems` | *(sin asignar)* | ninguna — cae a `Base` |
+  | `law` | *(sin asignar)* | ninguna — cae a `Base` |
+
+**Resolución y fallback** (`AvatarAssetResolver::imagesFor($avatarStyle, $avatarGender, $phase)`):
+1. Si el estilo tiene prefijo mapeado, busca desde la fase actual hacia abajo (nunca hacia
+   arriba) hasta encontrar la primera fase con al menos 1 archivo real en disco
+   (`file_exists`, no una lista hardcodeada — así no hay que tocar código cuando lleguen más
+   assets).
+2. Si no encuentra nada (estilo sin prefijo, o carrera nueva sin ningún archivo todavía), cae a
+   `Base` fase 1.
+3. Las rutas devueltas (hasta 4) se barajan con `shuffle()` **en el servidor**, en cada request —
+   no en el cliente. Como cada recarga de página es una petición nueva a
+   `DashboardController::index()`, "cambia de orden al recargar" sale gratis sin JS extra.
+
+**Dónde se usa hoy:** `Dashboard.vue`, tarjeta "Tu progreso" — la primera imagen del arreglo
+(ya barajado) se muestra grande, las otras 3 chicas debajo. No hay componente `AvatarDisplay.vue`
+todavía como archivo separado — la lógica vive en la tarjeta directamente porque es el único
+lugar que lo usa por ahora; si un segundo lugar lo necesita, ahí sí conviene extraerlo.
+
+**Pendiente (bloque 2+):** faltan prefijos/arte para `business`, `systems`, `law`; faltan fases
+5-10 de `Medicina`; falta completar `Tecnico` (Masc, y fases 3-4); no existe todavía un selector
+de "posición" (frontal/perfil/etc., mencionado en versiones anteriores de este documento) — cada
+fase solo tiene "variantes" (1-4), no poses.
 
 ---
 
