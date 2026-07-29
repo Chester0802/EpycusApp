@@ -135,6 +135,61 @@ Sesiones de enfoque cronometradas.
 
 **Eventos:** `PomodoroStarted`, `PomodoroCompleted`, `PomodoroAbandoned`, `PomodoroPaused`
 
+### Ciclo completo, meta de estudio y música (agregado 2026-07-29)
+
+Todo lo de esta subsección vive **exclusivamente en el cliente**
+(`resources/js/Pages/Pomodoro/Index.vue`) — ninguna tabla nueva, ningún endpoint nuevo. El
+servidor sigue sin saber nada de descansos, metas o música; solo ve `StartPomodoro` uno tras
+otro, igual que antes. Esto es deliberado, no un atajo: mantiene válida la decisión técnica de
+arriba (nada de estado nuevo en el servidor) y no le agrega superficie de ataque a un módulo ya
+probado.
+
+**Regla de ratio foco/descanso (anti-abuso), investigada, no inventada:** la Técnica Pomodoro
+clásica de Cirillo es 25/5 (ratio 20%); las variantes documentadas en uso real son 50/10 (20%),
+90/20 (~22%) y 52/17 (~33%, del estudio de productividad de DeskTime de 2014). Ninguna variante
+conocida supera ~35%. Por eso el **tope duro es 40% del foco**: `maxBreakForFocus(focus) =
+max(3, round(focus * 0.4))`. El `<select>` de descanso solo muestra las opciones (`[3,5,10,15,20]`
+min) que pasan ese tope para el foco elegido — no es una validación que rechaza después, es que
+la opción inválida ni aparece. Esto es lo que resuelve el caso que pidió el usuario explícitamente:
+"no puedo poner que voy a estudiar 10 min y descansar 20". Si el foco cambia y el descanso elegido
+deja de ser válido, se reajusta solo al mayor valor todavía permitido.
+
+**Descanso largo automático cada 4 ciclos:** técnica clásica (Cirillo: descanso largo de 15-30 min
+cada 4 pomodoros). El número de ciclo se calcula como `sesiones completadas hoy + 1` en el momento
+de completar el foco (antes de pedir el reload de `todaySessions`, para no depender de una
+respuesta async todavía no llegada). Si `ciclo % 4 === 0`, el descanso que arranca es largo:
+`longBreakMinutes = clamp(descanso_corto * 3, 15, 30)` — con el descanso corto por defecto (5 min)
+da exactamente 15, el mínimo clásico; con 10 min (variante 50/10) da 30, el máximo clásico. No hay
+un selector aparte para el descanso largo a propósito (pedido explícito de mantener los selectores
+pocos y chicos) — se deriva, no se elige.
+
+**Meta de estudio del día (opcional):** el usuario puede elegir cuántos minutos de foco quiere
+acumular hoy (`Sin meta` a `6 horas`). El progreso se calcula **siempre** contra `todaySessions`
+(verdad del servidor, ya resuelto por `ResolveStaleSessionUseCase`), nunca contra un contador
+propio del cliente — así una sesión que se autocompletó sola por cierre de navegador sigue
+contando para la meta igual que una completada a mano. Al terminar cada descanso, si la meta ya
+se alcanzó, el ciclo automático foco→descanso→foco **se corta** (no arranca otro foco solo) y se
+muestra un estado de "meta cumplida" con un botón para seguir de todas formas. Sin meta elegida,
+el comportamiento es exactamente el de antes: el ciclo nunca para solo, hasta que el usuario
+presiona "Abandonar". La meta se guarda en `localStorage` (clave por usuario y por día, ver
+comentario en el componente) — no es dato de investigación, no necesita persistir en la base de
+datos ni sobrevivir a un cambio de navegador.
+
+Como la meta cuenta minutos de **foco puro** (no de descanso) y el tope de XP es 8 sesiones/día,
+el cliente avisa (sin bloquear) cuando la combinación de meta + foco elegido va a necesitar más de
+8 sesiones para cumplirse — informativo nada más, el usuario puede seguir estudiando de todas
+formas, solo no recibe XP extra a partir de la sesión 9 (regla ya existente, no una nueva).
+
+**Música de fondo opcional (YouTube):** botón "Activar música" que embebe un `<iframe>` apuntando
+a una playlist libre de copyright por defecto (verificada por `oEmbed` de YouTube antes de
+usarla), con opción de pegar la playlist propia del usuario. **Nunca se carga sin un clic
+explícito** y no se recuerda "encendido" entre visitas — ver la nota de privacidad completa en
+`docs/06-SEGURIDAD.md §7` (activar la música sí comparte la IP del participante con Google
+mientras está prendida, igual que mirar cualquier video de YouTube; por eso el aviso en pantalla
+y el dominio `youtube-nocookie.com`). El CSP tuvo que ganar `frame-src
+https://www.youtube-nocookie.com` para que el iframe no quedara bloqueado — sin eso, `default-src
+'self'` lo mataba en silencio.
+
 
 ### Historial integrado
 

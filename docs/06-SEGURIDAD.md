@@ -191,11 +191,32 @@ $response->headers->set('Content-Security-Policy',
     "img-src 'self' data:; " .
     "font-src 'self'; " .              // fuentes autoalojadas, sin CDN de Google
     "connect-src 'self' https://api.deepseek.com; " .
+    "frame-src https://www.youtube-nocookie.com; " .  // música opcional de Pomodoro, ver nota abajo
     "frame-ancestors 'none';"
 );
 ```
 
 La política de contenido no incluye CDN externos porque las fuentes están autoalojadas (ver `docs/04-DISENO-VISUAL.md` §5). Eso además evita que Google registre la IP de los participantes, lo que sería un tratamiento de datos no declarado en el consentimiento.
+
+**Excepción deliberada — música opcional de Pomodoro (agregada 2026-07-29):** `Pomodoro/Index.vue`
+embebe un reproductor de YouTube (playlist libre de copyright) detrás de un botón explícito
+("Activar música") — nunca se carga solo, ni se recuerda "encendido" entre visitas (ver el
+comentario en el propio componente). Mientras el reproductor está activo, **sí** genera el mismo
+tipo de tratamiento de IP que el CSP de arriba evita para las fuentes: es tráfico real hacia
+Google. Se mitigó con dos decisiones, no con evitarlo del todo (la función la pidió el usuario
+explícitamente):
+
+1. Dominio `youtube-nocookie.com` (modo "sin cookies" de YouTube), no `youtube.com` — reduce el
+   tracking, no lo elimina.
+2. Aviso visible en la propia pantalla antes de que el iframe exista en el DOM, explicando que
+   activar la música comparte la IP con Google.
+
+**Pendiente real, no resuelto por código:** si el consentimiento informado que firman los
+participantes no menciona explícitamente "servicios de terceros opcionales que el propio
+participante puede activar", conviene revisarlo antes de day 1 de recolección de datos — es
+exactamente el tipo de tratamiento no declarado que este documento ya identificó como problema
+una vez (Google Fonts). El código avisa en pantalla; el documento de consentimiento es una
+decisión de producto/legal que no le corresponde a esta sesión resolver.
 
 ---
 

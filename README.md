@@ -87,6 +87,8 @@ Detalles completos en `docs/07-DEPLOY.md`.
 | 11 | [`docs/11-ESTANDAR-CODIGO.md`](docs/11-ESTANDAR-CODIGO.md) | **Estándar de código.** Reglas mecánicas, plantillas, prohibiciones |
 | 12 | [`docs/12-HISTORIAL.md`](docs/12-HISTORIAL.md) | **Bitácora de sesiones de IA.** Qué se hizo, qué se decidió, cómo se verificó, qué queda pendiente — toda IA agrega una entrada antes de terminar |
 | 13 | [`docs/13-ROADMAP.md`](docs/13-ROADMAP.md) | Hoja de ruta de desarrollo por fases. Antes de programar, mira qué fase está en curso |
+| 14 | [`docs/14-HISTORIAS-USUARIO.md`](docs/14-HISTORIAS-USUARIO.md) | Historias de usuario + criterios de aceptación de cada módulo pendiente (Fase 6 en adelante) |
+| 15 | [`docs/15-CATALOGO-IMAGENES.md`](docs/15-CATALOGO-IMAGENES.md) | Convención de nombres e inventario de avatares e imágenes de marca |
 
 **Contexto del proyecto de investigación (fuera de este repositorio):** la carpeta de Drive del equipo (`G:\Mi unidad\Epycus\Equipo` en las máquinas del equipo) tiene `CONTEXTO-IA.md`, pensado para pegarse al inicio de una conversación con cualquier IA cuando la tarea es sobre el paper (metodología, ISO, muestra, cronograma), no sobre este código. Si una IA necesita ese contexto y tiene acceso a la carpeta, ese es el archivo.
 

@@ -44,6 +44,13 @@ final class SecurityHeaders
             "img-src 'self' data:; ".
             "font-src 'self'; ".
             "connect-src 'self' https://api.deepseek.com{$viteOrigin}{$viteWs}; ".
+            // Pomodoro/Index.vue embebe un <iframe> de música opcional (botón,
+            // nunca automático — ver docs/01-MODULOS.md §3 "Música opcional").
+            // Sin frame-src explícito, CSP cae a default-src 'self' y bloquea el
+            // iframe entero. youtube-nocookie.com (no youtube.com) es el modo
+            // "sin cookies" de YouTube — reduce, no elimina, el tracking; ver la
+            // nota de privacidad en docs/06-SEGURIDAD.md §7 antes de tocar esto.
+            'frame-src https://www.youtube-nocookie.com; '.
             "frame-ancestors 'none';"
         );
 

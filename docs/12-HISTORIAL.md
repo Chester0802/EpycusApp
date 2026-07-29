@@ -34,6 +34,141 @@ Revisar código no es verificar que funciona — ver `docs/11-ESTANDAR-CODIGO.md
 verdad no se corrió nada, escribir eso tal cual; es más útil una entrada honesta que una que
 finge haber probado algo que no probó.
 
+## 2026-07-29 — Claude [Pomodoro: meta de estudio, ratio foco/descanso, música YouTube + documentación de fases pendientes]
+
+**Qué se hizo:** Sesión a pedido directo del usuario sobre el módulo Pomodoro ya construido en la
+sesión anterior del mismo día, más una tanda grande de documentación para que sesiones futuras
+puedan seguir sin ambigüedad:
+
+1. **Meta de estudio diaria (nueva).** Selector opcional "Sin meta" a "6 horas" en
+   `Pomodoro/Index.vue`. El progreso (`totalFocusMinutesToday`) se calcula **siempre** contra
+   `todaySessions` (verdad del servidor), nunca contra un contador propio del cliente, sumándole
+   en vivo los minutos de la sesión en curso (derivados de `remainingSeconds`, que ya se
+   recalculaba cada segundo). Persistida en `localStorage` por usuario+día — no es dato de
+   investigación. Al terminar cada descanso, si la meta ya se cumplió, el ciclo automático
+   foco→descanso→foco se corta y se muestra un estado "¡Meta cumplida!" con botón para seguir de
+   todas formas; sin meta, el comportamiento es exactamente el de antes (nunca para solo).
+2. **Validación de ratio foco/descanso (nueva, pedida explícitamente: "no puedo poner estudiar 10
+   y descansar 20").** Investigado contra la Técnica Pomodoro real (25/5 clásico, 50/10, 52/17 del
+   estudio de DeskTime 2014, 90/20 — ninguna variante conocida supera ~35% de descanso sobre el
+   foco) antes de fijar el tope: `maxBreakForFocus(focus) = max(3, round(focus * 0.4))`. El
+   `<select>` de descanso solo lista las opciones que pasan ese tope para el foco elegido — no es
+   un rechazo posterior, la opción inválida no aparece. Si el foco cambia y el descanso elegido
+   deja de ser válido, se reajusta solo al mayor valor permitido (verificado en vivo: foco 50 +
+   descanso 20 → foco 15 reajustó el descanso a 5 automáticamente).
+3. **Descanso largo automático cada 4 ciclos (nuevo).** `longBreakMinutes =
+   clamp(descanso_corto * 3, 15, 30)` — con el default (5 min) da 15, el mínimo clásico; con 10 da
+   30, el máximo. El número de ciclo se calcula desde `todayCompletedCount` **antes** de pedir el
+   `router.reload` de la sesión recién completada (todavía no llegó la respuesta async), para no
+   depender de un timing que podría no haber resuelto todavía.
+4. **Selects compactos (pedido explícito: "la fila esta muy grande, hazlo mas pequeño").**
+   `BaseSelect.vue` ganó un prop `compact` (retrocompatible, default `false` — no afecta
+   `Register.vue`/`CompleteProfile.vue`/`Habits/Index.vue`, que lo siguen usando sin el prop). Los
+   3 selects de Pomodoro (meta/foco/descanso) pasaron de un stack vertical `max-w-xs` a un
+   `grid-cols-3` compacto — la altura táctil se mantuvo en 44px (mínimo de la skill `epycus-ui`
+   §11), solo se redujo el padding/tipografía, nunca el área de toque.
+5. **Música de fondo opcional vía YouTube (nueva).** Botón "Activar música" — nunca se carga sin
+   un clic explícito, ni se recuerda "encendido" entre visitas (si se recordara, cargaría el
+   iframe solo en la próxima visita sin un gesto nuevo, justo lo que se quería evitar). Playlist
+   por defecto verificada por `oEmbed` de YouTube antes de usarla (`PLfP6i5T0-DkIMLNRwmJpRBs4PJvxfgwBg`,
+   "Lofi Music (No Copyright)" del canal BreakingCopyright — se investigó primero la Lofi Girl
+   livestream clásica, pero según búsqueda web se dio de baja por copyright el 19/05/2026, así que
+   se descartó por poco confiable a mediano plazo). Dominio `youtube-nocookie.com`, no
+   `youtube.com`. Input opcional para que el usuario pegue su propia playlist (probado con una URL
+   real de YouTube, el iframe cambió de contenido correctamente). El CSP (`SecurityHeaders.php`)
+   no tenía `frame-src` — con `default-src 'self'` el iframe habría quedado bloqueado en silencio;
+   se agregó `frame-src https://www.youtube-nocookie.com`.
+6. **Corrección de terminología en `AvatarAssetResolver.php` (a pedido del usuario, sin cambio de
+   comportamiento).** El usuario aclaró el significado real del segundo dígito del nombre de
+   archivo de los avatares: no es un "orden de módulo" arbitrario como asumía el código de la
+   sesión anterior, es la **posición/pose** del personaje (1=parado normal, 2=parado saludando,
+   3=sentado, 4=sentado con laptop), igual para cualquier carrera/fase/género. El comportamiento
+   del resolver ya era correcto por casualidad (fase variaba, posición fija por módulo) — se
+   renombró `MODULE_ORDER` a `MODULE_POSITION` y se reescribieron los comentarios, sin tocar la
+   lógica.
+7. **Documentación nueva, pedida explícitamente ("para que la IA torpe pueda seguir haciendo los
+   demás módulos"):**
+   - `docs/14-HISTORIAS-USUARIO.md` (nuevo): historias de usuario + criterios de aceptación
+     Given/When/Then para los 10 módulos que faltan (Calendar, Missions, Wellbeing, Villains,
+     Ranking+Personalization, Achievements, Motivation, StudyGroups, AiAssistant, Admin), citando
+     siempre la regla exacta de `docs/01-MODULOS.md` de la que sale cada criterio, y marcando con
+     ⚠️ las decisiones de producto que de verdad no están tomadas todavía (no se inventaron a
+     ciegas: texto exacto del protocolo de derivación de crisis de AiAssistant, valores de XP por
+     rareza de Achievements, si "3+ días sin actividad" de Admin excluye feriados).
+   - `docs/15-CATALOGO-IMAGENES.md` (nuevo): convención de nombre completa de los avatares
+     (`{Grupo}_{Masc|Fem}_{Fase}{Posición}.png`), tabla de los 5 grupos de carrera de `Career.php`
+     con su estado de arte (Base completo, Medicina y Tecnico parciales, business/systems/law sin
+     arte), tabla de las 4 posiciones, inventario exacto de los 36 archivos existentes hoy, y un
+     análisis de qué falta en orden de impacto. También documenta las 4 imágenes de marca sueltas
+     (logo, hero de login, wallpaper).
+   - `docs/13-ROADMAP.md`: el diagrama y la tabla de fases pendientes solo tenían 7 módulos
+     (Missions, Wellbeing, Villains, Ranking+Personalization, StudyGroups, AiAssistant, Admin)
+     pese a que `docs/01-MODULOS.md` documenta 16 — faltaban `Calendar`, `Achievements` y
+     `Motivation` por completo. Se agregaron y reordenaron (Calendar ahora va antes que Missions y
+     Wellbeing porque ambos lo necesitan y `CalendarReaderInterface` ya existe sin implementación;
+     Achievements se movió después de Villains porque escucha `VillainDefeated`) — el razonamiento
+     completo de cada posición queda en `docs/14-HISTORIAS-USUARIO.md`, no duplicado en el
+     roadmap. Referencias sueltas a "Fase 6" para Missions (en `AvatarAssetResolver.php`, la
+     migración de Pomodoro y el catálogo de imágenes) se cambiaron a texto sin número de fase, para
+     no quedar desactualizadas la próxima vez que se reordene.
+   - `README.md`: índice de docs actualizado con las entradas 14 y 15.
+   - `docs/06-SEGURIDAD.md` §7: nota nueva sobre la implicación de privacidad de la música de
+     YouTube (comparte IP del participante con Google mientras está activa) y una advertencia
+     explícita de que el consentimiento informado debería revisarse para cubrir este tipo de
+     servicio de terceros opcional — no es una decisión que le correspondiera resolver a esta
+     sesión, se dejó marcada.
+
+**Decisiones tomadas:** el tope de 40% para el ratio descanso/foco (investigado, no arbitrario,
+ver razonamiento en `docs/01-MODULOS.md §3`). Meta cuenta minutos de **foco puro**, no de
+descanso (interpretación de "quiero estudiar 4 horas" como tiempo de estudio real). Descanso largo
+derivado matemáticamente del descanso corto en vez de un selector propio (mantener pocos
+selectores, pedido explícito del usuario) — decisión de UI, no de la técnica Pomodoro en sí, que
+sí deja el descanso largo como un valor independiente en la literatura. Playlist por defecto
+verificada con `oEmbed` antes de comprometerse a un ID (la Lofi Girl clásica resultó no confiable
+a mediano plazo, hallazgo real de la investigación, no una suposición). No se tocó el esquema de
+base de datos de Pomodoro para nada de esto — meta, ciclos y música son 100% cliente, decisión
+consistente con que el descanso ya era client-only desde la sesión anterior.
+
+**Verificado cómo:** `composer check` completo tras el trabajo — Pint ✅ (encontró y corrigió un
+`single_quote` en `SecurityHeaders.php`, se re-corrió después), PHPStan nivel 6 ✅, **59/59 tests**
+✅ (ningún test de Pomodoro se rompió — todo lo nuevo es cliente, el backend no cambió), ESLint ✅
+(`npx eslint resources/js --max-warnings=0` sin salida), `npm run build` limpio. Navegador real de
+punta a punta con usuario de prueba `pomodebug@example.com` (`avatar_style=health`, career
+Medicina — borrado junto con sus `pomodoro_sessions` al terminar): (1) el grid de 3 selects
+compactos se ve chico y no ocupa la pantalla; (2) foco=25 filtra el descanso a `[3,5,10]`,
+excluyendo 15/20 — la regla anti-abuso funciona; (3) foco=50 reexpande el descanso a
+`[3,5,10,15,20]`, y bajar el foco a 15 con descanso=20 seleccionado lo reajustó solo a 5 (el mayor
+valor todavía válido); (4) ciclo completo probado en vivo 4 veces seguidas con el truco ya usado en
+la sesión anterior (atrasar `started_at` por tinker + pausar/reanudar para forzar que el cliente
+resincronice con el servidor y el propio tick detecte remaining=0): foco completa → toast "+15 XP"
+→ descanso corto arranca solo, hasta el 4° ciclo, donde arrancó correctamente un **descanso largo**
+de 15:00 con la etiqueta "Descanso largo" y el texto distinto; (5) con meta=1 hora y foco=15 (4
+ciclos), la barra de progreso subió en vivo (0→15→30→45→60 min) y mostró "1 h" en vez de "60 min"
+al llegar exacto a la meta; (6) la meta sobrevivió una recarga completa de página (localStorage)
+mientras que el estado "música activada" **no** sobrevivió (diseño a propósito, verificado); (7)
+música: botón activa el iframe con la playlist por defecto (thumbnail "BreakingCopyright" visible,
+coincide con lo verificado por oEmbed), pegar un ID inválido muestra el error inline, pegar una URL
+real de YouTube (`PL6NdkXsPL07Il2hEQGcLI4dg_LTg7xA2L`, playlist de Lofi Girl) cambia el iframe
+correctamente y aparece "Volver a la de por defecto"; sin errores de CSP en consola en ningún
+momento. Usuario de prueba y sus `pomodoro_sessions` borrados al terminar.
+
+**Pendiente / qué falta:** **no se esperó en tiempo real a que un descanso terminara solo** — en
+las 4 iteraciones del ciclo se usó "Saltar descanso" para avanzar rápido, así que la rama exacta
+`breakTimer` → `breakRemainingSeconds <= 0` → `(hasGoal && todayFocusMinutes >= goal) ?
+goalJustCompleted=true : startSession()` no se ejecutó nunca de forma orgánica dentro de esta
+sesión (se verificó por lectura de código y porque sus dos entradas — `hasGoal`/`todayFocusMinutes`
+— sí se confirmaron correctas en pantalla justo antes del último descanso largo). Un humano
+debería confirmar al menos una vez que un descanso corto de verdad termina solo y encadena al
+siguiente foco, y que la pantalla de "¡Meta cumplida!" aparece tal cual se diseñó. Tampoco se
+verificó sonido/vibración de nuevo (mismo caso ya documentado en la sesión anterior, sin cambios
+acá). tests, si se agrega en el futuro cobertura de frontend con Vitest para Pomodoro (hoy no
+existe, todo lo verificado de este módulo es backend + navegador manual), sería el lugar natural
+para automatizar exactamente este caso. Las ⚠️ decisiones pendientes marcadas dentro de
+`docs/14-HISTORIAS-USUARIO.md` (protocolo de crisis de AiAssistant, valores de XP de Achievements,
+etc.) siguen sin resolver — son decisiones de producto, no de esta sesión.
+
+---
+
 ## 2026-07-29 — Claude [Fase 5: Pomodoro completo + avatares por módulo + fixes de login]
 
 **Qué se hizo:** Sesión con tres bloques, todos a pedido directo del usuario tras ver el

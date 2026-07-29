@@ -1,10 +1,11 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseSelect from '@/Components/ui/BaseSelect.vue';
+import BaseInput from '@/Components/ui/BaseInput.vue';
 
 const props = defineProps({
     activeSession: { type: Object, default: null },
@@ -35,6 +36,8 @@ const props = defineProps({
  *    a completar solo cuando el tiempo restante real llega a 0.
  */
 
+const page = usePage();
+
 const session = ref(props.activeSession);
 const remainingSeconds = ref(0);
 const busy = ref(false);
@@ -43,8 +46,120 @@ const toast = ref(
         ? `Tu Pomodoro anterior se completó mientras no estabas: ${props.autoCompletedFocusMinutes} min de foco, +${props.autoCompletedXp ?? 0} XP.`
         : null,
 );
+
+/*
+ * Reglas de foco/descanso — investigadas explícitamente a pedido del
+ * usuario ("investiga acerca el pomodoro"), no inventadas:
+ * - Cirillo (técnica clásica): 25 min foco / 5 min descanso → ratio 20%.
+ * - Variantes documentadas y usadas en la práctica: 50/10 (20%),
+ *   52/17 (~33%, estudio DeskTime 2014), 90/20 (~22%).
+ * - Ninguna variante conocida supera ~35% de descanso respecto al foco.
+ * Por eso el tope duro es 40%: cubre todas las variantes reales con
+ * margen y bloquea combinaciones sin sentido como "10 min de foco, 20 de
+ * descanso" (200%) — el caso que el usuario pidió explícitamente que no
+ * se pudiera elegir. `docs/01-MODULOS.md §3` documenta esto también.
+ */
+const FOCUS_OPTIONS = [15, 20, 25, 30, 40, 50];
+const BREAK_MINUTES_ALL = [3, 5, 10, 15, 20];
+const BREAK_RATIO_MAX = 0.4;
+const LONG_BREAK_EVERY = 4; // técnica clásica: descanso largo cada 4 ciclos de foco seguidos
+
+function maxBreakForFocus(focusMinutes) {
+    // Redondeado, con piso de 3 (la opción más chica) para que la lista
+    // nunca quede vacía — con foco mínimo (15) da 6, que ya deja pasar 3 y 5.
+    return Math.max(3, Math.round(focusMinutes * BREAK_RATIO_MAX));
+}
+
 const plannedMinutesInput = ref(25);
-const durationOptions = [15, 20, 25, 30, 40, 50].map((n) => ({ value: n, label: `${n} min` }));
+const durationOptions = FOCUS_OPTIONS.map((n) => ({ value: n, label: `${n} min` }));
+
+const breakMinutesInput = ref(5);
+const availableBreakMinutes = computed(() => BREAK_MINUTES_ALL.filter((n) => n <= maxBreakForFocus(plannedMinutesInput.value)));
+const breakDurationOptions = computed(() => availableBreakMinutes.value.map((n) => ({ value: n, label: `${n} min` })));
+const breakHint = computed(() => {
+    const max = maxBreakForFocus(plannedMinutesInput.value);
+    return `Descanso corto: máx. ${max} min para ${plannedMinutesInput.value} min de foco (regla anti-abuso: nunca más del 40% del foco). Cada ${LONG_BREAK_EVERY}.º ciclo el descanso se alarga solo.`;
+});
+
+// Si el foco cambia y el descanso elegido deja de ser válido, se ajusta al
+// mayor valor todavía permitido — nunca se deja un estado imposible en pantalla.
+watch(plannedMinutesInput, () => {
+    if (!availableBreakMinutes.value.includes(breakMinutesInput.value)) {
+        breakMinutesInput.value = availableBreakMinutes.value.at(-1);
+    }
+});
+
+const longBreakMinutes = computed(() => Math.min(30, Math.max(15, breakMinutesInput.value * 3)));
+
+function formatMinutesLabel(totalMinutes) {
+    const min = Math.max(0, Math.round(totalMinutes));
+    if (min < 60) return `${min} min`;
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return m === 0 ? `${h} h` : `${h} h ${m} min`;
+}
+
+/*
+ * Meta de estudio del día (pedido explícito: "quiero estudiar 4 horas,
+ * elijo foco y descanso"). Es puramente de orientación en el cliente — no
+ * crea ninguna sesión propia ni se manda al servidor, se compara siempre
+ * contra `todaySessions` (verdad del servidor) para saber cuánto foco real
+ * ya se hizo hoy. `0` es el valor centinela de "Sin meta" (un <select>
+ * nativo no maneja bien `null` como value, y 0 minutos de meta no tiene
+ * sentido de todas formas).
+ */
+const GOAL_OPTIONS = [
+    { value: 0, label: 'Sin meta' },
+    { value: 60, label: '1 hora' },
+    { value: 90, label: '1.5 horas' },
+    { value: 120, label: '2 horas' },
+    { value: 180, label: '3 horas' },
+    { value: 240, label: '4 horas' },
+    { value: 300, label: '5 horas' },
+    { value: 360, label: '6 horas' },
+];
+const goalMinutesInput = ref(0);
+const hasGoal = computed(() => goalMinutesInput.value > 0);
+const goalJustCompleted = ref(false);
+
+// Clave por usuario + día: la meta de "hoy" no debería seguir apareciendo
+// mañana como si fuera la de hoy. Se guarda en localStorage porque no es
+// dato de investigación ni necesita sobrevivir a un cambio de navegador —
+// si se pierde, el usuario la vuelve a elegir en dos clics.
+const todayIso = new Date().toISOString().slice(0, 10);
+const goalStorageKey = computed(() => `epycus:pomodoro:goal:${page.props.auth?.user?.id ?? 'anon'}:${todayIso}`);
+
+watch(goalMinutesInput, (value) => {
+    if (value > 0) localStorage.setItem(goalStorageKey.value, String(value));
+    else localStorage.removeItem(goalStorageKey.value);
+});
+
+const todayCompletedSessions = computed(() => props.todaySessions.filter((s) => s.status === 'completed'));
+const todayCompletedCount = computed(() => todayCompletedSessions.value.length);
+const todayFocusMinutes = computed(() => todayCompletedSessions.value.reduce((sum, s) => sum + (s.focus_minutes ?? 0), 0));
+
+// Minutos de la sesión EN CURSO (todavía no está en `todaySessions`, que solo
+// se actualiza tras completar). Deriva de `remainingSeconds`, que ya se
+// recalcula cada segundo — así el progreso de la meta se ve avanzar en vivo,
+// no solo al terminar cada ciclo.
+const liveFocusMinutes = computed(() => {
+    if (!session.value || onBreak.value) return 0;
+    const total = session.value.planned_minutes * 60;
+    return Math.max(0, Math.floor((total - remainingSeconds.value) / 60));
+});
+const totalFocusMinutesToday = computed(() => todayFocusMinutes.value + liveFocusMinutes.value);
+const goalProgressPercent = computed(() => (hasGoal.value ? Math.min(100, Math.round((totalFocusMinutesToday.value / goalMinutesInput.value) * 100)) : 0));
+
+// Cuántas sesiones de foco haría falta iniciar para llegar a la meta, con
+// el foco elegido ahora mismo — informativo, no bloquea nada. Se compara
+// contra el tope de 8 sesiones con XP/día (docs/01-MODULOS.md §3) para
+// avisar sin sorpresas, no para impedir que el usuario estudie más.
+const projectedSessionsForGoal = computed(() => (hasGoal.value ? Math.ceil(goalMinutesInput.value / plannedMinutesInput.value) : 0));
+const exceedsDailyXpCap = computed(() => hasGoal.value && todayCompletedCount.value + projectedSessionsForGoal.value > 8);
+
+function isLongBreakCycle(cycleNumber) {
+    return cycleNumber % LONG_BREAK_EVERY === 0;
+}
 
 /*
  * La Técnica Pomodoro de verdad (corrección del usuario: lo anterior era
@@ -58,9 +173,9 @@ const durationOptions = [15, 20, 25, 30, 40, 50].map((n) => ({ value: n, label: 
  * que sigue siendo 100% del servidor) — aceptable porque un descanso
  * perdido no tiene ningún costo real, a diferencia de un foco perdido.
  */
-const breakMinutesInput = ref(5);
-const breakDurationOptions = [3, 5, 10, 15, 20].map((n) => ({ value: n, label: `${n} min` }));
 const onBreak = ref(false);
+const onBreakIsLong = ref(false);
+const breakTotalSeconds = ref(0);
 const breakRemainingSeconds = ref(0);
 let breakTimer = null;
 
@@ -91,9 +206,11 @@ function stopBreakTicker() {
     }
 }
 
-function startBreak() {
+function startBreak(isLong) {
     onBreak.value = true;
-    breakRemainingSeconds.value = breakMinutesInput.value * 60;
+    onBreakIsLong.value = isLong;
+    breakTotalSeconds.value = (isLong ? longBreakMinutes.value : breakMinutesInput.value) * 60;
+    breakRemainingSeconds.value = breakTotalSeconds.value;
     playChime();
     stopBreakTicker();
     breakTimer = setInterval(() => {
@@ -102,7 +219,16 @@ function startBreak() {
             stopBreakTicker();
             onBreak.value = false;
             playChime();
-            startSession(); // "y otra vez a enfoque" — el ciclo sigue solo
+            // Si hay meta y ya se llegó (con el foco YA acreditado por el
+            // servidor tras el `router.reload` disparado al completar), no
+            // se arranca otro foco solo — se corta el ciclo automático y se
+            // muestra el estado de "meta cumplida". Sin meta, sigue como
+            // siempre: foco → descanso → foco, sin que el usuario toque nada.
+            if (hasGoal.value && todayFocusMinutes.value >= goalMinutesInput.value) {
+                goalJustCompleted.value = true;
+            } else {
+                startSession(); // "y otra vez a enfoque" — el ciclo sigue solo
+            }
         }
     }, 1000);
 }
@@ -175,7 +301,7 @@ const CIRCLE_RADIUS = 90;
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
 const dashOffset = computed(() => CIRCLE_CIRCUMFERENCE * (progressPercent.value / 100));
 const breakDashOffset = computed(() => {
-    const total = breakMinutesInput.value * 60;
+    const total = breakTotalSeconds.value || 1;
     const elapsed = total - breakRemainingSeconds.value;
     return CIRCLE_CIRCUMFERENCE * Math.min(1, Math.max(0, elapsed / total));
 });
@@ -212,6 +338,7 @@ function csrfHeader() {
 }
 
 async function startSession() {
+    goalJustCompleted.value = false;
     busy.value = true;
     toast.value = null;
     try {
@@ -251,11 +378,16 @@ async function callAction(action) {
         }
         if (action === 'complete' || action === 'abandon') {
             stopTicker();
+            // El ciclo que se acaba de completar, calculado ANTES de pedir el
+            // reload — `todayCompletedCount` todavía refleja el estado previo
+            // acá (el reload es async), así que "+1" es exactamente el número
+            // de ciclo que corresponde al descanso que está por arrancar.
+            const cycleJustCompleted = action === 'complete' ? todayCompletedCount.value + 1 : null;
             session.value = null;
             router.reload({ only: ['todaySessions', 'stats'] });
             if (action === 'complete') {
                 toast.value = `¡Foco completado! +${body.xp_awarded ?? 0} XP. Empieza el descanso.`;
-                startBreak();
+                startBreak(isLongBreakCycle(cycleJustCompleted));
             }
         } else {
             applySession(body);
@@ -272,7 +404,81 @@ async function completeSession() {
     completing = false;
 }
 
+function continueStudying() {
+    goalJustCompleted.value = false;
+    startSession();
+}
+
+function chooseAnotherGoal() {
+    goalJustCompleted.value = false;
+    goalMinutesInput.value = 0;
+}
+
+/*
+ * Música de fondo — YouTube, opcional, 100% a pedido del usuario ("boton
+ * que diga al usuario... si no quiere, no presiona"). Nunca se carga sola:
+ * el <iframe> ni siquiera existe en el DOM hasta que `musicVisible` es
+ * true, y eso solo pasa con un clic explícito.
+ *
+ * Dominio `youtube-nocookie.com` (modo "sin cookies" de YouTube) en vez de
+ * `youtube.com`, y advertencia visible antes del reproductor: este
+ * proyecto ya tiene precedente documentado (docs/06-SEGURIDAD.md §7) de
+ * evitar que servicios de Google registren la IP de los participantes sin
+ * que esté declarado en el consentimiento informado — activar la música
+ * SÍ genera ese tráfico hacia Google mientras está encendida, así que se
+ * avisa en la propia pantalla en vez de ocultarlo. No se recuerda el
+ * "encendido" entre visitas (si se recordara, se cargaría solo en la
+ * próxima visita sin un clic nuevo, que es justo lo que se quiere evitar);
+ * solo se recuerda qué playlist eligió, para no tener que pegarla de nuevo.
+ */
+const DEFAULT_PLAYLIST_ID = 'PLfP6i5T0-DkIMLNRwmJpRBs4PJvxfgwBg'; // "Lofi Music (No Copyright)" — canal BreakingCopyright, verificado por oEmbed el 2026-07-29
+const musicVisible = ref(false);
+const activePlaylistId = ref(DEFAULT_PLAYLIST_ID);
+const customPlaylistInput = ref('');
+const musicError = ref('');
+const musicPlaylistStorageKey = computed(() => `epycus:pomodoro:music-playlist:${page.props.auth?.user?.id ?? 'anon'}`);
+const playlistEmbedUrl = computed(() => `https://www.youtube-nocookie.com/embed/videoseries?list=${activePlaylistId.value}`);
+const isCustomPlaylist = computed(() => activePlaylistId.value !== DEFAULT_PLAYLIST_ID);
+
+function extractPlaylistId(urlOrId) {
+    const trimmed = urlOrId.trim();
+    if (!trimmed) return null;
+    const fromUrl = trimmed.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+    if (fromUrl) return fromUrl[1];
+    if (/^[a-zA-Z0-9_-]{10,}$/.test(trimmed)) return trimmed; // ya es un ID de playlist, pegado directo
+    return null;
+}
+
+function useCustomPlaylist() {
+    const id = extractPlaylistId(customPlaylistInput.value);
+    if (!id) {
+        musicError.value = 'Pegá el link completo de una playlist de YouTube (o su ID) — no se reconoció el formato.';
+        return;
+    }
+    musicError.value = '';
+    activePlaylistId.value = id;
+    localStorage.setItem(musicPlaylistStorageKey.value, id);
+}
+
+function resetToDefaultPlaylist() {
+    musicError.value = '';
+    customPlaylistInput.value = '';
+    activePlaylistId.value = DEFAULT_PLAYLIST_ID;
+    localStorage.removeItem(musicPlaylistStorageKey.value);
+}
+
+function stopMusic() {
+    musicVisible.value = false;
+}
+
 onMounted(() => {
+    const savedGoal = Number(localStorage.getItem(goalStorageKey.value));
+    if (savedGoal > 0 && GOAL_OPTIONS.some((o) => o.value === savedGoal)) {
+        goalMinutesInput.value = savedGoal;
+    }
+    const savedPlaylist = localStorage.getItem(musicPlaylistStorageKey.value);
+    if (savedPlaylist) activePlaylistId.value = savedPlaylist;
+
     if (session.value) {
         syncClock(session.value.server_now);
         recomputeRemaining();
@@ -307,6 +513,24 @@ onUnmounted(() => {
         >
             {{ toast }}
         </div>
+
+        <!-- Barra de meta del día: visible siempre que haya una meta elegida,
+             sesión activa o no, para que el progreso no se pierda de vista. -->
+        <BaseCard v-if="hasGoal" class="mb-6">
+            <div class="flex items-center justify-between gap-2 text-sm">
+                <span class="font-semibold text-content-primary">
+                    Meta de hoy: {{ formatMinutesLabel(totalFocusMinutesToday) }} / {{ formatMinutesLabel(goalMinutesInput) }}
+                </span>
+                <span class="text-xs text-content-secondary">Ciclo {{ todayCompletedCount + 1 }}</span>
+            </div>
+            <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
+                <div class="h-full rounded-full bg-primary-strong transition-[width] duration-500" :style="{ width: goalProgressPercent + '%' }" />
+            </div>
+            <p v-if="exceedsDailyXpCap" class="mt-2 text-xs text-content-muted">
+                Con {{ plannedMinutesInput }} min de foco vas a necesitar ~{{ projectedSessionsForGoal }} sesiones para llegar a la meta — el sistema
+                solo da XP a las primeras 8 del día, el resto sigue contando para tu progreso pero sin XP extra.
+            </p>
+        </BaseCard>
 
         <BaseCard class="mb-6 text-center">
             <template v-if="session || onBreak">
@@ -355,13 +579,15 @@ onUnmounted(() => {
                             {{ onBreak ? formatTime(breakRemainingSeconds) : timeLabel }}
                         </p>
                         <p class="mt-1 text-xs text-content-secondary">
-                            {{ onBreak ? 'Descanso' : session.status === 'paused' ? 'En pausa' : 'En foco' }}
+                            {{ onBreak ? (onBreakIsLong ? 'Descanso largo' : 'Descanso') : session.status === 'paused' ? 'En pausa' : 'En foco' }}
                         </p>
                     </div>
                 </div>
 
                 <template v-if="onBreak">
-                    <p class="mt-4 text-sm text-content-secondary">Estirate, tomá agua. Ya volvés al foco.</p>
+                    <p class="mt-4 text-sm text-content-secondary">
+                        {{ onBreakIsLong ? 'Descanso largo: llevás 4 ciclos seguidos, tomate el tiempo completo.' : 'Estirate, tomá agua. Ya volvés al foco.' }}
+                    </p>
                     <div class="mt-6 flex justify-center gap-3">
                         <BaseButton variant="ghost" :disabled="busy" @click="skipBreak"> Saltar descanso </BaseButton>
                     </div>
@@ -378,24 +604,75 @@ onUnmounted(() => {
                 </template>
             </template>
 
+            <template v-else-if="goalJustCompleted">
+                <p class="font-display text-xl text-content-primary">¡Meta cumplida! 🎉</p>
+                <p class="mt-2 text-sm text-content-secondary">
+                    Completaste {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco en {{ todayCompletedCount }} ciclos hoy.
+                </p>
+                <div class="mt-6 flex flex-wrap justify-center gap-3">
+                    <BaseButton :disabled="busy" @click="continueStudying"> Seguir estudiando </BaseButton>
+                    <BaseButton variant="ghost" :disabled="busy" @click="chooseAnotherGoal"> Elegir otra meta </BaseButton>
+                </div>
+            </template>
+
             <template v-else>
                 <p class="mb-4 text-content-secondary">Elegí cuánto tiempo de foco y de descanso.</p>
-                <div class="mx-auto flex max-w-xs flex-col gap-4">
-                    <BaseSelect
-                        id="planned_minutes"
-                        v-model.number="plannedMinutesInput"
-                        label="Foco"
-                        :options="durationOptions"
-                    />
-                    <BaseSelect
-                        id="break_minutes"
-                        v-model.number="breakMinutesInput"
-                        label="Descanso"
-                        :options="breakDurationOptions"
-                    />
+                <!--
+                    Selects compactos en grid horizontal (pedido explícito del
+                    usuario: "la fila esta muy grande, hazlo mas pequeño") en vez
+                    del stack vertical anterior — `compact` en BaseSelect reduce
+                    texto y relleno, no la altura táctil (sigue en 44px).
+                -->
+                <div class="mx-auto grid max-w-md grid-cols-3 gap-2 sm:gap-3">
+                    <BaseSelect id="goal_minutes" v-model.number="goalMinutesInput" label="Meta" compact :options="GOAL_OPTIONS" />
+                    <BaseSelect id="planned_minutes" v-model.number="plannedMinutesInput" label="Foco" compact :options="durationOptions" />
+                    <BaseSelect id="break_minutes" v-model.number="breakMinutesInput" label="Descanso" compact :options="breakDurationOptions" />
                 </div>
+                <p class="mx-auto mt-2 max-w-md text-xs text-content-muted">{{ breakHint }}</p>
                 <BaseButton class="mt-4" :disabled="busy" @click="startSession"> Iniciar Pomodoro </BaseButton>
             </template>
+        </BaseCard>
+
+        <BaseCard class="mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 class="font-display text-lg text-content-primary">Música para enfocarte</h2>
+                    <p class="text-xs text-content-secondary">Playlist de YouTube, gratis. Totalmente opcional.</p>
+                </div>
+                <BaseButton v-if="!musicVisible" variant="secondary" @click="musicVisible = true"> 🎵 Activar música </BaseButton>
+                <BaseButton v-else variant="ghost" @click="stopMusic"> Detener música </BaseButton>
+            </div>
+
+            <div v-if="musicVisible" class="mt-4">
+                <p class="mb-2 text-xs text-content-muted">
+                    Esto carga un video de YouTube (Google) dentro de la página. Mientras esté activo, Google recibe tu IP como con cualquier video
+                    de YouTube que mires — es opcional y podés detenerlo cuando quieras con el botón de arriba.
+                </p>
+                <div class="aspect-video w-full overflow-hidden rounded-lg">
+                    <iframe
+                        :src="playlistEmbedUrl"
+                        class="h-full w-full"
+                        title="Reproductor de música de YouTube"
+                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        referrerpolicy="strict-origin-when-cross-origin"
+                    ></iframe>
+                </div>
+
+                <div class="mt-3 flex flex-wrap items-end gap-2">
+                    <div class="min-w-[220px] flex-1">
+                        <BaseInput
+                            id="custom_playlist"
+                            v-model="customPlaylistInput"
+                            label="¿Preferís tu propia playlist de YouTube?"
+                            placeholder="Pegá el link de una playlist de YouTube"
+                            :error="musicError"
+                        />
+                    </div>
+                    <BaseButton variant="ghost" @click="useCustomPlaylist"> Usar esta </BaseButton>
+                    <BaseButton v-if="isCustomPlaylist" variant="ghost" @click="resetToDefaultPlaylist"> Volver a la de por defecto </BaseButton>
+                </div>
+            </div>
         </BaseCard>
 
         <BaseCard class="mb-6">

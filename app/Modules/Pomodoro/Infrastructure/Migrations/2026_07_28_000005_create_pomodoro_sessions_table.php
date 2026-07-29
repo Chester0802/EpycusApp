@@ -7,7 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * `mission_id` sin FK a propósito: Missions (Fase 6) todavía no existe.
+ * `mission_id` sin FK a propósito: Missions (ver docs/13-ROADMAP.md) todavía no existe.
  * Cuando exista, agregar la constraint en una migración nueva — no se
  * inventa el esquema de esa tabla acá.
  *

@@ -35,16 +35,23 @@ flowchart TD
     F2 --> F3["Fase 3 — Habits"]
     F3 --> F4["Fase 4 — Gamification"]
     F4 --> F5["Fase 5 — Pomodoro"]
-    F5 --> F6["Fase 6 — Missions"]
-    F6 --> F7["Fase 7 — Wellbeing"]
-    F4 --> F8["Fase 8 — Villains"]
-    F4 --> F9["Fase 9 — Ranking + Personalization"]
-    F7 --> F10["Fase 10 — StudyGroups"]
-    F10 --> F11["Fase 11 — AiAssistant"]
-    F2 --> F12["Fase 12 — Admin"]
-    F8 --> F12
-    F9 --> F12
-    F11 --> F12
+    F5 --> F6["Fase 6 — Calendar"]
+    F6 --> F7["Fase 7 — Missions"]
+    F6 --> F8["Fase 8 — Wellbeing"]
+    F3 --> F9["Fase 9 — Villains"]
+    F5 --> F9
+    F7 --> F9
+    F4 --> F10["Fase 10 — Ranking + Personalization"]
+    F9 --> F11["Fase 11 — Achievements"]
+    F8 --> F11
+    F1 --> F12["Fase 12 — Motivation"]
+    F8 --> F13["Fase 13 — StudyGroups"]
+    F8 --> F14["Fase 14 — AiAssistant"]
+    F2 --> F15["Fase 15 — Admin"]
+    F10 --> F15
+    F11 --> F15
+    F13 --> F15
+    F14 --> F15
 
     style F2 fill:#c00000,color:#fff
     style F4 fill:#1f4e79,color:#fff
@@ -52,6 +59,14 @@ flowchart TD
 
 Rojo y azul son los módulos que `docs/01-MODULOS.md` marca como críticos — Telemetry y
 Gamification. Todo lo que viene después depende de que esos dos estén sólidos, no al revés.
+
+**Nota sobre esta versión del diagrama (2026-07-29):** las fases 6 en adelante se reordenaron y
+completaron respecto a la versión anterior de este documento, que solo tenía 7 fases pendientes
+(Missions, Wellbeing, Villains, Ranking+Personalization, StudyGroups, AiAssistant, Admin) pese a
+que `docs/01-MODULOS.md` documenta 16 módulos en total. Se agregaron `Calendar`, `Achievements`
+y `Motivation`, que ya estaban descritos en `01-MODULOS.md` pero no tenían fila propia acá — ver
+el razonamiento completo de cada posición en `docs/14-HISTORIAS-USUARIO.md` ("Orden recomendado").
+Si volvés a renumerar, actualizá los dos documentos juntos.
 
 ---
 
@@ -122,14 +137,23 @@ estructuralmente a `Identity` como referencia (`docs/11-ESTANDAR-CODIGO.md` §1,
 |---|---|---|
 | 3 | **Habits** `[x]` (2026-07-28) | El más simple. Primer contenido real, sienta el patrón que copian los demás. |
 | 4 | **Gamification** `[x]` (2026-07-28) 🔵 crítico | XP, niveles, fases, racha con gracia y monedero — completo y con tests. Achievements y Villains NO se tocaron: van en sus propias fases (§17 de docs/01-MODULOS.md los ubica después de Ranking). Los 400 assets Funko Pop del avatar tampoco existen (encargo de arte, no de código) — el Dashboard muestra el progreso en texto/números, sin imagen. |
-| 5 | **Pomodoro** `[x]` (2026-07-29) | Temporizador en el cliente, sincronizado con el servidor solo en las transiciones (`docs/01-MODULOS.md §3`). Sesión vencida mientras el usuario no estaba se resuelve sola al volver a abrir el módulo (`ResolveStaleSessionUseCase`) — no hay timer en el servidor. `mission_id` queda nullable, sin usar todavía (Missions no existe). |
-| 6 | **Missions** | Trae `subtasks`, más complejidad de UI que Pomodoro. |
-| 7 | **Wellbeing** | Diario + mood score; dato crítico (cifrado), conviene que Gamification ya esté maduro antes de otorgarle XP. |
-| 8 | **Villains** | Consume el bus de eventos de Gamification/Habits para dañar HP. |
-| 9 | **Ranking + Personalization** | Solo *leen* de Gamification por contrato (`docs/01-MODULOS.md`) — no pueden ir antes que su fuente. |
-| 10 | **StudyGroups** | Salas + chat con polling; autocontenido pero más trabajo de infraestructura (rate limiting, purga a 7 días). |
-| 11 | **AiAssistant** | Depende de presupuesto/cuota de DeepSeek y del protocolo de derivación de crisis (`docs/06-SEGURIDAD.md` §9) — el más sensible, va casi al final a propósito. |
-| 12 | **Admin** | Panel de solo lectura sobre todos los módulos anteriores. No puede ir antes que ellos. |
+| 5 | **Pomodoro** `[x]` (2026-07-29, ampliado 2026-07-29) | Temporizador en el cliente, sincronizado con el servidor solo en las transiciones (`docs/01-MODULOS.md §3`). Sesión vencida mientras el usuario no estaba se resuelve sola al volver a abrir el módulo (`ResolveStaleSessionUseCase`) — no hay timer en el servidor. `mission_id` queda nullable, sin usar todavía (Missions no existe). **Ampliado el mismo día** con meta de estudio diaria, validación de ratio foco/descanso (tope 40%, investigado contra la técnica real), descanso largo automático cada 4 ciclos, y música de fondo opcional vía YouTube (opt-in, `youtube-nocookie.com`) — todo documentado en `docs/01-MODULOS.md §3` "Ciclo completo, meta de estudio y música". |
+| 6 | **Calendar** | Sin interfaz propia. `Missions` y `Wellbeing` ya lo necesitan (`docs/01-MODULOS.md §15`); `CalendarReaderInterface` ya existe en `app/Shared/Domain/Contracts/` sin implementación real todavía. Historias de usuario en `docs/14-HISTORIAS-USUARIO.md`. |
+| 7 | **Missions** | Trae `subtasks`, más complejidad de UI que Pomodoro. Usa Calendar para vencimientos. |
+| 8 | **Wellbeing** | Diario + mood score; dato crítico (cifrado). Usa Calendar para marcar feriados/exámenes en su vista de calendario. |
+| 9 | **Villains** | Consume eventos de Habits, Pomodoro y Missions para dañar HP — necesita que los tres ya emitan sus eventos de dominio. |
+| 10 | **Ranking + Personalization** | Solo *leen* de Gamification por contrato (`docs/01-MODULOS.md`) — no pueden ir antes que su fuente. |
+| 11 | **Achievements** | Escucha eventos de Habits, Pomodoro, Missions, Villains y Wellbeing (incluido `VillainDefeated`) — por diseño va después de todos esos. |
+| 12 | **Motivation** | Contenido estático (frases + tips), sin dependencias reales más allá de Identity — puede adelantarse en paralelo a cualquier fase anterior si hay más de una persona disponible. |
+| 13 | **StudyGroups** | Salas + chat con polling (nunca WebSocket — el hosting no lo permite); autocontenido pero más trabajo de infraestructura (rate limiting, purga a 7 días). |
+| 14 | **AiAssistant** | Depende de que Wellbeing ya exista (una de sus tres fuentes de contexto) y del protocolo de derivación de crisis (`docs/06-SEGURIDAD.md` §9) — el más sensible, va casi al final a propósito. |
+| 15 | **Admin** | Panel de solo lectura sobre todos los módulos anteriores. No puede ir antes que ellos. |
+
+**A partir de la Fase 6, antes de programar cada módulo leer también su bloque completo en
+`docs/14-HISTORIAS-USUARIO.md`** (historias de usuario + criterios de aceptación Given/When/Then,
+citando siempre la regla exacta de `docs/01-MODULOS.md` de la que sale — y marcando
+explícitamente con ⚠️ las decisiones de producto que todavía no están tomadas, para no
+inventarlas a ciegas).
 
 ---
 
