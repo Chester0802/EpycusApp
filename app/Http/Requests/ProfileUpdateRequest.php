@@ -23,6 +23,7 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(UserModel::class)->ignore($this->user()->id),
             ],
+            'alias' => ['nullable', 'string', 'max:40', Rule::unique(UserModel::class)->ignore($this->user()->id)],
         ];
     }
 }

@@ -14,3 +14,8 @@ Artisan::command('inspire', function () {
 app(Schedule::class)->command('gamification:evaluate-streaks')
     ->dailyAt('00:10')
     ->timezone('America/Lima');
+
+// Marca vencidas las misiones del día anterior (00:05 Lima)
+app(Schedule::class)->command('missions:mark-overdue')
+    ->dailyAt('00:05')
+    ->timezone('America/Lima');

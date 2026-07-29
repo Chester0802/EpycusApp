@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Missions\Domain\Events;
+
+final readonly class MissionOverdue
+{
+    public function __construct(
+        public int $missionId,
+        public int $userId,
+        public string $title,
+        public string $dueDate,
+        public \DateTimeImmutable $occurredAt,
+    ) {}
+}

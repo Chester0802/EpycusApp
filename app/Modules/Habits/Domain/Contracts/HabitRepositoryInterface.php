@@ -15,6 +15,11 @@ interface HabitRepositoryInterface
      */
     public function getActiveForUser(int $userId): Collection;
 
+    /**
+     * @return Collection<int, HabitModel>
+     */
+    public function getArchivedForUser(int $userId): Collection;
+
     public function findByIdAndUser(int $habitId, int $userId): ?HabitModel;
 
     /**

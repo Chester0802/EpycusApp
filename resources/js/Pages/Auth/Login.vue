@@ -69,7 +69,7 @@ const submit = () => {
             Bienvenido a Epycus.
         </h1>
         <p class="mb-6 text-sm text-content-secondary">
-            Ingresa a tu cuenta para continuar tu intervención de estudio.
+            Ingresa a tu cuenta para continuar con tu progreso.
         </p>
 
         <form class="space-y-5" novalidate @submit.prevent="submit">

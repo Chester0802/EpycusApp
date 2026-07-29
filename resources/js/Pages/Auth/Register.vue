@@ -81,13 +81,13 @@ const submit = () => {
     <GuestLayout>
         <template #tagline>
             <p class="text-sm font-medium text-content-secondary">
-                Comienza tu intervención de 66 días
+                Comienza tu progreso
             </p>
         </template>
 
         <h1 class="mb-2 font-display text-2xl font-bold text-content-primary">Crear cuenta</h1>
         <p class="mb-6 text-sm text-content-secondary">
-            Regístrate para formar parte del estudio académico.
+            Regístrate para formar parte de una comunidad que quiere progresar.
         </p>
 
         <form class="space-y-4" novalidate @submit.prevent="submit">
@@ -194,7 +194,7 @@ const submit = () => {
                         >
                             Términos y Condiciones
                         </Link>
-                        del servicio y la participación en el estudio.
+                        del Proyecto Epycus.
                     </span>
                 </label>
                 <p v-if="form.errors.terms_accepted" class="mt-1 text-sm text-danger-text">

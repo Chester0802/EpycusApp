@@ -18,9 +18,18 @@ final class EloquentHabitRepository implements HabitRepositoryInterface
             ->where('user_id', $userId)
             ->where('is_active', true)
             ->with(['completions' => function ($query) {
-                $query->where('completed_for', '>=', Carbon::now()->subDays(30)->toDateString());
+                $query->where('completed_for', '>=', Carbon::now()->startOfMonth()->subMonth()->toDateString());
             }])
             ->orderBy('id', 'desc')
+            ->get();
+    }
+
+    public function getArchivedForUser(int $userId): Collection
+    {
+        return HabitModel::query()
+            ->where('user_id', $userId)
+            ->where('is_active', false)
+            ->orderBy('updated_at', 'desc')
             ->get();
     }
 

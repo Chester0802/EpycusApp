@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Habits\Application\DTOs;
+
+final readonly class UpdateHabitDTO
+{
+    public function __construct(
+        public int $habitId,
+        public int $userId,
+        public string $title,
+        public string $category,
+        public array $frequency,
+        public ?string $icon = null,
+    ) {}
+}

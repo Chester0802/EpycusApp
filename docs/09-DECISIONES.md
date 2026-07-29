@@ -483,4 +483,52 @@ Esa inversión de prioridades —el instrumento por encima del producto— es lo
 1. **Interfaz Limpia y Natural**: Se omitirán términos como *"intervención"*, *"estudio"* o *"experimento"* en los textos visibles de la aplicación (subtítulos, dashboards, botones y módulos de contenido).
 2. **Ubicación Exclusiva en Términos y Condiciones**: Toda la información detallada del protocolo de investigación, derechos del participante y consentimiento ético permanecerá exclusivamente en la página de Términos y Condiciones (`/terms`) enlazada durante el registro y login.
 
+---
+
+## D-Z · Calendar module con interfaz propia (desviación de los docs)
+
+**Fecha:** 2026-07-29. **Solicitante:** usuario (marcó).
+
+**Contexto:** `docs/01-MODULOS.md §15` define Calendar como un "servicio de calendario compartido" sin interfaz propia, que provee datos a Wellbeing, Missions y Dashboard. El usuario pidió expresamente un calendario unificado que muestre feriados, semanas de examen y misiones juntos.
+
+**Alternativas.** (a) Mantener Calendar sin interfaz y que cada módulo tenga su propio calendario (missions.calendar, wellbeing.calendar, etc.). (b) Crear Calendar con interfaz propia y eliminar los calendarios individuales de otros módulos.
+
+**Decisión.** Calendar module con interfaz propia (`/calendar`), implementando `CalendarReaderInterface` (el contrato de Shared) para que Wellbeing y otros módulos sigan pudiendo leer feriados sin acoplamiento. Missions ya no tiene su propio calendario.
+
+**Fundamento.** El usuario prefiere un solo punto de entrada calendárico. La implementación de `CalendarReaderInterface` en el mismo módulo evita duplicar la lógica de feriados/exámenes. Missions se conecta a Calendar por inyección directa de `MissionRepositoryInterface`.
+
+**Costo asumido:** Calendar deja de ser "sin interfaz" como dicen los docs — ese párrafo queda desactualizado. Wellbeing cuando se construya debe inyectar `CalendarReaderInterface` para marcar feriados, no duplicar lógica.
+
+---
+
+## D-AA · Drag-and-drop nativo HTML5 en subtareas (sin librería externa)
+
+**Fecha:** 2026-07-29. **Solicitante:** ingeniería.
+
+**Contexto:** Las subtareas de Misiones necesitan reordenarse por arrastre (`docs/01-MODULOS.md §4`). Las opciones disponibles son SortableJS, vue-draggable-plus o HTML5 Drag and Drop nativo.
+
+**Alternativas.** (a) SortableJS — librería probada pero dependencia externa. (b) vue-draggable-plus — wrapper Vue, misma dependencia subyacente. (c) HTML5 Drag and Drop nativo — cero dependencias, soportado en todos los navegadores modernos.
+
+**Decisión.** Implementar con HTML5 Drag and Drop nativo.
+
+**Fundamento.** La funcionalidad es simple (reordenar una lista plana), no necesita animaciones complejas ni soporte táctil avanzado. Agregar una dependencia para esto no se justifica. El handle visual `⠿` da feedback suficiente.
+
+**Costo asumido:** En dispositivos táctiles la experiencia de arrastre nativa es menos pulida que con SortableJS. Si en pruebas con usuarios resulta frustrante, se puede reemplazar sin cambiar el backend (el endpoint `reorderSubtasks` ya existe).
+
+---
+
+## D-AB · Session flash para XP en lugar de calcularlo desde el controlador
+
+**Fecha:** 2026-07-29. **Solicitante:** ingeniería (bug).
+
+**Contexto:** El método `MissionsController::complete()` intentaba leer `session()->pull('xp_awarded', 0)` para mostrar el XP ganado en el toast, pero ningún código escribía ese valor en sesión. Siempre mostraba "+0 XP" aunque el use case awardara XP real.
+
+**Alternativas.** (a) Hacer que el use case retorne el valor y pasarlo desde el controlador. (b) Guardar en session flash dentro del use case.
+
+**Decisión.** El use case escribe `session()->flash('xp_awarded', $xp)` antes de emitir el evento.
+
+**Fundamento.** Coincide con el patrón del módulo Habits (`HabitsController::toggle()` mide XP por diferencia de totales). El flash sobrevive exactamente un request y se limpia solo, sin riesgo de contaminar otros flujos.
+
+**Costo asumido:** El use case now tiene un side effect de sesión, que no es ideal para un caso de uso puro. Alternativa más limpia sería retornar el DTO, pero requeriría cambiar la firma del execute() — y eso cascaría en ToggleSubtaskUseCase que también llama a CompleteMissionUseCase.
+
 

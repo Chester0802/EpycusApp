@@ -453,8 +453,8 @@
      * §3), las sombras se recalculan solas sin tocar este archivo.
      */
     [data-surface='neumorphism'] {
-        --neu-light: color-mix(in oklch, var(--color-bg) 80%, white 20%);
-        --neu-dark: color-mix(in oklch, var(--color-bg) 76%, black 24%);
+        --neu-light: color-mix(in oklch, var(--color-bg) 90%, white 00%);
+        --neu-dark: color-mix(in oklch, var(--color-bg) 90%, black 0%);
         --neu-distance: 9px;
         --neu-blur: 18px;
 

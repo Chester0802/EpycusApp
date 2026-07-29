@@ -30,7 +30,7 @@ defineProps({
             <div class="flex flex-col items-center gap-6 sm:flex-row">
                 <div
                     v-if="avatarImage"
-                    class="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl bg-surface-raised p-2"
+                    class="flex h-44 w-32 shrink-0 items-center justify-center rounded-2xl bg-surface-raised p-2"
                 >
                     <img :src="avatarImage" alt="Tu avatar" class="h-full w-full object-contain" />
                 </div>

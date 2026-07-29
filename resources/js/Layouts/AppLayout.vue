@@ -34,7 +34,8 @@ const navItems = [
     { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
     { label: 'Hábitos', routeName: 'habits.index', icon: 'habits' },
     { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro' },
-    { label: 'Misiones', comingSoon: true, icon: 'missions' },
+    { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
+    { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
     { label: 'Perfil', routeName: 'profile.edit', icon: 'user' },
 ];
 

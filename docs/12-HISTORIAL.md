@@ -34,6 +34,80 @@ Revisar código no es verificar que funciona — ver `docs/11-ESTANDAR-CODIGO.md
 verdad no se corrió nada, escribir eso tal cual; es más útil una entrada honesta que una que
 finge haber probado algo que no probó.
 
+## 2026-07-29 — Claude [Calendar module finalizado: fix interface mismatch, cache, UX + revisión general + cierre de sesión]
+
+**Qué se hizo:**
+
+1. **Fix error 500 en `/calendar`:** `EloquentCalendarRepository` implementaba dos interfaces con `isHoliday()` de distinta firma (`string` vs `DateTimeImmutable`). Se eliminaron los métodos redundantes de `CalendarRepositoryInterface` (solo conserva `getHolidaysInMonth`), la clase ahora usa únicamente la firma `isHoliday(\DateTimeImmutable): bool` de `CalendarReaderInterface`.
+2. **Cache 24h para feriados:** `getAllHolidays()` con `Cache::remember('calendar_holidays', 86400, ...)` — evita consultar BD en cada visita.
+3. **CalendarController** refactorizado: usa `CalendarReaderInterface` para `isExamWeek()` en vez de duplicar lógica, pasa `academicCycle` a la vista.
+4. **UX del calendario mejorado:** selector de mes/año con picker (click en título), botón "Hoy", tooltips en feriados/exámenes/misiones, leyenda visual, empty state con enlace a crear misión.
+5. **Revisión general:** lint ✅, build ✅, 59 tests ✅, rutas verificadas.
+6. **Docs actualizados:** `01-MODULOS.md §15` ya no dice "sin interfaz propia", refleja que Calendar tiene vista propia.
+7. **HISTORIAL.md y DECISIONES.md** actualizados con todas las sesiones del día.
+
+**Decisiones tomadas:** Se eliminaron métodos del `CalendarRepositoryInterface` interno para resolver el conflicto de firmas — `CalendarReaderInterface` es el contrato público que importa, el interno solo necesita `getHolidaysInMonth`.
+
+**Verificado cómo:** `npm run lint` ✅, `npm run build` ✅, `php artisan test` 59/59 ✅, `php artisan route:list --path=calendar` ✅ (1 ruta), `php artisan route:list --path=missions` ✅ (10 rutas), navegador real a `/calendar` ya no da 500.
+
+**Pendiente / qué falta:** Módulos sin implementar: Wellbeing, Villains, StudyGroups, Ranking, AiAssistant, Achievements, Motivation, Admin. El roadmap en `docs/13-ROADMAP.md` tiene el orden sugerido.
+
+---
+
+## 2026-07-29 — Claude [Calendar module independiente con feriados + conexión a Missions]
+
+**Qué se hizo:**
+
+1. **Calendar module creado desde cero** (`app/Modules/Calendar/`), estructura DDD completa:
+   - Migración `holidays` con seed de los 16 feriados peruanos 2026
+   - `HolidayModel`, `CalendarRepositoryInterface`, `EloquentCalendarRepository`
+   - `CalendarServiceProvider` registrado en `bootstrap/providers.php`
+   - Implementa `CalendarReaderInterface` de `Shared/Domain/Contracts/` (`isHoliday`, `isExamWeek`, `isNonWorkingDay`, `interventionDayFor`)
+   - `config/academic.php` con ciclo 2026-2, semanas de examen
+   - Ruta `GET /calendar` → `Calendar/Index.vue`
+   - Nav item "Calendario" con icono propio en `NavIcon.vue`, entre Misiones y Perfil
+2. **Vista unificada**: cuadrícula mensual que muestra feriados (🏖), semanas de examen (📝) y misiones por fecha de vencimiento (lee via `MissionRepositoryInterface`)
+3. **Misiones disconnected de su propio calendario**: se eliminó `missions.calendar`, se borró `Missions/Calendar.vue`, se quitó el link "Calendario" de `Missions/Index.vue`
+4. **`01-MODULOS.md` §15 actualizado**: refleja que Calendar ahora tiene interfaz propia además del contrato de lectura
+
+**Decisiones tomadas:** Calendar deja de ser "sin interfaz propia" como decían los docs — ahora tiene vista propia porque el usuario pidió un calendario unificado. El contrato `CalendarReaderInterface` sigue existiendo para que Wellbeing y otros módulos consuman feriados sin acoplamiento. Missions se conecta a Calendar por `MissionRepositoryInterface` inyectado directamente en `CalendarController` (no vía contrato Shared — se puede extraer después si hace falta).
+
+**Verificado cómo:** `npm run lint` ✅, `npm run build` ✅, migración ejecutada (`php artisan migrate`), seed ejecutado (`php artisan db:seed --class=HolidaySeeder`), `php artisan route:list --path=calendar` muestra 1 ruta, `php artisan route:list --path=missions` muestra 10 rutas (calendar eliminado correctamente).
+
+**Pendiente / qué falta:** Wellbeing cuando se construya debe inyectar `CalendarReaderInterface` para marcar feriados/exámenes en su calendario de ánimo.
+
+---
+
+## 2026-07-29 — Claude [Módulo Missions completo + Heatmap hábitos + Archivar hábitos]
+
+**Qué se hizo:** Tres tandas de trabajo sobre el módulo Hábitos y la construcción completa del módulo Misiones:
+
+### Hábitos (mejoras)
+1. **Heatmap cambiado de barra 30d a cuadrícula mensual** — rejilla Lu–Do, celdas `h-4`, iniciales de día, días anteriores a `created_at` atenuados (`opacity-30` + `·`), completados con `bg-primary` + `✓`
+2. **Adherencia ahora sobre mes actual**, no últimos 30 días — usa `currentMonthDays` con filtro `isBeforeCreation`
+3. **Padding de tarjetas reducido** (`p-5` → `p-3`)
+4. **Archivar/desarchivar hábitos** — `ArchiveHabitUseCase`, `UnarchiveHabitUseCase`, eventos `HabitArchived`/`HabitUnarchived`, rutas `PATCH /habits/{id}/archive` y `unarchive`, sección colapsable "📦 Archivados (N)" al final de la lista
+
+### Missions (construcción completa)
+5. **Backend (18 archivos):** Migración `missions` + `subtasks`, `MissionModel`/`SubtaskModel`, eventos (`MissionCreated`, `MissionStarted`, `MissionCompleted`, `SubtaskCompleted`), repositorio con orden por estado (vencidas → vence hoy → vence esta semana → prioridad → resto), 5 use cases (`Create`, `Update`, `Delete`, `Complete`, `ToggleSubtask`), controller con markOverdue automático, `MissionsServiceProvider`
+6. **Frontend `Missions/Index.vue`:** Lista agrupada (Vencidas → Vence hoy → Vence esta semana → Otras → Completadas colapsable), modal crear/editar, subtasks dinámicas (0-20), sugerencia dividir tarea difícil, stats, toggle subtask
+7. **Max 3 XP/día** — `CompleteMissionUseCase` chequea `countCompletedToday`, si ≥ 3 pone XP en 0
+8. **MissionOverdue cron** — comando `missions:mark-overdue` (00:05 Lima) + evento `MissionOverdue`
+9. **UpdateSubtask** — use case + endpoint `PATCH /subtasks/{id}` + UI inline edit (click → input, Enter/blur guarda, Escape cancela)
+10. **AddSubtask post-creación** — use case + endpoint `POST /subtasks` (max 20) + UI inline form
+11. **ReorderSubtasks** — use case + endpoint `POST /subtasks/reorder` + UI drag nativo HTML5 (handle `⠿`)
+12. **Reorder misiones** — selector `sort_by` (defecto/prioridad/dificultad/creación) en el header de la lista
+13. **GetMissionDetail** — ruta `GET /missions/{id}`, vista `Missions/Detail.vue` con botón "⏱ Enfocarme" que navega a Pomodoro con `mission_id`
+14. **Fixes:** `completed_missions` → `completedMissions` camelCase, `BaseBadge` import eliminado, `stateLabel` no usada eliminada
+
+**Decisiones tomadas:** `CompleteMissionUseCase` ahora guarda `xp_awarded` en session flash para el mensaje de toast (antes el controller intentaba leer `session()->pull('xp_awarded')` pero nadie lo escribía — mensaje siempre decía 0 XP). Drag-and-drop nativo HTML5 en vez de librería externa (SortableJS/vue-draggable-plus) para no añadir dependencias.
+
+**Verificado cómo:** `npm run lint` ✅, `npm run build` ✅ (Missions/Index pasa de 15.90 kB a 24.94 kB con todas las features nuevas), `php artisan route:list --path=missions` muestra 11 rutas (después 10 al mover calendar fuera). Migración Missions ejecutada.
+
+**Pendiente / qué falta:** Missions completo contra docs §4. Calendar module creado en sesión siguiente.
+
+---
+
 ## 2026-07-29 — Claude [Pomodoro: meta de estudio, ratio foco/descanso, música YouTube + documentación de fases pendientes]
 
 **Qué se hizo:** Sesión a pedido directo del usuario sobre el módulo Pomodoro ya construido en la

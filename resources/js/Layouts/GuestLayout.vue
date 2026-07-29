@@ -61,7 +61,7 @@ const { surface } = useTheme();
 
                 <!-- Footer mínimo -->
                 <p class="mt-8 text-center text-xs text-content-muted">
-                    © {{ new Date().getFullYear() }} Epycus — Proyecto de investigación
+                    © {{ new Date().getFullYear() }} Proyecto Epycus
                 </p>
             </div>
         </div>

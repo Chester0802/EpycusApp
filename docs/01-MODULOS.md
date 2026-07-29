@@ -739,7 +739,7 @@ final class NoRepeatPicker
 
 ## 15. Calendar — Calendario peruano
 
-Servicio de calendario compartido. **No tiene interfaz propia**: provee datos a Wellbeing, Missions y Dashboard.
+Servicio de calendario compartido con interfaz propia (`/calendar`). Provee datos a Wellbeing, Missions y Dashboard mediante `CalendarReaderInterface`, y además muestra una vista unificada con feriados, semanas de examen y misiones por fecha de vencimiento.
 
 **Entidades:** `Holiday`, `AcademicPeriod`
 
