@@ -34,6 +34,114 @@ Revisar código no es verificar que funciona — ver `docs/11-ESTANDAR-CODIGO.md
 verdad no se corrió nada, escribir eso tal cual; es más útil una entrada honesta que una que
 finge haber probado algo que no probó.
 
+## 2026-07-29 — Claude [Fase 5: Pomodoro completo + avatares por módulo + fixes de login]
+
+**Qué se hizo:** Sesión con tres bloques, todos a pedido directo del usuario tras ver el
+resultado del bloque anterior de avatares:
+
+1. **Rediseño de avatares** — el usuario no quiso las 4 imágenes juntas en el Dashboard.
+   `AvatarAssetResolver::imageForModule()` reemplaza `imagesFor()`: cada módulo tiene un dígito
+   de orden fijo (Dashboard=1, Hábitos=2, Misiones=3, Pomodoro=4) y muestra **una sola imagen**,
+   elegida al azar entre cualquier fase disponible para ese orden (no la fase real de progreso
+   del usuario — es puramente decorativo). Conectado en Dashboard, Hábitos y Pomodoro; Misiones
+   documentado para cuando exista.
+2. **Login**: la imagen hero se veía cortada a la mitad de caras/piernas en móvil
+   (`object-cover` con poca altura recortaba el centro de una imagen compuesta por dos
+   personajes de cuerpo entero). `GuestLayout.vue` ganó un slot opcional `heroImage`: en
+   escritorio arma dos columnas (imagen completa a la izquierda, formulario a la derecha, sin
+   recortar nada); en móvil se apila arriba con más alto y `object-position: top`. Register no
+   usa el slot y queda visualmente idéntico a antes. Se agregó `ThemeToggle` al login (pedido
+   explícito) — funciona sin sesión porque el composable usa `localStorage`, no depende de auth.
+3. **Fase 5 — Pomodoro completo**, con foco en robustez ante interrupciones reales (pedido
+   explícito: "el ser humano es raro", cerrar el navegador con una sesión corriendo, cambiar de
+   app, etc.). Arquitectura calcada de `docs/01-MODULOS.md §3`: temporizador en el **cliente**,
+   sincronizado con el servidor solo al iniciar/pausar/reanudar/completar/abandonar — nunca un
+   timer corriendo en el servidor (1 núcleo de CPU). El caso central ("inicio y cierro el
+   navegador") se resuelve con `ResolveStaleSessionUseCase`: cada vez que se visita `/pomodoro`
+   (o se intenta iniciar una sesión nueva), si la que quedó `running` ya debería haber
+   terminado, se completa sola con el timestamp exacto en que habría terminado — antes de que
+   el usuario vea nada. `paused` nunca se resuelve solo, sin importar cuánto tiempo pase
+   (pausar detiene el reloj a propósito). Círculo de progreso pedido por el usuario en vivo,
+   con `stroke-dashoffset` que se va "cerrando" con el tiempo (tamaño ajustado dos veces más
+   chico también a pedido en vivo).
+4. **Ciclo real de la Técnica Pomodoro** (foco→descanso→foco), corrección del usuario tras ver
+   que la primera versión era solo un cronómetro de una vez: al completar el foco, suena un
+   tono generado con Web Audio API + vibra (`navigator.vibrate`) y arranca un descanso — **sin
+   sesión de servidor propia**, es puramente del lado del cliente (docs/01-MODULOS.md §3 no
+   define ninguna regla de dominio para el descanso, solo aparece como la pareja "25/5 min").
+   Al terminar el descanso, vuelve a sonar/vibrar y arranca un foco nuevo solo ("y otra vez a
+   enfoque"), sin que el usuario tenga que tocar nada — con un botón "Saltar descanso" para
+   cortar el ciclo antes. Consecuencia aceptada: cerrar el navegador *durante* un descanso lo
+   pierde al volver (no así el progreso de foco, que sigue siendo 100% autoridad del servidor).
+
+**Decisiones tomadas:** anti-manipulación **más estricta** que el ejemplo de
+`docs/01-MODULOS.md §3`: ahí el servidor valida un `completed_at` que manda el cliente; acá
+ni `started_at` ni `completed_at` vienen del cliente en ningún momento — los dos son el reloj
+del servidor, así que no hay nada que el cliente pueda mentir. `source_id` de XP para Pomodoro
+es directamente el id de la sesión (a diferencia de Hábitos, que necesitó codificar
+habit_id+fecha) porque cada sesión es una fila nueva, nunca se apaga/prende como un hábito.
+
+**Bugs reales encontrados probando, no en teoría (los tres costaron una vuelta de depuración
+cada uno):**
+- **Carbon 3 invirtió el signo de `diffInSeconds`** respecto a Carbon 2: `$a->diffInSeconds($b)`
+  da negativo si `$b` es anterior a `$a` (no un valor absoluto por default). Tenía el orden de
+  los operandos al revés en `PomodoroSessionModel::elapsedActiveSeconds()` y
+  `ResumePomodoroUseCase` — todo el módulo calculaba 0 segundos transcurridos hasta corregirlo.
+  Verificado con tinker, no asumido.
+- **`timestamp()` de MySQL/MariaDB se convierte según el `time_zone` de la sesión** — la
+  migración usaba `$table->timestamp(...)` para `started_at`/`paused_at`/`ended_at`, y
+  `paused_at` volvía leído 5 horas adelantado respecto a `started_at` pese a haberse guardado
+  segundos después (probado en navegador real, no en los tests con SQLite, que no tienen este
+  comportamiento). `habit_completions.completed_at` ya usaba `dateTime()` — se corrigió Pomodoro
+  al mismo patrón (sin conversión de zona horaria nunca).
+- **Rutas de Pomodoro sí exigen CSRF** (a diferencia de la de Telemetría, excluida en
+  `bootstrap/app.php`) — los `fetch()` del frontend daban "CSRF token mismatch" hasta agregar la
+  cabecera `X-XSRF-TOKEN` (mismo mecanismo de `useTelemetry.js`, sin el `X-CSRF-TOKEN` que en
+  una sesión anterior se descubrió que rompe la precedencia si se manda junto con el otro).
+- **Clases `stroke-*`/`fill-*` de Tailwind sobre los tokens de color propios no se aplicaban**
+  al círculo del temporizador (salía relleno de negro sólido) — mismo arreglo que ya se había
+  usado en `NavIcon.vue`: `fill="none"` como atributo SVG literal + `stroke="currentColor"` +
+  clase `text-*` para el color, en vez de `stroke-primary-strong` como clase directa.
+- **`h-36`/`w-36` no estaban llegando al CSS servido por Vite en desarrollo** (el círculo salía
+  de 891px en vez de 144px, confirmado con `getComputedStyle` y revisando `document.styleSheets`
+  directamente — la clase no estaba en ninguna hoja de estilo cargada, pese a compilar bien en
+  un build de producción anterior). Se resolvió con tamaño por estilo inline en vez de depender
+  de esa utilidad puntual; no se investigó la causa raíz del todo (posible caché del servidor de
+  Vite) — si vuelve a pasar con otra clase, vale la pena mirar ahí primero.
+
+**Verificado cómo:** `tests/Feature/Pomodoro/PomodoroSessionTest.php` (8 tests): inicio, no se
+puede iniciar dos veces, rechazo antes del 95% del tiempo planificado, XP otorgado al completar
+después del 95%, **una sesión dejada corriendo se completa sola al volver a preguntar por ella
+horas después** (el caso central pedido), pausar excluye el tiempo pausado del cálculo, abandonar
+registra minutos parciales sin XP, tope diario de 8 sesiones. `composer check` completo: Pint ✅,
+PHPStan nivel 6 ✅, **59/59 tests** ✅, ESLint ✅. Navegador real: login con imagen completa en
+escritorio (dos columnas) y sin recorte en móvil, toggle de tema visible y funcional desde
+login sin sesión, avatar de Hábitos/Pomodoro/Dashboard mostrando una sola imagen que cambia de
+carrera+fase al azar en cada recarga, ciclo completo iniciar→pausar→reanudar→abandonar en
+`/pomodoro` con el círculo mostrando el tiempo real correctamente tras el fix de zona horaria.
+**El ciclo foco→descanso→foco se probó de punta a punta en navegador real** (no solo por tests):
+se atrasó `started_at` de una sesión real vía tinker para forzar que el foco se completara solo
+al reanudar de una pausa, confirmando en pantalla la secuencia completa — toast "¡Foco
+completado! +15 XP", círculo cambia a verde mostrando la cuenta regresiva del descanso,
+"Saltar descanso" arranca un foco nuevo inmediatamente — sin esperar los 25 minutos reales.
+Usuarios de prueba borrados al terminar junto con sus filas relacionadas.
+
+**Pendiente / qué falta:** "Resumen de la semana" (barras de minutos de foco por día) y
+paginación del historial de `docs/01-MODULOS.md §3` ("Historial integrado") no se construyeron
+— se priorizó la robustez ante interrupciones sobre el pulido visual completo, a pedido
+explícito del usuario ("que sí requiere que lo hagas bien" fue sobre los bugs de uso, no sobre
+gráficos). El aviso de "tu Pomodoro anterior se completó solo" (cierre de navegador completo,
+no solo pestaña en script) se probé por tests de backend (`Carbon::setTestNow`) y por el truco
+de atrasar `started_at` en vivo, pero no por un cierre real del navegador del sistema operativo
+— razonablemente equivalente, pero no idéntico. Missions (orden=3 de avatares) sigue sin
+construirse. La causa raíz de por qué `h-36`/`w-36` no compilaban en dev quedó sin investigar a
+fondo. El sonido (Web Audio API) y la vibración (`navigator.vibrate`) no se pudieron verificar
+en este navegador automatizado (no hay forma de "escuchar" ni de confirmar una vibración real
+desde acá) — el código no tira error si el navegador los bloquea (try/catch alrededor del
+`AudioContext`), pero vale la pena que un humano confirme que efectivamente suenan/vibran.
+
+---
+
 ## 2026-07-28 — Claude [primer bloque de assets de avatar]
 
 **Qué se hizo:** El usuario entregó 36 PNG sin fondo en la raíz del repo (`Base_Fem_1{1-4}`,

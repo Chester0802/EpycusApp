@@ -38,15 +38,23 @@ const submit = () => {
             </p>
         </template>
 
-        <!-- Banner / Hero visual si la imagen existe en public/assets/images -->
-        <div class="mb-6 overflow-hidden rounded-xl bg-surface-raised border border-border-interactive/30">
+        <!--
+            Hero de dos personajes. En móvil se apila arriba del formulario:
+            antes se veía cortado a la mitad de las caras/piernas porque
+            `object-cover` con poca altura (h-32/h-40) recorta el centro de
+            una imagen compuesta para verse completa — ahora usa más alto
+            (h-64) y `object-position: top` para no perder las caras.
+            En escritorio (columna izquierda de GuestLayout, `lg:w-1/2`) usa
+            el alto completo del panel, sin recortar nada.
+        -->
+        <template #heroImage>
             <img
                 src="/assets/images/login-hero.webp"
                 alt="Epycus Hero"
-                class="h-32 w-full object-cover sm:h-40"
+                class="h-64 w-full object-cover object-top lg:h-full"
                 onerror="this.style.display='none'"
             />
-        </div>
+        </template>
 
         <!-- Mensaje de estado (p. ej. "Enlace de restablecimiento enviado") -->
         <div

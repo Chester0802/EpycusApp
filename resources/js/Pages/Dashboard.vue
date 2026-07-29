@@ -8,13 +8,14 @@ defineProps({
         type: Object,
         required: true,
     },
-    // Ya viene barajado desde el servidor (DashboardController) — una
-    // recarga completa es una petición nueva, así que el orden cambia solo
-    // con recargar, sin lógica extra acá (docs/04-DISENO-VISUAL.md, bloque
-    // 1 de avatares).
-    avatarImages: {
-        type: Array,
-        default: () => [],
+    // Un solo personaje (orden=1 para Dashboard), fase al azar — ya
+    // resuelto en el servidor por AvatarAssetResolver. Corrección del
+    // usuario: la primera versión mostraba 4 imágenes juntas y no le
+    // gustó; ahora es una sola, distinta cada vez que se recarga la
+    // página (docs/04-DISENO-VISUAL.md, bloque 1 de avatares).
+    avatarImage: {
+        type: String,
+        default: null,
     },
 });
 </script>
@@ -25,23 +26,16 @@ defineProps({
     <AppLayout>
         <h1 class="mb-6 font-display text-3xl text-content-primary">Inicio</h1>
 
-        <!--
-            Bloque 1 de assets de avatar ya conectado (2026-07-28): Base
-            (fase 1, todas las carreras) + Medicina/Tecnico desde fase 2.
-            Faltan estilos (business/systems/law) y fases 5-10 — cuando
-            lleguen, esta tarjeta no necesita cambios: AvatarAssetResolver
-            ya hace fallback a lo que exista.
-        -->
         <BaseCard class="mb-6">
-            <div class="flex flex-col gap-6 sm:flex-row">
+            <div class="flex flex-col items-center gap-6 sm:flex-row">
                 <div
-                    v-if="avatarImages.length > 0"
-                    class="flex h-40 w-40 shrink-0 items-center justify-center self-center rounded-2xl bg-surface-raised p-2 sm:self-start"
+                    v-if="avatarImage"
+                    class="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl bg-surface-raised p-2"
                 >
-                    <img :src="avatarImages[0]" alt="Tu avatar" class="h-full w-full object-contain" />
+                    <img :src="avatarImage" alt="Tu avatar" class="h-full w-full object-contain" />
                 </div>
 
-                <div class="flex-1">
+                <div class="w-full flex-1">
                     <h2 class="mb-4 font-display text-lg text-content-primary">Tu progreso</h2>
                     <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
                         <div>
@@ -62,16 +56,6 @@ defineProps({
                         </div>
                     </div>
                     <p class="mt-4 text-sm text-content-secondary">{{ progress.coins }} monedas acumuladas.</p>
-
-                    <div v-if="avatarImages.length > 1" class="mt-4 flex gap-2">
-                        <div
-                            v-for="(img, i) in avatarImages.slice(1)"
-                            :key="i"
-                            class="flex h-14 w-14 items-center justify-center rounded-xl bg-surface-raised p-1"
-                        >
-                            <img :src="img" alt="" class="h-full w-full object-contain" />
-                        </div>
-                    </div>
                 </div>
             </div>
         </BaseCard>

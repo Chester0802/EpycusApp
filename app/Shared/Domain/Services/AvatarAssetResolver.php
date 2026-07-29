@@ -5,31 +5,32 @@ declare(strict_types=1);
 namespace App\Shared\Domain\Services;
 
 /**
- * Resuelve qué imágenes de avatar mostrar para un usuario. Documentado a
- * fondo en docs/04-DISENO-VISUAL.md ("Avatares — bloque 1"); leer ahí antes
- * de tocar esto o de agregar assets nuevos.
+ * Resuelve **un solo** personaje decorativo por módulo. Documentado a fondo
+ * en docs/04-DISENO-VISUAL.md ("Avatares — bloque 1"); leer ahí antes de
+ * tocar esto o de agregar assets nuevos.
  *
- * Nombre de archivo: `{Prefijo}_{Fem|Masc}_{fase}{orden}.png`. El primer
- * dígito después del género es la **fase** del avatar (`current_phase`,
- * 1-10 — NO `current_level`, que va de 1 a 50: son conceptos distintos en
- * este esquema y el usuario que entregó las imágenes las llamó "nivel"
- * coloquialmente, pero encajan con fase). El segundo dígito es el orden de
- * presentación (1-4, hasta 4 variantes por fase/género/estilo).
+ * Rediseño de 2026-07-28 (corrección directa del usuario tras ver la
+ * primera versión, que mostraba 4 imágenes juntas en el Dashboard — no le
+ * gustó): ahora **cada módulo tiene un dígito de orden fijo** y muestra una
+ * sola imagen, elegida al azar entre **cualquier fase disponible** para ese
+ * orden — no se sigue la fase real de progreso del usuario (`current_phase`)
+ * para esto, es puramente decorativo. Mapeo pedido por el usuario:
+ * Dashboard=1, Hábitos=2, Misiones=3, Pomodoro=4 (en Pomodoro el personaje
+ * sale sentado estudiando — pose a propósito para ese módulo).
  *
- * `Base` es género-específico pero **no depende de la carrera** — se usa
- * para la fase 1 de cualquier estilo. A partir de la fase 2 cada estilo de
- * carrera (`Career::avatarStyle()`) tiene su propio set. Todavía no existen
- * assets para todos los estilos ni para todas las fases — por eso se
- * verifica con `file_exists` en vez de asumir, y se cae a la fase
- * disponible más alta por debajo de la actual, y en último caso a `Base`.
+ * Nombre de archivo: `{Prefijo}_{Fem|Masc}_{fase}{orden}.png`. `Base` no
+ * depende de la carrera (fase 1, cualquier estilo); desde fase 2 cada
+ * estilo de carrera (`Career::avatarStyle()`) tiene su propio prefijo real
+ * — ver `STYLE_PREFIXES`. Se arma la lista de candidatos con `file_exists`,
+ * no con una lista fija, así que agregar más fases/estilos después no
+ * necesita tocar este archivo.
  */
 final class AvatarAssetResolver
 {
     /**
      * Estilo de `Career::avatarStyle()` → prefijo real de archivo. Solo se
-     * listan los estilos que ya tienen arte propio (bloque 1, 2026-07-28);
-     * `business`, `systems` y `law` todavía no tienen prefijo — caen a
-     * `Base` hasta que lleguen sus imágenes.
+     * listan los estilos que ya tienen arte propio (bloque 1); `business`,
+     * `systems` y `law` todavía no tienen prefijo — usan solo `Base`.
      *
      * @var array<string, string>
      */
@@ -39,46 +40,45 @@ final class AvatarAssetResolver
     ];
 
     /**
-     * @return list<string> rutas públicas (0 a 4), ya en orden aleatorio
+     * Orden de archivo (segundo dígito) fijo por módulo — pedido explícito
+     * del usuario. `missions` está listado para cuando ese módulo exista
+     * (Fase 6); nada lo usa todavía.
+     *
+     * @var array<string, int>
      */
-    public function imagesFor(?string $avatarStyle, ?string $avatarGender, int $phase): array
+    public const MODULE_ORDER = [
+        'dashboard' => 1,
+        'habits' => 2,
+        'missions' => 3,
+        'pomodoro' => 4,
+    ];
+
+    public function imageForModule(?string $avatarStyle, ?string $avatarGender, string $module): ?string
     {
+        $order = self::MODULE_ORDER[$module] ?? 1;
         $gender = $avatarGender === 'f' ? 'Fem' : 'Masc';
-        $prefix = $avatarStyle !== null ? (self::STYLE_PREFIXES[$avatarStyle] ?? null) : null;
 
-        if ($prefix !== null) {
-            for ($p = min($phase, 9); $p >= 2; $p--) {
-                $paths = $this->existingPathsFor($prefix, $gender, $p);
+        $prefixes = array_unique(array_values(array_filter([
+            $avatarStyle !== null ? (self::STYLE_PREFIXES[$avatarStyle] ?? null) : null,
+            'Base',
+        ])));
 
-                if ($paths !== []) {
-                    shuffle($paths);
+        $candidates = [];
 
-                    return $paths;
+        foreach ($prefixes as $prefix) {
+            for ($phase = 1; $phase <= 9; $phase++) {
+                $filename = "{$prefix}_{$gender}_{$phase}{$order}.png";
+
+                if (file_exists(public_path("assets/avatars/{$filename}"))) {
+                    $candidates[] = "/assets/avatars/{$filename}";
                 }
             }
         }
 
-        $paths = $this->existingPathsFor('Base', $gender, 1);
-        shuffle($paths);
-
-        return $paths;
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function existingPathsFor(string $prefix, string $gender, int $phase): array
-    {
-        $paths = [];
-
-        for ($order = 1; $order <= 4; $order++) {
-            $filename = "{$prefix}_{$gender}_{$phase}{$order}.png";
-
-            if (file_exists(public_path("assets/avatars/{$filename}"))) {
-                $paths[] = "/assets/avatars/{$filename}";
-            }
+        if ($candidates === []) {
+            return null;
         }
 
-        return $paths;
+        return $candidates[array_rand($candidates)];
     }
 }

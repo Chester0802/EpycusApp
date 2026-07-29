@@ -9,11 +9,11 @@ import { useTheme } from '@/composables/useTheme';
 
 /*
  * Estructura de docs/04-DISENO-VISUAL.md §9 y §14: barra lateral fija en
- * escritorio, barra inferior en móvil. Hábitos ya tiene ruta real (Fase 3,
- * `habits.index`); Pomodoro y Misiones se muestran como "Pronto" (sin
- * `routeName`, deshabilitados) hasta que exista su ruta — no apuntar un
- * nav item a una ruta que no existe: Ziggy revienta en tiempo de ejecución
- * si `route()` no la conoce.
+ * escritorio, barra inferior en móvil. Hábitos (Fase 3) y Pomodoro (Fase 5)
+ * ya tienen ruta real; Misiones se muestra como "Pronto" (sin `routeName`,
+ * deshabilitado) hasta que exista su ruta — no apuntar un nav item a una
+ * ruta que no existe: Ziggy revienta en tiempo de ejecución si `route()`
+ * no la conoce.
  *
  * Sin "Avatar" a propósito: no es un destino de navegación propio, es
  * contenido embebido en Perfil (docs/08-PROMPTS-MOCKUPS.md línea 104: el
@@ -33,7 +33,7 @@ import { useTheme } from '@/composables/useTheme';
 const navItems = [
     { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
     { label: 'Hábitos', routeName: 'habits.index', icon: 'habits' },
-    { label: 'Pomodoro', comingSoon: true, icon: 'pomodoro' },
+    { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro' },
     { label: 'Misiones', comingSoon: true, icon: 'missions' },
     { label: 'Perfil', routeName: 'profile.edit', icon: 'user' },
 ];

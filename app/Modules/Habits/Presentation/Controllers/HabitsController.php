@@ -11,6 +11,7 @@ use App\Modules\Habits\Application\UseCases\DeleteHabitUseCase;
 use App\Modules\Habits\Application\UseCases\ToggleHabitCompletionUseCase;
 use App\Modules\Habits\Domain\Contracts\HabitRepositoryInterface;
 use App\Shared\Domain\Contracts\UserProgressReaderInterface;
+use App\Shared\Domain\Services\AvatarAssetResolver;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -27,11 +28,13 @@ final class HabitsController extends Controller
         private ToggleHabitCompletionUseCase $toggleCompletion,
         private DeleteHabitUseCase $deleteHabit,
         private UserProgressReaderInterface $progress,
+        private AvatarAssetResolver $avatars,
     ) {}
 
     public function index(): Response
     {
         $userId = (int) Auth::id();
+        $user = Auth::user();
         $habits = $this->repository->getActiveForUser($userId);
         $today = Carbon::now()->toDateString();
 
@@ -52,6 +55,8 @@ final class HabitsController extends Controller
         return Inertia::render('Habits/Index', [
             'habits' => $habitsData,
             'todayDate' => $today,
+            // Personaje fijo de Hábitos (orden=2, ver AvatarAssetResolver).
+            'avatarImage' => $this->avatars->imageForModule($user?->avatar_style, $user?->avatar_gender, 'habits'),
         ]);
     }
 

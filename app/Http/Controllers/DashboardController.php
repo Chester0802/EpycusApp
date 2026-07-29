@@ -20,24 +20,20 @@ class DashboardController extends Controller
     {
         $userId = (int) Auth::id();
         $user = Auth::user();
-        $phase = $this->progress->getPhaseFor($userId);
 
         return Inertia::render('Dashboard', [
             'progress' => [
                 'level' => $this->progress->getLevelFor($userId),
-                'phase' => $phase,
+                'phase' => $this->progress->getPhaseFor($userId),
                 'totalXp' => $this->progress->getTotalXpFor($userId),
                 'currentStreak' => $this->progress->getCurrentStreakFor($userId),
                 'coins' => $this->progress->getCoinsFor($userId),
             ],
-            // El orden se baraja acá, en el servidor: cada carga de página
-            // (recarga completa) es una petición nueva, así que ya sale
-            // barajado distinto cada vez sin necesitar nada en el cliente.
-            'avatarImages' => $this->avatars->imagesFor(
-                $user?->avatar_style,
-                $user?->avatar_gender,
-                $phase,
-            ),
+            // Un solo personaje, fase al azar (no la fase real de
+            // progreso) — decisión del usuario tras ver la primera
+            // versión. Se resuelve en cada petición, así que recargar la
+            // página ya alcanza para verlo cambiar.
+            'avatarImage' => $this->avatars->imageForModule($user?->avatar_style, $user?->avatar_gender, 'dashboard'),
         ]);
     }
 }

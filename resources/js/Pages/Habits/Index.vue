@@ -17,6 +17,12 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    // Personaje fijo de este módulo (orden=2), fase al azar — ver
+    // App\Shared\Domain\Services\AvatarAssetResolver.
+    avatarImage: {
+        type: String,
+        default: null,
+    },
 });
 
 const { track } = useTelemetry();
@@ -137,13 +143,21 @@ const triggerXpToast = (msg) => {
         <div class="mx-auto max-w-4xl">
             <!-- Header -->
             <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 class="font-display text-3xl font-bold tracking-tight text-content-primary">
-                        Hábitos Diarios
-                    </h1>
-                    <p class="mt-1 text-sm text-content-secondary">
-                        Construye consistencia día a día en tus metas.
-                    </p>
+                <div class="flex items-center gap-4">
+                    <div
+                        v-if="avatarImage"
+                        class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-surface-raised p-1"
+                    >
+                        <img :src="avatarImage" alt="" class="h-full w-full object-contain" />
+                    </div>
+                    <div>
+                        <h1 class="font-display text-3xl font-bold tracking-tight text-content-primary">
+                            Hábitos Diarios
+                        </h1>
+                        <p class="mt-1 text-sm text-content-secondary">
+                            Construye consistencia día a día en tus metas.
+                        </p>
+                    </div>
                 </div>
                 <BaseButton @click="openModal"> + Nuevo Hábito </BaseButton>
             </header>
