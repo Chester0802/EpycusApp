@@ -17,7 +17,7 @@ const options = [
 </script>
 
 <template>
-    <div class="flex items-center gap-2" role="radiogroup" aria-label="Paleta de colores">
+    <div class="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Paleta de colores">
         <button
             v-for="option in options"
             :key="option.value"
