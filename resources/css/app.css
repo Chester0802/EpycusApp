@@ -516,10 +516,11 @@
      * pasarse ese límite con tarjetas secundarias.
      */
     [data-surface='glass'] .panel-raised {
-        background-color: color-mix(in oklch, var(--color-surface) 85%, transparent);
-        backdrop-filter: blur(12px) saturate(1.2);
-        -webkit-backdrop-filter: blur(12px) saturate(1.2);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 60%, transparent);
+        background-color: color-mix(in oklch, var(--color-surface) 20%, transparent);
+        backdrop-filter: blur(2px) saturate(1.05);
+        -webkit-backdrop-filter: blur(2px) saturate(1.05);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 10%, transparent);
+        box-shadow: var(--shadow-md);
     }
 
     [data-theme='dark'][data-surface='glass'] .panel-raised {
@@ -558,10 +559,10 @@
     }
 
     [data-surface='glass'] .panel-nav {
-        background-color: color-mix(in oklch, var(--color-surface) 35%, transparent);
-        backdrop-filter: blur(12px) saturate(1.2);
-        -webkit-backdrop-filter: blur(12px) saturate(1.2);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 40%, transparent);
+        background-color: color-mix(in oklch, var(--color-surface) 20%, transparent);
+        backdrop-filter: blur(5px) saturate(1.05);
+        -webkit-backdrop-filter: blur(5px) saturate(1.05);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 20%, transparent);
     }
 
     /*
@@ -612,7 +613,7 @@
          * porque el contenido real vive dentro de tarjetas .panel-raised,
          * que ya tienen su propia capa translúcida (§4, Trampa 3).
          */
-        opacity: 0.6;
+        opacity: 0.45;
         pointer-events: none;
     }
 }
