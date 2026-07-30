@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
@@ -6,7 +7,16 @@ import BaseCard from '@/Components/ui/BaseCard.vue';
 
 const props = defineProps({
     mission: { type: Object, required: true },
+    pomodoroSessions: { type: Array, default: () => [] },
 });
+
+const totalPomodoroMinutes = computed(() => props.pomodoroSessions.reduce((sum, s) => sum + (s.focus_minutes ?? 0), 0));
+
+function formatSessionTime(isoString) {
+    return new Date(isoString).toLocaleString('es-PE', {
+        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+    });
+}
 
 const difficultyConfig = {
     easy: { label: 'Fácil', class: 'bg-success/20 text-success' },
@@ -84,6 +94,27 @@ type="checkbox" :checked="s.is_completed"
                             class="h-4 w-4 accent-primary"
                             @change="toggleSubtask(s.id)" />
                         {{ s.title }}
+                    </div>
+                </div>
+            </BaseCard>
+
+            <BaseCard v-if="pomodoroSessions.length > 0" class="mt-6 p-6">
+                <h2 class="mb-3 font-display text-lg text-content-primary">Sesiones Pomodoro</h2>
+                <p class="mb-3 text-sm text-content-secondary">
+                    Total: <strong>{{ totalPomodoroMinutes }} min</strong> de foco en {{ pomodoroSessions.length }} sesión{{ pomodoroSessions.length !== 1 ? 'es' : '' }}.
+                </p>
+                <div class="space-y-3">
+                    <div v-for="s in pomodoroSessions" :key="s.id" class="rounded-lg border border-border p-3 text-sm">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-medium text-content-primary">{{ formatSessionTime(s.started_at) }}</span>
+                            <span class="rounded-full bg-primary-strong/20 px-2 py-0.5 text-xs font-semibold text-primary-strong">{{ s.focus_minutes }} min</span>
+                        </div>
+                        <div v-if="s.subtasks.length > 0" class="mt-2 space-y-0.5">
+                            <p class="text-xs text-content-muted">Subtareas completadas durante esta sesión:</p>
+                            <ul class="list-inside list-disc text-xs text-content-secondary">
+                                <li v-for="st in s.subtasks" :key="st.id">{{ st.title }}</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </BaseCard>

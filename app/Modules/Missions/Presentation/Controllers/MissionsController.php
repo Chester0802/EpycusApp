@@ -16,6 +16,10 @@ use App\Modules\Missions\Application\UseCases\ToggleSubtaskUseCase;
 use App\Modules\Missions\Application\UseCases\UpdateMissionUseCase;
 use App\Modules\Missions\Application\UseCases\UpdateSubtaskUseCase;
 use App\Modules\Missions\Domain\Contracts\MissionRepositoryInterface;
+use App\Modules\Pomodoro\Domain\Contracts\PomodoroRepositoryInterface;
+use App\Modules\Pomodoro\Domain\ValueObjects\SessionState;
+use App\Modules\Pomodoro\Infrastructure\Models\PomodoroSessionModel;
+use App\Modules\Pomodoro\Infrastructure\Models\PomodoroSessionSubtaskModel;
 use App\Shared\Domain\Contracts\UserProgressReaderInterface;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -38,6 +42,7 @@ final class MissionsController extends Controller
         private AddSubtaskUseCase $addSubtask,
         private ReorderSubtasksUseCase $reorderSubtasks,
         private UserProgressReaderInterface $progress,
+        private PomodoroRepositoryInterface $pomodoroRepo,
     ) {}
 
     public function index(Request $request): Response
@@ -141,8 +146,25 @@ final class MissionsController extends Controller
         $today = Carbon::now()->toDateString();
         $data = $this->mapMission($mission, $today);
 
+        $pomodoroSessions = PomodoroSessionModel::with(['subtaskCompletions.subtask'])
+            ->where('mission_id', $id)
+            ->where('status', SessionState::COMPLETED)
+            ->orderByDesc('started_at')
+            ->get()
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'started_at' => $s->started_at->toIso8601String(),
+                'focus_minutes' => $s->focus_minutes,
+                'subtasks' => $s->subtaskCompletions->map(fn ($p) => [
+                    'id' => $p->subtask_id,
+                    'title' => $p->subtask->title,
+                    'completed_at' => $p->completed_at->toIso8601String(),
+                ]),
+            ]);
+
         return Inertia::render('Missions/Detail', [
             'mission' => $data,
+            'pomodoroSessions' => $pomodoroSessions,
         ]);
     }
 
@@ -191,6 +213,10 @@ final class MissionsController extends Controller
         try {
             $result = $this->toggleSubtask->execute($subtaskId, (int) Auth::id());
 
+            if ($result['completed']) {
+                $this->recordSubtaskInActiveSession($subtaskId, (int) Auth::id());
+            }
+
             if (request()->wantsJson()) {
                 return response()->json($result);
             }
@@ -198,6 +224,19 @@ final class MissionsController extends Controller
             return back();
         } catch (\RuntimeException $e) {
             return back()->with('error', 'No puedes modificar esta subtarea.');
+        }
+    }
+
+    private function recordSubtaskInActiveSession(int $subtaskId, int $userId): void
+    {
+        $session = $this->pomodoroRepo->findActiveForUser($userId);
+        if ($session && $session->mission_id) {
+            PomodoroSessionSubtaskModel::firstOrCreate([
+                'pomodoro_session_id' => $session->id,
+                'subtask_id' => $subtaskId,
+            ], [
+                'completed_at' => Carbon::now(),
+            ]);
         }
     }
 

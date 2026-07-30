@@ -36,6 +36,7 @@ const navItems = [
     { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro' },
     { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
     { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
+    { label: 'Bienestar', routeName: 'wellbeing.index', icon: 'wellbeing' },
     { label: 'Perfil', routeName: 'profile.edit', icon: 'user' },
 ];
 

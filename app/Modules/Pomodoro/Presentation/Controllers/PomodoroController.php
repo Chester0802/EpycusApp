@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Pomodoro\Presentation\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Missions\Domain\Contracts\MissionRepositoryInterface;
 use App\Modules\Pomodoro\Application\UseCases\AbandonPomodoroUseCase;
 use App\Modules\Pomodoro\Application\UseCases\CompletePomodoroUseCase;
 use App\Modules\Pomodoro\Application\UseCases\GetActiveSessionUseCase;
@@ -16,6 +17,7 @@ use App\Modules\Pomodoro\Domain\ValueObjects\SessionState;
 use App\Modules\Pomodoro\Infrastructure\Models\PomodoroSessionModel;
 use App\Shared\Domain\Contracts\UserProgressReaderInterface;
 use App\Shared\Domain\Services\AvatarAssetResolver;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -35,6 +37,7 @@ final class PomodoroController extends Controller
         private AbandonPomodoroUseCase $abandonPomodoro,
         private AvatarAssetResolver $avatars,
         private UserProgressReaderInterface $progress,
+        private MissionRepositoryInterface $missions,
     ) {}
 
     public function index(): Response
@@ -57,6 +60,24 @@ final class PomodoroController extends Controller
         $completed = $lastWeek->where('status', SessionState::COMPLETED);
         $startedCount = $lastWeek->count();
 
+        $todayDate = Carbon::now()->toDateString();
+        $missions = $this->missions->getActiveForUser($userId);
+        $missionsData = $missions->map(fn ($m) => [
+            'id' => $m->id,
+            'title' => $m->title,
+            'difficulty' => $m->difficulty,
+            'priority' => $m->priority,
+            'due_date' => $m->due_date?->toDateString(),
+            'is_overdue' => $m->is_overdue,
+            'subtask_count' => $m->subtasks->count(),
+            'subtask_done' => $m->subtasks->where('is_completed', true)->count(),
+            'subtasks' => $m->subtasks->map(fn ($s) => [
+                'id' => $s->id,
+                'title' => $s->title,
+                'is_completed' => $s->is_completed,
+            ])->values(),
+        ])->values();
+
         return Inertia::render('Pomodoro/Index', [
             'activeSession' => $resolved->session ? $this->serializeSession($resolved->session) : null,
             'autoCompletedFocusMinutes' => $resolved->autoCompletedFocusMinutes,
@@ -70,6 +91,8 @@ final class PomodoroController extends Controller
             ],
             // Personaje fijo de Pomodoro (orden=4) — "sentado estudiando".
             'avatarImage' => $this->avatars->imageForModule($user?->avatar_style, $user?->avatar_gender, 'pomodoro'),
+            // Misiones activas para el panel lateral
+            'missions' => $missionsData,
         ]);
     }
 

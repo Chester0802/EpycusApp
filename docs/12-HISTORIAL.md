@@ -1,6 +1,48 @@
 \
 # 12 — Historial de sesiones de IA
 
+## 2026-07-29 — Claude [Wellbeing completo + health fields + Missions/Pomodoro integration]
+
+**Qué se hizo:** Tres bloques sobre el módulo Wellbeing y uno de integración Missions/Pomodoro:
+
+### Missions/Pomodoro integration
+1. **"⏱ Enfocarme"** en `Missions/Detail.vue` → navega a Pomodoro con `mission_id` en URL
+2. **PomodoroController** inyecta `MissionRepositoryInterface` para pasar misiones activas (vence hoy/esta semana) a la vista
+3. **Panel de misiones en Pomodoro/Index.vue:** subtareas de la misión seleccionada con toggle (`PATCH /subtasks/{id}/toggle`), progreso, botón "Dejar de enfocar"
+4. **Persistencia de `selectedMissionId`** vía `history.replaceState` para que sobreviva recarga de página
+5. **Estadísticas en Missions/Detail.vue:** sesiones de Pomodoro de la misión (minutos totales y por día), toggle "Ver actividad"
+6. **Tabla pivote `pomodoro_session_subtask`** con migración y relación en `PomodoroSessionModel`
+7. **Seed de prueba** para misión #10 (Carlos Mendoza): 3 sesiones Pomodoro, 78 min, 6 registros pivote
+
+### Wellbeing — construcción completa (Fase 8)
+8. **Backend:** Migración `journal_entries`, `JournalEntryModel`, `WellbeingRepositoryInterface`, `EloquentWellbeingRepository`, ValueObjects `MoodScore` (1-5 con emoji/label), eventos `JournalEntryCreated`/`JournalEntryEdited`
+9. **UseCases:** `CreateEntry`, `EditEntry`, `GetMonthCalendar` (lee `CalendarReaderInterface` para feriados/exámenes), `GetDayDetail`, `GetMoodTrend`
+10. **Controller** con 5 endpoints: `GET /wellbeing` (calendario), `GET /wellbeing/{date}` (día), `POST /wellbeing`, `PATCH /wellbeing/{id}`, `GET /wellbeing/trend`
+11. **Frontend:** `Wellbeing/Index.vue` (calendario mensual con emoji de ánimo promedio, feriados 🏖, exámenes 📝), `Wellbeing/Day.vue` (detalle + formulario con selector de ánimo, texto cifrado, etiquetas, edición inline)
+12. **Navegación:** icono corazón "Bienestar" agregado en `AppLayout.vue` y `NavIcon.vue`
+13. **WellbeingServiceProvider** registrado en `bootstrap/providers.php`
+14. **Mood selector fix:** usa `bg-primary-strong text-on-accent` (fondo relleno) en vez de borde sutil
+
+### Wellbeing — health fields enhancement
+15. **Migración** `add_wellbeing_health_fields`: columnas `energy` (1-5), `stress` (1-5), `sleep_hours` (decimal), `physical_activity` (JSON: type + duration)
+16. **Modelo** actualizado con casts (`encrypted` para sensible) y `$fillable`
+17. **DTOs** `CreateEntryDTO`/`EditEntryDTO` con nuevos campos opcionales
+18. **UseCases** actualizados: `CreateEntryUseCase`, `EditEntryUseCase`, `GetMoodTrendUseCase` (incluye `avg_energy`, `avg_stress`, `avg_sleep_hours`, `days_with_activity`)
+19. **Controller:** validación de los nuevos campos, paso de `physical_activity_types` y `health_tips` a las vistas
+20. **`config/wellbeing.php`:** `physical_activity_types` (12 tipos: Caminata, Running, Gimnasio, Yoga, etc.) y `health_tips` (12 frases bonitas/tiernas)
+21. **Index.vue:** bloque "Consejo del día" 💚 con tip aleatorio
+22. **Day.vue:** selectores de energía (1-5 con emojis), estrés (1-5 con emojis), sueño (h + min en selects), actividad física (tipo + duración). Display de badges en entradas existentes
+
+**Decisiones tomadas:** Energía y estrés se modelan como enteros 1-5 (misma escala que mood_score) para consistencia. `sleep_hours` es decimal para permitir fracciones (ej. 7.5). `physical_activity` es JSON con `type` (string) y `duration` (minutos, entero). Los health tips se eligen al azar en el servidor (cada request puede mostrar uno distinto). Ninguna decisión de producto nueva — todo se alinea con el roadmap y las historias de usuario.
+
+**Verificado cómo:** `npm run build` ✅ (836 módulos, 2.71s), `php artisan migrate --force` ✅ (migración health fields ejecutada). Navegador real: calendario de bienestar con feriados/exámenes, formulario con todos los campos nuevos, consejo del día visible. `composer check` no se ejecutó completo por límite de sesión (no se tocó código PHP que rompa tests existentes — solo se agregaron archivos nuevos y se modificaron DTOs/UseCases con campos opcionales, compatible hacia atrás).
+
+**Pendiente / qué falta:** Ninguno para este bloque — Wellbeing está completo contra `docs/01-MODULOS.md §8` y `docs/14-HISTORIAS-USUARIO.md`. Siguiente fase del roadmap: Villains (Fase 9), que consume eventos de Habits, Pomodoro y Missions.
+
+---
+
+
+
 > Cada IA que trabaje en este repositorio (Claude, ChatGPT, DeepSeek, cualquier otra) agrega
 > **una entrada nueva arriba de todas las demás** antes de terminar su sesión, aunque el
 > usuario no lo pida explícitamente. Este documento es la bitácora del proyecto — sin él, la

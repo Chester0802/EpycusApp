@@ -42,6 +42,9 @@ defineProps({
             <circle cx="12" cy="8.5" r="3.25" />
             <path d="M5.25 19.5c1.2-3.6 3.8-5.5 6.75-5.5s5.55 1.9 6.75 5.5" />
         </template>
+        <template v-else-if="name === 'wellbeing'">
+            <path d="M20.84 5.27a4.5 4.5 0 0 0-6.36 0L12 7.75l-2.48-2.48a4.5 4.5 0 0 0-6.36 6.36L12 20.47l8.84-8.84a4.5 4.5 0 0 0 0-6.36Z" />
+        </template>
         <template v-else-if="name === 'calendar'">
             <rect x="3" y="4.5" width="18" height="17" rx="2" />
             <path d="M3 9.5h18M8.5 2.5V6M15.5 2.5V6" />

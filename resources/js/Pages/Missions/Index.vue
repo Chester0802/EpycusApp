@@ -232,6 +232,12 @@ function deleteMission(missionId) {
     }
 }
 
+function startPomodoro(missionId) {
+    router.visit(route('pomodoro.index'), {
+        data: { mission_id: missionId },
+    });
+}
+
 function stateClass(state) {
     const classes = {
         overdue: 'border-l-danger',
@@ -348,6 +354,10 @@ type="button"
                                             title="Completar misión" @click="completeMission(m.id)">✅</button>
                                         <button
 type="button"
+                                            class="rounded p-1 text-sm text-content-muted hover:text-primary-strong"
+                                            title="Enfocarme" @click="startPomodoro(m.id)">⏱</button>
+                                        <button
+type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
                                             title="Editar" @click="openEditModal(m)">✏️</button>
                                         <button
@@ -420,6 +430,10 @@ v-model="addSubtaskTitles[m.id]"
 type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
                                             title="Completar misión" @click="completeMission(m.id)">✅</button>
+                                        <button
+type="button"
+                                            class="rounded p-1 text-sm text-content-muted hover:text-primary-strong"
+                                            title="Enfocarme" @click="startPomodoro(m.id)">⏱</button>
                                         <button
 type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
@@ -497,6 +511,10 @@ type="button"
                                             title="Completar misión" @click="completeMission(m.id)">✅</button>
                                         <button
 type="button"
+                                            class="rounded p-1 text-sm text-content-muted hover:text-primary-strong"
+                                            title="Enfocarme" @click="startPomodoro(m.id)">⏱</button>
+                                        <button
+type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
                                             title="Editar" @click="openEditModal(m)">✏️</button>
                                         <button
@@ -570,6 +588,10 @@ v-model="addSubtaskTitles[m.id]"
 type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
                                             title="Completar misión" @click="completeMission(m.id)">✅</button>
+                                        <button
+type="button"
+                                            class="rounded p-1 text-sm text-content-muted hover:text-primary-strong"
+                                            title="Enfocarme" @click="startPomodoro(m.id)">⏱</button>
                                         <button
 type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"

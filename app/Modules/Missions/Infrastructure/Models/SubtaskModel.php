@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Missions\Infrastructure\Models;
 
+use App\Modules\Pomodoro\Infrastructure\Models\PomodoroSessionSubtaskModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class SubtaskModel extends Model
 {
@@ -26,5 +28,10 @@ final class SubtaskModel extends Model
     public function mission(): BelongsTo
     {
         return $this->belongsTo(MissionModel::class, 'mission_id');
+    }
+
+    public function pomodoroCompletions(): HasMany
+    {
+        return $this->hasMany(PomodoroSessionSubtaskModel::class, 'subtask_id');
     }
 }

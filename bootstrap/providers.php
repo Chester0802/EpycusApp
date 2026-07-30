@@ -1,11 +1,13 @@
 <?php
 
+use App\Modules\Calendar\Infrastructure\Providers\CalendarServiceProvider;
 use App\Modules\Gamification\Infrastructure\Providers\GamificationServiceProvider;
 use App\Modules\Habits\Infrastructure\Providers\HabitsServiceProvider;
 use App\Modules\Identity\Infrastructure\Providers\IdentityServiceProvider;
 use App\Modules\Missions\Infrastructure\Providers\MissionsServiceProvider;
 use App\Modules\Pomodoro\Infrastructure\Providers\PomodoroServiceProvider;
 use App\Modules\Telemetry\Infrastructure\Providers\TelemetryServiceProvider;
+use App\Modules\Wellbeing\Infrastructure\Providers\WellbeingServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Shared\Infrastructure\Providers\SharedServiceProvider;
 
@@ -16,8 +18,9 @@ return [
     TelemetryServiceProvider::class,
     HabitsServiceProvider::class,
     MissionsServiceProvider::class,
-    App\Modules\Calendar\Infrastructure\Providers\CalendarServiceProvider::class,
+    CalendarServiceProvider::class,
     PomodoroServiceProvider::class,
+    WellbeingServiceProvider::class,
     // Gamification se registra después de Habits y Pomodoro: su
     // ServiceProvider escucha los eventos de dominio de ambos en boot().
     // El orden de arranque no es estrictamente obligatorio para que

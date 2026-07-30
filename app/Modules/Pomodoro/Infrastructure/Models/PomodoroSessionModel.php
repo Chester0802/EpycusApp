@@ -7,6 +7,7 @@ namespace App\Modules\Pomodoro\Infrastructure\Models;
 use App\Modules\Pomodoro\Domain\ValueObjects\SessionState;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -46,6 +47,11 @@ final class PomodoroSessionModel extends Model
             'planned_minutes' => 'integer',
             'focus_minutes' => 'integer',
         ];
+    }
+
+    public function subtaskCompletions(): HasMany
+    {
+        return $this->hasMany(PomodoroSessionSubtaskModel::class, 'pomodoro_session_id');
     }
 
     /**

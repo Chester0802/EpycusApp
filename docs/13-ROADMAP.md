@@ -35,9 +35,9 @@ flowchart TD
     F2 --> F3["Fase 3 — Habits"]
     F3 --> F4["Fase 4 — Gamification"]
     F4 --> F5["Fase 5 — Pomodoro"]
-    F5 --> F6["Fase 6 — Calendar"]
-    F6 --> F7["Fase 7 — Missions"]
-    F6 --> F8["Fase 8 — Wellbeing"]
+    F5 --> F6["Fase 6 — Calendar [x]"]
+    F6 --> F7["Fase 7 — Missions [x]"]
+    F6 --> F8["Fase 8 — Wellbeing [x]"]
     F3 --> F9["Fase 9 — Villains"]
     F5 --> F9
     F7 --> F9
@@ -138,9 +138,9 @@ estructuralmente a `Identity` como referencia (`docs/11-ESTANDAR-CODIGO.md` §1,
 | 3 | **Habits** `[x]` (2026-07-28) | El más simple. Primer contenido real, sienta el patrón que copian los demás. |
 | 4 | **Gamification** `[x]` (2026-07-28) 🔵 crítico | XP, niveles, fases, racha con gracia y monedero — completo y con tests. Achievements y Villains NO se tocaron: van en sus propias fases (§17 de docs/01-MODULOS.md los ubica después de Ranking). Los 400 assets Funko Pop del avatar tampoco existen (encargo de arte, no de código) — el Dashboard muestra el progreso en texto/números, sin imagen. |
 | 5 | **Pomodoro** `[x]` (2026-07-29, ampliado 2026-07-29) | Temporizador en el cliente, sincronizado con el servidor solo en las transiciones (`docs/01-MODULOS.md §3`). Sesión vencida mientras el usuario no estaba se resuelve sola al volver a abrir el módulo (`ResolveStaleSessionUseCase`) — no hay timer en el servidor. `mission_id` queda nullable, sin usar todavía (Missions no existe). **Ampliado el mismo día** con meta de estudio diaria, validación de ratio foco/descanso (tope 40%, investigado contra la técnica real), descanso largo automático cada 4 ciclos, y música de fondo opcional vía YouTube (opt-in, `youtube-nocookie.com`) — todo documentado en `docs/01-MODULOS.md §3` "Ciclo completo, meta de estudio y música". |
-| 6 | **Calendar** | Sin interfaz propia. `Missions` y `Wellbeing` ya lo necesitan (`docs/01-MODULOS.md §15`); `CalendarReaderInterface` ya existe en `app/Shared/Domain/Contracts/` sin implementación real todavía. Historias de usuario en `docs/14-HISTORIAS-USUARIO.md`. |
-| 7 | **Missions** | Trae `subtasks`, más complejidad de UI que Pomodoro. Usa Calendar para vencimientos. |
-| 8 | **Wellbeing** | Diario + mood score; dato crítico (cifrado). Usa Calendar para marcar feriados/exámenes en su vista de calendario. |
+| 6 | **Calendar** `[x]` (2026-07-29) | Sin interfaz propia. `Missions` y `Wellbeing` ya lo necesitan (`docs/01-MODULOS.md §15`); `CalendarReaderInterface` ya existe en `app/Shared/Domain/Contracts/` sin implementación real todavía. Historias de usuario en `docs/14-HISTORIAS-USUARIO.md`. |
+| 7 | **Missions** `[x]` (2026-07-29) | Trae `subtasks`, más complejidad de UI que Pomodoro. Usa Calendar para vencimientos. |
+| 8 | **Wellbeing** `[x]` (2026-07-29) | Diario + mood score + health fields (energía, estrés, sueño, actividad física, consejos). Dato crítico (cifrado). Usa Calendar para marcar feriados/exámenes en su vista de calendario. Conectado a Pomodoro vía tabla pivote `pomodoro_session_subtask`. |
 | 9 | **Villains** | Consume eventos de Habits, Pomodoro y Missions para dañar HP — necesita que los tres ya emitan sus eventos de dominio. |
 | 10 | **Ranking + Personalization** | Solo *leen* de Gamification por contrato (`docs/01-MODULOS.md`) — no pueden ir antes que su fuente. |
 | 11 | **Achievements** | Escucha eventos de Habits, Pomodoro, Missions, Villains y Wellbeing (incluido `VillainDefeated`) — por diseño va después de todos esos. |
