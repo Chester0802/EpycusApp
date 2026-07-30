@@ -1,6 +1,8 @@
 \
 # 01 — Módulos
 
+> **ESTADO: TODOS LOS 16 MÓDULOS ESTÁN 100% IMPLEMENTADOS Y COMPLETADOS.**
+>
 > Cada módulo sigue la estructura de `docs/00-ARQUITECTURA.md`. Aquí se define **qué** hace cada uno, sus entidades, sus contratos y sus eventos. No implementes módulos que no estén aquí.
 
 ---
@@ -866,27 +868,27 @@ La última es especialmente importante: si un administrador puede editar los dat
 
 ---
 
-## 17. Orden de construcción sugerido
+## 17. Estado de implementación (COMPLETADO)
 
-Con 20 días de fase de construcción y dos personas, este es el orden que minimiza bloqueos:
+Todos los 16 módulos del proyecto han sido **implementados y completados**. El siguiente fue el orden de construcción que se siguió:
 
-| Orden | Módulo | Por qué va aquí |
+| Orden | Módulo | Estado actual |
 |---|---|---|
-| 1 | `Shared` + `Identity` | Todo depende de esto |
-| 2 | **`Telemetry`** | **Primero que todo lo demás.** Si se deja para el final, se hace mal |
-| 3 | `Calendar` | Feriados y período académico. Lo necesitan Wellbeing y Missions |
-| 4 | `Habits` | Módulo más simple, sirve para validar la arquitectura completa |
-| 5 | `Gamification` | Necesario para que Habits tenga sentido |
-| 6 | `Pomodoro` | Segunda fuente de datos del Pilar 3 |
-| 7 | `Missions` | |
-| 8 | `Personalization` | Temas y fondos, desbloquea trabajo visual en paralelo |
-| 9 | `Motivation` | Contenido estático, sin dependencias reales. Se hace en paralelo a cualquier otro |
-| 10 | `Villains` | Depende de Habits, Pomodoro y Missions |
-| 11 | `Wellbeing` | Independiente, se puede hacer en paralelo |
-| 12 | `AiAssistant` | Depende de tener datos que analizar |
-| 13 | `Ranking` | Simple, depende de Gamification |
-| 14 | `Achievements` | Escucha eventos que ya existen a esta altura |
-| 15 | `StudyGroups` | El más complejo del MVP, va al final |
-| 16 | `Admin` | Necesita que todo lo demás exista |
+| 1 | `Shared` + `Identity` | **Completado** |
+| 2 | **`Telemetry`** | **Completado** |
+| 3 | `Calendar` | **Completado** |
+| 4 | `Habits` | **Completado** |
+| 5 | `Gamification` | **Completado** |
+| 6 | `Pomodoro` | **Completado** |
+| 7 | `Missions` | **Completado** |
+| 8 | `Personalization` | **Completado** |
+| 9 | `Motivation` | **Completado** |
+| 10 | `Villains` | **Completado** |
+| 11 | `Wellbeing` | **Completado** |
+| 12 | `AiAssistant` | **Completado** |
+| 13 | `Ranking` | **Completado** |
+| 14 | `Achievements` | **Completado** |
+| 15 | `StudyGroups` | **Completado** |
+| 16 | `Admin` | **Completado** |
 
 **Telemetry va en segundo lugar a propósito.** Es el error más común y más caro: construir toda la aplicación y agregar telemetría al final. Cuando se hace así, quedan huecos, se registran eventos inconsistentes y se descubre tarde. Si se construye primero, cada módulo posterior se conecta a algo que ya funciona y está probado.

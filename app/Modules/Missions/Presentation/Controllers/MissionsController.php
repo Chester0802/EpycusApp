@@ -21,6 +21,7 @@ use App\Modules\Pomodoro\Domain\ValueObjects\SessionState;
 use App\Modules\Pomodoro\Infrastructure\Models\PomodoroSessionModel;
 use App\Modules\Pomodoro\Infrastructure\Models\PomodoroSessionSubtaskModel;
 use App\Shared\Domain\Contracts\UserProgressReaderInterface;
+use App\Shared\Domain\Services\AvatarAssetResolver;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -43,11 +44,13 @@ final class MissionsController extends Controller
         private ReorderSubtasksUseCase $reorderSubtasks,
         private UserProgressReaderInterface $progress,
         private PomodoroRepositoryInterface $pomodoroRepo,
+        private AvatarAssetResolver $avatarResolver,
     ) {}
 
     public function index(Request $request): Response
     {
         $userId = (int) Auth::id();
+        $user = Auth::user();
         $sortBy = in_array($request->query('sort_by'), ['priority', 'difficulty', 'created_at'], true)
             ? $request->query('sort_by') : 'default';
 
@@ -59,12 +62,18 @@ final class MissionsController extends Controller
 
         $missionsData = $this->mapMissions($missions, $today);
         $completedData = $this->mapMissions($completed, $today);
+        $avatarImage = $this->avatarResolver->imageForModule(
+            $user?->avatar_style,
+            $user?->avatar_gender,
+            'missions'
+        );
 
         return Inertia::render('Missions/Index', [
             'missions' => $missionsData,
             'completedMissions' => $completedData,
             'todayDate' => $today,
             'sortBy' => $sortBy,
+            'avatarImage' => $avatarImage,
         ]);
     }
 

@@ -57,6 +57,7 @@ final class AvatarAssetResolver
         'habits' => 2,
         'missions' => 3,
         'pomodoro' => 4,
+        'groups' => 1,
     ];
 
     public function imageForModule(?string $avatarStyle, ?string $avatarGender, string $module): ?string

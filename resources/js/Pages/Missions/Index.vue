@@ -13,6 +13,7 @@ const props = defineProps({
     completedMissions: { type: Array, default: () => [] },
     todayDate: { type: String, required: true },
     sortBy: { type: String, default: 'default' },
+    avatarImage: { type: String, default: null },
 });
 
 const showCreateModal = ref(false);
@@ -256,9 +257,14 @@ function stateClass(state) {
         <div class="mx-auto max-w-4xl">
             <BaseCard class="mb-8">
                 <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h1 class="font-display text-3xl text-content-primary">Misiones</h1>
-                        <p class="mt-1 text-sm text-content-secondary">Descompón tus tareas grandes en pasos manejables.</p>
+                    <div class="flex items-center gap-4">
+                        <div v-if="avatarImage" class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl bg-surface-raised p-1">
+                            <img :src="avatarImage" alt="" class="h-full w-full object-contain" />
+                        </div>
+                        <div>
+                            <h1 class="font-display text-3xl text-content-primary">Misiones</h1>
+                            <p class="mt-1 text-sm text-content-secondary">Descompón tus tareas grandes en pasos manejables.</p>
+                        </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <select

@@ -6,6 +6,7 @@ namespace App\Modules\Gamification\Infrastructure\Providers;
 
 use App\Modules\Gamification\Application\Listeners\AwardXpFromHabitListener;
 use App\Modules\Gamification\Application\Listeners\AwardXpFromPomodoroListener;
+use App\Modules\Gamification\Application\Listeners\AwardXpFromStudyGroupsListener;
 use App\Modules\Gamification\Application\Listeners\AwardXpFromVillainDefeatedListener;
 use App\Modules\Gamification\Domain\Contracts\GamificationRepositoryInterface;
 use App\Modules\Gamification\Domain\Services\LevelCalculator;
@@ -13,6 +14,9 @@ use App\Modules\Gamification\Infrastructure\Repositories\EloquentGamificationRep
 use App\Modules\Gamification\Infrastructure\Repositories\EloquentUserProgressReader;
 use App\Modules\Habits\Domain\Events\HabitCompleted;
 use App\Modules\Pomodoro\Domain\Events\PomodoroCompleted;
+use App\Modules\StudyGroups\Domain\Events\GroupMessageSent;
+use App\Modules\StudyGroups\Domain\Events\ParticipantJoined;
+use App\Modules\StudyGroups\Domain\Events\StudySessionCreated;
 use App\Modules\Villains\Domain\Events\VillainDefeated;
 use App\Shared\Domain\Contracts\UserProgressReaderInterface;
 use Illuminate\Support\Facades\Event;
@@ -48,5 +52,8 @@ final class GamificationServiceProvider extends ServiceProvider
         Event::listen(HabitCompleted::class, AwardXpFromHabitListener::class);
         Event::listen(PomodoroCompleted::class, AwardXpFromPomodoroListener::class);
         Event::listen(VillainDefeated::class, AwardXpFromVillainDefeatedListener::class);
+        Event::listen(ParticipantJoined::class, AwardXpFromStudyGroupsListener::class);
+        Event::listen(GroupMessageSent::class, AwardXpFromStudyGroupsListener::class);
+        Event::listen(StudySessionCreated::class, AwardXpFromStudyGroupsListener::class);
     }
 }

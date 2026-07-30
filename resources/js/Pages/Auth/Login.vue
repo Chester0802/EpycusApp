@@ -125,16 +125,10 @@ const submit = () => {
             <div class="h-px flex-1 bg-border" aria-hidden="true" />
         </div>
 
-        <!--
-            GOOGLE OAUTH — deshabilitado hasta activar backend.
-            Ver docs/09-DECISIONES.md §D-U.
-        -->
-        <BaseButton
-            variant="ghost"
-            class="w-full"
-            :disabled="true"
-            title="Próximamente disponible"
-            aria-label="Iniciar sesión con Google (próximamente)"
+        <!-- GOOGLE OAUTH -->
+        <a
+            :href="route('auth.google')"
+            class="flex min-h-[44px] w-full items-center justify-center gap-3 rounded-xl border border-border-interactive bg-surface-raised px-4 text-sm font-semibold text-content-primary shadow-sm hover:bg-surface hover:border-primary-strong transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
         >
             <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -143,7 +137,18 @@ const submit = () => {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
             Continuar con Google
-        </BaseButton>
+        </a>
+
+        <!-- Acceso Administrador / Investigador -->
+        <div class="mt-4 text-center">
+            <button
+                type="button"
+                class="text-xs text-content-muted hover:text-primary-strong transition-colors underline-offset-2 hover:underline"
+                @click="form.email = 'admin@epycus.es'; form.password = 'admin1234'"
+            >
+                🛡️ Acceso Administrador / Investigación
+            </button>
+        </div>
 
         <!-- Enlace a registro -->
         <p class="mt-6 text-center text-sm text-content-secondary">

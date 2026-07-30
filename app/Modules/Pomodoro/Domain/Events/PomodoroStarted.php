@@ -10,5 +10,6 @@ final readonly class PomodoroStarted
         public int $sessionId,
         public int $userId,
         public int $plannedMinutes,
+        public ?int $studyGroupSessionId = null,
     ) {}
 }

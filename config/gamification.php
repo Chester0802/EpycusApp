@@ -12,12 +12,15 @@ return [
         'subtask_completed' => env('XP_SUBTASK', 5),
         'journal_entry' => env('XP_JOURNAL', 10),
         'villain_defeated' => env('XP_VILLAIN', 100),
+        'study_group_joined' => env('XP_STUDY_GROUP_JOINED', 10),
+        'study_group_message' => env('XP_STUDY_MESSAGE', 3),
     ],
     'daily_caps' => [
         'habits' => env('CAP_HABITS', 5),
         'pomodoros' => env('CAP_POMODOROS', 8),
         'missions' => env('CAP_MISSIONS', 3),
         'journal' => 1,
+        'study_groups' => env('CAP_STUDY_GROUPS', 10),
     ],
     'level_curve' => [
         'base' => 100,

@@ -56,6 +56,29 @@ defineProps({
             <path d="M14.5 12a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
             <path d="M9 9.5c1-.5 5-.5 6 0" stroke-width="1.5" />
         </template>
+        <template v-else-if="name === 'groups'">
+            <circle cx="12" cy="6.5" r="2.25" />
+            <circle cx="19" cy="8.5" r="2" />
+            <circle cx="5" cy="8.5" r="2" />
+            <path d="M7.5 17.5c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" />
+            <path d="M2.5 19c.8-1.8 2.5-3 4.8-3" />
+            <path d="M21.5 19c-.8-1.8-2.5-3-4.8-3" />
+        </template>
+        <template v-else-if="name === 'ai'">
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            <circle cx="12" cy="12" r="4" />
+        </template>
+        <template v-else-if="name === 'ranking'">
+            <path d="M6 9v11M12 4v16M18 13v7" />
+        </template>
+        <template v-else-if="name === 'achievements'">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+            <path d="M4 22h16" />
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+        </template>
         <template v-else-if="name === 'settings'">
             <path d="M4 7h10M18 7h2" />
             <circle cx="16" cy="7" r="2" />

@@ -142,6 +142,20 @@ CREATE TABLE telemetry_events (
 
 `was_capped` permite detectar cuántos usuarios chocan con el tope diario. Si son muchos, la calibración está mal.
 
+### Categoría `achievements`
+
+| Evento | Cuándo | Payload |
+|---|---|---|
+| `achievement.unlocked` | Se desbloquea un logro | `{achievement_id, category, xp_reward}` |
+
+### Categoría `motivation`
+
+| Evento | Cuándo | Payload |
+|---|---|---|
+| `quote.shown` | Se muestra una frase motivacional | `{quote_id, location}` |
+| `tip.shown` | Se muestra un consejo de estudio | `{tip_id, context}` |
+| `tip.dismissed` | Usuario oculta un consejo | `{tip_id, time_visible_ms}` |
+
 ### Categoría `villains`
 
 | Evento | Cuándo | Payload |
@@ -156,11 +170,19 @@ CREATE TABLE telemetry_events (
 | Evento | Cuándo | Payload |
 |---|---|---|
 | `ai.consulted` | Envía consulta al asistente | `{prompt_category, prompt_length, quota_remaining}` |
+| `ai.consultation` | Sesión de consulta con el asistente | `{session_id, messages_count, context}` |
 | `ai.response_received` | Llega la respuesta | `{response_time_ms, token_count}` |
 | `ai.quota_exhausted` | Agota la cuota diaria | `{}` |
 | `ai.advice_marked_useful` | Marca un consejo como útil | `{advice_id, rating}` |
+| `ai.rating` | Calificación de la respuesta de la IA | `{interaction_id, score, feedback_type}` |
 
 **Nunca registres el texto de la consulta ni de la respuesta.** Solo `prompt_category` (una clasificación cerrada: `planificacion`, `motivacion`, `tecnica_estudio`, `otro`) y la longitud. El contenido puede tener datos personales y temas de salud mental.
+
+### Categoría `admin`
+
+| Evento | Cuándo | Payload |
+|---|---|---|
+| `admin.accessed` | Un administrador accede al panel | `{admin_id, action, resource}` |
 
 ### Categoría `wellbeing`
 

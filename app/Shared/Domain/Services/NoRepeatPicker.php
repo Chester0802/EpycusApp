@@ -7,18 +7,18 @@ namespace App\Shared\Domain\Services;
 final class NoRepeatPicker
 {
     /**
-     * @template T
-     *
-     * @param  list<T>  $pool
-     * @param  list<T>  $alreadyShown
-     * @return T
+     * Elige un elemento al azar de $pool que NO esté en $alreadyShown.
+     * Si ya se mostraron todos, reinicia el ciclo y elige de nuevo.
      */
     public function pick(array $pool, array $alreadyShown): mixed
     {
-        $remaining = array_diff($pool, $alreadyShown);
+        if (empty($pool)) {
+            return null;
+        }
 
-        if ($remaining === []) {
-            $remaining = $pool;
+        $remaining = array_values(array_diff($pool, $alreadyShown));
+        if (empty($remaining)) {
+            $remaining = array_values($pool); // se agotó el ciclo, se reinicia
         }
 
         return $remaining[array_rand($remaining)];

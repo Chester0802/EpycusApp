@@ -1,53 +1,150 @@
-# 14 — Historias de usuario y criterios de aceptación por módulo pendiente
+# Historias de usuario y criterios de aceptación (Unificado)
 
-> Este documento traduce cada módulo que falta de `docs/01-MODULOS.md` a historias de usuario
-> con criterios de aceptación concretos, **para que cualquier IA (o persona) que continúe el
-> proyecto pueda implementar sin tener que inferir el comportamiento exacto.** No inventa
-> reglas de producto nuevas — cada criterio cita la regla de dominio de la que sale. Si una
-> historia no tiene de dónde citar la regla, es porque hay una decisión de producto pendiente:
-> se marca explícitamente como `⚠️ DECISIÓN PENDIENTE`, no se inventa a ciegas.
+> Este documento unifica todas las historias de usuario y criterios de aceptación del proyecto Epycus.
+> **ESTADO DEL PROYECTO (al 2026-07-30): TODAS LAS 15 FASES ESTÁN COMPLETADAS ✅**
 >
 > **Formato de cada historia:**
-> `Como <rol>, quiero <acción>, para <beneficio>.` seguido de criterios de aceptación en
-> formato Given/When/Then. Un criterio sin fuente citada entre paréntesis es una consecuencia
-> directa de otro criterio de la misma historia, no una regla nueva.
->
-> **Antes de implementar un módulo de este documento:** leer también su sección completa en
-> `docs/01-MODULOS.md` (tiene diagramas, ejemplos de código y contexto que acá no se repite) y
-> `docs/13-ROADMAP.md` para confirmar que le toca el turno. Este documento complementa, no
-> reemplaza, a esos dos.
+> Como <rol>, quiero <acción>, para <beneficio>. seguido de criterios de aceptación en
+> formato Given/When/Then.
 
 ---
 
-## Orden recomendado (y por qué cambia respecto al de `docs/01-MODULOS.md` §17)
+## Índice de Módulos Implementados
 
-`docs/01-MODULOS.md §17` propone un orden pensado para 20 días con dos personas trabajando en
-paralelo. `docs/13-ROADMAP.md` ya lo adaptó a "un módulo completo a la vez" y avanzó Habits,
-Gamification y Pomodoro. Este documento extiende esa tabla con los módulos que al `13-ROADMAP.md`
-todavía le faltaban **por completo** (`Calendar`, `Achievements`, `Motivation` no tenían fila
-propia pese a estar documentados en `01-MODULOS.md`) y corrige el orden real que corresponde
-ahora que la base ya existe:
-
-| # | Módulo | Por qué en esta posición |
-|---|---|---|
-| 6 | **Calendar** | Sin interfaz propia, autocontenido, y **Missions y Wellbeing ya lo necesitan** (`docs/01-MODULOS.md §15`) — `CalendarReaderInterface` ya existe en `app/Shared/Domain/Contracts/` sin implementación real. Construirlo ahora evita que Missions/Wellbeing tengan que volver atrás después. |
-| 7 | **Missions** | Trae `subtasks`, más complejidad de UI que Pomodoro. Usa `Calendar` para vencimientos. |
-| 8 | **Wellbeing** | Diario + mood score; usa `Calendar` para marcar feriados/semanas de examen en su vista de calendario. |
-| 9 | **Villains** | Depende de eventos de Habits, Pomodoro y Missions (`HabitCompleted`, `PomodoroCompleted`, etc. — todos ya emiten o van a emitir estos eventos). |
-| 10 | **Ranking + Personalization** | Solo *leen* de Gamification por contrato — no pueden ir antes que su fuente, que ya existe. |
-| 11 | **Achievements** | Escucha eventos de Habits, Pomodoro, Missions, Villains y Wellbeing (`VillainDefeated` incluido) — tiene que ir después de todos esos. |
-| 12 | **Motivation** | Contenido estático sin dependencias reales — **puede adelantarse en paralelo a cualquier fase anterior** si hay más de una persona disponible, se numera acá solo para tener un lugar fijo en la lista. |
-| 13 | **StudyGroups** | El más complejo de infraestructura del MVP (polling, rate limiting, purga a 7 días). |
-| 14 | **AiAssistant** | Necesita que Wellbeing ya exista (es una de sus tres fuentes de contexto) y depende del protocolo de derivación de crisis — el más sensible, va casi al final a propósito. |
-| 15 | **Admin** | Panel de solo lectura sobre todos los módulos anteriores. No puede ir antes que ellos. |
-
-**No renumerar `docs/13-ROADMAP.md` sin también actualizar esta tabla** (y viceversa) — mantenerlas
-en sync es responsabilidad de quien las toque, igual que exige `docs/13-ROADMAP.md` en su
-cabecera.
+| # | Módulo | Estado |
+|---|--------|--------|
+| 0 | Fundamentos visuales | ✅ Completo |
+| 1 | Identity (Autenticación y perfil) | ✅ Completo |
+| 2 | Telemetría | ✅ Completo |
+| 3 | Hábitos | ✅ Completo |
+| 4 | Gamificación (XP, niveles, rachas) | ✅ Completo |
+| 5 | Pomodoro | ✅ Completo |
+| 6 | Calendar | ✅ Completo |
+| 7 | Missions | ✅ Completo |
+| 8 | Avatares | ✅ Completo |
+| 9 | Wellbeing | ✅ Completo |
+| 10 | Villains | ✅ Completo |
+| 11 | Ranking + Personalization | ✅ Completo |
+| 12 | Achievements | ✅ Completo |
+| 13 | Motivation | ✅ Completo |
+| 14 | StudyGroups | ✅ Completo |
+| 15 | AiAssistant | ✅ Completo |
+| 16 | Admin | ✅ Completo |
 
 ---
 
-## Fase 6 — Calendar
+## Fase 0 — Fundamentos visuales ✅
+
+### HU-00-1 — Sistema de diseño con tokens semánticos
+**Como** desarrollador del frontend, **quiero** un sistema de diseño basado en tokens CSS y no en colores literales, **para** poder cambiar de tema o paleta sin reescribir componentes.
+- **Given** las paletas definidas, **when** se aplican, **then** existen 5 completas: Kawaii, Bosque, Océano, Nube, Mono.
+- **Given** el modo de color, **when** se alterna, **then** los modos claro y oscuro son funcionales en todas las paletas.
+- **Given** las superficies, **when** se renderizan, **then** existen Neumorfismo y Vidrio (con fondo de pantalla).
+- **Given** los elementos, **when** se evalúa el contraste, **then** texto normal es ≥4.5:1 y elementos interactivos ≥3:1 (con order-interactive).
+
+### HU-00-2 — Componentes base reutilizables
+**Como** desarrollador, **quiero** componentes base ya construidos, **para** no rediseñarlos.
+- **Given** la necesidad de un botón, **when** se usa BaseButton.vue, **then** soporta variantes primary, secondary, ghost, danger.
+- **Given** las vistas modulares, **when** se arman, **then** se cuenta con BaseCard, BaseInput, BaseSelect, BaseModal, BaseBadge, etc.
+
+### HU-00-3 — Navegación responsive
+**Como** estudiante, **quiero** una navegación que se adapte a mi dispositivo, **para** moverme cómodamente.
+- **Given** pantalla de escritorio, **when** se renderiza, **then** muestra sidebar de 260px.
+- **Given** pantalla móvil, **when** se renderiza, **then** muestra bottom nav.
+- **Given** modo Vidrio, **when** se activa, **then** la navegación es semi-translúcida sin ocultar contenido.
+
+### HU-00-4 — Preferencias de tema persistentes
+**Como** estudiante, **quiero** cambiar mis preferencias, **para** personalizar mi experiencia.
+- **Given** el header, **when** se usa el botón sol/luna, **then** alterna el modo claro/oscuro.
+- **Given** el modo Vidrio, **when** se activa, **then** se fuerza el tema a oscuro.
+
+---
+
+## Fase 1 — Identity ✅
+
+### HU-ID-1 — Registro de nuevo usuario
+**Como** estudiante universitario, **quiero** registrarme con mi correo, **para** acceder a la plataforma.
+- **Given** el formulario, **when** se envían los datos, **then** valida contraseña fuerte (≥10 caracteres, letras y números, HIBP).
+- **Given** los términos, **when** no se marcan, **then** rechaza el registro.
+
+### HU-ID-2 — Inicio de sesión
+**Como** estudiante, **quiero** iniciar sesión, **para** acceder al dashboard.
+- **Given** el login, **when** hay más de 5 intentos fallidos por minuto, **then** bloquea temporalmente.
+
+### HU-ID-3 — Completar perfil
+**Como** participante, **quiero** completar mi institución y carrera, **para** asignar mi estilo de avatar.
+- **Given** la selección de carrera, **when** se guarda, **then** sincroniza el vatar_style.
+
+### HU-ID-4 — Consentimiento informado
+**Como** participante, **quiero** aceptar el consentimiento, **para** ingresar al estudio.
+- **Given** la pantalla de consentimiento, **when** se acepta, **then** no vuelve a solicitarse (idempotente).
+
+### HU-ID-5 — Seguridad
+**Como** administrador, **quiero** seguridad estricta, **para** cumplir la ley N.º 29733.
+- **Given** respuestas HTTP, **when** se envían, **then** incluyen CSP, HSTS y no-frame.
+- **Given** datos sensibles, **when** se guardan, **then** el diario y mensajes de IA están cifrados en reposo.
+
+---
+
+## Fase 2 — Telemetría ✅
+
+### HU-TEL-1 — Registro de eventos
+**Como** investigador, **quiero** registrar cada acción, **para** tener evidencia empírica.
+- **Given** acciones en frontend, **when** ocurren, **then** se almacenan en un buffer y se envían en lotes.
+
+### HU-TEL-2 — Eventos de dominio
+**Como** backend, **quiero** escuchar eventos de dominio, **para** automatizar telemetría.
+- **Given** eventos como HabitCompleted, **when** se emiten, **then** el listener los captura sin romper la petición principal en caso de error.
+
+### HU-TEL-3 — Exportación de datos
+**Como** investigador, **quiero** exportar CSV, **para** análisis.
+- **Given** la exportación, **when** corre, **then** produce archivos agrupados y detallados, sin datos personales y de forma asíncrona a las 3 AM.
+
+---
+
+## Fase 3 — Hábitos ✅
+
+### HU-HAB-1 — Gestión de hábitos
+**Como** estudiante, **quiero** crear hábitos con frecuencia, **para** mantener rutinas.
+- **Given** un nuevo hábito, **when** se guarda, **then** requiere categoría y frecuencia.
+
+### HU-HAB-2 — Completar hábitos
+**Como** estudiante, **quiero** marcarlos cumplidos, **para** ganar XP.
+- **Given** un hábito marcado, **when** es superior al límite diario, **then** se marca pero no otorga XP extra.
+- **Given** un hábito, **when** se marca, **then** la acción es idempotente.
+
+---
+
+## Fase 4 — Gamificación ✅
+
+### HU-GAM-1 — XP y Niveles
+**Como** estudiante, **quiero** ganar XP, **para** subir de nivel.
+- **Given** cualquier acción premiada, **when** se completa, **then** otorga XP respetando topes diarios y garantiza idempotencia.
+
+### HU-GAM-2 — Racha y días de gracia
+**Como** estudiante, **quiero** no perder mi racha por un error, **para** no desmotivarme.
+- **Given** que no se registra actividad en un día, **when** el usuario tiene días de gracia, **then** congela la racha sin romperla (hasta 3/mes).
+
+---
+
+## Fase 5 — Pomodoro ✅
+
+### HU-POM-1 — Temporizador resiliente
+**Como** estudiante, **quiero** que el temporizador siga activo si cierro el navegador, **para** no perder mi foco.
+- **Given** un Pomodoro en curso, **when** se recarga, **then** calcula el tiempo pendiente basado en el inicio real.
+- **Given** un fin de foco, **when** llega a 0, **then** inicia el descanso automáticamente.
+
+---
+
+## Fase 8 — Avatares ✅
+
+### HU-AVA-1 — Avatar Dinámico
+**Como** estudiante, **quiero** ver a mi avatar evolucionar, **para** reflejar mi fase.
+- **Given** el nivel, **when** cruza de fase, **then** muestra los PNG correspondientes al estilo de carrera y posición usando AvatarAssetResolver.
+
+---
+
+## Fase 6 — Calendar ✅
 
 Sin pantalla propia. Provee datos a Wellbeing, Missions, Dashboard y Telemetry. Detalle completo
 (feriados, período académico, `CalendarReaderInterface`) en `docs/01-MODULOS.md §15`.
@@ -86,7 +183,7 @@ duplicar esta lógica en cada módulo (razón de ser del módulo, `01-MODULOS.md
 
 ---
 
-## Fase 7 — Missions
+## Fase 7 — Missions ✅
 
 Detalle completo (estados, subtareas, `days_early_or_late`) en `docs/01-MODULOS.md §4`.
 
@@ -164,7 +261,7 @@ la vista que mejor se ajusta a cómo pienso ese día (`01-MODULOS.md §4`, tabla
 
 ---
 
-## Fase 8 — Wellbeing
+## Fase 8 — Wellbeing ✅
 
 Detalle completo (calendario, etiquetas, protección de datos) en `docs/01-MODULOS.md §5`. **Es
 el módulo con mayor sensibilidad de datos del proyecto hasta ahora** — leer la sección de
@@ -239,7 +336,7 @@ tener una salida visible sin que se rompa mi confidencialidad.
 
 ---
 
-## Fase 9 — Villains
+## Fase 9 — Villains ✅
 
 Detalle completo de reglas de daño/HP en `docs/03-GAMIFICACION.md §6`; acá solo la estructura de
 casos de uso (`01-MODULOS.md §7`).
@@ -271,7 +368,7 @@ semana, **para** que mi trabajo normal tenga un efecto visible narrativamente.
 
 ---
 
-## Fase 10 — Ranking + Personalization
+## Fase 10 — Ranking + Personalization ✅
 
 Dos módulos chicos y sin dependencias entre sí, agrupados en una fase porque ninguno bloquea al
 otro y ambos son rápidos una vez que Gamification (ya construido) existe.
@@ -318,7 +415,7 @@ experiencia dentro de un catálogo curado.
 
 ---
 
-## Fase 11 — Achievements
+## Fase 11 — Achievements ✅
 
 Detalle completo de categorías/reglas en `docs/01-MODULOS.md §13`. Depende de que Habits,
 Pomodoro, Missions, Wellbeing y Villains ya emitan sus eventos — por diseño, va al final de esa
@@ -359,7 +456,7 @@ romper una racha, **para** no contaminar la variable de constancia con una de co
 
 ---
 
-## Fase 12 — Motivation
+## Fase 12 — Motivation ✅
 
 Contenido curado, sin gamificación real. Detalle completo (catálogo de frases, mecanismo de
 rotación `NoRepeatPicker`) en `docs/01-MODULOS.md §14`. **Puede construirse en paralelo a
@@ -408,7 +505,7 @@ estudio.
 
 ---
 
-## Fase 13 — StudyGroups
+## Fase 13 — StudyGroups ✅
 
 **El módulo de infraestructura más delicado del MVP.** Leer `docs/01-MODULOS.md §8` completo
 antes de tocar esto — el diagrama de secuencia del polling y el cálculo de carga están ahí, no
@@ -457,7 +554,7 @@ administrador pueda revisarlo sin que el contenido normal quede expuesto.
 
 ---
 
-## Fase 14 — AiAssistant
+## Fase 14 — AiAssistant ✅
 
 **El módulo más sensible del proyecto.** Leer `docs/01-MODULOS.md §10` completo, y
 `docs/06-SEGURIDAD.md §9` antes de escribir el prompt de sistema — los guardrails son "no
@@ -511,7 +608,7 @@ del diario, **para** minimizar la fuga de datos personales a un proveedor extern
 
 ---
 
-## Fase 15 — Admin
+## Fase 15 — Admin ✅
 
 Panel de solo lectura. Detalle completo en `docs/01-MODULOS.md §16`. Depende de que todos los
 módulos anteriores existan — es literalmente el último por diseño.

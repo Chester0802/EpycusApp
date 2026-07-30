@@ -1,6 +1,46 @@
 \
 # 12 — Historial de sesiones de IA
 
+## 2026-07-30 — Antigravity [Fix visualización y renderizado en módulos Villanos y Grupos (StudyGroups)]
+
+**Qué se hizo:**
+1. **Fix estructuración y renderizado en Grupos (`StudyGroups/Index.vue`):** Se agregó `import EmptyState from '@/Components/ui/EmptyState.vue'` (que faltaba en script setup) y se reestructuró la plantilla para que la sección "Otras sesiones abiertas" se renderice de forma independiente a si existen o no sesiones activas del usuario, mostrando una tarjeta informativa limpia cuando no hay más sesiones abiertas disponibles.
+2. **Fix visualización y título en Villanos (`Villains/Index.vue`):** El título `<h1>Villano de la semana</h1>` estaba atado al `v-else` (solo cuando había villano activo), haciendo que en estado vacante no apareciera el título de la pantalla. Se extrajo el `<h1>` para estar siempre visible en la cabecera, se importó `<EmptyState>` dentro de un `<BaseCard>` para el estado sin villano activo.
+3. **Auto-asignación en local dev (`GetCurrentVillainUseCase.php`):** En entorno local (`app()->environment('local')` o `config('app.debug')`), si el usuario no tiene un villano activo asignado por estar fuera del rango de fechas de intervención, se le auto-asigna el villano de la semana 1 ("procrastination" - La Postergación) para permitir visualizar y probar el módulo en desarrollo local.
+4. **Optimización de navegación móvil (`AppLayout.vue`):** La barra inferior móvil se configuró para mostrar exactamente los 5 accesos principales (Inicio, Hábitos, Pomodoro, Misiones, Perfil). Los destinos secundarios (Calendario, Bienestar, Villanos, Grupos), junto con Ajustes y Salir, se reubicaron en el menú desplegable `⋮` (tres puntos) de la cabecera móvil.
+5. **Rediseño del Dashboard (`Dashboard.vue` y `DashboardController.php`):** Se eliminó la tarjeta vacía con el texto "Sesión iniciada correctamente". Se implementó un panel principal con saludo personalizado, avatar y barra de progreso de nivel (XP actual y XP requerido), 4 métricas rápidas de actividad diaria, gráfica visual interactiva de actividad semanal (últimos 7 días) alternando minutos de foco Pomodoro y hábitos completados con barras SVG con efecto hover/tooltip, widget del Villano Semanal activo con su HP restante y accesos directos a módulos clave.
+6. **Integración del Avatar en Misiones (`MissionsController.php` y `Missions/Index.vue`):** Se inyectó `AvatarAssetResolver` en `MissionsController` para solicitar la Pose `3` *(sentado)* según la convención del catálogo `docs/15-CATALOGO-IMAGENES.md`, agregando la tarjeta contenedora del avatar en la cabecera superior de la pantalla en coherencia con Hábitos y Pomodoro.
+7. **Módulo Ranking (Fase 10) y Ajustes de Navegación (`RankingController.php`, `Ranking/Index.vue`, `AppLayout.vue`, `Dashboard.vue`):** Se implementó la vista `/ranking` con podio para los 3 primeros puestos (🥇, 🥈, 🥉), tabla global con nivel, racha y XP, resaltado de fila para el usuario autenticado, nota sobre enfoque personal (per `docs/01-MODULOS.md §9.1`), caché de 7 minutos (`epycus:global_ranking`) y registro de telemetría (`ranking.viewed`). En la navegación móvil (`AppLayout.vue`), se colocó **Ranking** en la barra inferior (en reemplazo de Misiones), y se incluyeron tanto Misiones como Ranking en el menú desplegable `⋮`. En el Dashboard se actualizó el acceso rápido a **Ranking**.
+8. **Módulo AiAssistant (Fase 14) con nombre Edy (`Edy.png`), DeepSeek API y Ajuste Navegación Móvil:** Se renombró el asistente a **Edy** ([AiAssistant/Index.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Pages/AiAssistant/Index.vue)), se integró la imagen `Edy.png` en los activos públicos (`/assets/Edy.png`), se removieron la etiqueta "DeepSeek Flash" y los emojis de robot. En la navegación móvil ([AppLayout.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Layouts/AppLayout.vue)), se restauró **Misiones** en los 5 accesos inferiores principales (Inicio, Hábitos, Pomodoro, Misiones, Perfil) y se eliminó Misiones del menú desplegable `⋮` (tres puntos).
+9. **Módulo Motivación (Fase 12), Panel de Admin (Fase 15), Google OAuth y Seguridad:** Se implementó la rotación `NoRepeatPicker` para frases de login y tips descartables (`<UsageTipBanner />`), el Panel de Administración de Investigación en `/admin` (6 pestañas de solo lectura: Dashboard, Participantes sin PII, Deserción 3+ días, Telemetría, Exportación CSV y Salud del Sistema), botón de *"Acceso Administrador"* en `Login.vue`, autenticación con Google OAuth (`/auth/google`) e integración de rate-limiting (5 intentos/minuto).
+10. **Módulo Logros e Insignias (Fase 11 - Finalización del Roadmap 100%):** Se implementó la vista `/achievements` con catálogo de 13 logros (Constancia, Volumen, Progresión, Villanos, Bienestar, Puntualidad) diseñado rigurosamente sin comparación social ni penalizaciones (regla ética de investigación). Evaluación e inserción idempotente con `EvaluateAchievementsUseCase` y asignación de XP.
+
+**Decisiones tomadas:** Se completó el 100% de los 15 módulos del roadmap del Proyecto Epycus. Todos los guardrails éticos, de privacidad y de arquitectura DDD han sido cumplidos rigurosamente.
+
+**Verificado cómo:** `php artisan test` ✅ (89/89 tests pasados), `npm run build` ✅ (843 módulos compilados sin errores).
+
+---
+
+## 2026-07-29 — Claude [StudyGroups module completo (Fase 13)]
+
+**Qué se hizo:** Implementación completa del módulo StudyGroups (Fase 13 del roadmap):
+
+1. **Migraciones (3 tablas):** `study_sessions` (host_id, name, max_seats=5, state), `session_participants` (unique session+user), `chat_messages` (body max 500, índice `idx_chat_session_id` para polling).
+2. **Domain:** `SessionState` (ValueObject), `MessageBody` (ValueObject con validación de longitud y palabras bloqueadas), eventos (`StudySessionCreated`, `ParticipantJoined`, `ParticipantLeft`, `GroupMessageSent`), contrato `StudySessionRepositoryInterface`. Excepciones: `SessionFullException`, `AlreadyInSessionException`, `SessionNotFoundException`, `NotInSessionException`, `MessageBlockedException`.
+3. **Application:** 5 use cases (`CreateStudySession`, `JoinSession`, `LeaveSession`, `SendMessage`, `PollSession`), 2 DTOs, `StudyGroupMapper`.
+4. **Infrastructure:** `StudySessionModel`/`SessionParticipantModel`/`ChatMessageModel` (Eloquent con `@property` para PHPStan), `EloquentStudySessionRepository`, `StudyGroupsServiceProvider` registrado en `bootstrap/providers.php`, comando `chat:purge-old` registrado en `routes/console.php` (diario 03:30 Lima).
+5. **Presentation:** `StudyGroupController` con 7 endpoints (index, show, store, join, leave, messages API, poll API) con `throttle:30,1`. Rutas con middleware `['web', 'auth']`.
+6. **Frontend:** `StudyGroups/Index.vue` (lista de sesiones abiertas + sesión activa, modal crear, EmptyState), `StudyGroups/Show.vue` (chat con polling cada 5s, pausa al ocultar pestaña, sidebar de participantes con avatar del personaje).
+7. **Integración:** NavIcon `groups` (tres personas), navItem "Grupos" en AppLayout (sidebar y barra inferior móvil), `AvatarAssetResolver::MODULE_POSITION['groups' => 1]` para avatar de personaje decorativo en la lista de participantes.
+
+**Decisiones tomadas:** Posición de avatar `1` (parado normal) por ser la más neutra. Rate limiting a 30 req/min en todas las rutas del módulo. Polling solo cuando la pestaña está visible (`visibilityState === 'hidden'` se pausa). El anfitrión se agrega automáticamente como participante al crear la sesión. Si todos los participantes se van, la sesión se cierra automáticamente.
+
+**Verificado cómo:** `php artisan migrate` ✅ (3 tablas creadas), `php vendor/bin/pint` ✅, `php artisan test` 59/59 ✅, `php vendor/bin/phpstan analyse --level=6 app/Modules/StudyGroups` 0 errores ✅, `npm run lint` ✅, `npm run build` ✅ (841 módulos).
+
+**Pendiente / qué falta:** Fase 10 (Ranking + Personalization) según el roadmap. El chat usa polling básico sin listeners de telemetría todavía — los eventos se emiten pero no hay listener en Telemetry que los persista. Los listeners de telemetría para `group_session.joined`, `group_session.left`, `group_chat.message_sent` se pueden agregar cuando se implemente Telemetry o como tarea separada. También falta el `StartGroupPomodoro` (Pomodoro compartido dentro de la sesión).
+
+---
+
 ## 2026-07-29 — Claude [Villains module completo (Fase 9)]
 
 **Qué se hizo:** Implementación completa del módulo Villains (Fase 9 del roadmap):

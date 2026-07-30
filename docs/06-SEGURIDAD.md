@@ -89,10 +89,11 @@ Consecuencia técnica que hay que aceptar: **no se puede hacer `WHERE` ni `LIKE`
 | Hash de contraseña | bcrypt con `cost = 12` |
 | Longitud mínima | 10 caracteres |
 | Contraseñas filtradas | Rechazadas con la regla `Password::uncompromised()` de Laravel |
-| Límite de intentos | 5 por minuto por IP + correo |
+| Límite de intentos | 5 por minuto por IP (login tradicional y Google OAuth) |
 | Bloqueo temporal | 15 min tras 10 intentos fallidos |
 | Sesión | Expira a los 120 min de inactividad |
 | 2FA | **Obligatorio para el rol `admin`** |
+| Autenticación externa | **Google OAuth** integrado y preparado (pendiente de CLIENT_ID en producción) |
 | Correo verificado | Requerido antes de participar en el estudio |
 
 ```php
@@ -131,6 +132,8 @@ flowchart TD
 $this->authorize('complete', $habit);
 ```
 
+Para el panel de administración, el middleware `EnsureUserIsAdmin` es la primera línea de defensa. Protege estrictamente todas las rutas de este módulo validando que el usuario autenticado posea el rol `admin` o bandera `is_admin`, rechazando la petición inmediatamente si no cumple.
+
 Regla base: **un usuario solo accede a sus propios recursos.** Excepciones explícitas y limitadas:
 
 | Recurso | Quién más puede verlo |
@@ -146,7 +149,7 @@ Regla base: **un usuario solo accede a sus propios recursos.** Excepciones expl�
 
 ## 6. Lo que el administrador NO puede hacer
 
-Esto es tanto una medida de privacidad como de **integridad científica**:
+Esto es tanto una medida de privacidad estricta conforme a la **Ley N.° 29733** (protegiendo los datos personales e información sensible - PII) como de **integridad científica**:
 
 | Prohibido | Por qué |
 |---|---|
@@ -250,7 +253,7 @@ Riesgos específicos, alineados con ISO/IEC 23894:
 
 ### Protocolo de derivación
 
-Si el mensaje del usuario contiene señales de crisis (ideación suicida, autolesión, angustia severa), el sistema **no envía la consulta a DeepSeek**. Responde con un mensaje de contención escrito previamente y aprobado por el comité de ética, con el contacto del servicio de bienestar psicológico de la UPN.
+Si el mensaje del usuario contiene señales de crisis (ideación suicida, autolesión, angustia severa), el sistema **no envía la consulta a DeepSeek**. Responde con un mensaje de contención escrito previamente y aprobado por el comité de ética, derivando al usuario a la **Línea 113 MINSA** (Ministerio de Salud) y al servicio de bienestar de la UPN.
 
 Se registra `wellbeing.support_shown` **sin el motivo ni el texto**. No se notifica a administradores: eso violaría la confidencialidad y desincentivaría el uso honesto de la herramienta.
 
@@ -291,12 +294,14 @@ Nunca en el repositorio:
   APP_KEY
   DB_PASSWORD
   DEEPSEEK_API_KEY
+  GOOGLE_CLIENT_SECRET
   MAIL_PASSWORD
 ```
 
 `.env` en `.gitignore`. `.env.example` con claves vacías. Los secretos reales viven en el gestor de contraseñas del equipo y se configuran en el servidor.
 
-**Rotar `DEEPSEEK_API_KEY` si alguna vez se pega en un chat, en un issue o en una captura de pantalla.** Considerando que varias IA distintas van a trabajar en este repositorio, este riesgo es real.
+**Seguridad de API Keys:**
+**Rotar `DEEPSEEK_API_KEY` o `GOOGLE_CLIENT_SECRET` si alguna vez se pegan en un chat, en un issue o en una captura de pantalla.** Considerando que varias IA distintas van a trabajar en este repositorio, este riesgo es real. Nunca se deben enviar credenciales reales al LLM ni en los prompts.
 
 ---
 

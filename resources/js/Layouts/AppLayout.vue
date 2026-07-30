@@ -30,14 +30,36 @@ import { useTheme } from '@/composables/useTheme';
  * no acá — corrección del usuario tras ver la Fase 0: la barra de
  * navegación no es el lugar para eso.
  */
+const mainNavItems = [
+    { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
+    { label: 'Hábitos', routeName: 'habits.index', icon: 'habits' },
+    { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro' },
+    { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
+    { label: 'Perfil', routeName: 'profile.edit', icon: 'user' },
+];
+
+const secondaryNavItems = [
+    { label: 'Asistente IA', routeName: 'ai-assistant.index', icon: 'ai' },
+    { label: 'Ranking', routeName: 'ranking.index', icon: 'ranking' },
+    { label: 'Logros', routeName: 'achievements.index', icon: 'achievements' },
+    { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
+    { label: 'Bienestar', routeName: 'wellbeing.index', icon: 'wellbeing' },
+    { label: 'Villanos', routeName: 'villains.index', icon: 'villains' },
+    { label: 'Grupos', routeName: 'study-groups.index', icon: 'groups' },
+];
+
 const navItems = [
     { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
     { label: 'Hábitos', routeName: 'habits.index', icon: 'habits' },
     { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro' },
     { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
+    { label: 'Ranking', routeName: 'ranking.index', icon: 'ranking' },
+    { label: 'Logros', routeName: 'achievements.index', icon: 'achievements' },
+    { label: 'Asistente IA', routeName: 'ai-assistant.index', icon: 'ai' },
     { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
     { label: 'Bienestar', routeName: 'wellbeing.index', icon: 'wellbeing' },
     { label: 'Villanos', routeName: 'villains.index', icon: 'villains' },
+    { label: 'Grupos', routeName: 'study-groups.index', icon: 'groups' },
     { label: 'Perfil', routeName: 'profile.edit', icon: 'user' },
 ];
 
@@ -54,13 +76,6 @@ const { surface } = useTheme();
         <aside class="panel-nav relative z-10 hidden w-[260px] shrink-0 lg:flex lg:flex-col">
             <div class="flex h-16 items-center justify-between gap-2 px-6">
                 <Link :href="route('dashboard')" class="flex items-center gap-2">
-                    <!-- Insignia del logo: cuadrado rounded-lg con el logo real
-                         adentro (skill epycus-ui, referencia visual del usuario).
-                         `bg-primary-strong p-1` deja un marco visible alrededor
-                         de la imagen, que ya es cuadrada con esquinas propias.
-                         rounded-xl (24px) se ve como círculo perfecto en una
-                         caja de 36px — probado, no asumido; rounded-lg (16px)
-                         sí deja ver las esquinas. -->
                     <span
                         class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-strong p-1"
                     >
@@ -100,9 +115,6 @@ const { surface } = useTheme();
                         <BaseBadge variant="neutral">Pronto</BaseBadge>
                     </span>
                 </template>
-                <!-- Ajustes va con el resto de la navegación, debajo de Perfil
-                     (corrección del usuario: no debe compartir el footer con
-                     Salir) -->
                 <Link
                     :href="route('settings.edit')"
                     class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150"
@@ -117,9 +129,6 @@ const { surface } = useTheme();
                 </Link>
             </nav>
 
-            <!-- Solo Salir acá — tono más marcado que un nav item normal,
-                 porque es la única acción que queda en esta zona separada
-                 (corrección del usuario tras ver Ajustes al lado). -->
             <div class="border-t border-border p-4">
                 <div class="mb-2 truncate text-sm font-semibold text-content-primary">
                     {{ page.props.auth.user.name }}
@@ -136,14 +145,7 @@ const { surface } = useTheme();
         </aside>
 
         <div class="flex min-h-screen flex-1 flex-col">
-            <!-- Cabecera — solo móvil. `panel-nav relative z-10`: sin esto queda
-                 detrás de `.app-background` (position:fixed) en Vidrio — un
-                 elemento estático sin posición propia pinta antes que uno
-                 posicionado con z-index:0, aunque venga después en el DOM
-                 (encontrado probando en navegador, no en el código a simple
-                 vista: `elementFromPoint` seguía encontrando el logo y los
-                 botones porque `.app-background` tiene pointer-events:none,
-                 pero visualmente quedaban tapados). -->
+            <!-- Cabecera — solo móvil -->
             <header
                 class="panel-nav relative z-10 flex h-16 items-center justify-between px-4 lg:hidden"
             >
@@ -167,29 +169,57 @@ const { surface } = useTheme();
                 </div>
             </header>
 
-            <div v-if="mobileMenuOpen" class="panel-nav relative z-10 px-4 py-3 lg:hidden">
-                <div class="mb-1 text-sm font-semibold text-content-primary">
-                    {{ page.props.auth.user.name }}
+            <div v-if="mobileMenuOpen" class="panel-nav relative z-10 px-4 py-3 lg:hidden space-y-2">
+                <div class="border-b border-border pb-2">
+                    <div class="text-sm font-semibold text-content-primary">
+                        {{ page.props.auth.user.name }}
+                    </div>
+                    <div class="text-xs text-content-secondary">
+                        {{ page.props.auth.user.email }}
+                    </div>
                 </div>
-                <div class="mb-3 text-sm text-content-secondary">
-                    {{ page.props.auth.user.email }}
+
+                <div class="space-y-1">
+                    <template v-for="item in secondaryNavItems" :key="item.label">
+                        <Link
+                            v-if="item.routeName"
+                            :href="route(item.routeName)"
+                            class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150"
+                            :class="
+                                route().current(item.routeName)
+                                    ? 'bg-primary text-on-primary'
+                                    : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
+                            "
+                            @click="mobileMenuOpen = false"
+                        >
+                            <NavIcon :name="item.icon" />
+                            {{ item.label }}
+                        </Link>
+                    </template>
+
+                    <Link
+                        :href="route('settings.edit')"
+                        class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150"
+                        :class="
+                            route().current('settings.edit')
+                                ? 'bg-primary text-on-primary'
+                                : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
+                        "
+                        @click="mobileMenuOpen = false"
+                    >
+                        <NavIcon name="settings" />
+                        Ajustes
+                    </Link>
+
+                    <Link
+                        :href="route('logout')"
+                        method="post"
+                        as="button"
+                        class="flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold text-danger-text hover:bg-surface-raised transition-colors duration-150"
+                    >
+                        Salir
+                    </Link>
                 </div>
-                <!-- Perfil no va acá: ya está en la barra inferior, sería
-                     redundante (corrección del usuario). -->
-                <Link
-                    :href="route('settings.edit')"
-                    class="block min-h-[44px] py-2 text-sm text-content-secondary"
-                >
-                    Ajustes
-                </Link>
-                <Link
-                    :href="route('logout')"
-                    method="post"
-                    as="button"
-                    class="block min-h-[44px] py-2 text-sm text-content-secondary"
-                >
-                    Salir
-                </Link>
             </div>
 
             <main class="mx-auto w-full max-w-[1200px] flex-1 px-4 pb-24 pt-6 lg:px-8 lg:pb-8">
@@ -197,12 +227,12 @@ const { surface } = useTheme();
             </main>
         </div>
 
-        <!-- Barra inferior — solo móvil -->
+        <!-- Barra inferior — solo móvil (máximo 5 ítems) -->
         <nav
             class="panel-nav fixed inset-x-0 bottom-0 z-40 flex justify-around py-2 lg:hidden"
             aria-label="Navegación principal"
         >
-            <template v-for="item in navItems" :key="item.label">
+            <template v-for="item in mainNavItems" :key="item.label">
                 <Link
                     v-if="item.routeName"
                     :href="route(item.routeName)"
@@ -216,14 +246,6 @@ const { surface } = useTheme();
                     <NavIcon :name="item.icon" />
                     {{ item.label }}
                 </Link>
-                <span
-                    v-else
-                    class="flex min-h-[44px] min-w-[44px] cursor-not-allowed flex-col items-center justify-center gap-0.5 rounded-xl px-3 text-xs font-semibold text-content-muted opacity-50"
-                    aria-disabled="true"
-                >
-                    <NavIcon :name="item.icon" />
-                    {{ item.label }}
-                </span>
             </template>
         </nav>
     </div>

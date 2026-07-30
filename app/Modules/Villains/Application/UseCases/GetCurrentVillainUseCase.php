@@ -19,6 +19,24 @@ final class GetCurrentVillainUseCase
     public function execute(int $userId): ?array
     {
         $instance = $this->repository->findActiveInstance($userId);
+        if ($instance === null && (app()->environment('local') || config('app.debug'))) {
+            $villain = $this->repository->findVillainByCode('procrastination');
+            if ($villain !== null) {
+                $now = new \DateTimeImmutable('now', new \DateTimeZone('America/Lima'));
+                $instance = $this->repository->createInstance([
+                    'user_id' => $userId,
+                    'villain_id' => $villain->id,
+                    'week_number' => 1,
+                    'total_hp' => 100,
+                    'remaining_hp' => 100,
+                    'status' => 'active',
+                    'assigned_at' => $now->modify('-1 day')->format('Y-m-d H:i:s'),
+                    'expires_at' => $now->modify('+6 days')->format('Y-m-d H:i:s'),
+                ]);
+                $instance->load('villain');
+            }
+        }
+
         if ($instance === null) {
             return null;
         }

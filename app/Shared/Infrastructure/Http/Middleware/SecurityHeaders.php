@@ -36,10 +36,26 @@ final class SecurityHeaders
         // la app no arranca. En producción solo se permite 'self'.
         $viteOrigin = app()->isLocal() ? ' http://127.0.0.1:5173 http://127.0.0.1:5174' : '';
         $viteWs = app()->isLocal() ? ' ws://127.0.0.1:5173 ws://127.0.0.1:5174' : '';
+        // NOTA sobre CSP y nonce:
+        //   - Cuando script-src tiene un 'nonce-...', el navegador IGNORA
+        //     'unsafe-inline' (especificación CSP3). Todos los inline
+        //     scripts deben llevar el atributo nonce, no hay excepción.
+        //   - En producción, @routes(nonce:) y el script del tema en
+        //     app.blade.php ya tienen nonce, y Vite emite solo bundles
+        //     externos (src=) — no hay inline scripts sin nonce.
+        //   - En desarrollo, Vite inyecta inline scripts para HMR que NO
+        //     llevan nonce y no podemos controlarlos. Así que en desarrollo
+        //     usamos 'unsafe-inline' sin nonce, y en producción usamos
+        //     el nonce sin 'unsafe-inline'. Mutuamente excluyentes.
+        if (app()->isLocal()) {
+            $scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval'{$viteOrigin}";
+        } else {
+            $scriptSrc = "'self' 'nonce-{$nonce}'";
+        }
 
         $response->headers->set('Content-Security-Policy',
             "default-src 'self'; ".
-            "script-src 'self' 'nonce-{$nonce}'{$viteOrigin}; ".
+            "script-src {$scriptSrc}; ".
             "style-src 'self' 'unsafe-inline'{$viteOrigin}; ".
             "img-src 'self' data:; ".
             "font-src 'self'; ".

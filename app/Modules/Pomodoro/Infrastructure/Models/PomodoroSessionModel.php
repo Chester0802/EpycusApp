@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $user_id
  * @property int|null $mission_id
+ * @property int|null $study_group_session_id
  * @property int $planned_minutes
  * @property Carbon $started_at
  * @property Carbon|null $paused_at
@@ -28,6 +29,7 @@ final class PomodoroSessionModel extends Model
     protected $fillable = [
         'user_id',
         'mission_id',
+        'study_group_session_id',
         'planned_minutes',
         'started_at',
         'paused_at',

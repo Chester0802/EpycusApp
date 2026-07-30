@@ -563,7 +563,329 @@ Usa PHPUnit (viene con Laravel 12) y base de datos SQLite en memoria para tests,
 
 ---
 
-## 15. Errores comunes que debes evitar
+## 16. Diagrama de Clases UML (Mermaid classDiagram)
+
+```mermaid
+classDiagram
+    class User {
+        +int id
+        +string email
+        +string role
+    }
+    class Participant {
+        +string participantCode
+        +int groupId
+    }
+    class Habit {
+        +int id
+        +string title
+        +string frequency
+        +bool isActive
+    }
+    class HabitCompletion {
+        +int id
+        +DateTime completedAt
+    }
+    class PomodoroSession {
+        +int id
+        +int focusMinutes
+        +DateTime completedAt
+    }
+    class Mission {
+        +int id
+        +string title
+        +string difficulty
+    }
+    class Subtask {
+        +int id
+        +string title
+        +bool isCompleted
+    }
+    class JournalEntry {
+        +int id
+        +string content
+        +DateTime createdAt
+    }
+    class Achievement {
+        +int id
+        +string name
+        +string criteria
+    }
+    class UserAchievement {
+        +int id
+        +DateTime unlockedAt
+    }
+    class Villain {
+        +int id
+        +string name
+        +int baseHp
+    }
+    class VillainInstance {
+        +int id
+        +int currentHp
+        +bool isDefeated
+    }
+    class UserProgress {
+        +int xp
+        +int level
+        +int streakDays
+        +int coins
+    }
+    class StudySession {
+        +int id
+        +DateTime startTime
+        +DateTime endTime
+    }
+    class TelemetryEvent {
+        +int id
+        +string eventType
+        +string payload
+        +DateTime timestamp
+    }
+    class AiConversation {
+        +int id
+        +DateTime startedAt
+    }
+    class AiMessage {
+        +int id
+        +string role
+        +string content
+        +DateTime sentAt
+    }
+    class MotivationalQuote {
+        +int id
+        +string text
+        +string author
+    }
+
+    User "1" -- "0..1" Participant
+    User "1" -- "1" UserProgress
+    User "1" -- "*" Habit
+    Habit "1" -- "*" HabitCompletion
+    User "1" -- "*" PomodoroSession
+    User "1" -- "*" Mission
+    Mission "1" -- "*" Subtask
+    User "1" -- "*" JournalEntry
+    User "1" -- "*" UserAchievement
+    Achievement "1" -- "*" UserAchievement
+    Villain "1" -- "*" VillainInstance
+    User "1" -- "*" VillainInstance
+    User "1" -- "*" StudySession
+    Participant "1" -- "*" TelemetryEvent
+    User "1" -- "*" AiConversation
+    AiConversation "1" -- "*" AiMessage
+```
+
+---
+
+## 17. Diagrama de Casos de Uso UML (Mermaid)
+
+```mermaid
+flowchart LR
+    Estudiante(["Estudiante"])
+    Admin(["Investigador / Admin"])
+    Cron(["Sistema / Cron"])
+    IA(["Edy IA (DeepSeek)"])
+
+    subgraph Identity
+        uc1([Iniciar Sesión])
+        uc2([Registrarse])
+    end
+
+    subgraph Habits
+        uc3([Crear Hábito])
+        uc4([Completar Hábito])
+    end
+    
+    subgraph Pomodoro
+        uc5([Iniciar Pomodoro])
+        uc6([Completar Pomodoro])
+    end
+
+    subgraph Admin_Module["Admin"]
+        uc7([Exportar Telemetría])
+        uc8([Ver Progreso Global])
+    end
+
+    subgraph Telemetry
+        uc10([Procesar Eventos en Lote])
+    end
+
+    subgraph AiAssistant
+        uc9([Chatear con Edy])
+    end
+
+    Estudiante --> uc1
+    Estudiante --> uc2
+    Estudiante --> uc3
+    Estudiante --> uc4
+    Estudiante --> uc5
+    Estudiante --> uc6
+    Estudiante --> uc9
+    Admin --> uc7
+    Admin --> uc8
+    Cron --> uc10
+    uc9 -. usa .-> IA
+```
+
+---
+
+## 18. C4 Model - Nivel 1 (Contexto del Sistema)
+
+```mermaid
+flowchart TD
+    Estudiante(["Estudiante (Browser)"])
+    Admin(["Investigador / Admin (Browser)"])
+    Epycus["Epycus (Sistema)"]
+    DeepSeek["DeepSeek API"]
+    Google["Google OAuth"]
+    Hostinger["Hostinger Shared (MariaDB)"]
+
+    Estudiante -- Usa --> Epycus
+    Admin -- Administra --> Epycus
+    Epycus -- Consulta IA --> DeepSeek
+    Epycus -- Autentica --> Google
+    Epycus -- Almacena en --> Hostinger
+```
+
+---
+
+## 19. C4 Model - Nivel 2 (Contenedores)
+
+```mermaid
+flowchart TD
+    Estudiante(["Estudiante (Browser)"])
+    
+    subgraph Epycus ["Epycus"]
+        SPA["Vue 3 SPA (Inertia.js)"]
+        Backend["Laravel Backend (PHP 8.2)"]
+        DB[("MariaDB Database")]
+        Storage[("File Storage (Avatars/Wallpapers)")]
+    end
+    
+    DeepSeek["DeepSeek API"]
+
+    Estudiante -- HTTPS --> SPA
+    SPA -- JSON / Inertia --> Backend
+    Backend -- SQL --> DB
+    Backend -- Lee / Escribe --> Storage
+    Backend -- REST API --> DeepSeek
+```
+
+---
+
+## 20. C4 Model - Nivel 3 (Componentes)
+
+```mermaid
+flowchart TD
+    subgraph Backend ["Laravel Backend"]
+        EventBus(("Event Bus"))
+        SharedContracts{{"Shared Contracts"}}
+        
+        Identity["Identity"]
+        Habits["Habits"]
+        Pomodoro["Pomodoro"]
+        Missions["Missions"]
+        Calendar["Calendar"]
+        Wellbeing["Wellbeing"]
+        Gamification["Gamification"]
+        Villains["Villains"]
+        StudyGroups["StudyGroups"]
+        Ranking["Ranking"]
+        Personalization["Personalization"]
+        AiAssistant["AiAssistant"]
+        Achievements["Achievements"]
+        Motivation["Motivation"]
+        Telemetry["Telemetry"]
+        Admin["Admin"]
+    end
+
+    Habits -- Emite --> EventBus
+    Pomodoro -- Emite --> EventBus
+    Missions -- Emite --> EventBus
+    EventBus -- Escucha --> Gamification
+    EventBus -- Escucha --> Villains
+    EventBus -- Escucha --> Telemetry
+    
+    Ranking -- Implementa --> SharedContracts
+    Gamification -- Define --> SharedContracts
+```
+
+---
+
+## 21. Diagrama de Despliegue UML
+
+```mermaid
+flowchart LR
+    Client["Client Browser"]
+    
+    subgraph Hostinger ["Hostinger Shared Hosting"]
+        Litespeed["Hostinger LiteSpeed Server"]
+        
+        subgraph PHP_Runtime ["PHP Runtime"]
+            PHP["PHP 8.2 (max 40 workers)"]
+        end
+        
+        MariaDB[("MariaDB 10.11")]
+    end
+    
+    DeepSeek("DeepSeek API")
+    Google("Google OAuth")
+
+    Client -- HTTPS --> Litespeed
+    Litespeed -- FastCGI --> PHP
+    PHP -- TCP/IP --> MariaDB
+    PHP -- HTTPS --> DeepSeek
+    Client -- HTTPS --> Google
+```
+
+---
+
+## 22. Diagrama de Arquitectura Lógica
+
+```mermaid
+flowchart TD
+    subgraph CleanArchitecture ["Clean Architecture (Por Módulo)"]
+        Presentation["Presentation Layer (Controllers, Vue, Requests)"]
+        Application["Application Layer (UseCases, DTOs, Listeners)"]
+        Domain["Domain Layer (Entities, Events, Contracts)"]
+        Infrastructure["Infrastructure Layer (Eloquent, Repositories)"]
+    end
+    
+    EventBus(("Event Bus Laravel"))
+
+    Presentation --> Application
+    Application --> Domain
+    Infrastructure -. Implementa .-> Domain
+    Application -- Publica / Escucha --> EventBus
+```
+
+---
+
+## 23. Diagrama de Flujo de Datos (DFD Nivel 0)
+
+```mermaid
+flowchart TD
+    Student(["Student Actions"])
+    Controllers["Laravel Controllers"]
+    UseCases["Use Cases (Application)"]
+    DomainEvents(("Domain Events"))
+    Listeners["Listeners (Gamification, Telemetry, Villains)"]
+    Database[("Database")]
+    AdminUser(["Admin / Investigador"])
+
+    Student -- Request --> Controllers
+    Controllers -- DTO --> UseCases
+    UseCases -- Emite --> DomainEvents
+    UseCases -- Persiste --> Database
+    DomainEvents -- Despacha --> Listeners
+    Listeners -- Actualiza / Registra --> Database
+    AdminUser -- Lee (Código Participante) --> Database
+```
+
+---
+
+## 24. Errores comunes que debes evitar
 
 | Error | Por qué está mal |
 |---|---|

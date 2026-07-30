@@ -28,186 +28,139 @@ todo lo que "debería" relacionarse está garantizado por la base, y eso importa
 
 ```mermaid
 erDiagram
-    users ||--o| participants : "es"
-    users ||--|| user_preferences : configura
     users ||--o{ habits : crea
-    habits ||--o{ habit_completions : registra
-    users ||--o{ pomodoro_sessions : ejecuta
-    missions ||--o{ pomodoro_sessions : "se enfoca en"
+    users ||--|| user_preferences : configura
+    users ||--o| participants : "es"
     users ||--o{ missions : crea
-    missions ||--o{ subtasks : contiene
+    users ||--o{ pomodoro_sessions : ejecuta
     users ||--|| user_progress : tiene
     users ||--o{ xp_transactions : acumula
     users ||--o{ journal_entries : escribe
-    users ||--o{ user_quote_views : ve
-    motivational_quotes ||--o{ user_quote_views : "se muestra en"
-    users ||--o{ user_tip_views : ve
-    usage_tips ||--o{ user_tip_views : "se muestra en"
     users ||--o{ villain_instances : enfrenta
-    villains ||--o{ villain_instances : instancia
     users ||--o{ study_sessions : hospeda
-    study_sessions ||--o{ session_participants : reune
     users ||--o{ session_participants : participa
-    study_sessions ||--o{ chat_messages : contiene
     users ||--o{ chat_messages : escribe
-    users ||--o{ ai_quotas : consume
     users ||--o{ ai_conversations : consulta
-    ai_conversations ||--o{ ai_messages : contiene
+    users ||--o{ ai_quotas : consume
     users ||--o{ telemetry_events : genera
+    users ||--o{ calendar_events : agenda
+    users ||--o{ user_achievements : gana
+    users ||--o{ user_quote_views : ve
+    users ||--o{ user_tip_views : ve
+
+    habits ||--o{ habit_completions : registra
+    missions ||--o{ subtasks : contiene
+    missions ||--o{ pomodoro_sessions : "se enfoca en"
+    pomodoro_sessions ||--o{ pomodoro_session_subtask : incluye
+    subtasks ||--o{ pomodoro_session_subtask : "incluida en"
+    study_sessions ||--o{ session_participants : reune
+    study_sessions ||--o{ chat_messages : contiene
+    study_sessions ||--o{ pomodoro_sessions : "aloja a"
+    ai_conversations ||--o{ ai_messages : contiene
+    villains ||--o{ villain_instances : instancia
+    achievements ||--o{ user_achievements : "se otorga a"
+    motivational_quotes ||--o{ user_quote_views : "se muestra en"
+    usage_tips ||--o{ user_tip_views : "se muestra en"
 
     users {
-        integer id PK
-        string name
+        bigint id PK
         string email UK
         string alias UK
-        enum role
-        string career
-        enum avatar_style
-        enum avatar_gender
-        integer cycle
-        enum institution_type
+        string role
     }
     participants {
-        integer id PK
-        integer user_id FK
+        bigint id PK
         string participant_code UK
-        string student_code "cifrado"
-        string whatsapp "cifrado"
-        datetime consent_granted_at
-        datetime withdrawn_at
     }
     user_preferences {
-        integer id PK
-        integer user_id FK
-        enum surface_mode
-        boolean notifications_enabled
+        bigint id PK
     }
     habits {
-        integer id PK
-        integer user_id FK
+        bigint id PK
         string title
-        enum category
-        json frequency
-        boolean is_active
+        string category
     }
     habit_completions {
-        integer id PK
-        integer habit_id FK
-        integer user_id
+        bigint id PK
         date completed_for
-        boolean is_late
-        integer xp_awarded
-    }
-    pomodoro_sessions {
-        integer id PK
-        integer user_id FK
-        integer mission_id FK
-        enum state
-        integer planned_minutes
-        integer xp_awarded
     }
     missions {
-        integer id PK
-        integer user_id FK
+        bigint id PK
         string title
-        enum difficulty
-        date due_date
-        boolean is_overdue
+        string difficulty
     }
     subtasks {
-        integer id PK
-        integer mission_id FK
+        bigint id PK
         string title
-        boolean is_completed
+    }
+    pomodoro_sessions {
+        bigint id PK
+        string status
+    }
+    pomodoro_session_subtask {
+        bigint id PK
     }
     user_progress {
-        integer user_id PK, FK
-        integer total_xp
-        integer current_level
-        integer current_phase
-        integer current_streak
+        bigint user_id PK
     }
     xp_transactions {
-        integer id PK
-        integer user_id FK
-        integer amount
-        string source_type
-        integer source_id
+        bigint id PK
+        int amount
     }
     journal_entries {
-        integer id PK
-        integer user_id FK
-        integer mood_score
-        text content "cifrado"
-        date entry_date
-    }
-    motivational_quotes {
-        integer id PK
-        string text_es
-        string author
-    }
-    usage_tips {
-        integer id PK
-        string module_code
-        string text_es
-    }
-    user_quote_views {
-        integer id PK
-        integer user_id FK
-        integer quote_id
-        datetime shown_at
-    }
-    user_tip_views {
-        integer id PK
-        integer user_id FK
-        integer tip_id
-        datetime shown_at
+        bigint id PK
+        date date
     }
     villains {
-        integer id PK
+        tinyint id PK
         string code UK
-        string name
     }
     villain_instances {
-        integer id PK
-        integer user_id FK
-        integer villain_id
-        integer week_number
-        integer current_hp
+        bigint id PK
     }
     study_sessions {
-        integer id PK
-        integer host_id
+        bigint id PK
         string name
-        enum state
     }
     session_participants {
-        string schema "PENDIENTE de definir"
+        bigint id PK
     }
     chat_messages {
-        integer id PK
-        integer session_id FK
-        integer user_id
-        string body
-    }
-    ai_quotas {
-        integer user_id PK, FK
-        date quota_date PK
-        integer used_count
+        bigint id PK
     }
     ai_conversations {
-        string schema "PENDIENTE de definir"
+        bigint id PK
     }
     ai_messages {
-        string schema "PENDIENTE de definir"
+        bigint id PK
+    }
+    ai_quotas {
+        bigint id PK
     }
     telemetry_events {
-        integer id PK
-        integer user_id FK
-        string event_name
-        string event_category
-        json payload
-        datetime occurred_at
+        bigint id PK
+    }
+    calendar_events {
+        bigint id PK
+    }
+    achievements {
+        bigint id PK
+        string code UK
+    }
+    user_achievements {
+        bigint id PK
+    }
+    motivational_quotes {
+        bigint id PK
+    }
+    usage_tips {
+        bigint id PK
+    }
+    user_quote_views {
+        bigint id PK
+    }
+    user_tip_views {
+        bigint id PK
     }
 ```
 
@@ -223,96 +176,125 @@ Transcripción fiel del DDL de la sección 3 (y de `telemetry_events`, definida 
 
 ```mermaid
 erDiagram
-    users ||--o| participants : "es"
-    users ||--|| user_preferences : configura
-    users ||--o{ habits : crea
-    habits ||--o{ habit_completions : registra
-    users ||--o{ pomodoro_sessions : ejecuta
-    missions ||--o{ pomodoro_sessions : "se enfoca en"
-    users ||--o{ missions : crea
-    missions ||--o{ subtasks : contiene
-    users ||--|| user_progress : tiene
-    users ||--o{ xp_transactions : acumula
-    users ||--o{ journal_entries : escribe
-    users ||--o{ user_quote_views : ve
-    users ||--o{ user_tip_views : ve
-    users ||--o{ villain_instances : enfrenta
-    study_sessions ||--o{ chat_messages : contiene
-    users ||--o{ ai_quotas : consume
-    users ||--o{ telemetry_events : genera
+    users ||--o{ ai_conversations : ""
+    users ||--o{ ai_quotas : ""
+    users ||--o{ calendar_events : ""
+    users ||--o{ chat_messages : ""
+    users ||--o{ habit_completions : ""
+    users ||--o{ habits : ""
+    users ||--o{ journal_entries : ""
+    users ||--o{ missions : ""
+    users ||--o| participants : ""
+    users ||--o{ pomodoro_sessions : ""
+    users ||--o{ session_participants : ""
+    users ||--o{ study_sessions : ""
+    users ||--o{ telemetry_events : ""
+    users ||--o{ user_achievements : ""
+    users ||--|| user_preferences : ""
+    users ||--|| user_progress : ""
+    users ||--o{ user_quote_views : ""
+    users ||--o{ user_tip_views : ""
+    users ||--o{ villain_instances : ""
+    users ||--o{ xp_transactions : ""
 
-    users {
+    achievements ||--o{ user_achievements : ""
+    ai_conversations ||--o{ ai_messages : ""
+    habits ||--o{ habit_completions : ""
+    missions ||--o{ pomodoro_sessions : ""
+    missions ||--o{ subtasks : ""
+    motivational_quotes ||--o{ user_quote_views : ""
+    pomodoro_sessions ||--o{ pomodoro_session_subtask : ""
+    study_sessions ||--o{ chat_messages : ""
+    study_sessions ||--o{ pomodoro_sessions : ""
+    study_sessions ||--o{ session_participants : ""
+    subtasks ||--o{ pomodoro_session_subtask : ""
+    usage_tips ||--o{ user_tip_views : ""
+    villains ||--o{ villain_instances : ""
+
+    achievements {
         bigint id PK
-        varchar_255 name
-        varchar_255 email UK
-        varchar_255 password
-        varchar_40 alias UK
-        varchar_20 role "default participant"
-        varchar_60 career
-        varchar_20 avatar_style "health | business | technical | systems | law"
-        varchar_1 avatar_gender "m | f"
-        tinyint cycle
-        varchar_20 institution_type "universidad | instituto"
-        timestamp email_verified_at
-        varchar_100 remember_token
+        varchar_40 code UK
+        varchar_80 name
+        varchar_255 description
+        varchar_30 category
+        varchar_10 icon
+        smallint xp_reward
+        varchar_255 wallpaper_reward_key
         timestamp created_at
         timestamp updated_at
     }
-    participants {
+    ai_conversations {
         bigint id PK
-        bigint user_id UK, FK
-        varchar_20 participant_code UK
-        varchar_40 student_code "encrypted"
-        varchar_30 whatsapp "encrypted"
-        timestamp consent_granted_at
-        timestamp enrolled_at
-        timestamp withdrawn_at
+        bigint user_id FK
+        varchar_120 title
         timestamp created_at
         timestamp updated_at
     }
-    user_preferences {
+    ai_messages {
         bigint id PK
-        bigint user_id UK, FK
-        varchar_20 surface_mode "default neumorphism"
-        boolean notifications_enabled "default false"
+        bigint conversation_id FK
+        enum role "user,assistant"
+        text content
+        int tokens_used
         timestamp created_at
         timestamp updated_at
+    }
+    ai_quotas {
+        bigint id PK
+        bigint user_id FK
+        date date
+        tinyint used_count
+        timestamp created_at
+        timestamp updated_at
+    }
+    calendar_events {
+        bigint id PK
+        bigint user_id FK
+        varchar_120 title
+        varchar_20 event_type
+        date date
+        tinyint_1 repeats_yearly
+        timestamp created_at
+        timestamp updated_at
+    }
+    chat_messages {
+        bigint id PK
+        bigint session_id FK
+        bigint user_id FK
+        varchar_500 body
+        datetime sent_at
+    }
+    habit_completions {
+        bigint id PK
+        bigint habit_id FK
+        bigint user_id FK
+        date completed_for
+        datetime completed_at
+        timestamp created_at
     }
     habits {
         bigint id PK
         bigint user_id FK
         varchar_120 title
-        enum category "estudio | sueno | ejercicio | alimentacion | otro"
+        varchar_60 category
+        varchar_10 icon
         json frequency
-        varchar_40 icon
-        boolean is_active "default true"
+        tinyint_1 is_active
+        datetime archived_at
         timestamp created_at
         timestamp updated_at
-        timestamp deleted_at
     }
-    habit_completions {
-        bigint id PK
-        bigint habit_id FK
-        bigint user_id "sin FK declarada"
-        date completed_for "UK junto a habit_id"
-        datetime completed_at
-        boolean is_late "default false"
-        smallint xp_awarded "default 0"
-        boolean was_capped "default false"
-        timestamp created_at
-    }
-    pomodoro_sessions {
+    journal_entries {
         bigint id PK
         bigint user_id FK
-        bigint mission_id "FK, nullable, SET NULL"
-        tinyint planned_minutes
-        tinyint focus_minutes
-        enum state "running | paused | completed | abandoned"
-        datetime started_at
-        datetime completed_at
-        smallint paused_seconds "default 0"
-        smallint xp_awarded "default 0"
-        boolean was_capped "default false"
+        date date
+        tinyint mood_score
+        tinyint energy
+        tinyint stress
+        decimal_3_1 sleep_hours
+        longtext physical_activity
+        text content
+        longtext tags
         timestamp created_at
         timestamp updated_at
     }
@@ -321,37 +303,193 @@ erDiagram
         bigint user_id FK
         varchar_160 title
         text description
-        enum difficulty "easy | medium | hard, default medium"
+        enum difficulty "easy,medium,hard"
+        enum priority "baja,normal,alta"
         date due_date
         datetime completed_at
-        smallint days_early_or_late "signed"
-        boolean is_overdue "default false"
-        smallint xp_awarded "default 0"
+        smallint days_early_or_late
+        tinyint_1 is_overdue
+        smallint xp_awarded
         timestamp created_at
         timestamp updated_at
         timestamp deleted_at
+    }
+    motivational_quotes {
+        bigint id PK
+        text text
+        varchar_255 author
+        tinyint_1 is_verified
+        timestamp created_at
+        timestamp updated_at
+    }
+    participants {
+        bigint id PK
+        bigint user_id UK, FK
+        varchar_20 participant_code UK
+        varchar_40 student_code
+        varchar_30 whatsapp
+        timestamp consent_granted_at
+        timestamp enrolled_at
+        timestamp withdrawn_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    pomodoro_session_subtask {
+        bigint id PK
+        bigint pomodoro_session_id FK
+        bigint subtask_id FK
+        datetime completed_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    pomodoro_sessions {
+        bigint id PK
+        bigint user_id FK
+        bigint mission_id FK
+        bigint study_group_session_id FK
+        tinyint planned_minutes
+        datetime started_at
+        datetime paused_at
+        int total_paused_seconds
+        datetime ended_at
+        varchar_12 status
+        smallint focus_minutes
+        timestamp created_at
+        timestamp updated_at
+    }
+    session_participants {
+        bigint id PK
+        bigint session_id FK
+        bigint user_id FK
+        datetime joined_at
+        datetime left_at
+    }
+    study_sessions {
+        bigint id PK
+        bigint host_id FK
+        varchar_80 name
+        tinyint max_seats
+        tinyint focus_minutes
+        tinyint break_minutes
+        tinyint cycles
+        tinyint current_cycle
+        varchar_20 phase
+        datetime phase_started_at
+        datetime phase_ends_at
+        enum state "open,running,closed"
+        datetime started_at
+        datetime closed_at
+        timestamp created_at
+        timestamp updated_at
     }
     subtasks {
         bigint id PK
         bigint mission_id FK
         varchar_160 title
-        boolean is_completed "default false"
+        tinyint_1 is_completed
         datetime completed_at
-        tinyint sort_order "default 0"
+        tinyint sort_order
+        timestamp created_at
+        timestamp updated_at
+    }
+    telemetry_events {
+        bigint id PK
+        bigint user_id FK
+        varchar_64 event_name
+        varchar_32 event_category
+        longtext payload
+        char_36 session_uuid
+        smallint intervention_day
+        datetime_3 occurred_at
+        datetime_3 recorded_at
+        enum source "web,backend"
+    }
+    usage_tips {
+        bigint id PK
+        varchar_30 module_key
+        text content
+        timestamp created_at
+        timestamp updated_at
+    }
+    user_achievements {
+        bigint id PK
+        bigint user_id UK, FK
+        bigint achievement_id UK, FK
+        timestamp unlocked_at
+    }
+    user_preferences {
+        bigint id PK
+        bigint user_id UK, FK
+        varchar_20 surface_mode
+        tinyint_1 notifications_enabled
         timestamp created_at
         timestamp updated_at
     }
     user_progress {
         bigint user_id PK, FK
-        int total_xp "default 0"
-        tinyint current_level "default 1"
-        tinyint current_phase "default 1"
-        smallint current_streak "default 0"
-        smallint longest_streak "default 0"
-        tinyint grace_days_left "default 3"
-        char_7 grace_month "'YYYY-MM'"
+        int total_xp
+        tinyint current_level
+        tinyint current_phase
+        smallint current_streak
+        smallint longest_streak
+        tinyint grace_days_left
+        char_7 grace_month
+        date grace_pending_since
         date last_activity_on
-        int coins "default 0"
+        int coins
+        timestamp created_at
+        timestamp updated_at
+    }
+    user_quote_views {
+        bigint id PK
+        bigint user_id FK
+        bigint quote_id FK
+        timestamp created_at
+    }
+    user_tip_views {
+        bigint id PK
+        bigint user_id FK
+        bigint tip_id FK
+        tinyint_1 is_dismissed
+        timestamp created_at
+    }
+    users {
+        bigint id PK
+        varchar_255 name
+        varchar_255 email UK
+        timestamp email_verified_at
+        varchar_255 password
+        varchar_40 alias UK
+        varchar_20 role
+        varchar_60 career
+        varchar_20 avatar_style
+        varchar_1 avatar_gender
+        tinyint cycle
+        varchar_20 institution_type
+        varchar_100 remember_token
+        timestamp created_at
+        timestamp updated_at
+    }
+    villain_instances {
+        bigint id PK
+        bigint user_id FK
+        tinyint villain_id FK
+        smallint week_number
+        smallint total_hp
+        smallint remaining_hp
+        enum status "active,defeated,survived"
+        datetime assigned_at
+        datetime expires_at
+        datetime defeated_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    villains {
+        tinyint id PK
+        varchar_32 code UK
+        varchar_100 name
+        text description
+        text weakness_description
         timestamp created_at
         timestamp updated_at
     }
@@ -360,103 +498,11 @@ erDiagram
         bigint user_id FK
         smallint amount
         smallint base_amount
-        decimal_3_2 multiplier "default 1.00"
-        varchar_32 source_type "habit | pomodoro | mission | journal | villain"
+        decimal_3_2 multiplier
+        varchar_32 source_type
         bigint source_id
-        boolean was_capped "default false"
-        timestamp created_at "default CURRENT_TIMESTAMP; UK junto a source_type+source_id"
-    }
-    journal_entries {
-        bigint id PK
-        bigint user_id FK
-        tinyint mood_score "1..5"
-        text content "encrypted"
-        json tags
-        date entry_date
-        smallint xp_awarded "default 0"
+        tinyint_1 was_capped
         timestamp created_at
-        timestamp updated_at
-    }
-    motivational_quotes {
-        tinyint id PK
-        varchar_280 text_es
-        varchar_80 author
-        enum attribution_confidence "documentada | atribuida"
-        boolean is_active "default true"
-        timestamp created_at
-    }
-    usage_tips {
-        smallint id PK
-        varchar_32 module_code
-        varchar_200 text_es
-        boolean is_active "default true"
-        timestamp created_at
-    }
-    user_quote_views {
-        bigint id PK
-        bigint user_id FK
-        tinyint quote_id "sin FK declarada"
-        timestamp shown_at "default CURRENT_TIMESTAMP"
-    }
-    user_tip_views {
-        bigint id PK
-        bigint user_id FK
-        smallint tip_id "sin FK declarada"
-        timestamp shown_at "default CURRENT_TIMESTAMP"
-        timestamp dismissed_at
-    }
-    villains {
-        tinyint id PK
-        varchar_32 code UK
-        varchar_60 name
-        text description
-        varchar_180 image_path
-        json weakness
-    }
-    villain_instances {
-        bigint id PK
-        bigint user_id FK
-        tinyint villain_id "sin FK declarada"
-        tinyint week_number "UK junto a user_id"
-        smallint max_hp
-        smallint current_hp
-        date starts_on
-        date ends_on
-        datetime defeated_at
-    }
-    study_sessions {
-        bigint id PK
-        bigint host_id "sin FK declarada"
-        varchar_80 name
-        tinyint max_seats "default 8"
-        enum state "open | running | closed, default open"
-        datetime started_at
-        datetime closed_at
-        timestamp created_at
-    }
-    chat_messages {
-        bigint id PK
-        bigint session_id FK
-        bigint user_id "sin FK declarada"
-        varchar_500 body
-        timestamp created_at "default CURRENT_TIMESTAMP"
-    }
-    ai_quotas {
-        bigint user_id PK, FK
-        date quota_date PK
-        tinyint used_count "default 0"
-    }
-    telemetry_events {
-        bigint id PK
-        bigint user_id FK
-        varchar_64 event_name
-        varchar_32 event_category
-        json payload
-        char_36 session_uuid
-        smallint intervention_day "signed"
-        datetime_3 occurred_at "DATETIME(3)"
-        datetime_3 recorded_at "DATETIME(3), default CURRENT_TIMESTAMP(3)"
-        enum source "web | backend, default web"
     }
 ```
 

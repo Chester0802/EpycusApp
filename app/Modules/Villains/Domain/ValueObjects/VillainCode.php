@@ -23,10 +23,10 @@ final class VillainCode
     ];
 
     private const WEAKNESS_MAP = [
-        'procrastination' => ['mission'],
+        'procrastination' => ['mission', 'study_group'],
         'distraction' => ['pomodoro'],
-        'anxiety' => ['habit', 'journal'],
-        'disorder' => ['mission'],
+        'anxiety' => ['habit', 'journal', 'study_group'],
+        'disorder' => ['mission', 'study_group'],
         'fatigue' => ['habit'],
     ];
 

@@ -20,14 +20,8 @@ final class StartPomodoroUseCase
         private Dispatcher $events,
     ) {}
 
-    public function execute(int $userId, int $plannedMinutes, ?int $missionId = null): PomodoroSessionModel
+    public function execute(int $userId, int $plannedMinutes, ?int $missionId = null, ?int $studyGroupSessionId = null): PomodoroSessionModel
     {
-        // Antes de bloquear por "ya hay una activa", se resuelve primero
-        // si esa sesión "activa" en realidad ya venció (ver
-        // ResolveStaleSessionUseCase) — así, si el usuario cerró el
-        // navegador con un Pomodoro corriendo y vuelve horas después a
-        // iniciar uno nuevo directamente, el anterior se cierra solo en
-        // vez de bloquearlo con un error que no entendería.
         $resolved = $this->resolveStale->execute($userId);
 
         if ($resolved->session !== null) {
@@ -37,12 +31,13 @@ final class StartPomodoroUseCase
         $session = $this->repository->create([
             'user_id' => $userId,
             'mission_id' => $missionId,
+            'study_group_session_id' => $studyGroupSessionId,
             'planned_minutes' => $plannedMinutes,
             'started_at' => Carbon::now(),
             'status' => SessionState::RUNNING,
         ]);
 
-        $this->events->dispatch(new PomodoroStarted($session->id, $userId, $plannedMinutes));
+        $this->events->dispatch(new PomodoroStarted($session->id, $userId, $plannedMinutes, $studyGroupSessionId));
 
         return $session;
     }

@@ -142,12 +142,12 @@ estructuralmente a `Identity` como referencia (`docs/11-ESTANDAR-CODIGO.md` §1,
 | 7 | **Missions** `[x]` (2026-07-29) | Trae `subtasks`, más complejidad de UI que Pomodoro. Usa Calendar para vencimientos. |
 | 8 | **Wellbeing** `[x]` (2026-07-29) | Diario + mood score + health fields (energía, estrés, sueño, actividad física, consejos). Dato crítico (cifrado). Usa Calendar para marcar feriados/exámenes en su vista de calendario. Conectado a Pomodoro vía tabla pivote `pomodoro_session_subtask`. |
 | 9 | **Villains** `[x]` (2026-07-29) | Consume eventos de Habits, Pomodoro y Missions para dañar HP — necesita que los tres ya emitan sus eventos de dominio. |
-| 10 | **Ranking + Personalization** | Solo *leen* de Gamification por contrato (`docs/01-MODULOS.md`) — no pueden ir antes que su fuente. |
-| 11 | **Achievements** | Escucha eventos de Habits, Pomodoro, Missions, Villains y Wellbeing (incluido `VillainDefeated`) — por diseño va después de todos esos. |
-| 12 | **Motivation** | Contenido estático (frases + tips), sin dependencias reales más allá de Identity — puede adelantarse en paralelo a cualquier fase anterior si hay más de una persona disponible. |
-| 13 | **StudyGroups** | Salas + chat con polling (nunca WebSocket — el hosting no lo permite); autocontenido pero más trabajo de infraestructura (rate limiting, purga a 7 días). |
-| 14 | **AiAssistant** | Depende de que Wellbeing ya exista (una de sus tres fuentes de contexto) y del protocolo de derivación de crisis (`docs/06-SEGURIDAD.md` §9) — el más sensible, va casi al final a propósito. |
-| 15 | **Admin** | Panel de solo lectura sobre todos los módulos anteriores. No puede ir antes que ellos. |
+| 10 | **Ranking + Personalization** `[x]` (2026-07-30) | Módulo Ranking completo en `/ranking` con podio, telemetría (`ranking.viewed`), caché 7 min y posición propia. Catálogo de paletas implementado (`PaletteToggle.vue`). Selector de wallpapers pospuesto por decisión de equipo. |
+| 11 | **Achievements** `[x]` (2026-07-30) | Módulo completo en `/achievements`. Catálogo de insignias sin comparación social ni penalizaciones (regla ética de investigación). Desbloqueos idempotentes en `EvaluateAchievementsUseCase` con recompensas de XP. |
+| 12 | **Motivation** `[x]` (2026-07-30) | Frases de inicio de sesión rotadas con `NoRepeatPicker` (con honestidad de atribución), tips contextuales por módulo con `<UsageTipBanner />` y registro de telemetría (`quote.shown`, `tip.shown`, `tip.dismissed`). |
+| 13 | **StudyGroups** `[x]` (2026-07-29) | Salas + chat con polling (nunca WebSocket — hosting compartido); autocontenido pero más trabajo de infraestructura (rate limiting, purga a 7 días). |
+| 14 | **AiAssistant** `[x]` (2026-07-30) | Integrado con DeepSeek API (`deepseek-v4-flash`), cuota diaria (5/día), inyección de contexto anónimo (sin PII), protocolo de crisis con Línea 113 MINSA y valoraciones de respuesta. |
+| 15 | **Admin** `[x]` (2026-07-30) | Panel de administración para investigadores en `/admin` de solo lectura (6 pestañas: Dashboard, Participantes sin PII, Deserción, Telemetría, Exportación CSV y Salud del Sistema) con middleware `EnsureUserIsAdmin` y botón de acceso en Login. |
 
 **A partir de la Fase 6, antes de programar cada módulo leer también su bloque completo en
 `docs/14-HISTORIAS-USUARIO.md`** (historias de usuario + criterios de aceptación Given/When/Then,

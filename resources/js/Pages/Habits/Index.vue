@@ -8,6 +8,7 @@ import BaseSelect from '@/Components/ui/BaseSelect.vue';
 import BaseModal from '@/Components/ui/BaseModal.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
 import BaseBadge from '@/Components/ui/BaseBadge.vue';
+import UsageTipBanner from '@/Components/ui/UsageTipBanner.vue';
 import { useTelemetry } from '@/Composables/useTelemetry';
 
 const props = defineProps({
@@ -293,7 +294,8 @@ const triggerXpToast = (msg) => {
     <Head title="Hábitos — Epycus" />
 
     <AppLayout>
-        <div class="mx-auto max-w-4xl">
+        <div class="mx-auto max-w-4xl space-y-6">
+            <UsageTipBanner module="habits" />
             <BaseCard class="mb-8">
                 <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-4">

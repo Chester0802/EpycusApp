@@ -45,6 +45,10 @@ class HandleInertiaRequests extends Middleware
                 'surfaceMode' => $preferences->surfaceMode()->value(),
                 'notificationsEnabled' => $preferences->notificationsEnabled(),
             ] : null,
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+            ],
         ];
     }
 }

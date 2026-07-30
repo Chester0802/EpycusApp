@@ -271,11 +271,20 @@ Esto no es opcional. Sin idempotencia, un reintento infla el XP y corrompe la co
 
 ---
 
-## 8-bis. Logros e insignias
+## 8-bis. Logros e insignias (Achievements)
 
-Catálogo cerrado, cargado por seeder. Se desbloquean **una sola vez** por usuario.
+Catálogo cerrado de 13 logros dividido en 6 categorías, cargado por seeder (`AchievementsSeeder`). Se desbloquean **una sola vez** por usuario y la evaluación es estrictamente idempotente.
 
-| Rareza | XP | Ejemplos |
+### Categorías de Logros
+1. **Constancia:** Relacionados a las rachas (e.g. racha de 7, 30 o 60 días).
+2. **Volumen:** Cantidad total acumulada (e.g. 10 o 100 Pomodoros).
+3. **Progresión:** Alcanzar ciertos niveles o fases del avatar.
+4. **Villanos:** Cantidad de villanos semanales derrotados.
+5. **Bienestar:** Constancia en las entradas del diario.
+6. **Puntualidad:** Misiones entregadas antes de su fecha de vencimiento.
+
+### Recompensas y Rarezas
+| Rareza | XP | Ejemplos del catálogo (13 en total) |
 |---|---|---|
 | Común | 20 | Primer hábito creado, primer Pomodoro |
 | Poco común | 40 | Racha de 7 días, 10 Pomodoros |
@@ -284,10 +293,11 @@ Catálogo cerrado, cargado por seeder. Se desbloquean **una sola vez** por usuar
 
 **Reglas de diseño alineadas con el estudio:**
 
-- **Ningún logro premia comparación social.** Nada de "entraste al top 10". Eso reforzaría la variable de control (ranking) en lugar de la variable estudiada (identidad profesional).
+- **Ningún logro premia comparación social.** Nada de "entraste al top 10" o "mejor que el 80%". Eso reforzaría la variable de control (ranking) en lugar de la variable estudiada (identidad profesional).
 - **Ningún logro negativo.** No existe "rompiste tu racha". Penalizar aumenta la deserción, que es el riesgo R-03.
 - Sin tope diario: son hitos únicos, no una fuente repetible de XP.
 - La evaluación corre **en cola**, no en la petición del usuario. Con 1 núcleo, evaluar 30 condiciones en cada acción bloquearía la respuesta.
+- **Idempotencia estricta:** Un logro jamás puede ser otorgado dos veces al mismo usuario, incluso en caso de reintentos de cola.
 
 Emite `AchievementUnlocked`, que Telemetry registra.
 

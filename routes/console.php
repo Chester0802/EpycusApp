@@ -30,3 +30,8 @@ app(Schedule::class)->command('villains:assign-weekly')
 app(Schedule::class)->command('villains:expire')
     ->weeklyOn(0, '23:59')
     ->timezone('America/Lima');
+
+// Purga mensajes de chat con más de 7 días — son efímeros y no son dato del estudio
+app(Schedule::class)->command('chat:purge-old')
+    ->dailyAt('03:30')
+    ->timezone('America/Lima');

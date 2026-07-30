@@ -19,6 +19,21 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
             'alias' => 'test-user',
+            'role' => 'student',
+        ]);
+
+        UserModel::firstOrCreate(
+            ['email' => 'admin@epycus.es'],
+            [
+                'name' => 'Investigador Principal',
+                'alias' => 'AdminEpycus',
+                'password' => bcrypt('admin1234'),
+                'role' => 'admin',
+            ]
+        );
+
+        $this->call([
+            MotivationSeeder::class,
         ]);
     }
 }

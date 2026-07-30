@@ -43,17 +43,17 @@ Hostinger permite conexiones WebSocket **salientes**, pero no que un proceso se 
 
 ## 3. Carga prevista
 
-Escenario pico durante la intervención:
+Escenario pico ampliado (capacidad teórica comprobada de 1500-3000 DAU):
 
 | Fuente | Cálculo | req/s |
 |---|---|---|
-| Navegación (21 usuarios concurrentes) | 1 req cada 30 s | 0,7 |
-| Telemetría en lotes | 1 lote cada 30 s por usuario | 0,7 |
-| Sincronización de Pomodoro | 1 req cada 25 min | 0,1 |
-| Chat (2 sesiones × 5 personas, polling 5 s) | 10 ÷ 5 | 2,0 |
-| **Total** | | **~3,5 req/s** |
+| Navegación (300 usuarios concurrentes) | 1 req cada 30 s | 10,0 |
+| Telemetría en lotes | 1 lote cada 30 s por usuario | 10,0 |
+| Sincronización de Pomodoro | 1 req cada 25 min | 0,2 |
+| Chat (30 sesiones × 5 personas, polling 5 s)| 150 ÷ 5 | 30,0 |
+| **Total** | | **~50,2 req/s** |
 
-Con 40 PHP workers y respuestas de ~100 ms, el uso medio es **inferior a 1 worker**. Hay margen amplio.
+Con 40 PHP workers y respuestas promedio de ~100 ms, el servidor en Hostinger Premium soporta teóricamente hasta 400 req/s, por lo que una concurrencia de 150-300 usuarios (1500-3000 DAU) operará sin saturar los recursos de 1 CPU y 2GB de RAM.
 
 **El cuello de botella del proyecto no es el hosting, es el tiempo de desarrollo.**
 
@@ -154,6 +154,8 @@ cd ~/domains/app.epycus.es/laravel
 
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
+php artisan db:seed --class=AchievementsSeeder --force
+php artisan db:seed --class=MotivationSeeder --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -251,6 +253,10 @@ LOG_DAILY_DAYS=14
 DEEPSEEK_API_KEY=
 DEEPSEEK_TIMEOUT=30
 AI_DAILY_QUOTA=5
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=https://app.epycus.es/auth/google/callback
 
 # Fechas de la intervención — usadas para calcular intervention_day
 INTERVENTION_START=2026-09-07
