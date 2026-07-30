@@ -127,7 +127,7 @@ final class WellbeingController extends Controller
             'physical_activity.duration' => 'required_with:physical_activity|integer|min:1|max:600',
             'content' => 'nullable|string|max:5000',
             'tags' => 'nullable|array',
-            'tags.*' => 'string|in:' . implode(',', config('wellbeing.tags', [])),
+            'tags.*' => 'string|in:'.implode(',', config('wellbeing.tags', [])),
         ]);
 
         $dto = new CreateEntryDTO(
@@ -167,7 +167,7 @@ final class WellbeingController extends Controller
             'physical_activity.duration' => 'required_with:physical_activity|integer|min:1|max:600',
             'content' => 'nullable|string|max:5000',
             'tags' => 'nullable|array',
-            'tags.*' => 'string|in:' . implode(',', config('wellbeing.tags', [])),
+            'tags.*' => 'string|in:'.implode(',', config('wellbeing.tags', [])),
         ]);
 
         $dto = new EditEntryDTO(

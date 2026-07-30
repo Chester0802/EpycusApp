@@ -7,8 +7,8 @@ namespace App\Modules\Wellbeing\Application\DTOs;
 final class CreateEntryDTO
 {
     /**
-     * @param string[] $tags
-     * @param array<string, mixed>|null $physicalActivity
+     * @param  string[]  $tags
+     * @param  array<string, mixed>|null  $physicalActivity
      */
     public function __construct(
         public int $userId,

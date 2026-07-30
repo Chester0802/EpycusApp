@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Database\Seeders\Calendar;
 
 use App\Modules\Calendar\Infrastructure\Models\HolidayModel;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 final class HolidaySeeder extends Seeder

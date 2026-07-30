@@ -7,8 +7,8 @@ namespace App\Modules\Missions\Presentation\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Missions\Application\DTOs\CreateMissionDTO;
 use App\Modules\Missions\Application\DTOs\UpdateMissionDTO;
-use App\Modules\Missions\Application\UseCases\CompleteMissionUseCase;
 use App\Modules\Missions\Application\UseCases\AddSubtaskUseCase;
+use App\Modules\Missions\Application\UseCases\CompleteMissionUseCase;
 use App\Modules\Missions\Application\UseCases\CreateMissionUseCase;
 use App\Modules\Missions\Application\UseCases\DeleteMissionUseCase;
 use App\Modules\Missions\Application\UseCases\ReorderSubtasksUseCase;
@@ -248,6 +248,7 @@ final class MissionsController extends Controller
 
         try {
             $this->updateSubtask->execute($subtaskId, (int) Auth::id(), $validated['title']);
+
             return back();
         } catch (\RuntimeException $e) {
             return back()->with('error', 'No puedes modificar esta subtarea.');
@@ -262,6 +263,7 @@ final class MissionsController extends Controller
 
         try {
             $this->addSubtask->execute($id, (int) Auth::id(), $validated['title']);
+
             return back();
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());
@@ -277,6 +279,7 @@ final class MissionsController extends Controller
 
         try {
             $this->reorderSubtasks->execute($id, (int) Auth::id(), $validated['ordered_ids']);
+
             return back();
         } catch (\RuntimeException $e) {
             return back()->with('error', 'No puedes reordenar estas subtareas.');

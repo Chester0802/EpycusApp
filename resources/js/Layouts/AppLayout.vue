@@ -37,6 +37,7 @@ const navItems = [
     { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
     { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
     { label: 'Bienestar', routeName: 'wellbeing.index', icon: 'wellbeing' },
+    { label: 'Villanos', routeName: 'villains.index', icon: 'villains' },
     { label: 'Perfil', routeName: 'profile.edit', icon: 'user' },
 ];
 

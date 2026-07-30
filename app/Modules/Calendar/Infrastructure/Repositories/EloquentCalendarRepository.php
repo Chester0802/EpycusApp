@@ -11,9 +11,10 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
-final class EloquentCalendarRepository implements CalendarRepositoryInterface, CalendarReaderInterface
+final class EloquentCalendarRepository implements CalendarReaderInterface, CalendarRepositoryInterface
 {
     private const CACHE_KEY = 'calendar_holidays';
+
     private const CACHE_TTL = 86400;
 
     public function getHolidaysInMonth(int $year, int $month): Collection

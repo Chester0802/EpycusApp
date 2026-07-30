@@ -7,6 +7,7 @@ use App\Modules\Identity\Infrastructure\Providers\IdentityServiceProvider;
 use App\Modules\Missions\Infrastructure\Providers\MissionsServiceProvider;
 use App\Modules\Pomodoro\Infrastructure\Providers\PomodoroServiceProvider;
 use App\Modules\Telemetry\Infrastructure\Providers\TelemetryServiceProvider;
+use App\Modules\Villains\Infrastructure\Providers\VillainsServiceProvider;
 use App\Modules\Wellbeing\Infrastructure\Providers\WellbeingServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Shared\Infrastructure\Providers\SharedServiceProvider;
@@ -21,6 +22,7 @@ return [
     CalendarServiceProvider::class,
     PomodoroServiceProvider::class,
     WellbeingServiceProvider::class,
+    VillainsServiceProvider::class,
     // Gamification se registra después de Habits y Pomodoro: su
     // ServiceProvider escucha los eventos de dominio de ambos en boot().
     // El orden de arranque no es estrictamente obligatorio para que

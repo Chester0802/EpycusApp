@@ -45,6 +45,7 @@ final class EloquentWellbeingRepository implements WellbeingRepositoryInterface
     public function update(JournalEntryModel $entry, array $data): JournalEntryModel
     {
         $entry->update($data);
+
         return $entry->fresh();
     }
 

@@ -138,3 +138,17 @@ fases hasta que exista arte.
 Estas no siguen convención de nombre porque no son parte de un set generado/repetible — cuando
 la Fase 9 (Ranking + Personalization) agregue más fondos de pantalla, ese es el momento de
 definir una convención para `wallpapers/` (no antes, no inventada acá sin necesidad real).
+
+---
+
+## 3. Villanos
+
+Carpeta: `public/assets/villains/`. Un PNG por villano, sin multi-fase ni multi-pose.
+
+| Archivo | Villano | Código (`docs/03-GAMIFICACION.md §6`) |
+|---|---|---|
+| `public/assets/villains/Villano_postergación.png` | La Postergación | `procrastination` |
+| `public/assets/villains/Villano_distracción.png` | La Distracción | `distraction` |
+| `public/assets/villains/Villano_ansiedad.png` | La Ansiedad | `anxiety` |
+| `public/assets/villains/Villano_desorden.png` | El Desorden | `disorder` |
+| `public/assets/villains/Villano_cansancio.png` | El Cansancio | `fatigue` |

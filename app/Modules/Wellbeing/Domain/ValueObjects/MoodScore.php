@@ -7,6 +7,7 @@ namespace App\Modules\Wellbeing\Domain\ValueObjects;
 final class MoodScore
 {
     private const MIN = 1;
+
     private const MAX = 5;
 
     private function __construct(

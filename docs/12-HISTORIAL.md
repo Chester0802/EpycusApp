@@ -1,6 +1,39 @@
 \
 # 12 — Historial de sesiones de IA
 
+## 2026-07-29 — Claude [Villains module completo (Fase 9)]
+
+**Qué se hizo:** Implementación completa del módulo Villains (Fase 9 del roadmap):
+
+1. **Migración** `2026_07_29_000001_create_villains_tables.php`: tablas `villains` (con seed de los 5 villanos: La Postergación, La Distracción, La Ansiedad, El Desorden, El Cansancio) y `villain_instances` (con unique por user+week, índices de status).
+2. **Assets visuales:** 5 PNG movidos de la raíz a `public/assets/villains/` con sus nombres originales con tilde. Documentados en `docs/15-CATALOGO-IMAGENES.md §3`.
+3. **Domain:** `VillainCode` (ValueObject con validación, mapeo a imagen y debilidad por source_type), eventos `VillainAssigned`/`VillainWeakened`/`VillainDefeated`/`VillainSurvived`, contrato `VillainRepositoryInterface`.
+4. **Application:** 4 use cases (`AssignWeeklyVillain`, `ApplyDamage`, `GetCurrentVillain`, `ExpireVillain`), 2 DTOs, 3 listeners (`HandleHabitCompleted`, `HandlePomodoroCompleted`, `HandleMissionCompleted`) que llaman a `ApplyDamageUseCase`.
+5. **Infrastructure:** `VillainModel`/`VillainInstanceModel` (Eloquent con `@property` para PHPStan), `EloquentVillainRepository`, `VillainsServiceProvider` registrado en `bootstrap/providers.php`.
+6. **Presentation:** `VillainController` con ruta `GET /villains` (Inertia), NavIcon de villano (cara de monstruo con cuernos), navItem en AppLayout.
+7. **Cron:** `villains:assign-weekly` (lunes 00:00 Lima) y `villains:expire` (domingo 23:59 Lima) registrados en `routes/console.php`.
+8. **UI:** `ProgressBar.vue` (nuevo componente base), `Villains/Index.vue` con imagen, HP bar, estado derrotado, debilidad.
+9. **Mecánica de daño:** cada villano tiene debilidades específicas (`VillainCode::WEAKNESS_MAP`): Postergación ← misiones, Distracción ← pomodoros, Ansiedad ← hábitos+diario, Desorden ← misiones, Cansancio ← hábitos. HP = 100 × factor_dificultad (0.8/1.0/1.2 según semana de intervención).
+
+**Decisiones tomadas:** Ninguna de producto nueva — todo sigue `docs/03-GAMIFICACION.md §6` y `docs/01-MODULOS.md §7`. La ruta es GET`/villains`(no`/villain`) por consistencia con el plural inglés del resto de módulos. El daño se aplica solo si el source_type coincide con la debilidad del villano activo (no todos los eventos dañan a todos los villanos). ProgressBar se creó como componente base en`ui/`porque lo necesitan varios módulos.
+
+**Verificado cómo:** `php artisan migrate` ✅ (seed de 5 villanos ejecutado), `php vendor/bin/pint` ✅, `php artisan test` 59/59 ✅, `php vendor/bin/phpstan analyse app/Modules/Villains/` 0 errores ✅, `npm run lint` ✅, `npm run build` ✅ (838 módulos).
+
+**Ampliación (misma sesión):** Se agregó `AwardXpFromVillainDefeatedListener` en Gamification, registrado en `GamificationServiceProvider`. Ahora derrotar un villano otorga los 100 XP de `config/gamification.php` (`xp.villain_defeated`), sin tope diario (source_id = instance_id, dailyCap = 9999) y sin contar para racha.
+
+**Ampliación 2 — Corrección de lógica temporal (review del usuario):**
+
+1. **Semana de intervención real:** `EloquentVillainRepository::getInterventionWeekFor()` calcula la semana contra el calendario de la intervención (07/09/2026 = semana 1). Fuera de ese período retorna `null`, y `getWeekNumberForUser()` devuelve 0 — el cron saltas.
+2. **Fechas alineadas a Lun–Dom:** `getMondayForWeek(n)` y `getSundayForWeek(n)` fijan `assigned_at` al lunes 00:00 y `expires_at` al domingo 23:59 (hora Lima), en vez de `now` / `now+7d` como estaba antes.
+3. **Cron condicional:** `AssignWeeklyVillainsCommand` verifica `$weekNumber < 1 || > 10` antes de asignar.
+4. **Eliminado:** Archivo temporal `_assign.php` y `_check.php`.
+
+**Verificado cómo:** `php artisan test` 59/59 ✅. Consulta directa a `villain_instances` confirma: `assigned_at=2026-09-07 00:00:00`, `expires_at=2026-09-13 23:59:00`, `week_number=1`, `total_hp=80` (factor 0.8).
+
+**Pendiente / qué falta:** Fase 10 (Ranking + Personalization) es la siguiente según el roadmap.
+
+---
+
 ## 2026-07-29 — Claude [Wellbeing completo + health fields + Missions/Pomodoro integration]
 
 **Qué se hizo:** Tres bloques sobre el módulo Wellbeing y uno de integración Missions/Pomodoro:

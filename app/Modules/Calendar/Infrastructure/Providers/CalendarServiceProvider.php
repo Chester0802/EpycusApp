@@ -19,7 +19,7 @@ final class CalendarServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../Migrations');
-        $this->loadRoutesFrom(__DIR__ . '/../../Presentation/routes.php');
+        $this->loadMigrationsFrom(__DIR__.'/../Migrations');
+        $this->loadRoutesFrom(__DIR__.'/../../Presentation/routes.php');
     }
 }

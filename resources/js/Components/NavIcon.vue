@@ -50,6 +50,12 @@ defineProps({
             <path d="M3 9.5h18M8.5 2.5V6M15.5 2.5V6" />
             <path d="M8.5 13.5h.01M12 13.5h.01M15.5 13.5h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01" stroke-width="1.5" />
         </template>
+        <template v-else-if="name === 'villains'">
+            <path d="M8.5 3.5 6 7.5l.5 2.5-2 3.5 1 5.5h13l1-5.5-2-3.5.5-2.5-2.5-4" />
+            <path d="M9.5 12a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
+            <path d="M14.5 12a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
+            <path d="M9 9.5c1-.5 5-.5 6 0" stroke-width="1.5" />
+        </template>
         <template v-else-if="name === 'settings'">
             <path d="M4 7h10M18 7h2" />
             <circle cx="16" cy="7" r="2" />
