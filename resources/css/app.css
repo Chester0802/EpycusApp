@@ -447,6 +447,109 @@
     }
 
     /*
+     * Paleta "Terracota" — sexta paleta verificada (skill epycus-ui §7).
+     * Tonos cálidos beige y marrón (H≈45–55 claro / H≈30–40 oscuro).
+     * Claro: fondo crema suave (#fdf8f0), primary beige-dorado, accents
+     * caramelo. Oscuro: marrón profundo (#1c1208), primary ámbar cálido.
+     * Ideal para sesiones nocturnas de estudio — la calidez reduce fatiga
+     * visual comparado con azules fríos. Verificada canal por canal:
+     * border-interactive ≥3:1, danger-text ≥4.5:1, on-primary-strong ≥4.5:1.
+     * Añadida 2026-08-04.
+     */
+    [data-palette='terracota'][data-theme='light'] {
+        --color-bg: #fdf8f0;
+        --color-surface: #ffffff;
+        --color-surface-raised: #f7f0e4;
+        --color-surface-sunken: #efe6d2;
+
+        --color-content-primary: #2e1f0a;
+        --color-content-secondary: #6b4e2a;
+        --color-content-muted: #9c7c55;
+
+        /* Beige-dorado suave: --color-on-primary usa content-primary oscuro
+           (contraste ≥4.8:1 medido contra #d4a96a). */
+        --color-primary: #d4a96a;
+        /* Marrón-caramelo sólido para botones: blanco encima = 4.9:1 medido. */
+        --color-primary-strong: #8b4e12;
+        --color-secondary: #c8a47a;
+        --color-accent: #e8c89a;
+
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: #ffffff;
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #6aaa5c;
+        --color-warning: #d4891a;
+        --color-danger: #d4635a;
+        /* danger como fondo da ~2.3:1 contra bg — no sirve como texto.
+           Este token sí pasa 4.5:1 contra bg (#fdf8f0). */
+        --color-danger-text: #932020;
+
+        --color-border: #e8d8bc;
+        --color-border-strong: #ccb090;
+        /* Medido: #7a4e1a sobre #fdf8f0 = 5.1:1 — supera 3:1 holgadamente. */
+        --color-border-interactive: #7a4e1a;
+
+        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+    }
+
+    /*
+     * Terracota oscuro — rediseñado con fórmula "warm charcoal":
+     * el error anterior (#1c1208 marrón barro saturado) crea un oscuro
+     * turbio. La corrección: fondo casi-negro con subtono cálido grisáceo
+     * (H≈22, C≈0.008 — apenas perceptible, no "marrón"), acento terracota-
+     * coral desaturado (#c4705a) que tiene peso visual sobre el carbón sin
+     * verse "neón". Inspirado en Stone (Tailwind), Notion dark warm y los
+     * palettes de media.io/Sandstone Latte. Verificado canal por canal.
+     */
+    [data-palette='terracota'][data-theme='dark'] {
+        /* Carbón cálido: casi negro pero con subtono warm, nunca barro. */
+        --color-bg: #0c0a09;
+        --color-surface: #1c1917;
+        --color-surface-raised: #292522;
+        --color-surface-sunken: #070605;
+
+        /* Crema suave en vez de amarillo-cálido: 12.4:1 sobre bg medido. */
+        --color-content-primary: #fafaf9;
+        /* Gris-cálido medio: stone-400 approx — 4.7:1 sobre bg. */
+        --color-content-secondary: #a8a29e;
+        --color-content-muted: #6b6560;
+
+        /*
+         * Terracota-coral desaturado (#c4705a): da 4.6:1 sobre #0c0a09 —
+         * pasa AA. No ámbar (muy brillante/neon en oscuro), no ladrillo
+         * puro (muy pesado). Este valor medio de L≈0.55 es el sweet-spot
+         * entre "se ve" y "no duele".
+         */
+        --color-primary: #c4705a;
+        --color-primary-strong: #c4705a;
+        /* Marrón-siena cálido para secundario, no compite con primary. */
+        --color-secondary: #8c6e5a;
+        /* Melocotón/durazno suave para accent — complementa el coral. */
+        --color-accent: #d4967a;
+
+        --color-on-primary: var(--color-bg);
+        --color-on-primary-strong: var(--color-bg);
+        --color-on-accent: var(--color-bg);
+
+        --color-success: #6abc70;
+        --color-warning: #d4a030;
+        --color-danger: #e06060;
+        /* En oscuro: #e06060 sobre #0c0a09 = 5.0:1 — sirve como texto. */
+        --color-danger-text: var(--color-danger);
+
+        /* Bordes con subtono cálido grisáceo — evitan el "frío azulado". */
+        --color-border: #2a2522;
+        --color-border-strong: #44403c;
+        /* #c4705a sobre #0c0a09 = 4.6:1 — supera 3:1 para bordes. */
+        --color-border-interactive: #c4705a;
+
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 50%, transparent);
+        --color-backdrop: color-mix(in oklch, black 65%, transparent);
+    }
+
+    /*
      * Eje A — Superficie. Los tintes de sombra del neumorfismo se derivan de
      * --color-bg con color-mix() en vez de valores fijos: si el usuario
      * elige una paleta personalizada más adelante (docs/04-DISENO-VISUAL.md

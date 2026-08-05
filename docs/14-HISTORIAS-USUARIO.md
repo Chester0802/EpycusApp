@@ -146,8 +146,7 @@
 
 ## Fase 6 — Calendar ✅
 
-Sin pantalla propia. Provee datos a Wellbeing, Missions, Dashboard y Telemetry. Detalle completo
-(feriados, período académico, `CalendarReaderInterface`) en `docs/01-MODULOS.md §15`.
+Vista dedicada en `/calendar` con mapa mensual de actividades y módulo de Horario de Clases. Provee datos a Wellbeing, Missions, Dashboard y Telemetry. Detalle completo (feriados, horario de clases, período académico, `CalendarReaderInterface`) en `docs/01-MODULOS.md §15`.
 
 ### HU-CAL-1 — Sembrar feriados peruanos del ciclo
 
@@ -181,7 +180,16 @@ duplicar esta lógica en cada módulo (razón de ser del módulo, `01-MODULOS.md
   cualquier método del contrato, **then** la segunda lectura viene de caché de 24 horas (regla de
   rendimiento explícita del documento — 16 filas no justifican una consulta por petición).
 
+### HU-CAL-3 — Horario de clases semanal
+
+**Como** estudiante, **quiero** registrar mi horario de clases por días de la semana (Lunes a Domingo), **para** visualizar mis asignaturas, horas de entrada/salida, aula y organizarme mejor.
+
+- **Given** el formulario de nuevo horario, **when** se envía con nombre del curso, día de la semana, hora de entrada y hora de salida (posterior a la entrada), **then** se guarda en la tabla `class_schedules` del usuario.
+- **Given** los horarios guardados, **when** se abre el modal de Horario de Clases o la vista mensual, **then** se renderizan usando los tokens de color del sistema visual (`primary`, `accent`, `success`, `warning`, `secondary`).
+- **Given** una clase registrada, **when** el usuario presiona eliminar, **then** se remueve de forma segura perteneciendo únicamente a su cuenta.
+
 ---
+
 
 ## Fase 7 — Missions ✅
 

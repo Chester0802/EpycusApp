@@ -10,6 +10,7 @@ use App\Modules\Missions\Domain\Contracts\MissionRepositoryInterface;
 use App\Shared\Domain\Contracts\CalendarReaderInterface;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -65,6 +66,18 @@ final class CalendarController extends Controller
             $current->addDay();
         }
 
+        $schedules = $this->calendar->getSchedulesForUser($userId)
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'course_name' => $s->course_name,
+                'day_of_week' => $s->day_of_week,
+                'start_time' => substr((string) $s->start_time, 0, 5),
+                'end_time' => substr((string) $s->end_time, 0, 5),
+                'classroom' => $s->classroom,
+                'color' => $s->color,
+            ])
+            ->toArray();
+
         return Inertia::render('Calendar/Index', [
             'month' => $month,
             'year' => $year,
@@ -72,7 +85,36 @@ final class CalendarController extends Controller
             'holidays' => $holidays,
             'missionsByDate' => $missionsByDate,
             'examDates' => $examDates,
+            'schedules' => $schedules,
             'academicCycle' => config('academic.current_cycle.name', '2026-2'),
         ]);
     }
+
+    public function storeSchedule(Request $request): RedirectResponse
+    {
+        $userId = (int) Auth::id();
+
+        $validated = $request->validate([
+            'course_name' => ['required', 'string', 'max:120'],
+            'day_of_week' => ['required', 'integer', 'between:1,7'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
+            'classroom' => ['nullable', 'string', 'max:60'],
+            'color' => ['nullable', 'string', 'in:primary,accent,success,warning,secondary'],
+        ]);
+
+        $this->calendar->createSchedule($userId, $validated);
+
+        return back()->with('success', 'Horario de clase guardado.');
+    }
+
+    public function destroySchedule(int $id): RedirectResponse
+    {
+        $userId = (int) Auth::id();
+
+        $this->calendar->deleteSchedule($userId, $id);
+
+        return back()->with('success', 'Horario eliminado.');
+    }
 }
+

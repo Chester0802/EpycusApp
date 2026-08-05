@@ -43,6 +43,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'preferences' => $preferences ? [
                 'surfaceMode' => $preferences->surfaceMode()->value(),
+                'wallpaperKey' => $preferences->wallpaperKey(),
                 'notificationsEnabled' => $preferences->notificationsEnabled(),
             ] : null,
             'flash' => [

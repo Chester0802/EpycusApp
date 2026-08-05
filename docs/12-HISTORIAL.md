@@ -1,6 +1,39 @@
 \
 # 12 — Historial de sesiones de IA
 
+## 2026-08-05 — Antigravity [Sistema de Selección y Desbloqueo de Fondos de Pantalla con Monedas en Modo Vidrio]
+
+**Qué se hizo:**
+1. **Activos e Inventario de Fondos (`config/wallpapers.php`):** Se copiaron y organizaron los 8 nuevos fondos de pantalla desde la raíz hacia `public/assets/wallpapers/full/` y se generaron sus miniaturas en `public/assets/wallpapers/thumbs/` (`chica_anime`, `claro_bts`, `dragon_ball`, `anime_morado`, `lofi_naturaleza`, `gris_pinguino`, `verde_cactus`, `lofi_gato`). Se creó la configuración centralizada `config/wallpapers.php` con un costo de 50 monedas por fondo adicional y `atardecer` gratuito por defecto.
+2. **Base de Datos & Modelo DDD (`Identity`):** Se creó la migración `2026_08_05_000002_add_wallpaper_key_to_user_preferences_table.php` (columna `wallpaper_key`) y la migración `2026_08_05_000003_create_user_unlocked_wallpapers_table.php` con el modelo `UserUnlockedWallpaperModel.php`.
+3. **Backend Anti-Cheat & API (`PreferencesController.php`):** Se implementaron los endpoints `POST /preferences/wallpaper/unlock` y `POST /preferences/wallpaper/select`. Se programó una validación estricta en el servidor que verifica que `user_progress.coins >= 50` antes de permitir la compra, restando atómicamente 50 monedas y registrando el desbloqueo dentro de una transacción de BD (`DB::transaction`). Se expusieron las props compartidas en `HandleInertiaRequests.php`.
+4. **Frontend & Composable Theme (`WallpaperSelector.vue`, `Settings/Index.vue`, `useTheme.js`):** Se creó el componente `<WallpaperSelector>` en Ajustes (`/settings`) con previsualizaciones en cuadrícula, indicador de saldo de monedas (🪙 Monedas) y estados dinámicos (Activo, Seleccionar, Desbloquear 🪙 50). Se actualizó `useTheme.js` para enlazar la propiedad CSS `--user-wallpaper` dinámicamente al fondo activo cuando la superficie está en modo Vidrio (`data-surface="glass"`).
+5. **Tests de integración (`WallpaperPreferencesTest.php`):** Se crearon 4 pruebas automatizadas cubriendo selección gratuita, rechazo por saldo insuficiente (anti-cheat), compra con descuento de monedas y restricción de selección sobre fondos no desbloqueados.
+
+**Decisiones tomadas:** Se fijó un costo estándar de 50 monedas por fondo adicional. La validación de monedas y desbloqueo es 100% backend server-side para garantizar la integridad de las monedas acumuladas por el estudiante.
+
+**Verificado cómo:** `php artisan test --filter=WallpaperPreferencesTest` ✅ (4/4 tests pasados, 13 aserciones), `npm run build` ✅ (847 módulos compilados sin errores).
+
+**Pendiente / qué falta:** Ninguno. El catálogo de fondos para el modo Vidrio está 100% operativo.
+
+---
+
+## 2026-08-05 — Antigravity [Módulo Horario de Clases en Calendario]
+
+**Qué se hizo:**
+1. **Migración DB y Modelo (`class_schedules`):** Se creó la migración `2026_08_05_000001_create_class_schedules_table.php` y el modelo `ClassScheduleModel.php` para almacenar el nombre del curso, día de la semana (1-7), hora de entrada (`start_time`), hora de salida (`end_time`), salón/aula opcional (`classroom`) y token de color distintivo (`color`).
+2. **Capa Backend y DDD (`Calendar`):** Se ampliaron las interfaces `CalendarRepositoryInterface` y el repositorio `EloquentCalendarRepository` con métodos para obtener, crear y eliminar horarios por usuario. Se actualizaron `CalendarController.php` y `routes.php` para enviar los horarios a la vista y exponer los endpoints `POST /calendar/schedules` y `DELETE /calendar/schedules/{id}` con validaciones estrictas.
+3. **Frontend & UI Vue (`Calendar/Index.vue`):** Se añadió el botón **"📚 Horario de clases"** en la cabecera del Calendario. Se implementó el modal `<BaseModal>` con pestañas por día (Lunes a Domingo), formulario de alta de asignaturas con selectores de color del sistema de diseño (`primary`, `accent`, `success`, `warning`, `secondary`) y opción de eliminación. Además, las clases se visualizan como insignias en las celdas del mapa mensual según su día correspondiente.
+4. **Tests de integración (`ClassScheduleTest.php`):** Se crearon pruebas automatizadas cubriendo el registro y borrado de horarios de clases con aislamiento de usuario.
+
+**Decisiones tomadas:** Se reutilizaron exclusivamente los tokens del sistema visual de Epycus (`primary`, `accent`, `success`, `warning`, `secondary`) para la asignación de colores en la grilla y tarjetas, manteniendo coherencia con los modos claro (Kawaii), oscuro (Solo Leveling) y de superficie (Neumorfismo / Vidrio).
+
+**Verificado cómo:** `php artisan test --filter=ClassScheduleTest` ✅ (2/2 tests pasados), `npm run build` ✅ (843 módulos compilados correctamente).
+
+**Pendiente / qué falta:** Ninguno. La funcionalidad de horario de clases está completamente integrada y funcional.
+
+---
+
 ## 2026-07-30 — Antigravity [Fix visualización y renderizado en módulos Villanos y Grupos (StudyGroups)]
 
 **Qué se hizo:**

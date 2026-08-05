@@ -17,6 +17,7 @@ final class UserPreferencesMapper
             userId: new UserId($model->user_id),
             surfaceMode: new SurfaceMode($model->surface_mode),
             notificationsEnabled: $model->notifications_enabled,
+            wallpaperKey: $model->wallpaper_key ?? 'atardecer',
         );
     }
 
@@ -26,6 +27,7 @@ final class UserPreferencesMapper
         return [
             'user_id' => $preferences->userId()->value(),
             'surface_mode' => $preferences->surfaceMode()->value(),
+            'wallpaper_key' => $preferences->wallpaperKey(),
             'notifications_enabled' => $preferences->notificationsEnabled(),
         ];
     }

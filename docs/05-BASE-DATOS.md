@@ -44,6 +44,7 @@ erDiagram
     users ||--o{ ai_quotas : consume
     users ||--o{ telemetry_events : genera
     users ||--o{ calendar_events : agenda
+    users ||--o{ class_schedules : registra
     users ||--o{ user_achievements : gana
     users ||--o{ user_quote_views : ve
     users ||--o{ user_tip_views : ve
@@ -254,6 +255,18 @@ erDiagram
         varchar_20 event_type
         date date
         tinyint_1 repeats_yearly
+        timestamp created_at
+        timestamp updated_at
+    }
+    class_schedules {
+        bigint id PK
+        bigint user_id FK
+        varchar_120 course_name
+        tinyint day_of_week
+        time start_time
+        time end_time
+        varchar_60 classroom
+        varchar_30 color
         timestamp created_at
         timestamp updated_at
     }

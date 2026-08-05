@@ -72,18 +72,36 @@ function detectLowEndDevice() {
 
 detectLowEndDevice();
 
+const wallpaperFileMap = {
+    atardecer: 'atardecer.avif',
+    chica_anime: 'chica_anime.jpg',
+    claro_bts: 'claro_bts.jpg',
+    dragon_ball: 'dragon_ball.png',
+    anime_morado: 'anime_morado.jpg',
+    lofi_naturaleza: 'lofi_naturaleza.jpg',
+    gris_pinguino: 'gris_pinguino.jpeg',
+    verde_cactus: 'verde_cactus.jpg',
+    lofi_gato: 'lofi_gato.jpg',
+};
+
+function applyWallpaper(key) {
+    const file = wallpaperFileMap[key] || 'atardecer.avif';
+    document.documentElement.style.setProperty('--user-wallpaper', `url('/assets/wallpapers/full/${file}')`);
+}
+
 let syncedFromServer = false;
 
 export function useTheme() {
     const page = usePage();
 
-    // La preferencia guardada en la cuenta manda sobre lo que había en
-    // localStorage (pudo quedar de antes de iniciar sesión o de otro
-    // dispositivo) — pero solo la primera vez que se llama tras cargar la
-    // página, para no pisar un cambio que el usuario acaba de hacer.
-    if (!syncedFromServer && page.props.preferences) {
-        syncedFromServer = true;
-        applySurface(page.props.preferences.surfaceMode);
+    if (page.props.preferences) {
+        if (!syncedFromServer) {
+            syncedFromServer = true;
+            applySurface(page.props.preferences.surfaceMode);
+        }
+        if (page.props.preferences.wallpaperKey) {
+            applyWallpaper(page.props.preferences.wallpaperKey);
+        }
     }
 
     function setTheme(value) {
@@ -106,5 +124,9 @@ export function useTheme() {
         applyPalette(value);
     }
 
-    return { theme, surface, palette, setTheme, setSurface, setPalette };
+    function setWallpaper(key) {
+        applyWallpaper(key);
+    }
+
+    return { theme, surface, palette, setTheme, setSurface, setPalette, setWallpaper };
 }

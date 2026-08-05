@@ -9,6 +9,7 @@ import BaseModal from '@/Components/ui/BaseModal.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
 import BaseBadge from '@/Components/ui/BaseBadge.vue';
 import UsageTipBanner from '@/Components/ui/UsageTipBanner.vue';
+import AppIcon from '@/Components/AppIcon.vue';
 import { useTelemetry } from '@/Composables/useTelemetry';
 
 const props = defineProps({
@@ -38,13 +39,19 @@ const freqTypeOptions = [
 
 const dayNames = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
 
+/*
+ * iconOptions: el valor 'icon' es ahora el nombre de AppIcon (Lucide).
+ * Se persiste este nombre en la base de datos en vez del emoji.
+ * Retrocompatibilidad: habit.icon con valor antiguo (emoji) mostrará
+ * el emoji como texto si no encuentra el nombre en AppIcon (fallo silencioso).
+ */
 const iconOptions = [
-    { icon: '⚡', label: 'Energía' }, { icon: '📚', label: 'Estudio' },
-    { icon: '💪', label: 'Ejercicio' }, { icon: '🧠', label: 'Mente' },
-    { icon: '🏃', label: 'Correr' }, { icon: '🎯', label: 'Meta' },
-    { icon: '✍️', label: 'Escritura' }, { icon: '🎨', label: 'Creatividad' },
-    { icon: '🧘', label: 'Meditación' }, { icon: '💤', label: 'Descanso' },
-    { icon: '🥗', label: 'Alimentación' }, { icon: '🎵', label: 'Música' },
+    { icon: 'zap', label: 'Energía' }, { icon: 'book-open', label: 'Estudio' },
+    { icon: 'dumbbell', label: 'Ejercicio' }, { icon: 'brain', label: 'Mente' },
+    { icon: 'footprints', label: 'Correr' }, { icon: 'target', label: 'Meta' },
+    { icon: 'pencil', label: 'Escritura' }, { icon: 'palette', label: 'Creatividad' },
+    { icon: 'leaf', label: 'Meditación' }, { icon: 'bed', label: 'Descanso' },
+    { icon: 'utensils', label: 'Alimentación' }, { icon: 'music', label: 'Música' },
 ];
 
 const categoryOptions = [
@@ -56,25 +63,25 @@ const categoryOptions = [
 ];
 
 const categoryMap = {
-    estudio: { emoji: '📖', label: 'Estudio' },
-    sueno: { emoji: '😴', label: 'Sueño' },
-    ejercicio: { emoji: '🏃', label: 'Ejercicio' },
-    alimentacion: { emoji: '🥗', label: 'Alimentación' },
-    otro: { emoji: '✨', label: 'Otro' },
+    estudio: { icon: 'book-open', label: 'Estudio' },
+    sueno: { icon: 'bed', label: 'Sueño' },
+    ejercicio: { icon: 'footprints', label: 'Ejercicio' },
+    alimentacion: { icon: 'utensils', label: 'Alimentación' },
+    otro: { icon: 'sparkles', label: 'Otro' },
 };
 
 const createForm = useForm({
     title: '',
     category: 'estudio',
     frequency: { type: 'daily' },
-    icon: '⚡',
+    icon: 'zap',
 });
 
 const editForm = useForm({
     title: '',
     category: 'estudio',
     frequency: { type: 'daily' },
-    icon: '⚡',
+    icon: 'zap',
 });
 
 const freqType = ref('daily');
@@ -217,7 +224,7 @@ const openEditModal = (habit) => {
     editingHabit.value = habit;
     editForm.title = habit.title;
     editForm.category = habit.category;
-    editForm.icon = habit.icon || '⚡';
+                editForm.icon = habit.icon || 'zap';
     initFreqForm(habit.frequency);
     showEditModal.value = true;
     track('open_edit_habit_modal', 'habits', { habit_id: habit.id });
@@ -324,7 +331,7 @@ v-if="avatarImage"
                 </BaseCard>
                 <BaseCard class="p-4 text-center">
                     <p class="font-display text-2xl text-content-primary">{{ stats.max_streak }}</p>
-                    <p class="text-xs text-content-muted">Mejor racha 🔥</p>
+                    <p class="text-xs text-content-muted flex items-center gap-1">Mejor racha <AppIcon name="flame" :size="11" class="text-danger" /></p>
                 </BaseCard>
                 <BaseCard class="p-4 text-center">
                     <p class="font-display text-2xl text-content-primary">
@@ -346,8 +353,8 @@ type="button"
                                         ? 'scale-105 border-primary bg-primary text-on-primary shadow-md'
                                         : 'border-border-interactive bg-bg text-content-muted hover:border-primary'"
                                     @click="toggleHabit(habit)">
-                                    <span v-if="habit.is_completed_today">✓</span>
-                                    <span v-else>{{ habit.icon || '⚡' }}</span>
+                                    <AppIcon v-if="habit.is_completed_today" name="check" :size="18" />
+                                    <AppIcon v-else :name="habit.icon || 'zap'" :size="18" />
                                 </button>
                                 <div class="truncate">
                                     <div class="flex items-center gap-2">
@@ -356,10 +363,13 @@ class="truncate font-semibold text-content-primary"
                                             :class="{ 'line-through opacity-60': habit.is_completed_today }">
                                             {{ habit.title }}
                                         </h3>
-                                        <span v-if="habit.streak > 0" class="shrink-0 text-xs text-accent" title="Racha">🔥{{ habit.streak }}</span>
+                                        <span v-if="habit.streak > 0" class="shrink-0 text-xs text-accent inline-flex items-center gap-0.5" title="Racha"><AppIcon name="flame" :size="11" class="text-danger" />{{ habit.streak }}</span>
                                     </div>
                                     <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                                        <BaseBadge>{{ categoryMap[habit.category]?.emoji || '' }} {{ categoryMap[habit.category]?.label || habit.category }}</BaseBadge>
+                                        <BaseBadge class="flex items-center gap-1">
+                                            <AppIcon :name="categoryMap[habit.category]?.icon || 'sparkles'" :size="10" />
+                                            {{ categoryMap[habit.category]?.label || habit.category }}
+                                        </BaseBadge>
                                         <span class="text-xs text-content-muted">{{ freqLabel(habit.frequency) }}</span>
                                         <span class="text-xs text-content-muted">{{ completionRate(habit) }}%</span>
                                     </div>
@@ -368,13 +378,13 @@ class="truncate font-semibold text-content-primary"
                             <div class="flex items-center gap-1 shrink-0">
                                 <button
 type="button" class="rounded p-1.5 text-sm text-content-muted opacity-0 transition hover:text-content-primary group-hover:opacity-100 focus:opacity-100"
-                                    title="Editar hábito" @click="openEditModal(habit)">✏️</button>
+                                    title="Editar hábito" @click="openEditModal(habit)"><AppIcon name="pencil" :size="14" /></button>
                                 <button
 type="button" class="rounded p-1.5 text-sm text-content-muted opacity-0 transition hover:text-accent group-hover:opacity-100 focus:opacity-100"
-                                    title="Archivar hábito" @click="archiveHabit(habit.id)">📦</button>
+                                    title="Archivar hábito" @click="archiveHabit(habit.id)"><AppIcon name="lock" :size="14" /></button>
                                 <button
 type="button" class="rounded p-1.5 text-sm text-content-muted opacity-0 transition hover:text-danger-text group-hover:opacity-100 focus:opacity-100"
-                                    title="Eliminar hábito" @click="deleteHabit(habit.id)">🗑️</button>
+                                    title="Eliminar hábito" @click="deleteHabit(habit.id)"><AppIcon name="trash" :size="14" /></button>
                             </div>
                         </div>
                         <div class="mt-2">
@@ -406,13 +416,13 @@ v-for="(cell, ci) in week" :key="'d'+wi+'-'+ci"
 type="button"
                         class="flex w-full items-center justify-between rounded-xl bg-surface px-4 py-2 text-sm font-semibold text-content-secondary transition hover:bg-surface-raised"
                         @click="showArchived = !showArchived">
-                        <span>📦 Archivados ({{ archivedHabits.length }})</span>
-                        <span class="transition" :class="showArchived ? 'rotate-180' : ''">▼</span>
+                        <span class="flex items-center gap-1"><AppIcon name="lock" :size="13" /> Archivados ({{ archivedHabits.length }})</span>
+                        <AppIcon name="chevron-down" :size="13" class="transition" :class="showArchived ? 'rotate-180' : ''" />
                     </button>
                     <div v-if="showArchived" class="mt-2 space-y-2">
                         <BaseCard v-for="habit in archivedHabits" :key="'arch-'+habit.id" class="flex items-center justify-between p-3">
                             <div class="flex items-center gap-3 min-w-0">
-                                <span class="shrink-0 text-lg">{{ habit.icon || '⚡' }}</span>
+                                <AppIcon :name="habit.icon || 'zap'" :size="20" class="shrink-0 text-content-secondary" />
                                 <div class="truncate">
                                     <p class="truncate text-sm font-medium text-content-primary">{{ habit.title }}</p>
                                     <p class="text-xs text-content-muted">{{ categoryMap[habit.category]?.label || habit.category }} · {{ freqLabel(habit.frequency) }}</p>
@@ -425,7 +435,7 @@ type="button"
             </template>
 
             <BaseCard v-if="habits.length === 0" class="flex flex-col items-center p-12 text-center">
-                <span class="mb-3 text-4xl">🌱</span>
+                <AppIcon name="leaf" :size="48" class="mb-3 text-success" />
                 <h2 class="text-lg font-semibold text-content-primary">No tienes hábitos registrados</h2>
                 <p class="mt-1 max-w-sm text-sm text-content-secondary">Crea tu primer hábito diario para comenzar a acumular racha y ganar experiencia.</p>
                 <BaseButton class="mt-6" variant="primary" @click="openCreateModal">Crear mi primer hábito</BaseButton>
@@ -470,11 +480,13 @@ v-for="(name, i) in dayNames" :key="i" type="button"
                     <div class="flex flex-wrap gap-2">
                         <button
 v-for="opt in iconOptions" :key="opt.icon" type="button" :title="opt.label"
-                            class="flex h-9 w-9 items-center justify-center rounded-lg border text-lg transition-all"
+                            class="flex h-9 w-9 items-center justify-center rounded-lg border transition-all"
                             :class="createForm.icon === opt.icon
                                 ? 'border-primary bg-primary text-on-primary'
                                 : 'border-border-interactive text-content-muted hover:border-primary'"
-                            @click="createForm.icon = opt.icon">{{ opt.icon }}</button>
+                            @click="createForm.icon = opt.icon">
+                            <AppIcon :name="opt.icon" :size="16" />
+                        </button>
                     </div>
                 </fieldset>
 
@@ -525,11 +537,13 @@ v-for="(name, i) in dayNames" :key="i" type="button"
                     <div class="flex flex-wrap gap-2">
                         <button
 v-for="opt in iconOptions" :key="opt.icon" type="button" :title="opt.label"
-                            class="flex h-9 w-9 items-center justify-center rounded-lg border text-lg transition-all"
+                            class="flex h-9 w-9 items-center justify-center rounded-lg border transition-all"
                             :class="editForm.icon === opt.icon
                                 ? 'border-primary bg-primary text-on-primary'
                                 : 'border-border-interactive text-content-muted hover:border-primary'"
-                            @click="editForm.icon = opt.icon">{{ opt.icon }}</button>
+                            @click="editForm.icon = opt.icon">
+                            <AppIcon :name="opt.icon" :size="16" />
+                        </button>
                     </div>
                 </fieldset>
 
@@ -549,7 +563,7 @@ enter-active-class="transition duration-300 ease-out" enter-from-class="translat
             <div
 v-if="xpNotification"
                 class="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-on-primary shadow-lg">
-                <span class="text-xl">⭐</span><span>{{ xpNotification }}</span>
+                <AppIcon name="star" :size="20" /><span>{{ xpNotification }}</span>
             </div>
         </Transition>
     </AppLayout>

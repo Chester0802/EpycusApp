@@ -3,6 +3,7 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 import BaseCard from '@/Components/ui/BaseCard.vue'
 import ProgressBar from '@/Components/ui/ProgressBar.vue'
 import EmptyState from '@/Components/ui/EmptyState.vue'
+import AppIcon from '@/Components/AppIcon.vue'
 
 defineProps({
     villain: { type: Object, default: null },
@@ -30,7 +31,7 @@ defineProps({
                     description="Esta semana no tienes ningún villano asignado que enfrentar. Cumple tus hábitos y mantente listo para el siguiente desafío."
                 >
                     <template #icon>
-                        <span class="text-5xl">🛡️</span>
+                        <AppIcon name="shield" :size="56" class="text-content-muted" />
                     </template>
                 </EmptyState>
             </BaseCard>
@@ -65,7 +66,7 @@ defineProps({
 
                 <div v-if="villain.status === 'defeated'" class="text-center py-2">
                     <span class="inline-flex items-center gap-2 text-success font-bold text-lg">
-                        <span>🏆</span> ¡Derrotado!
+                        <AppIcon name="trophy" :size="20" class="text-warning" /> ¡Derrotado!
                     </span>
                 </div>
 

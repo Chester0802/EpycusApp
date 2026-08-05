@@ -815,9 +815,24 @@ return [
 
 Las semanas de exámenes se marcan en el calendario del diario. Igual que con los feriados: una caída de adherencia en semana de parciales tiene una explicación distinta a una caída en semana normal, y el análisis debe poder separarlas.
 
-### Contratos de lectura que expone
+### Horario de Clases Semanal
+
+El módulo permite gestionar el horario recurrente del estudiante (`class_schedules`):
+- Campos: `course_name` (string), `day_of_week` (1-7), `start_time` (H:i), `end_time` (H:i), `classroom` (opcional), `color` (`primary`, `accent`, `success`, `warning`, `secondary`).
+- Permite la creación y eliminación por usuario autenticado.
+- Se integra visualmente tanto en la pestaña por días del modal de horario como en la vista de cuadrícula mensual del calendario.
+
+### Contratos que expone
 
 ```php
+interface CalendarRepositoryInterface
+{
+    public function getHolidaysInMonth(int $year, int $month): Collection;
+    public function getSchedulesForUser(int $userId): Collection;
+    public function createSchedule(int $userId, array $data): ClassScheduleModel;
+    public function deleteSchedule(int $userId, int $id): bool;
+}
+
 interface CalendarReaderInterface
 {
     public function isHoliday(DateTimeImmutable $date): bool;
@@ -830,9 +845,9 @@ interface CalendarReaderInterface
 }
 ```
 
-**Casos de uso:** `GetMonthCalendar`, `CheckDate`, `ListHolidaysInRange`
+**Casos de uso:** `GetMonthCalendar`, `GetSchedulesForUser`, `CreateSchedule`, `DeleteSchedule`, `CheckDate`, `ListHolidaysInRange`
 
-**No emite eventos.** Es un servicio de consulta.
+**No emite eventos.** Es un servicio de consulta y organización académica.
 
 **Rendimiento:** los feriados del año se cargan una vez y se cachean 24 horas. Son 16 filas: no tiene sentido consultarlas en cada petición.
 

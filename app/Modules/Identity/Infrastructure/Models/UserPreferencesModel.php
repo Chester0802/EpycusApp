@@ -23,6 +23,7 @@ final class UserPreferencesModel extends Model
     protected $fillable = [
         'user_id',
         'surface_mode',
+        'wallpaper_key',
         'notifications_enabled',
     ];
 

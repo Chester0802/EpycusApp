@@ -7,6 +7,7 @@ import BaseInput from '@/Components/ui/BaseInput.vue';
 import BaseSelect from '@/Components/ui/BaseSelect.vue';
 import BaseModal from '@/Components/ui/BaseModal.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
+import AppIcon from '@/Components/AppIcon.vue';
 
 const props = defineProps({
     missions: { type: Array, default: () => [] },
@@ -356,20 +357,20 @@ v-model="addSubtaskTitles[m.id]"
                                     <div class="flex shrink-0 items-start gap-1">
                                         <button
 type="button"
-                                            class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
-                                            title="Completar misión" @click="completeMission(m.id)">✅</button>
+                                            class="rounded p-1 text-sm text-content-muted hover:text-success"
+                                            title="Completar misión" @click="completeMission(m.id)"><AppIcon name="check-circle" :size="14" /></button>
                                         <button
 type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-primary-strong"
-                                            title="Enfocarme" @click="startPomodoro(m.id)">⏱</button>
+                                            title="Enfocarme" @click="startPomodoro(m.id)"><AppIcon name="timer" :size="14" /></button>
                                         <button
 type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
-                                            title="Editar" @click="openEditModal(m)">✏️</button>
+                                            title="Editar" @click="openEditModal(m)"><AppIcon name="pencil" :size="14" /></button>
                                         <button
 type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-danger-text"
-                                            title="Eliminar" @click="deleteMission(m.id)">🗑️</button>
+                                            title="Eliminar" @click="deleteMission(m.id)"><AppIcon name="trash" :size="14" /></button>
                                     </div>
                                 </div>
                             </BaseCard>
@@ -618,8 +619,8 @@ type="button"
 type="button"
                         class="flex w-full items-center justify-between rounded-xl bg-surface px-4 py-2 text-sm font-semibold text-content-secondary transition hover:bg-surface-raised"
                         @click="showCompleted = !showCompleted">
-                        <span>✅ Completadas ({{ completedMissions.length }})</span>
-                        <span class="transition" :class="showCompleted ? 'rotate-180' : ''">▼</span>
+                        <span class="flex items-center gap-1"><AppIcon name="check-circle" :size="14" class="text-success" /> Completadas ({{ completedMissions.length }})</span>
+                        <AppIcon name="chevron-down" :size="14" class="transition" :class="showCompleted ? 'rotate-180' : ''" />
                     </button>
                     <div v-if="showCompleted" class="mt-2 space-y-2">
                         <BaseCard v-for="m in completedMissions" :key="m.id" class="border-l-4 border-l-success p-4 opacity-70">
@@ -643,7 +644,7 @@ type="button"
             <BaseCard
 v-if="missions.length === 0 && completedMissions.length === 0"
                 class="flex flex-col items-center p-12 text-center">
-                <span class="mb-3 text-4xl">🎯</span>
+                <AppIcon name="target" :size="48" class="mb-3 text-content-muted" />
                 <h2 class="text-lg font-semibold text-content-primary">No tienes misiones</h2>
                 <p class="mt-1 max-w-sm text-sm text-content-secondary">
                     Crea tu primera misión y divide las tareas grandes en pasos pequeños.

@@ -24,5 +24,6 @@ Route::middleware(['web', 'auth'])->group(function () {
 
     Route::get('/settings', [PreferencesController::class, 'edit'])->name('settings.edit');
     Route::patch('/preferences', [PreferencesController::class, 'update'])->name('preferences.update');
-
+    Route::post('/preferences/wallpaper/unlock', [PreferencesController::class, 'unlockWallpaper'])->name('preferences.wallpaper.unlock');
+    Route::post('/preferences/wallpaper/select', [PreferencesController::class, 'selectWallpaper'])->name('preferences.wallpaper.select');
 });

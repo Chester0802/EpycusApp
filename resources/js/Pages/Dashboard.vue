@@ -6,6 +6,7 @@ import BaseCard from '@/Components/ui/BaseCard.vue'
 import BaseButton from '@/Components/ui/BaseButton.vue'
 import ProgressBar from '@/Components/ui/ProgressBar.vue'
 import UsageTipBanner from '@/Components/ui/UsageTipBanner.vue'
+import AppIcon from '@/Components/AppIcon.vue'
 
 const props = defineProps({
     userName: { type: String, default: 'Estudiante' },
@@ -68,20 +69,20 @@ function habitsBarHeight(count) {
                         </div>
                         <div>
                             <h1 class="font-display text-3xl font-bold tracking-tight text-content-primary">
-                                ¡Hola, {{ userName }}! 👋
+                                ¡Hola, {{ userName }}! <AppIcon name="sparkles" :size="28" class="inline text-primary-strong" />
                             </h1>
                             <p class="mt-1 text-sm text-content-secondary">
                                 Revisa tu progreso académico y mantén tu racha activa hoy.
                             </p>
                             <div class="mt-3 flex flex-wrap gap-2 text-xs">
                                 <span class="inline-flex items-center gap-1 rounded-full bg-surface-raised px-3 py-1 font-semibold text-content-primary border border-border-interactive">
-                                    🏆 Nivel {{ progress.level }}
+                                    <AppIcon name="trophy" :size="14" class="text-warning" /> Nivel {{ progress.level }}
                                 </span>
                                 <span class="inline-flex items-center gap-1 rounded-full bg-surface-raised px-3 py-1 font-semibold text-content-primary border border-border-interactive">
-                                    🔥 {{ progress.currentStreak }} días de racha
+                                    <AppIcon name="flame" :size="14" class="text-danger" /> {{ progress.currentStreak }} días de racha
                                 </span>
                                 <span class="inline-flex items-center gap-1 rounded-full bg-surface-raised px-3 py-1 font-semibold text-content-primary border border-border-interactive">
-                                    🪙 {{ progress.coins }} monedas
+                                    <AppIcon name="coins" :size="14" class="text-warning" /> {{ progress.coins }} monedas
                                 </span>
                             </div>
                         </div>
@@ -90,12 +91,12 @@ function habitsBarHeight(count) {
                     <div class="flex flex-wrap gap-3 sm:flex-col sm:items-end">
                         <Link :href="route('pomodoro.index')">
                             <BaseButton variant="primary" size="sm">
-                                ⏱️ Iniciar Pomodoro
+                                <AppIcon name="timer" :size="14" class="mr-1" /> Iniciar Pomodoro
                             </BaseButton>
                         </Link>
                         <Link :href="route('habits.index')">
                             <BaseButton variant="secondary" size="sm">
-                                ⚡ Ver Hábitos
+                                <AppIcon name="zap" :size="14" class="mr-1" /> Ver Hábitos
                             </BaseButton>
                         </Link>
                     </div>
@@ -140,7 +141,7 @@ function habitsBarHeight(count) {
             <!-- Cuadrícula de Métricas Rápidas de Hoy -->
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <BaseCard class="p-4 text-center space-y-1">
-                    <span class="text-2xl">⏱️</span>
+                    <AppIcon name="timer" :size="28" class="mx-auto text-primary-strong" />
                     <p class="font-display text-2xl font-bold text-content-primary">
                         {{ stats.todayFocusMinutes }} <span class="text-xs font-normal text-content-muted">min</span>
                     </p>
@@ -148,7 +149,7 @@ function habitsBarHeight(count) {
                 </BaseCard>
 
                 <BaseCard class="p-4 text-center space-y-1">
-                    <span class="text-2xl">⚡</span>
+                    <AppIcon name="zap" :size="28" class="mx-auto text-warning" />
                     <p class="font-display text-2xl font-bold text-content-primary">
                         {{ stats.todayHabitsDone }}
                     </p>
@@ -156,7 +157,7 @@ function habitsBarHeight(count) {
                 </BaseCard>
 
                 <BaseCard class="p-4 text-center space-y-1">
-                    <span class="text-2xl">📋</span>
+                    <AppIcon name="clipboard" :size="28" class="mx-auto text-accent" />
                     <p class="font-display text-2xl font-bold text-content-primary">
                         {{ stats.pendingMissions }}
                     </p>
@@ -164,7 +165,7 @@ function habitsBarHeight(count) {
                 </BaseCard>
 
                 <BaseCard class="p-4 text-center space-y-1">
-                    <span class="text-2xl">✅</span>
+                    <AppIcon name="check-circle" :size="28" class="mx-auto text-success" />
                     <p class="font-display text-2xl font-bold text-content-primary">
                         {{ stats.completedMissions }}
                     </p>
@@ -178,8 +179,8 @@ function habitsBarHeight(count) {
                 <BaseCard class="p-6 lg:col-span-2 space-y-4">
                     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h2 class="font-display text-lg font-bold text-content-primary">
-                                📊 Actividad Semanal
+                            <h2 class="font-display text-lg font-bold text-content-primary flex items-center gap-2">
+                                <AppIcon name="bar-chart" :size="20" class="text-primary-strong" /> Actividad Semanal
                             </h2>
                             <p class="text-xs text-content-secondary">
                                 Resumen de rendimiento en los últimos 7 días
@@ -188,19 +189,19 @@ function habitsBarHeight(count) {
                         <div class="flex items-center gap-1 rounded-xl bg-surface-sunken p-1 border border-border-interactive text-xs font-semibold">
                             <button
                                 type="button"
-                                class="rounded-lg px-3 py-1 transition-all"
+                                class="flex items-center gap-1 rounded-lg px-3 py-1 transition-all"
                                 :class="activeTab === 'focus' ? 'bg-primary-strong text-on-accent shadow-sm' : 'text-content-secondary hover:text-content-primary'"
                                 @click="activeTab = 'focus'"
                             >
-                                ⏱️ Foco ({{ totalWeeklyFocusMinutes }} min)
+                                <AppIcon name="timer" :size="12" /> Foco ({{ totalWeeklyFocusMinutes }} min)
                             </button>
                             <button
                                 type="button"
-                                class="rounded-lg px-3 py-1 transition-all"
+                                class="flex items-center gap-1 rounded-lg px-3 py-1 transition-all"
                                 :class="activeTab === 'habits' ? 'bg-primary-strong text-on-accent shadow-sm' : 'text-content-secondary hover:text-content-primary'"
                                 @click="activeTab = 'habits'"
                             >
-                                ⚡ Hábitos ({{ totalWeeklyHabits }})
+                                <AppIcon name="zap" :size="12" /> Hábitos ({{ totalWeeklyHabits }})
                             </button>
                         </div>
                     </div>
@@ -247,8 +248,8 @@ function habitsBarHeight(count) {
                 <BaseCard class="p-6 space-y-4 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <h2 class="font-display text-lg font-bold text-content-primary">
-                                🛡️ Villano Semanal
+                            <h2 class="font-display text-lg font-bold text-content-primary flex items-center gap-2">
+                                <AppIcon name="shield" :size="20" class="text-danger" /> Villano Semanal
                             </h2>
                             <span v-if="villain" class="text-xs font-semibold text-content-secondary">
                                 Sem. {{ villain.week_number }}
@@ -285,14 +286,14 @@ function habitsBarHeight(count) {
                         </div>
 
                         <div v-else class="py-8 text-center text-sm text-content-secondary">
-                            <span class="text-3xl block mb-2">🛡️</span>
+                            <AppIcon name="shield" :size="40" class="mx-auto mb-2 text-content-muted" />
                             No hay villano activo esta semana.
                         </div>
                     </div>
 
                     <Link :href="route('villains.index')" class="w-full">
-                        <BaseButton class="w-full" variant="ghost" size="sm">
-                            Ver Villano Completo ➔
+                        <BaseButton class="w-full flex items-center justify-center gap-1" variant="ghost" size="sm">
+                            Ver Villano Completo <AppIcon name="arrow-right" :size="14" />
                         </BaseButton>
                     </Link>
                 </BaseCard>
@@ -302,7 +303,7 @@ function habitsBarHeight(count) {
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <Link :href="route('ranking.index')">
                     <BaseCard class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]">
-                        <span class="text-2xl">🏆</span>
+                        <AppIcon name="trophy" :size="24" class="text-warning shrink-0" />
                         <div>
                             <p class="font-semibold text-sm text-content-primary">Ranking</p>
                             <p class="text-xs text-content-muted">Tabla de posiciones</p>
@@ -312,7 +313,7 @@ function habitsBarHeight(count) {
 
                 <Link :href="route('calendar.index')">
                     <BaseCard class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]">
-                        <span class="text-2xl">📅</span>
+                        <AppIcon name="calendar" :size="24" class="text-primary-strong shrink-0" />
                         <div>
                             <p class="font-semibold text-sm text-content-primary">Calendario</p>
                             <p class="text-xs text-content-muted">Feriados y exámenes</p>
@@ -322,7 +323,7 @@ function habitsBarHeight(count) {
 
                 <Link :href="route('wellbeing.index')">
                     <BaseCard class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]">
-                        <span class="text-2xl">💚</span>
+                        <AppIcon name="heart" :size="24" class="text-danger shrink-0" />
                         <div>
                             <p class="font-semibold text-sm text-content-primary">Bienestar</p>
                             <p class="text-xs text-content-muted">Diario y ánimo</p>
@@ -332,7 +333,7 @@ function habitsBarHeight(count) {
 
                 <Link :href="route('study-groups.index')">
                     <BaseCard class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]">
-                        <span class="text-2xl">👥</span>
+                        <AppIcon name="users" :size="24" class="text-secondary shrink-0" />
                         <div>
                             <p class="font-semibold text-sm text-content-primary">Grupos</p>
                             <p class="text-xs text-content-muted">Salas de estudio</p>

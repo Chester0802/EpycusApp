@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
+import AppIcon from '@/Components/AppIcon.vue';
 
 const props = defineProps({
     month: { type: Number, required: true },
@@ -138,8 +139,8 @@ const yearOptions = Array.from({ length: 5 }, (_, i) => 2026 + i);
                                 v-if="cell.day" class="text-xs font-semibold"
                                 :class="cell.isToday ? 'text-primary' : 'text-content-secondary'"
                             >{{ cell.day }}</span>
-                            <span v-if="cell.holiday" class="rounded bg-danger/10 px-1 text-[9px] text-danger" title="Feriado">🏖</span>
-                            <span v-if="cell.isExam" class="rounded bg-warning/20 px-1 text-[9px] text-warning" title="Exámenes">📝</span>
+                            <span v-if="cell.holiday" class="rounded bg-danger/10 px-1 text-[9px] text-danger inline-flex items-center" title="Feriado"><AppIcon name="leaf" :size="9" /></span>
+                            <span v-if="cell.isExam" class="rounded bg-warning/20 px-1 text-[9px] text-warning inline-flex items-center" title="Exámenes"><AppIcon name="book-open" :size="9" /></span>
                         </div>
                         <div v-if="cell.moodEmoji" class="mt-2 text-center">
                             <span class="text-2xl" :title="`${cell.moodLabel} (${cell.moodScore}/5)`">{{ cell.moodEmoji }}</span>
@@ -149,13 +150,13 @@ const yearOptions = Array.from({ length: 5 }, (_, i) => 2026 + i);
             </BaseCard>
 
             <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-content-muted">
-                <span class="flex items-center gap-1"><span class="rounded bg-danger/10 px-1 text-[9px] text-danger">🏖</span> Feriado</span>
-                <span class="flex items-center gap-1"><span class="rounded bg-warning/20 px-1 text-[9px] text-warning">📝</span> Semana de exámenes</span>
+                <span class="flex items-center gap-1"><span class="rounded bg-danger/10 px-1 text-[9px] text-danger inline-flex items-center"><AppIcon name="leaf" :size="9" /></span> Feriado</span>
+                <span class="flex items-center gap-1"><span class="rounded bg-warning/20 px-1 text-[9px] text-warning inline-flex items-center"><AppIcon name="book-open" :size="9" /></span> Semana de exámenes</span>
             </div>
 
             <BaseCard v-if="healthTip" class="mt-6 border-l-4 border-l-primary-strong p-4">
                 <div class="flex items-start gap-3">
-                    <span class="mt-0.5 text-xl">💚</span>
+                    <AppIcon name="heart" :size="20" class="mt-0.5 shrink-0 text-danger" />
                     <div>
                         <p class="text-sm font-medium text-content-primary">Consejo del día</p>
                         <p class="mt-1 text-sm text-content-secondary">{{ healthTip }}</p>
@@ -164,7 +165,7 @@ const yearOptions = Array.from({ length: 5 }, (_, i) => 2026 + i);
             </BaseCard>
 
             <BaseCard class="mt-6 flex flex-col items-center p-8 text-center">
-                <span class="mb-2 text-2xl">💭</span>
+                <AppIcon name="message-square" :size="32" class="mb-2 text-content-muted" />
                 <h2 class="text-sm font-semibold text-content-primary">¿Cómo te sentís hoy?</h2>
                 <p class="mt-1 text-sm text-content-secondary">Hacé clic en el día de hoy para registrar tu ánimo.</p>
             </BaseCard>

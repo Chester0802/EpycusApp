@@ -4,6 +4,7 @@ import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
+import AppIcon from '@/Components/AppIcon.vue';
 
 const props = defineProps({
     mission: { type: Object, required: true },
@@ -76,8 +77,12 @@ function startPomodoro() {
                     </div>
 
                     <div v-if="!mission.is_completed" class="flex shrink-0 flex-col gap-2">
-                        <BaseButton variant="primary" @click="completeMission">✅ Completar</BaseButton>
-                        <BaseButton variant="ghost" @click="startPomodoro">⏱ Enfocarme</BaseButton>
+                        <BaseButton variant="primary" class="flex items-center gap-1" @click="completeMission">
+                            <AppIcon name="check-circle" :size="14" /> Completar
+                        </BaseButton>
+                        <BaseButton variant="ghost" class="flex items-center gap-1" @click="startPomodoro">
+                            <AppIcon name="timer" :size="14" /> Enfocarme
+                        </BaseButton>
                     </div>
                 </div>
             </BaseCard>

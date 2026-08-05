@@ -27,5 +27,8 @@
         "tailwindcss": "^3.4.19",
         "vite": "^5.4.21",
         "vue": "^3.4.0"
+    },
+    "dependencies": {
+        "@lucide/vue": "^1.28.0"
     }
 }

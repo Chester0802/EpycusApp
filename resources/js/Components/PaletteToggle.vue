@@ -13,6 +13,7 @@ const options = [
     { value: 'oceano', label: 'Océano' },
     { value: 'nube', label: 'Nube' },
     { value: 'mono', label: 'Mono' },
+    { value: 'terracota', label: 'Terracota' },
 ];
 </script>
 

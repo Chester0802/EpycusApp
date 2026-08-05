@@ -4,6 +4,7 @@ import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
+import AppIcon from '@/Components/AppIcon.vue';
 
 const props = defineProps({
     date: { type: String, required: true },
@@ -17,8 +18,10 @@ const props = defineProps({
     isExam: { type: Boolean, default: false },
 });
 
-const ENERGY_EMOJI = ['', '😴', '😐', '🙂', '💪', '⚡'];
-const STRESS_EMOJI = ['', '😌', '🙂', '😐', '😰', '🤯'];
+// Íconos Lucide para energía (1=muy baja..5=muy alta) y estrés
+// Se muestran como <AppIcon> en el template en lugar de emojis
+const ENERGY_ICON = ['', 'bed', 'meh', 'smile', 'dumbbell', 'zap'];
+const STRESS_ICON = ['', 'smile', 'meh', 'annoyed', 'frown', 'x-circle'];
 const ENERGY_LABEL = ['', 'Muy baja', 'Baja', 'Normal', 'Alta', 'Muy alta'];
 const STRESS_LABEL = ['', 'Muy bajo', 'Bajo', 'Normal', 'Alto', 'Muy alto'];
 
@@ -209,7 +212,7 @@ function goBack() {
                                 :class="formEnergy === e ? 'bg-accent text-on-accent shadow-sm' : 'bg-surface text-content-secondary hover:bg-surface-raised'"
                                 @click="formEnergy = formEnergy === e ? null : e"
                             >
-                                <span class="text-lg">{{ ENERGY_EMOJI[e] }}</span>
+                                <AppIcon :name="ENERGY_ICON[e]" :size="20" />
                                 <span class="text-[10px]">{{ ENERGY_LABEL[e] }}</span>
                             </button>
                         </div>
@@ -226,7 +229,7 @@ function goBack() {
                                 :class="formStress === s ? 'bg-danger text-on-accent shadow-sm' : 'bg-surface text-content-secondary hover:bg-surface-raised'"
                                 @click="formStress = formStress === s ? null : s"
                             >
-                                <span class="text-lg">{{ STRESS_EMOJI[s] }}</span>
+                                <AppIcon :name="STRESS_ICON[s]" :size="20" />
                                 <span class="text-[10px]">{{ STRESS_LABEL[s] }}</span>
                             </button>
                         </div>
@@ -307,7 +310,7 @@ function goBack() {
             </BaseCard>
 
             <BaseCard v-if="entries.length === 0 && !showForm" class="flex flex-col items-center p-8 text-center">
-                <span class="mb-3 text-3xl">📓</span>
+                <AppIcon name="notebook-text" :size="40" class="mb-3 text-content-muted" />
                 <h2 class="text-sm font-semibold text-content-primary">Sin entradas este día</h2>
                 <p class="mt-1 text-sm text-content-secondary">No registraste tu ánimo hoy. Hacé clic en "Nueva entrada" para empezar.</p>
             </BaseCard>
@@ -322,13 +325,13 @@ function goBack() {
                                 <span class="ml-2 text-xs text-content-muted">{{ new Date(entry.created_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) }}</span>
                             </div>
                         </div>
-                        <button type="button" class="text-xs text-content-muted hover:text-content-primary" @click="openEdit(entry)">✏️</button>
+                        <button type="button" class="text-xs text-content-muted hover:text-content-primary" @click="openEdit(entry)"><AppIcon name="pencil" :size="12" /></button>
                     </div>
                     <div v-if="entry.energy || entry.stress || entry.sleep_hours || entry.physical_activity" class="mt-2 flex flex-wrap gap-2">
                         <span v-if="entry.energy" class="rounded-full bg-accent/10 px-2 py-0.5 text-xs text-accent">Energía: {{ entry.energy }}/5</span>
                         <span v-if="entry.stress" class="rounded-full bg-danger/10 px-2 py-0.5 text-xs text-danger">Estrés: {{ entry.stress }}/5</span>
-                        <span v-if="entry.sleep_hours" class="rounded-full bg-surface-sunken px-2 py-0.5 text-xs text-content-muted">😴 {{ entry.sleep_hours }} h</span>
-                        <span v-if="entry.physical_activity" class="rounded-full bg-success/10 px-2 py-0.5 text-xs text-success">🏃 {{ entry.physical_activity.type }} {{ entry.physical_activity.duration }} min</span>
+                        <span v-if="entry.sleep_hours" class="rounded-full bg-surface-sunken px-2 py-0.5 text-xs text-content-muted inline-flex items-center gap-1"><AppIcon name="bed" :size="10" /> {{ entry.sleep_hours }} h</span>
+                        <span v-if="entry.physical_activity" class="rounded-full bg-success/10 px-2 py-0.5 text-xs text-success inline-flex items-center gap-1"><AppIcon name="activity" :size="10" /> {{ entry.physical_activity.type }} {{ entry.physical_activity.duration }} min</span>
                     </div>
                     <p v-if="entry.content" class="mt-2 whitespace-pre-wrap text-sm text-content-secondary">{{ entry.content }}</p>
                     <div v-if="entry.tags && entry.tags.length > 0" class="mt-2 flex flex-wrap gap-1">

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Calendar\Infrastructure\Repositories;
 
 use App\Modules\Calendar\Domain\Contracts\CalendarRepositoryInterface;
+use App\Modules\Calendar\Infrastructure\Models\ClassScheduleModel;
 use App\Modules\Calendar\Infrastructure\Models\HolidayModel;
 use App\Shared\Domain\Contracts\CalendarReaderInterface;
 use Carbon\Carbon;
@@ -24,6 +25,37 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
         return $all->filter(fn ($h) => (int) $h->date->format('m') === $month && (int) $h->date->format('Y') === $year)
             ->values();
     }
+
+    public function getSchedulesForUser(int $userId): Collection
+    {
+        return ClassScheduleModel::query()
+            ->where('user_id', $userId)
+            ->orderBy('day_of_week')
+            ->orderBy('start_time')
+            ->get();
+    }
+
+    public function createSchedule(int $userId, array $data): ClassScheduleModel
+    {
+        return ClassScheduleModel::query()->create([
+            'user_id' => $userId,
+            'course_name' => $data['course_name'],
+            'day_of_week' => (int) $data['day_of_week'],
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time'],
+            'classroom' => $data['classroom'] ?? null,
+            'color' => $data['color'] ?? 'primary',
+        ]);
+    }
+
+    public function deleteSchedule(int $userId, int $id): bool
+    {
+        return (bool) ClassScheduleModel::query()
+            ->where('user_id', $userId)
+            ->where('id', $id)
+            ->delete();
+    }
+
 
     /** @return Collection<int, HolidayModel> */
     private function getAllHolidays(): Collection

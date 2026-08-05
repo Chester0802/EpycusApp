@@ -4,8 +4,16 @@ import BaseCard from '@/Components/ui/BaseCard.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import SurfaceModeToggle from '@/Components/SurfaceModeToggle.vue';
 import PaletteToggle from '@/Components/PaletteToggle.vue';
+import WallpaperSelector from '@/Components/WallpaperSelector.vue';
 import { useTheme } from '@/composables/useTheme';
 import { Head } from '@inertiajs/vue3';
+
+defineProps({
+    wallpapers: { type: Array, default: () => [] },
+    unlockedWallpapers: { type: Array, default: () => ['atardecer'] },
+    activeWallpaperKey: { type: String, default: 'atardecer' },
+    userCoins: { type: Number, default: 0 },
+});
 
 const { theme, surface } = useTheme();
 </script>
@@ -20,7 +28,7 @@ const { theme, surface } = useTheme();
             <BaseCard>
                 <h2 class="mb-1 text-xl text-content-primary">Tema</h2>
                 <p v-if="surface === 'glass'" class="mb-4 text-sm text-content-secondary">
-                    Vidrio usa el fondo de pantalla fijo, siempre en oscuro — cambia a
+                    Vidrio usa el fondo de pantalla seleccionado, siempre en oscuro — cambia a
                     Neumorfismo para elegir claro u oscuro.
                 </p>
                 <p v-else class="mb-4 text-sm text-content-secondary">Claro u oscuro.</p>
@@ -47,6 +55,14 @@ const { theme, surface } = useTheme();
                 </p>
                 <PaletteToggle />
             </BaseCard>
+
+            <WallpaperSelector
+                :wallpapers="wallpapers"
+                :unlocked-wallpapers="unlockedWallpapers"
+                :active-wallpaper-key="activeWallpaperKey"
+                :user-coins="userCoins"
+            />
         </div>
     </AppLayout>
 </template>
+
