@@ -15,7 +15,7 @@ defineProps({
     userCoins: { type: Number, default: 0 },
 });
 
-const { theme, surface } = useTheme();
+const { theme } = useTheme();
 </script>
 
 <template>
@@ -27,12 +27,8 @@ const { theme, surface } = useTheme();
         <div class="space-y-6">
             <BaseCard>
                 <h2 class="mb-1 text-xl text-content-primary">Tema</h2>
-                <p v-if="surface === 'glass'" class="mb-4 text-sm text-content-secondary">
-                    Vidrio usa el fondo de pantalla seleccionado, siempre en oscuro — cambia a
-                    Neumorfismo para elegir claro u oscuro.
-                </p>
-                <p v-else class="mb-4 text-sm text-content-secondary">Claro u oscuro.</p>
-                <div v-if="surface !== 'glass'" class="flex items-center gap-3">
+                <p class="mb-4 text-sm text-content-secondary">Claro u oscuro.</p>
+                <div class="flex items-center gap-3">
                     <ThemeToggle />
                     <span class="text-sm text-content-secondary">
                         {{ theme === 'dark' ? 'Oscuro' : 'Claro' }}
@@ -65,4 +61,3 @@ const { theme, surface } = useTheme();
         </div>
     </AppLayout>
 </template>
-

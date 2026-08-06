@@ -59,9 +59,13 @@ const instMap = {
                 <div class="flex flex-col items-center gap-6 lg:flex-row">
                     <div
                         v-if="avatarImage"
-                        class="flex h-40 w-60 shrink-0 items-center justify-center rounded-2xl bg-surface-raised p-4 lg:h-[360px] lg:w-[360px]"
+                        class="flex h-40 w-60 shrink-0 items-center justify-center rounded-2xl p-4 lg:h-[360px] lg:w-[360px]"
                     >
-                        <img :src="avatarImage" alt="Tu avatar" class="h-full w-full object-contain" />
+                        <img
+                            :src="avatarImage"
+                            alt="Tu avatar"
+                            class="h-full w-full object-contain"
+                        />
                     </div>
 
                     <div class="w-full flex-1 space-y-4">
@@ -73,7 +77,13 @@ const instMap = {
                                     {{ labelMap[key] || key }}
                                 </p>
                                 <p class="text-base text-content-primary">
-                                    {{ key === 'avatarGender' ? (genderMap[value] || value) : key === 'institutionType' ? (instMap[value] || value) : value || '—' }}
+                                    {{
+                                        key === 'avatarGender'
+                                            ? genderMap[value] || value
+                                            : key === 'institutionType'
+                                              ? instMap[value] || value
+                                              : value || '—'
+                                    }}
                                 </p>
                             </div>
                         </div>

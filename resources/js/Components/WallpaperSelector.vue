@@ -104,11 +104,6 @@ function unlockWallpaper(key, cost) {
                     </div>
                 </div>
 
-                <div class="mb-3 flex-1">
-                    <h3 class="font-semibold text-sm text-content-primary">{{ item.name }}</h3>
-                    <p class="text-xs text-content-muted mt-0.5">{{ item.description }}</p>
-                </div>
-
                 <div class="mt-auto">
                     <button
                         v-if="isActive(item.key)"

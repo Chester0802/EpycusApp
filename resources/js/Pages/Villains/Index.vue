@@ -41,7 +41,7 @@ defineProps({
                     <img
                         :src="villain.image_url"
                         :alt="villain.name"
-                        class="w-40 h-40 object-contain rounded-xl"
+                        class="villain-idle w-40 h-40 object-contain rounded-xl"
                     />
                     <h2 class="text-xl font-display font-bold text-content-primary">
                         {{ villain.name }}

@@ -34,14 +34,12 @@ final class DeepSeekApiClient
         }
 
         try {
-            $url = rtrim($this->baseUrl, '/') . '/chat/completions';
-
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
             ])
             ->timeout($this->timeout)
-            ->post($url, [
+            ->post(rtrim($this->baseUrl, '/') . '/chat/completions', [
                 'model' => $this->model,
                 'messages' => $messages,
                 'stream' => false,
@@ -49,7 +47,7 @@ final class DeepSeekApiClient
 
             if ($response->successful()) {
                 $data = $response->json();
-                return $data['choices'][0]['message']['content'] ?? 'No recibí una respuesta adecuada del asistente.';
+                return $this->extractContent($data);
             }
 
             Log::error('Error HTTP en DeepSeek API: ' . $response->status() . ' - ' . $response->body());
@@ -58,5 +56,28 @@ final class DeepSeekApiClient
             Log::error('Excepción al invocar DeepSeek API: ' . $e->getMessage());
             throw $e;
         }
+    }
+
+    /**
+     * Extrae el texto de la respuesta. En modelos de razonamiento (deepseek-v4, reasoner)
+     * el texto puede venir en `message.content` o en `message.reasoning_content`, y a
+     * veces `content` viene vacío mientras el texto real está en `reasoning_content`.
+     */
+    private function extractContent(array $data): string
+    {
+        $message = $data['choices'][0]['message'] ?? [];
+
+        $content = isset($message['content']) ? (string) $message['content'] : '';
+        if (trim($content) !== '') {
+            return $content;
+        }
+
+        $reasoning = isset($message['reasoning_content']) ? (string) $message['reasoning_content'] : '';
+        if (trim($reasoning) !== '') {
+            return $reasoning;
+        }
+
+        Log::warning('DeepSeek API devolvió respuesta vacía: ' . json_encode($data));
+        return 'No recibí una respuesta adecuada del asistente.';
     }
 }

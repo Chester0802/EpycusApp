@@ -25,12 +25,12 @@ import { useTheme } from '@/composables/useTheme';
  * solo ya adentro de la app — el composable usa localStorage, no depende
  * de sesión, así que funciona igual sin estar autenticado.
  */
-const { surface } = useTheme();
+useTheme();
 </script>
 
 <template>
     <div class="min-h-screen bg-bg px-4 py-12">
-        <ThemeToggle v-if="surface !== 'glass'" class="fixed right-4 top-4 z-10" />
+        <ThemeToggle class="fixed right-4 top-4 z-10" />
 
         <div
             class="mx-auto flex w-full max-w-5xl flex-col gap-8"
@@ -48,7 +48,9 @@ const { surface } = useTheme();
                         class="flex items-center gap-3 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
                     >
                         <ApplicationLogo class="h-10 w-auto fill-current text-primary-strong" />
-                        <span class="font-display text-2xl font-semibold text-content-primary">Epycus</span>
+                        <span class="font-display text-2xl font-semibold text-content-primary"
+                            >Epycus</span
+                        >
                     </Link>
                     <!-- Tagline — slot opcional para personalizar por pantalla -->
                     <slot name="tagline" />

@@ -24,4 +24,10 @@ export default defineConfig({
         // resolverlo y todos los assets fallan en silencio.
         host: '127.0.0.1',
     },
+    // DiceBear (Core + estilo avataaars) son paquetes CJS con datos grandes.
+    // Pre-bundlarlos evita que el optimizador de Vite falle al extraer exports
+    // en frío y mantiene estable el dev server.
+    optimizeDeps: {
+        include: ['@dicebear/core', '@dicebear/avataaars'],
+    },
 });

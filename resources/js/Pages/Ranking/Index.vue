@@ -1,27 +1,27 @@
 <script setup>
-import { computed } from 'vue'
-import { Head } from '@inertiajs/vue3'
-import AppLayout from '@/Layouts/AppLayout.vue'
-import BaseCard from '@/Components/ui/BaseCard.vue'
-import BaseBadge from '@/Components/ui/BaseBadge.vue'
-import AppIcon from '@/Components/AppIcon.vue'
-import { useTelemetry } from '@/Composables/useTelemetry'
+import { computed } from 'vue';
+import { Head } from '@inertiajs/vue3';
+import AppLayout from '@/Layouts/AppLayout.vue';
+import BaseCard from '@/Components/ui/BaseCard.vue';
+import BaseBadge from '@/Components/ui/BaseBadge.vue';
+import AppIcon from '@/Components/AppIcon.vue';
+import { useTelemetry } from '@/Composables/useTelemetry';
 
 const props = defineProps({
     ranking: { type: Array, default: () => [] },
     ownPosition: { type: Object, required: true },
     avatarImage: { type: String, default: null },
-})
+});
 
-const { track } = useTelemetry()
+const { track } = useTelemetry();
 
 // Telemetría obligatoria por docs/01-MODULOS.md §9.3
 track('ranking.viewed', 'ranking', {
     own_rank: props.ownPosition.rank,
     total_participants: props.ownPosition.total_participants,
-})
+});
 
-const topThree = computed(() => props.ranking.slice(0, 3))
+const topThree = computed(() => props.ranking.slice(0, 3));
 </script>
 
 <template>
@@ -35,26 +35,43 @@ const topThree = computed(() => props.ranking.slice(0, 3))
                     <div class="flex items-center gap-4">
                         <div
                             v-if="avatarImage"
-                            class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl bg-surface-raised p-1 border border-border-interactive shadow-sm"
+                            class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl p-1 border border-border-interactive shadow-sm"
                         >
-                            <img :src="avatarImage" alt="Avatar" class="h-full w-full object-contain" />
+                            <img
+                                :src="avatarImage"
+                                alt="Avatar"
+                                class="h-full w-full object-contain"
+                            />
                         </div>
                         <div>
-                            <h1 class="font-display text-3xl font-bold tracking-tight text-content-primary flex items-center gap-2">
-                                <AppIcon name="trophy" :size="28" class="text-warning" /> Tabla de Posiciones
+                            <h1
+                                class="font-display text-3xl font-bold tracking-tight text-content-primary flex items-center gap-2"
+                            >
+                                <AppIcon name="trophy" :size="28" class="text-warning" /> Tabla de
+                                Posiciones
                             </h1>
                             <p class="mt-1 text-sm text-content-secondary">
                                 Revisa el progreso del grupo y celebra la constancia colectiva.
                             </p>
-                            <div class="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-content-primary">
-                                <span class="rounded-full bg-primary-strong/10 px-3 py-1 text-primary-strong border border-primary-strong/20">
-                                    Tu posición: #{{ ownPosition.rank }} de {{ ownPosition.total_participants }}
+                            <div
+                                class="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-content-primary"
+                            >
+                                <span
+                                    class="rounded-full bg-primary-strong/10 px-3 py-1 text-primary-strong border border-primary-strong/20"
+                                >
+                                    Tu posición: #{{ ownPosition.rank }} de
+                                    {{ ownPosition.total_participants }}
                                 </span>
-                                <span class="rounded-full bg-surface-raised px-3 py-1 border border-border-interactive">
+                                <span
+                                    class="rounded-full bg-surface-raised px-3 py-1 border border-border-interactive"
+                                >
                                     Nivel {{ ownPosition.level }}
                                 </span>
-                                <span class="rounded-full bg-surface-raised px-3 py-1 border border-border-interactive flex items-center gap-1">
-                                    <AppIcon name="flame" :size="12" class="text-danger" /> {{ ownPosition.current_streak }} días
+                                <span
+                                    class="rounded-full bg-surface-raised px-3 py-1 border border-border-interactive flex items-center gap-1"
+                                >
+                                    <AppIcon name="flame" :size="12" class="text-danger" />
+                                    {{ ownPosition.current_streak }} días
                                 </span>
                             </div>
                         </div>
@@ -65,39 +82,63 @@ const topThree = computed(() => props.ranking.slice(0, 3))
             <!-- Nota pedagógica (docs/01-MODULOS.md §9.1) -->
             <BaseCard class="border-l-4 border-l-primary p-4 text-sm text-content-secondary">
                 <AppIcon name="lightbulb" :size="16" class="inline mr-1 text-warning" />
-                <strong class="text-content-primary">Enfoque personal:</strong> El ranking es solo una referencia colectiva. Tu propio progreso diario frente a ti mismo es lo que realmente importa.
+                <strong class="text-content-primary">Enfoque personal:</strong> El ranking es solo
+                una referencia colectiva. Tu propio progreso diario frente a ti mismo es lo que
+                realmente importa.
             </BaseCard>
 
             <!-- Podio de los 3 Primeros Lugares -->
             <div v-if="topThree.length >= 3" class="grid grid-cols-3 gap-3 sm:gap-4 items-end pt-2">
                 <!-- 2do Lugar (Izquierda) -->
                 <BaseCard class="p-4 text-center border-t-4 border-t-slate-400 order-1 space-y-2">
-                    <div class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-400/20 text-slate-300 font-bold text-lg">
+                    <div
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-400/20 text-slate-300 font-bold text-lg"
+                    >
                         <AppIcon name="medal" :size="22" class="text-slate-400" />
                     </div>
-                    <p class="font-bold text-sm text-content-primary truncate">{{ topThree[1].name }}</p>
+                    <p class="font-bold text-sm text-content-primary truncate">
+                        {{ topThree[1].name }}
+                    </p>
                     <p class="text-xs text-content-muted">Nivel {{ topThree[1].level }}</p>
-                    <p class="font-display font-bold text-primary-strong text-base">{{ topThree[1].total_xp }} XP</p>
+                    <p class="font-display font-bold text-primary-strong text-base">
+                        {{ topThree[1].total_xp }} XP
+                    </p>
                 </BaseCard>
 
                 <!-- 1er Lugar (Centro, más alto) -->
-                <BaseCard class="p-5 text-center border-t-4 border-t-amber-400 order-2 space-y-2 -mt-4 shadow-lg">
-                    <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-400/20 text-amber-300 font-bold text-2xl">
+                <BaseCard
+                    class="p-5 text-center border-t-4 border-t-amber-400 order-2 space-y-2 -mt-4 shadow-lg"
+                >
+                    <div
+                        class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-400/20 text-amber-300 font-bold text-2xl"
+                    >
                         <AppIcon name="trophy" :size="26" class="text-warning" />
                     </div>
-                    <p class="font-bold text-base text-content-primary truncate">{{ topThree[0].name }}</p>
-                    <p class="text-xs text-content-muted">Nivel {{ topThree[0].level }} · Fase {{ topThree[0].phase }}</p>
-                    <p class="font-display font-bold text-amber-400 text-lg">{{ topThree[0].total_xp }} XP</p>
+                    <p class="font-bold text-base text-content-primary truncate">
+                        {{ topThree[0].name }}
+                    </p>
+                    <p class="text-xs text-content-muted">
+                        Nivel {{ topThree[0].level }} · Fase {{ topThree[0].phase }}
+                    </p>
+                    <p class="font-display font-bold text-amber-400 text-lg">
+                        {{ topThree[0].total_xp }} XP
+                    </p>
                 </BaseCard>
 
                 <!-- 3er Lugar (Derecha) -->
                 <BaseCard class="p-4 text-center border-t-4 border-t-amber-700 order-3 space-y-2">
-                    <div class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-amber-700/20 text-amber-600 font-bold text-lg">
+                    <div
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-amber-700/20 text-amber-600 font-bold text-lg"
+                    >
                         <AppIcon name="award" :size="22" class="text-amber-600" />
                     </div>
-                    <p class="font-bold text-sm text-content-primary truncate">{{ topThree[2].name }}</p>
+                    <p class="font-bold text-sm text-content-primary truncate">
+                        {{ topThree[2].name }}
+                    </p>
                     <p class="text-xs text-content-muted">Nivel {{ topThree[2].level }}</p>
-                    <p class="font-display font-bold text-primary-strong text-base">{{ topThree[2].total_xp }} XP</p>
+                    <p class="font-display font-bold text-primary-strong text-base">
+                        {{ topThree[2].total_xp }} XP
+                    </p>
                 </BaseCard>
             </div>
 
@@ -105,7 +146,9 @@ const topThree = computed(() => props.ranking.slice(0, 3))
             <BaseCard class="overflow-hidden p-0">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm text-content-secondary">
-                        <thead class="bg-surface-raised text-xs uppercase tracking-wider text-content-muted border-b border-border-interactive">
+                        <thead
+                            class="bg-surface-raised text-xs uppercase tracking-wider text-content-muted border-b border-border-interactive"
+                        >
                             <tr>
                                 <th scope="col" class="px-4 py-3 text-center w-16">#</th>
                                 <th scope="col" class="px-4 py-3">Estudiante</th>
@@ -119,37 +162,65 @@ const topThree = computed(() => props.ranking.slice(0, 3))
                                 v-for="user in ranking"
                                 :key="user.user_id"
                                 class="transition-colors"
-                                :class="user.user_id === ownPosition.user_id ? 'bg-primary-strong/10 font-semibold text-content-primary border-l-4 border-l-primary-strong' : 'hover:bg-surface-raised/50'"
+                                :class="
+                                    user.user_id === ownPosition.user_id
+                                        ? 'bg-primary-strong/10 font-semibold text-content-primary border-l-4 border-l-primary-strong'
+                                        : 'hover:bg-surface-raised/50'
+                                "
                             >
                                 <td class="px-4 py-3 text-center font-bold">
-                                    <span v-if="user.rank === 1"><AppIcon name="trophy" :size="16" class="text-warning inline" /></span>
-                                    <span v-else-if="user.rank === 2"><AppIcon name="medal" :size="16" class="text-slate-400 inline" /></span>
-                                    <span v-else-if="user.rank === 3"><AppIcon name="award" :size="16" class="text-amber-600 inline" /></span>
+                                    <span v-if="user.rank === 1"
+                                        ><AppIcon
+                                            name="trophy"
+                                            :size="16"
+                                            class="text-warning inline"
+                                    /></span>
+                                    <span v-else-if="user.rank === 2"
+                                        ><AppIcon
+                                            name="medal"
+                                            :size="16"
+                                            class="text-slate-400 inline"
+                                    /></span>
+                                    <span v-else-if="user.rank === 3"
+                                        ><AppIcon
+                                            name="award"
+                                            :size="16"
+                                            class="text-amber-600 inline"
+                                    /></span>
                                     <span v-else>#{{ user.rank }}</span>
                                 </td>
 
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-2">
                                         <span>{{ user.name }}</span>
-                                        <BaseBadge v-if="user.user_id === ownPosition.user_id" variant="primary" class="text-[10px]">
+                                        <BaseBadge
+                                            v-if="user.user_id === ownPosition.user_id"
+                                            variant="primary"
+                                            class="text-[10px]"
+                                        >
                                             Tú
                                         </BaseBadge>
                                     </div>
                                 </td>
 
                                 <td class="px-4 py-3 text-center">
-                                    <span class="rounded bg-surface-raised px-2 py-0.5 text-xs font-semibold text-content-primary">
+                                    <span
+                                        class="rounded bg-surface-raised px-2 py-0.5 text-xs font-semibold text-content-primary"
+                                    >
                                         Nivel {{ user.level }}
                                     </span>
                                 </td>
 
                                 <td class="px-4 py-3 text-center">
                                     <span class="inline-flex items-center gap-1 text-xs">
-                                        <AppIcon name="flame" :size="12" class="text-danger" /> {{ user.current_streak }}
+                                        <AppIcon name="flame" :size="12" class="text-danger" />
+                                        {{ user.current_streak }}
                                     </span>
                                 </td>
 
-                                <td class="px-4 py-3 text-right font-display font-bold text-content-primary">
+                                <td
+                                    class="px-4 py-3 text-right font-display font-bold text-content-primary"
+                                >
                                     {{ user.total_xp }} XP
                                 </td>
                             </tr>

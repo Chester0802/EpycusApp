@@ -28,25 +28,6 @@ function applySurface(value) {
     surface.value = value;
     document.documentElement.setAttribute('data-surface', value);
     localStorage.setItem('epycus.surface', value);
-
-    /*
-     * Vidrio no tiene claro/oscuro propios — el fondo de pantalla es una
-     * foto fija (docs/04-DISENO-VISUAL.md §11) y una foto de atardecer con
-     * cromo claro, o una de noche con cromo claro, se ve mal (feedback
-     * directo del usuario tras ver capturas reales). Por eso vidrio fuerza
-     * oscuro y el selector de tema se oculta en la interfaz (ThemeToggle,
-     * ver AppLayout.vue) — no tiene sentido ofrecer un control que solo
-     * empeora el resultado.
-     */
-    if (value === 'glass' && theme.value !== 'dark') {
-        applyTheme('dark');
-    }
-}
-
-// Corrige un estado inconsistente guardado antes de esta regla (ej.
-// localStorage con surface=glass y theme=light de una sesión anterior).
-if (surface.value === 'glass' && theme.value !== 'dark') {
-    applyTheme('dark');
 }
 
 function applyPalette(value) {
@@ -86,7 +67,10 @@ const wallpaperFileMap = {
 
 function applyWallpaper(key) {
     const file = wallpaperFileMap[key] || 'atardecer.avif';
-    document.documentElement.style.setProperty('--user-wallpaper', `url('/assets/wallpapers/full/${file}')`);
+    document.documentElement.style.setProperty(
+        '--user-wallpaper',
+        `url('/assets/wallpapers/full/${file}')`,
+    );
 }
 
 let syncedFromServer = false;

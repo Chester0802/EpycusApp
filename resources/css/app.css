@@ -783,4 +783,49 @@
         opacity: 0.45;
         pointer-events: none;
     }
+
+    /*
+     * Vidrio + tema claro: el overlay base (var(--color-bg), casi blanco en
+     * claro) lava la imagen y la deja demasiado brillante/deslavada. En esta
+     * combinación solo se baja la opacidad de ese lavado para que la imagen
+     * recupere su color real, sin añadir un overlay oscuro que afecta a las
+     * tarjetas (pedido del usuario, 2026-08-06).
+     */
+    [data-theme='light'][data-surface='glass'] .app-background::before {
+        background: var(--color-bg);
+        opacity: 0;
+    }
+}
+
+/* Oculta el botón de "mostrar contraseña" nativo del navegador (Edge/Chromium
+ * muestran un ojo propio dentro de input[type=password]) para que no se
+ * superponga al toggle custom de BaseInput (epycus-ui §4). */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
+    display: none;
+}
+
+input[type='password']::-webkit-credentials-auto-fill-button,
+input[type='password']::-webkit-contacts-auto-fill-button {
+    visibility: hidden;
+    display: none !important;
+    pointer-events: none;
+}
+
+/* Villano: "flota" suave en el aire como jefe de boss (idle).
+ * Solo se anima transform (barato, GPU) — nunca backdrop-filter.
+ * Se respeta prefers-reduced-motion vía la regla global de la línea 617. */
+@keyframes villain-idle {
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-6px) scale(1.02);
+    }
+}
+
+.villain-idle {
+    animation: villain-idle 3.2s ease-in-out infinite;
+    animation-delay: 0.4s;
 }

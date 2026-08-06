@@ -85,7 +85,7 @@ const { surface } = useTheme();
                         >Epycus</span
                     >
                 </Link>
-                <ThemeToggle v-if="surface !== 'glass'" />
+                <ThemeToggle />
             </div>
 
             <nav class="flex-1 space-y-1 px-4" aria-label="Navegación principal">
@@ -157,7 +157,7 @@ const { surface } = useTheme();
                     </span>
                 </Link>
                 <div class="flex items-center gap-2">
-                    <ThemeToggle v-if="surface !== 'glass'" />
+                    <ThemeToggle />
                     <button
                         type="button"
                         class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-content-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
@@ -169,7 +169,10 @@ const { surface } = useTheme();
                 </div>
             </header>
 
-            <div v-if="mobileMenuOpen" class="panel-nav relative z-10 px-4 py-3 lg:hidden space-y-2">
+            <div
+                v-if="mobileMenuOpen"
+                class="panel-nav relative z-10 px-4 py-3 lg:hidden space-y-2"
+            >
                 <div class="border-b border-border pb-2">
                     <div class="text-sm font-semibold text-content-primary">
                         {{ page.props.auth.user.name }}

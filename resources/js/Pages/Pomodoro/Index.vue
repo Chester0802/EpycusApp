@@ -32,10 +32,13 @@ function toggleExpandMission(id) {
 async function toggleSubtask(missionId, subtask) {
     subtaskBusy.value[subtask.id] = true;
     try {
-        const res = await fetch(route('missions.subtasks.toggle', { id: missionId, subtaskId: subtask.id }), {
-            method: 'POST',
-            headers: { Accept: 'application/json', 'X-XSRF-TOKEN': csrfHeader() },
-        });
+        const res = await fetch(
+            route('missions.subtasks.toggle', { id: missionId, subtaskId: subtask.id }),
+            {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'X-XSRF-TOKEN': csrfHeader() },
+            },
+        );
         if (res.ok) {
             subtask.is_completed = !subtask.is_completed;
         }
@@ -102,8 +105,12 @@ const plannedMinutesInput = ref(25);
 const durationOptions = FOCUS_OPTIONS.map((n) => ({ value: n, label: `${n} min` }));
 
 const breakMinutesInput = ref(5);
-const availableBreakMinutes = computed(() => BREAK_MINUTES_ALL.filter((n) => n <= maxBreakForFocus(plannedMinutesInput.value)));
-const breakDurationOptions = computed(() => availableBreakMinutes.value.map((n) => ({ value: n, label: `${n} min` })));
+const availableBreakMinutes = computed(() =>
+    BREAK_MINUTES_ALL.filter((n) => n <= maxBreakForFocus(plannedMinutesInput.value)),
+);
+const breakDurationOptions = computed(() =>
+    availableBreakMinutes.value.map((n) => ({ value: n, label: `${n} min` })),
+);
 const breakHint = computed(() => {
     const max = maxBreakForFocus(plannedMinutesInput.value);
     return `Descanso corto: máx. ${max} min para ${plannedMinutesInput.value} min de foco (regla anti-abuso: nunca más del 40% del foco). Cada ${LONG_BREAK_EVERY}.º ciclo el descanso se alarga solo.`;
@@ -155,16 +162,22 @@ const goalJustCompleted = ref(false);
 // dato de investigación ni necesita sobrevivir a un cambio de navegador —
 // si se pierde, el usuario la vuelve a elegir en dos clics.
 const todayIso = new Date().toISOString().slice(0, 10);
-const goalStorageKey = computed(() => `epycus:pomodoro:goal:${page.props.auth?.user?.id ?? 'anon'}:${todayIso}`);
+const goalStorageKey = computed(
+    () => `epycus:pomodoro:goal:${page.props.auth?.user?.id ?? 'anon'}:${todayIso}`,
+);
 
 watch(goalMinutesInput, (value) => {
     if (value > 0) localStorage.setItem(goalStorageKey.value, String(value));
     else localStorage.removeItem(goalStorageKey.value);
 });
 
-const todayCompletedSessions = computed(() => props.todaySessions.filter((s) => s.status === 'completed'));
+const todayCompletedSessions = computed(() =>
+    props.todaySessions.filter((s) => s.status === 'completed'),
+);
 const todayCompletedCount = computed(() => todayCompletedSessions.value.length);
-const todayFocusMinutes = computed(() => todayCompletedSessions.value.reduce((sum, s) => sum + (s.focus_minutes ?? 0), 0));
+const todayFocusMinutes = computed(() =>
+    todayCompletedSessions.value.reduce((sum, s) => sum + (s.focus_minutes ?? 0), 0),
+);
 
 // Minutos de la sesión EN CURSO (todavía no está en `todaySessions`, que solo
 // se actualiza tras completar). Deriva de `remainingSeconds`, que ya se
@@ -176,14 +189,22 @@ const liveFocusMinutes = computed(() => {
     return Math.max(0, Math.floor((total - remainingSeconds.value) / 60));
 });
 const totalFocusMinutesToday = computed(() => todayFocusMinutes.value + liveFocusMinutes.value);
-const goalProgressPercent = computed(() => (hasGoal.value ? Math.min(100, Math.round((totalFocusMinutesToday.value / goalMinutesInput.value) * 100)) : 0));
+const goalProgressPercent = computed(() =>
+    hasGoal.value
+        ? Math.min(100, Math.round((totalFocusMinutesToday.value / goalMinutesInput.value) * 100))
+        : 0,
+);
 
 // Cuántas sesiones de foco haría falta iniciar para llegar a la meta, con
 // el foco elegido ahora mismo — informativo, no bloquea nada. Se compara
 // contra el tope de 8 sesiones con XP/día (docs/01-MODULOS.md §3) para
 // avisar sin sorpresas, no para impedir que el usuario estudie más.
-const projectedSessionsForGoal = computed(() => (hasGoal.value ? Math.ceil(goalMinutesInput.value / plannedMinutesInput.value) : 0));
-const exceedsDailyXpCap = computed(() => hasGoal.value && todayCompletedCount.value + projectedSessionsForGoal.value > 8);
+const projectedSessionsForGoal = computed(() =>
+    hasGoal.value ? Math.ceil(goalMinutesInput.value / plannedMinutesInput.value) : 0,
+);
+const exceedsDailyXpCap = computed(
+    () => hasGoal.value && todayCompletedCount.value + projectedSessionsForGoal.value > 8,
+);
 
 function isLongBreakCycle(cycleNumber) {
     return cycleNumber % LONG_BREAK_EVERY === 0;
@@ -282,7 +303,8 @@ function correctedNowMs() {
 function elapsedActiveSeconds(s) {
     if (!s) return 0;
     const startedAtMs = new Date(s.started_at).getTime();
-    const referenceEndMs = s.status === 'paused' && s.paused_at ? new Date(s.paused_at).getTime() : correctedNowMs();
+    const referenceEndMs =
+        s.status === 'paused' && s.paused_at ? new Date(s.paused_at).getTime() : correctedNowMs();
     const rawSeconds = Math.floor((referenceEndMs - startedAtMs) / 1000);
     return Math.max(0, rawSeconds - s.total_paused_seconds);
 }
@@ -313,7 +335,14 @@ function formatTime(totalSeconds) {
 const timeLabel = computed(() => formatTime(remainingSeconds.value));
 
 function statusLabel(status) {
-    return { completed: 'completada', abandoned: 'abandonada', running: 'en curso', paused: 'en pausa' }[status] ?? status;
+    return (
+        {
+            completed: 'completada',
+            abandoned: 'abandonada',
+            running: 'en curso',
+            paused: 'en pausa',
+        }[status] ?? status
+    );
 }
 const progressPercent = computed(() => {
     if (!session.value) return 0;
@@ -468,8 +497,12 @@ const musicVisible = ref(false);
 const activePlaylistId = ref(DEFAULT_PLAYLIST_ID);
 const customPlaylistInput = ref('');
 const musicError = ref('');
-const musicPlaylistStorageKey = computed(() => `epycus:pomodoro:music-playlist:${page.props.auth?.user?.id ?? 'anon'}`);
-const playlistEmbedUrl = computed(() => `https://www.youtube-nocookie.com/embed/videoseries?list=${activePlaylistId.value}`);
+const musicPlaylistStorageKey = computed(
+    () => `epycus:pomodoro:music-playlist:${page.props.auth?.user?.id ?? 'anon'}`,
+);
+const playlistEmbedUrl = computed(
+    () => `https://www.youtube-nocookie.com/embed/videoseries?list=${activePlaylistId.value}`,
+);
 const isCustomPlaylist = computed(() => activePlaylistId.value !== DEFAULT_PLAYLIST_ID);
 
 function extractPlaylistId(urlOrId) {
@@ -484,7 +517,8 @@ function extractPlaylistId(urlOrId) {
 function useCustomPlaylist() {
     const id = extractPlaylistId(customPlaylistInput.value);
     if (!id) {
-        musicError.value = 'Pegá el link completo de una playlist de YouTube (o su ID) — no se reconoció el formato.';
+        musicError.value =
+            'Pegá el link completo de una playlist de YouTube (o su ID) — no se reconoció el formato.';
         return;
     }
     musicError.value = '';
@@ -549,12 +583,21 @@ onUnmounted(() => {
             <div class="min-w-0 flex-1">
                 <BaseCard class="mb-8">
                     <header class="flex items-center gap-4">
-                        <div v-if="avatarImage" class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl bg-surface-raised p-1">
+                        <div
+                            v-if="avatarImage"
+                            class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl p-1"
+                        >
                             <img :src="avatarImage" alt="" class="h-full w-full object-contain" />
                         </div>
                         <div>
-                            <h1 class="font-display text-3xl font-bold tracking-tight text-content-primary">Pomodoro</h1>
-                            <p class="mt-1 text-sm text-content-secondary">Sesiones de enfoque cronometradas.</p>
+                            <h1
+                                class="font-display text-3xl font-bold tracking-tight text-content-primary"
+                            >
+                                Pomodoro
+                            </h1>
+                            <p class="mt-1 text-sm text-content-secondary">
+                                Sesiones de enfoque cronometradas.
+                            </p>
                         </div>
                     </header>
                 </BaseCard>
@@ -571,16 +614,25 @@ onUnmounted(() => {
                 <BaseCard v-if="hasGoal" class="mb-6">
                     <div class="flex items-center justify-between gap-2 text-sm">
                         <span class="font-semibold text-content-primary">
-                            Meta de hoy: {{ formatMinutesLabel(totalFocusMinutesToday) }} / {{ formatMinutesLabel(goalMinutesInput) }}
+                            Meta de hoy: {{ formatMinutesLabel(totalFocusMinutesToday) }} /
+                            {{ formatMinutesLabel(goalMinutesInput) }}
                         </span>
-                        <span class="text-xs text-content-secondary">Ciclo {{ todayCompletedCount + 1 }}</span>
+                        <span class="text-xs text-content-secondary"
+                            >Ciclo {{ todayCompletedCount + 1 }}</span
+                        >
                     </div>
                     <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
-                        <div class="h-full rounded-full bg-primary-strong transition-[width] duration-500" :style="{ width: goalProgressPercent + '%' }" />
+                        <div
+                            class="h-full rounded-full bg-primary-strong transition-[width] duration-500"
+                            :style="{ width: goalProgressPercent + '%' }"
+                        />
                     </div>
                     <p v-if="exceedsDailyXpCap" class="mt-2 text-xs text-content-muted">
-                        Con {{ plannedMinutesInput }} min de foco vas a necesitar ~{{ projectedSessionsForGoal }} sesiones para llegar a la meta — el sistema
-                        solo da XP a las primeras 8 del día, el resto sigue contando para tu progreso pero sin XP extra.
+                        Con {{ plannedMinutesInput }} min de foco vas a necesitar ~{{
+                            projectedSessionsForGoal
+                        }}
+                        sesiones para llegar a la meta — el sistema solo da XP a las primeras 8 del
+                        día, el resto sigue contando para tu progreso pero sin XP extra.
                     </p>
                 </BaseCard>
 
@@ -616,27 +668,56 @@ onUnmounted(() => {
                                     {{ onBreak ? formatTime(breakRemainingSeconds) : timeLabel }}
                                 </p>
                                 <p class="mt-1 text-xs text-content-secondary">
-                                    {{ onBreak ? (onBreakIsLong ? 'Descanso largo' : 'Descanso') : session.status === 'paused' ? 'En pausa' : 'En foco' }}
+                                    {{
+                                        onBreak
+                                            ? onBreakIsLong
+                                                ? 'Descanso largo'
+                                                : 'Descanso'
+                                            : session.status === 'paused'
+                                              ? 'En pausa'
+                                              : 'En foco'
+                                    }}
                                 </p>
                             </div>
                         </div>
 
                         <template v-if="onBreak">
                             <p class="mt-4 text-sm text-content-secondary">
-                                {{ onBreakIsLong ? 'Descanso largo: llevás 4 ciclos seguidos, tomate el tiempo completo.' : 'Estirate, tomá agua. Ya volvés al foco.' }}
+                                {{
+                                    onBreakIsLong
+                                        ? 'Descanso largo: llevás 4 ciclos seguidos, tomate el tiempo completo.'
+                                        : 'Estirate, tomá agua. Ya volvés al foco.'
+                                }}
                             </p>
                             <div class="mt-6 flex justify-center gap-3">
-                                <BaseButton variant="ghost" :disabled="busy" @click="skipBreak"> Saltar descanso </BaseButton>
+                                <BaseButton variant="ghost" :disabled="busy" @click="skipBreak">
+                                    Saltar descanso
+                                </BaseButton>
                             </div>
                         </template>
                         <template v-else>
-                            <p class="mt-4 text-sm text-content-secondary">{{ session.planned_minutes }} min planificados</p>
+                            <p class="mt-4 text-sm text-content-secondary">
+                                {{ session.planned_minutes }} min planificados
+                            </p>
                             <div class="mt-6 flex justify-center gap-3">
-                                <BaseButton v-if="session.status === 'running'" variant="ghost" :disabled="busy" @click="callAction('pause')">
+                                <BaseButton
+                                    v-if="session.status === 'running'"
+                                    variant="ghost"
+                                    :disabled="busy"
+                                    @click="callAction('pause')"
+                                >
                                     Pausar
                                 </BaseButton>
-                                <BaseButton v-else :disabled="busy" @click="callAction('resume')"> Reanudar </BaseButton>
-                                <BaseButton variant="danger" :disabled="busy" @click="callAction('abandon')"> Abandonar </BaseButton>
+                                <BaseButton v-else :disabled="busy" @click="callAction('resume')">
+                                    Reanudar
+                                </BaseButton>
+                                <BaseButton
+                                    variant="danger"
+                                    :disabled="busy"
+                                    @click="callAction('abandon')"
+                                >
+                                    Abandonar
+                                </BaseButton>
                             </div>
                         </template>
                     </template>
@@ -644,47 +725,96 @@ onUnmounted(() => {
                     <template v-else-if="goalJustCompleted">
                         <p class="font-display text-xl text-content-primary">¡Meta cumplida! 🎉</p>
                         <p class="mt-2 text-sm text-content-secondary">
-                            Completaste {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco en {{ todayCompletedCount }} ciclos hoy.
+                            Completaste {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco en
+                            {{ todayCompletedCount }} ciclos hoy.
                         </p>
                         <div class="mt-6 flex flex-wrap justify-center gap-3">
-                            <BaseButton :disabled="busy" @click="continueStudying"> Seguir estudiando </BaseButton>
-                            <BaseButton variant="ghost" :disabled="busy" @click="chooseAnotherGoal"> Elegir otra meta </BaseButton>
+                            <BaseButton :disabled="busy" @click="continueStudying">
+                                Seguir estudiando
+                            </BaseButton>
+                            <BaseButton variant="ghost" :disabled="busy" @click="chooseAnotherGoal">
+                                Elegir otra meta
+                            </BaseButton>
                         </div>
                     </template>
 
                     <template v-else>
-                        <p class="mb-4 text-content-secondary">Elegí cuánto tiempo de foco y de descanso.</p>
+                        <p class="mb-4 text-content-secondary">
+                            Elegí cuánto tiempo de foco y de descanso.
+                        </p>
                         <div class="mx-auto grid max-w-md grid-cols-3 gap-2 sm:gap-3">
-                            <BaseSelect id="goal_minutes" v-model.number="goalMinutesInput" label="Meta" compact :options="GOAL_OPTIONS" />
-                            <BaseSelect id="planned_minutes" v-model.number="plannedMinutesInput" label="Foco" compact :options="durationOptions" />
-                            <BaseSelect id="break_minutes" v-model.number="breakMinutesInput" label="Descanso" compact :options="breakDurationOptions" />
+                            <BaseSelect
+                                id="goal_minutes"
+                                v-model.number="goalMinutesInput"
+                                label="Meta"
+                                compact
+                                :options="GOAL_OPTIONS"
+                            />
+                            <BaseSelect
+                                id="planned_minutes"
+                                v-model.number="plannedMinutesInput"
+                                label="Foco"
+                                compact
+                                :options="durationOptions"
+                            />
+                            <BaseSelect
+                                id="break_minutes"
+                                v-model.number="breakMinutesInput"
+                                label="Descanso"
+                                compact
+                                :options="breakDurationOptions"
+                            />
                         </div>
-                        <p class="mx-auto mt-2 max-w-md text-xs text-content-muted">{{ breakHint }}</p>
-                        <BaseButton class="mt-4" :disabled="busy" @click="startSession"> Iniciar Pomodoro </BaseButton>
+                        <p class="mx-auto mt-2 max-w-md text-xs text-content-muted">
+                            {{ breakHint }}
+                        </p>
+                        <BaseButton class="mt-4" :disabled="busy" @click="startSession">
+                            Iniciar Pomodoro
+                        </BaseButton>
                     </template>
                 </BaseCard>
 
                 <BaseCard class="mb-6">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <h2 class="font-display text-lg text-content-primary">Música para enfocarte</h2>
-                            <p class="text-xs text-content-secondary">Playlist de YouTube, gratis. Totalmente opcional.</p>
+                            <h2 class="font-display text-lg text-content-primary">
+                                Música para enfocarte
+                            </h2>
+                            <p class="text-xs text-content-secondary">
+                                Playlist de YouTube, gratis. Totalmente opcional.
+                            </p>
                         </div>
-                        <BaseButton v-if="!musicVisible" variant="secondary" @click="musicVisible = true"> 🎵 Activar música </BaseButton>
-                        <BaseButton v-else variant="ghost" @click="stopMusic"> Detener música </BaseButton>
+                        <BaseButton
+                            v-if="!musicVisible"
+                            variant="secondary"
+                            @click="musicVisible = true"
+                        >
+                            🎵 Activar música
+                        </BaseButton>
+                        <BaseButton v-else variant="ghost" @click="stopMusic">
+                            Detener música
+                        </BaseButton>
                     </div>
 
                     <div v-if="musicVisible" class="mt-4">
                         <p class="mb-2 text-xs text-content-muted">
-                            Esto carga un video de YouTube (Google) dentro de la página. Mientras esté activo, Google recibe tu IP como con cualquier video
-                            de YouTube que mires — es opcional y podés detenerlo cuando quieras con el botón de arriba.
+                            Esto carga un video de YouTube (Google) dentro de la página. Mientras
+                            esté activo, Google recibe tu IP como con cualquier video de YouTube que
+                            mires — es opcional y podés detenerlo cuando quieras con el botón de
+                            arriba.
                         </p>
                         <div class="aspect-video w-full overflow-hidden rounded-lg">
                             <iframe
                                 :src="playlistEmbedUrl"
                                 class="h-full w-full"
                                 title="Reproductor de música de YouTube"
-                                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                                allow="
+                                    accelerometer;
+                                    autoplay;
+                                    encrypted-media;
+                                    gyroscope;
+                                    picture-in-picture;
+                                "
                                 allowfullscreen
                                 referrerpolicy="strict-origin-when-cross-origin"
                             ></iframe>
@@ -700,44 +830,87 @@ onUnmounted(() => {
                                     :error="musicError"
                                 />
                             </div>
-                            <BaseButton variant="ghost" @click="useCustomPlaylist"> Usar esta </BaseButton>
-                            <BaseButton v-if="isCustomPlaylist" variant="ghost" @click="resetToDefaultPlaylist"> Volver a la de por defecto </BaseButton>
+                            <BaseButton variant="ghost" @click="useCustomPlaylist">
+                                Usar esta
+                            </BaseButton>
+                            <BaseButton
+                                v-if="isCustomPlaylist"
+                                variant="ghost"
+                                @click="resetToDefaultPlaylist"
+                            >
+                                Volver a la de por defecto
+                            </BaseButton>
                         </div>
                     </div>
                 </BaseCard>
 
                 <BaseCard class="mb-6">
-                    <h2 class="mb-4 font-display text-lg text-content-primary">Estadísticas (últimos 7 días)</h2>
+                    <h2 class="mb-4 font-display text-lg text-content-primary">
+                        Estadísticas (últimos 7 días)
+                    </h2>
                     <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
                         <div>
-                            <p class="text-xs uppercase tracking-wide text-content-muted">Completadas</p>
-                            <p class="font-display text-2xl text-content-primary">{{ stats.sessionsCompleted }}</p>
+                            <p class="text-xs uppercase tracking-wide text-content-muted">
+                                Completadas
+                            </p>
+                            <p class="font-display text-2xl text-content-primary">
+                                {{ stats.sessionsCompleted }}
+                            </p>
                         </div>
                         <div>
-                            <p class="text-xs uppercase tracking-wide text-content-muted">Tasa de finalización</p>
-                            <p class="font-display text-2xl text-content-primary">{{ stats.completionRate }}%</p>
+                            <p class="text-xs uppercase tracking-wide text-content-muted">
+                                Tasa de finalización
+                            </p>
+                            <p class="font-display text-2xl text-content-primary">
+                                {{ stats.completionRate }}%
+                            </p>
                         </div>
                         <div>
-                            <p class="text-xs uppercase tracking-wide text-content-muted">Minutos de foco</p>
-                            <p class="font-display text-2xl text-content-primary">{{ stats.focusMinutesTotal }}</p>
+                            <p class="text-xs uppercase tracking-wide text-content-muted">
+                                Minutos de foco
+                            </p>
+                            <p class="font-display text-2xl text-content-primary">
+                                {{ stats.focusMinutesTotal }}
+                            </p>
                         </div>
                         <div>
-                            <p class="text-xs uppercase tracking-wide text-content-muted">Iniciadas</p>
-                            <p class="font-display text-2xl text-content-primary">{{ stats.sessionsStarted }}</p>
+                            <p class="text-xs uppercase tracking-wide text-content-muted">
+                                Iniciadas
+                            </p>
+                            <p class="font-display text-2xl text-content-primary">
+                                {{ stats.sessionsStarted }}
+                            </p>
                         </div>
                     </div>
                 </BaseCard>
 
                 <BaseCard>
                     <h2 class="mb-4 font-display text-lg text-content-primary">Hoy</h2>
-                    <p v-if="todaySessions.length === 0" class="text-sm text-content-secondary">Todavía no hiciste ningún Pomodoro hoy.</p>
+                    <p v-if="todaySessions.length === 0" class="text-sm text-content-secondary">
+                        Todavía no hiciste ningún Pomodoro hoy.
+                    </p>
                     <ul v-else class="divide-y divide-border">
-                        <li v-for="s in todaySessions" :key="s.id" class="flex items-center justify-between py-2 text-sm">
-                            <span class="text-content-secondary">{{ new Date(s.started_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) }}</span>
-                            <span class="text-content-primary">{{ s.focus_minutes ?? s.planned_minutes }} min</span>
+                        <li
+                            v-for="s in todaySessions"
+                            :key="s.id"
+                            class="flex items-center justify-between py-2 text-sm"
+                        >
+                            <span class="text-content-secondary">{{
+                                new Date(s.started_at).toLocaleTimeString('es-PE', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                })
+                            }}</span>
+                            <span class="text-content-primary"
+                                >{{ s.focus_minutes ?? s.planned_minutes }} min</span
+                            >
                             <span
                                 class="rounded-full px-2 py-0.5 text-xs font-semibold"
-                                :class="s.status === 'completed' ? 'bg-success text-on-accent' : 'bg-surface-sunken text-content-muted'"
+                                :class="
+                                    s.status === 'completed'
+                                        ? 'bg-success text-on-accent'
+                                        : 'bg-surface-sunken text-content-muted'
+                                "
                             >
                                 {{ statusLabel(s.status) }}
                             </span>
@@ -750,28 +923,44 @@ onUnmounted(() => {
             <div class="mt-6 shrink-0 lg:mt-0 lg:w-80">
                 <BaseCard>
                     <h2 class="mb-3 font-display text-lg text-content-primary">Misiones activas</h2>
-                    <p v-if="missions.length === 0" class="text-sm text-content-secondary">No hay misiones activas.</p>
+                    <p v-if="missions.length === 0" class="text-sm text-content-secondary">
+                        No hay misiones activas.
+                    </p>
                     <div v-else class="space-y-2">
                         <div
                             v-for="m in missions"
                             :key="m.id"
                             class="rounded-lg border"
-                            :class="selectedMissionId === m.id ? 'border-primary-strong' : 'border-border'"
+                            :class="
+                                selectedMissionId === m.id
+                                    ? 'border-primary-strong'
+                                    : 'border-border'
+                            "
                         >
                             <button
                                 type="button"
                                 class="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm"
                                 @click="toggleExpandMission(m.id)"
                             >
-                                <span class="flex items-center gap-2 truncate font-medium text-content-primary">
+                                <span
+                                    class="flex items-center gap-2 truncate font-medium text-content-primary"
+                                >
                                     <span
                                         class="inline-block h-2 w-2 shrink-0 rounded-full"
-                                        :class="m.is_overdue ? 'bg-danger-text' : m.subtask_done > 0 ? 'bg-primary-strong' : 'bg-content-muted'"
+                                        :class="
+                                            m.is_overdue
+                                                ? 'bg-danger-text'
+                                                : m.subtask_done > 0
+                                                  ? 'bg-primary-strong'
+                                                  : 'bg-content-muted'
+                                        "
                                     ></span>
                                     <span class="truncate">{{ m.title }}</span>
                                 </span>
                                 <span class="flex shrink-0 items-center gap-2">
-                                    <span class="text-xs text-content-muted">{{ m.subtask_done }}/{{ m.subtask_count }}</span>
+                                    <span class="text-xs text-content-muted"
+                                        >{{ m.subtask_done }}/{{ m.subtask_count }}</span
+                                    >
                                     <svg
                                         class="h-4 w-4 text-content-muted transition-transform"
                                         :class="expandedMissionId === m.id ? 'rotate-180' : ''"
@@ -779,29 +968,61 @@ onUnmounted(() => {
                                         viewBox="0 0 24 24"
                                         stroke="currentColor"
                                     >
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M19 9l-7 7-7-7"
+                                        />
                                     </svg>
                                 </span>
                             </button>
 
-                            <div v-if="expandedMissionId === m.id" class="border-t border-border px-3 py-2">
+                            <div
+                                v-if="expandedMissionId === m.id"
+                                class="border-t border-border px-3 py-2"
+                            >
                                 <ul v-if="m.subtasks.length > 0" class="space-y-1">
-                                    <li v-for="st in m.subtasks" :key="st.id" class="flex items-center gap-2">
+                                    <li
+                                        v-for="st in m.subtasks"
+                                        :key="st.id"
+                                        class="flex items-center gap-2"
+                                    >
                                         <button
                                             type="button"
                                             class="flex h-4 w-4 shrink-0 items-center justify-center rounded border"
-                                            :class="st.is_completed ? 'border-primary-strong bg-primary-strong text-on-accent' : 'border-border'"
+                                            :class="
+                                                st.is_completed
+                                                    ? 'border-primary-strong bg-primary-strong text-on-accent'
+                                                    : 'border-border'
+                                            "
                                             :disabled="subtaskBusy[st.id]"
                                             @click="toggleSubtask(m.id, st)"
                                         >
-                                            <svg v-if="st.is_completed" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                            <svg
+                                                v-if="st.is_completed"
+                                                class="h-3 w-3"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="3"
+                                                    d="M5 13l4 4L19 7"
+                                                />
                                             </svg>
                                         </button>
                                         <span
                                             class="text-sm"
-                                            :class="st.is_completed ? 'text-content-muted line-through' : 'text-content-primary'"
-                                        >{{ st.title }}</span>
+                                            :class="
+                                                st.is_completed
+                                                    ? 'text-content-muted line-through'
+                                                    : 'text-content-primary'
+                                            "
+                                            >{{ st.title }}</span
+                                        >
                                     </li>
                                 </ul>
                                 <p v-else class="text-xs text-content-muted">Sin subtareas</p>
@@ -811,10 +1032,18 @@ onUnmounted(() => {
                                 <button
                                     type="button"
                                     class="w-full rounded px-2 py-1 text-xs font-semibold transition-colors"
-                                    :class="selectedMissionId === m.id ? 'bg-primary-strong text-on-accent' : 'bg-surface-sunken text-content-secondary hover:bg-primary-strong hover:text-on-accent'"
+                                    :class="
+                                        selectedMissionId === m.id
+                                            ? 'bg-primary-strong text-on-accent'
+                                            : 'bg-surface-sunken text-content-secondary hover:bg-primary-strong hover:text-on-accent'
+                                    "
                                     @click="selectMission(m.id)"
                                 >
-                                    {{ selectedMissionId === m.id ? '✓ Asociada al Pomodoro' : 'Enfocarme en esta misión' }}
+                                    {{
+                                        selectedMissionId === m.id
+                                            ? '✓ Asociada al Pomodoro'
+                                            : 'Enfocarme en esta misión'
+                                    }}
                                 </button>
                             </div>
                         </div>

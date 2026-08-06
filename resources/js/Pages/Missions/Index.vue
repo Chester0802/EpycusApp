@@ -50,21 +50,23 @@ const priorityConfig = {
     alta: { label: '↑ Alta', class: 'text-danger-text' },
 };
 
-const overdueCount = computed(() => props.missions.filter(m => m.is_overdue).length);
+const overdueCount = computed(() => props.missions.filter((m) => m.is_overdue).length);
 const activeCount = computed(() => props.missions.length);
 
 const todayMissions = computed(() =>
-    props.missions.filter(m => m.due_date === props.todayDate && !m.is_overdue)
+    props.missions.filter((m) => m.due_date === props.todayDate && !m.is_overdue),
 );
 
 const dueSoon = computed(() => {
     const today = new Date(props.todayDate);
     const weekEnd = new Date(today);
     weekEnd.setDate(weekEnd.getDate() + 7);
-    return props.missions.filter(m =>
-        m.due_date && !m.is_overdue &&
-        m.due_date > props.todayDate &&
-        new Date(m.due_date) <= weekEnd
+    return props.missions.filter(
+        (m) =>
+            m.due_date &&
+            !m.is_overdue &&
+            m.due_date > props.todayDate &&
+            new Date(m.due_date) <= weekEnd,
     );
 });
 
@@ -72,12 +74,12 @@ const restMissions = computed(() => {
     const today = new Date(props.todayDate);
     const weekEnd = new Date(today);
     weekEnd.setDate(weekEnd.getDate() + 7);
-    return props.missions.filter(m =>
-        !m.due_date || new Date(m.due_date) > weekEnd
-    ).filter(m => !m.is_overdue);
+    return props.missions
+        .filter((m) => !m.due_date || new Date(m.due_date) > weekEnd)
+        .filter((m) => !m.is_overdue);
 });
 
-const overdueMissions = computed(() => props.missions.filter(m => m.is_overdue));
+const overdueMissions = computed(() => props.missions.filter((m) => m.is_overdue));
 
 const createForm = useForm({
     title: '',
@@ -120,7 +122,7 @@ function closeCreateModal() {
 }
 
 function submitCreate() {
-    const subtasks = createForm.subtasks.filter(s => s.trim().length > 0);
+    const subtasks = createForm.subtasks.filter((s) => s.trim().length > 0);
     createForm.subtasks = subtasks;
     createForm.post(route('missions.store'), {
         onSuccess: () => closeCreateModal(),
@@ -208,9 +210,9 @@ function onDrop(missionId, targetSubtaskId) {
         dragSubtaskId.value = null;
         return;
     }
-    const mission = props.missions.find(m => m.id === missionId);
+    const mission = props.missions.find((m) => m.id === missionId);
     if (!mission) return;
-    const ids = mission.subtasks.map(s => s.id);
+    const ids = mission.subtasks.map((s) => s.id);
     const fromIdx = ids.indexOf(dragSubtaskId.value);
     const toIdx = ids.indexOf(targetSubtaskId);
     if (fromIdx === -1 || toIdx === -1) return;
@@ -225,7 +227,10 @@ function onDrop(missionId, targetSubtaskId) {
 }
 
 function changeSort(sort) {
-    router.get(route('missions.index', { sort_by: sort === 'default' ? undefined : sort }), { preserveScroll: true, preserveState: true });
+    router.get(route('missions.index', { sort_by: sort === 'default' ? undefined : sort }), {
+        preserveScroll: true,
+        preserveState: true,
+    });
 }
 
 function deleteMission(missionId) {
@@ -259,24 +264,33 @@ function stateClass(state) {
             <BaseCard class="mb-8">
                 <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-4">
-                        <div v-if="avatarImage" class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl bg-surface-raised p-1">
+                        <div
+                            v-if="avatarImage"
+                            class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl p-1"
+                        >
                             <img :src="avatarImage" alt="" class="h-full w-full object-contain" />
                         </div>
                         <div>
                             <h1 class="font-display text-3xl text-content-primary">Misiones</h1>
-                            <p class="mt-1 text-sm text-content-secondary">Descompón tus tareas grandes en pasos manejables.</p>
+                            <p class="mt-1 text-sm text-content-secondary">
+                                Descompón tus tareas grandes en pasos manejables.
+                            </p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <select
                             class="rounded-lg border-border bg-surface px-3 py-1.5 text-sm text-content-secondary outline-none"
-                            :value="sortBy" @change="changeSort(($event.target).value)">
+                            :value="sortBy"
+                            @change="changeSort($event.target.value)"
+                        >
                             <option value="default">Orden por defecto</option>
                             <option value="priority">Por prioridad</option>
                             <option value="difficulty">Por dificultad</option>
                             <option value="created_at">Por creación</option>
                         </select>
-                        <BaseButton variant="primary" @click="openCreateModal">+ Nueva Misión</BaseButton>
+                        <BaseButton variant="primary" @click="openCreateModal"
+                            >+ Nueva Misión</BaseButton
+                        >
                     </div>
                 </header>
             </BaseCard>
@@ -285,92 +299,154 @@ function stateClass(state) {
                 <div v-if="missions.length > 0">
                     <div class="mb-4 grid grid-cols-3 gap-4">
                         <BaseCard class="p-4 text-center">
-                            <p class="font-display text-2xl text-content-primary">{{ activeCount }}</p>
+                            <p class="font-display text-2xl text-content-primary">
+                                {{ activeCount }}
+                            </p>
                             <p class="text-xs text-content-muted">Activas</p>
                         </BaseCard>
                         <BaseCard class="p-4 text-center">
-                            <p class="font-display text-2xl text-content-primary">{{ overdueCount }}</p>
+                            <p class="font-display text-2xl text-content-primary">
+                                {{ overdueCount }}
+                            </p>
                             <p class="text-xs text-content-muted">Vencidas</p>
                         </BaseCard>
                         <BaseCard class="p-4 text-center">
-                            <p class="font-display text-2xl text-content-secondary">{{ completedMissions.length }}</p>
+                            <p class="font-display text-2xl text-content-secondary">
+                                {{ completedMissions.length }}
+                            </p>
                             <p class="text-xs text-content-muted">Completadas</p>
                         </BaseCard>
                     </div>
 
                     <div v-if="overdueMissions.length > 0" class="mb-4">
-                        <h2 class="mb-2 text-sm font-semibold text-danger">Vencidas ({{ overdueMissions.length }})</h2>
+                        <h2 class="mb-2 text-sm font-semibold text-danger">
+                            Vencidas ({{ overdueMissions.length }})
+                        </h2>
                         <div class="space-y-2">
                             <BaseCard
-v-for="m in overdueMissions" :key="m.id"
-                                class="border-l-4 p-4" :class="stateClass(m.state)">
+                                v-for="m in overdueMissions"
+                                :key="m.id"
+                                class="border-l-4 p-4"
+                                :class="stateClass(m.state)"
+                            >
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="min-w-0 flex-1">
-                                        <a :href="route('missions.show', { id: m.id })" class="font-semibold text-content-primary hover:text-primary-strong">{{ m.title }}</a>
-                                        <p v-if="m.description" class="mt-0.5 text-sm text-content-secondary truncate">{{ m.description }}</p>
-                                        <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                                            <span :class="difficultyConfig[m.difficulty]?.class">{{ difficultyConfig[m.difficulty]?.label }}</span>
-                                            <span :class="priorityConfig[m.priority]?.class">{{ priorityConfig[m.priority]?.label }}</span>
-                                            <span v-if="m.due_date" class="text-danger-text">Vencía {{ m.due_date }}</span>
-                                            <span v-if="m.subtask_count > 0" class="text-content-muted">
+                                        <a
+                                            :href="route('missions.show', { id: m.id })"
+                                            class="font-semibold text-content-primary hover:text-primary-strong"
+                                            >{{ m.title }}</a
+                                        >
+                                        <p
+                                            v-if="m.description"
+                                            class="mt-0.5 text-sm text-content-secondary truncate"
+                                        >
+                                            {{ m.description }}
+                                        </p>
+                                        <div
+                                            class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+                                        >
+                                            <span :class="difficultyConfig[m.difficulty]?.class">{{
+                                                difficultyConfig[m.difficulty]?.label
+                                            }}</span>
+                                            <span :class="priorityConfig[m.priority]?.class">{{
+                                                priorityConfig[m.priority]?.label
+                                            }}</span>
+                                            <span v-if="m.due_date" class="text-danger-text"
+                                                >Vencía {{ m.due_date }}</span
+                                            >
+                                            <span
+                                                v-if="m.subtask_count > 0"
+                                                class="text-content-muted"
+                                            >
                                                 {{ m.subtask_done }}/{{ m.subtask_count }}
                                             </span>
                                         </div>
                                         <div class="mt-2 space-y-1">
                                             <div
-v-for="s in m.subtasks" :key="s.id"
+                                                v-for="s in m.subtasks"
+                                                :key="s.id"
                                                 class="flex items-center gap-1.5 rounded px-1 text-sm"
-                                                :class="{ 'line-through text-content-muted': s.is_completed, 'bg-surface-raised': dragSubtaskId === s.id }"
+                                                :class="{
+                                                    'line-through text-content-muted':
+                                                        s.is_completed,
+                                                    'bg-surface-raised': dragSubtaskId === s.id,
+                                                }"
                                                 draggable="true"
                                                 @dragstart="onDragStart(s.id)"
                                                 @dragover="onDragOver"
-                                                @drop="onDrop(m.id, s.id)">
-                                                <span class="cursor-grab text-content-muted select-none">⠿</span>
+                                                @drop="onDrop(m.id, s.id)"
+                                            >
+                                                <span
+                                                    class="cursor-grab text-content-muted select-none"
+                                                    >⠿</span
+                                                >
                                                 <input
-type="checkbox" :checked="s.is_completed"
+                                                    type="checkbox"
+                                                    :checked="s.is_completed"
                                                     class="h-4 w-4 shrink-0 accent-primary"
-                                                    @change="toggleSubtask(m.id, s.id)" />
+                                                    @change="toggleSubtask(m.id, s.id)"
+                                                />
                                                 <template v-if="editingSubtaskId === s.id">
                                                     <input
-ref="editInput"
+                                                        ref="editInput"
                                                         v-model="editingSubtaskTitle"
                                                         class="min-w-0 flex-1 rounded border-border bg-surface px-1.5 py-0.5 text-sm outline-none focus:border-primary"
                                                         @keyup.enter="saveEditSubtask(m.id, s.id)"
                                                         @keyup.escape="cancelEditSubtask"
-                                                        @blur="saveEditSubtask(m.id, s.id)" />
+                                                        @blur="saveEditSubtask(m.id, s.id)"
+                                                    />
                                                 </template>
                                                 <template v-else>
                                                     <span
-class="min-w-0 flex-1 cursor-pointer truncate"
-                                                        @click="startEditSubtask(s)">{{ s.title }}</span>
+                                                        class="min-w-0 flex-1 cursor-pointer truncate"
+                                                        @click="startEditSubtask(s)"
+                                                        >{{ s.title }}</span
+                                                    >
                                                 </template>
                                             </div>
                                             <div class="flex items-center gap-1.5 pl-5">
                                                 <input
-v-model="addSubtaskTitles[m.id]"
+                                                    v-model="addSubtaskTitles[m.id]"
                                                     class="min-w-0 flex-1 rounded border-border bg-surface px-1.5 py-0.5 text-xs outline-none placeholder:text-content-muted focus:border-primary"
                                                     placeholder="+ Nueva subtarea…"
-                                                    @keyup.enter="addSubtask(m.id)" />
+                                                    @keyup.enter="addSubtask(m.id)"
+                                                />
                                             </div>
                                         </div>
                                     </div>
                                     <div class="flex shrink-0 items-start gap-1">
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-success"
-                                            title="Completar misión" @click="completeMission(m.id)"><AppIcon name="check-circle" :size="14" /></button>
+                                            title="Completar misión"
+                                            @click="completeMission(m.id)"
+                                        >
+                                            <AppIcon name="check-circle" :size="14" />
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-primary-strong"
-                                            title="Enfocarme" @click="startPomodoro(m.id)"><AppIcon name="timer" :size="14" /></button>
+                                            title="Enfocarme"
+                                            @click="startPomodoro(m.id)"
+                                        >
+                                            <AppIcon name="timer" :size="14" />
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
-                                            title="Editar" @click="openEditModal(m)"><AppIcon name="pencil" :size="14" /></button>
+                                            title="Editar"
+                                            @click="openEditModal(m)"
+                                        >
+                                            <AppIcon name="pencil" :size="14" />
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-danger-text"
-                                            title="Eliminar" @click="deleteMission(m.id)"><AppIcon name="trash" :size="14" /></button>
+                                            title="Eliminar"
+                                            @click="deleteMission(m.id)"
+                                        >
+                                            <AppIcon name="trash" :size="14" />
+                                        </button>
                                     </div>
                                 </div>
                             </BaseCard>
@@ -381,74 +457,124 @@ type="button"
                         <h2 class="mb-2 text-sm font-semibold text-accent">Vence hoy</h2>
                         <div class="space-y-2">
                             <BaseCard
-v-for="m in todayMissions" :key="m.id"
-                                class="border-l-4 p-4" :class="stateClass(m.state)">
+                                v-for="m in todayMissions"
+                                :key="m.id"
+                                class="border-l-4 p-4"
+                                :class="stateClass(m.state)"
+                            >
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="min-w-0 flex-1">
-                                        <h3 class="font-semibold text-content-primary">{{ m.title }}</h3>
-                                        <p v-if="m.description" class="mt-0.5 text-sm text-content-secondary truncate">{{ m.description }}</p>
-                                        <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                                            <span :class="difficultyConfig[m.difficulty]?.class">{{ difficultyConfig[m.difficulty]?.label }}</span>
-                                            <span :class="priorityConfig[m.priority]?.class">{{ priorityConfig[m.priority]?.label }}</span>
-                                            <span v-if="m.subtask_count > 0" class="text-content-muted">
+                                        <h3 class="font-semibold text-content-primary">
+                                            {{ m.title }}
+                                        </h3>
+                                        <p
+                                            v-if="m.description"
+                                            class="mt-0.5 text-sm text-content-secondary truncate"
+                                        >
+                                            {{ m.description }}
+                                        </p>
+                                        <div
+                                            class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+                                        >
+                                            <span :class="difficultyConfig[m.difficulty]?.class">{{
+                                                difficultyConfig[m.difficulty]?.label
+                                            }}</span>
+                                            <span :class="priorityConfig[m.priority]?.class">{{
+                                                priorityConfig[m.priority]?.label
+                                            }}</span>
+                                            <span
+                                                v-if="m.subtask_count > 0"
+                                                class="text-content-muted"
+                                            >
                                                 {{ m.subtask_done }}/{{ m.subtask_count }}
                                             </span>
                                         </div>
                                         <div class="mt-2 space-y-1">
                                             <div
-v-for="s in m.subtasks" :key="s.id"
+                                                v-for="s in m.subtasks"
+                                                :key="s.id"
                                                 class="flex items-center gap-1.5 rounded px-1 text-sm"
-                                                :class="{ 'line-through text-content-muted': s.is_completed, 'bg-surface-raised': dragSubtaskId === s.id }"
+                                                :class="{
+                                                    'line-through text-content-muted':
+                                                        s.is_completed,
+                                                    'bg-surface-raised': dragSubtaskId === s.id,
+                                                }"
                                                 draggable="true"
                                                 @dragstart="onDragStart(s.id)"
                                                 @dragover="onDragOver"
-                                                @drop="onDrop(m.id, s.id)">
-                                                <span class="cursor-grab text-content-muted select-none">⠿</span>
+                                                @drop="onDrop(m.id, s.id)"
+                                            >
+                                                <span
+                                                    class="cursor-grab text-content-muted select-none"
+                                                    >⠿</span
+                                                >
                                                 <input
-type="checkbox" :checked="s.is_completed"
+                                                    type="checkbox"
+                                                    :checked="s.is_completed"
                                                     class="h-4 w-4 shrink-0 accent-primary"
-                                                    @change="toggleSubtask(m.id, s.id)" />
+                                                    @change="toggleSubtask(m.id, s.id)"
+                                                />
                                                 <template v-if="editingSubtaskId === s.id">
                                                     <input
-ref="editInput"
+                                                        ref="editInput"
                                                         v-model="editingSubtaskTitle"
                                                         class="min-w-0 flex-1 rounded border-border bg-surface px-1.5 py-0.5 text-sm outline-none focus:border-primary"
                                                         @keyup.enter="saveEditSubtask(m.id, s.id)"
                                                         @keyup.escape="cancelEditSubtask"
-                                                        @blur="saveEditSubtask(m.id, s.id)" />
+                                                        @blur="saveEditSubtask(m.id, s.id)"
+                                                    />
                                                 </template>
                                                 <template v-else>
                                                     <span
-class="min-w-0 flex-1 cursor-pointer truncate"
-                                                        @click="startEditSubtask(s)">{{ s.title }}</span>
+                                                        class="min-w-0 flex-1 cursor-pointer truncate"
+                                                        @click="startEditSubtask(s)"
+                                                        >{{ s.title }}</span
+                                                    >
                                                 </template>
                                             </div>
                                             <div class="flex items-center gap-1.5 pl-5">
                                                 <input
-v-model="addSubtaskTitles[m.id]"
+                                                    v-model="addSubtaskTitles[m.id]"
                                                     class="min-w-0 flex-1 rounded border-border bg-surface px-1.5 py-0.5 text-xs outline-none placeholder:text-content-muted focus:border-primary"
                                                     placeholder="+ Nueva subtarea…"
-                                                    @keyup.enter="addSubtask(m.id)" />
+                                                    @keyup.enter="addSubtask(m.id)"
+                                                />
                                             </div>
                                         </div>
                                     </div>
                                     <div class="flex shrink-0 items-start gap-1">
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
-                                            title="Completar misión" @click="completeMission(m.id)">✅</button>
+                                            title="Completar misión"
+                                            @click="completeMission(m.id)"
+                                        >
+                                            ✅
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-primary-strong"
-                                            title="Enfocarme" @click="startPomodoro(m.id)">⏱</button>
+                                            title="Enfocarme"
+                                            @click="startPomodoro(m.id)"
+                                        >
+                                            ⏱
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
-                                            title="Editar" @click="openEditModal(m)">✏️</button>
+                                            title="Editar"
+                                            @click="openEditModal(m)"
+                                        >
+                                            ✏️
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-danger-text"
-                                            title="Eliminar" @click="deleteMission(m.id)">🗑️</button>
+                                            title="Eliminar"
+                                            @click="deleteMission(m.id)"
+                                        >
+                                            🗑️
+                                        </button>
                                     </div>
                                 </div>
                             </BaseCard>
@@ -456,78 +582,134 @@ type="button"
                     </div>
 
                     <div v-if="dueSoon.length > 0" class="mb-4">
-                        <h2 class="mb-2 text-sm font-semibold text-content-secondary">Vence esta semana</h2>
+                        <h2 class="mb-2 text-sm font-semibold text-content-secondary">
+                            Vence esta semana
+                        </h2>
                         <div class="space-y-2">
                             <BaseCard
-v-for="m in dueSoon" :key="m.id"
-                                class="border-l-4 p-4" :class="stateClass(m.state)">
+                                v-for="m in dueSoon"
+                                :key="m.id"
+                                class="border-l-4 p-4"
+                                :class="stateClass(m.state)"
+                            >
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="min-w-0 flex-1">
-                                        <a :href="route('missions.show', { id: m.id })" class="font-semibold text-content-primary hover:text-primary-strong">{{ m.title }}</a>
-                                        <p v-if="m.description" class="mt-0.5 text-sm text-content-secondary truncate">{{ m.description }}</p>
-                                        <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                                            <span :class="difficultyConfig[m.difficulty]?.class">{{ difficultyConfig[m.difficulty]?.label }}</span>
-                                            <span :class="priorityConfig[m.priority]?.class">{{ priorityConfig[m.priority]?.label }}</span>
-                                            <span v-if="m.due_date" class="text-content-muted">{{ m.due_date }}</span>
-                                            <span v-if="m.subtask_count > 0" class="text-content-muted">
+                                        <a
+                                            :href="route('missions.show', { id: m.id })"
+                                            class="font-semibold text-content-primary hover:text-primary-strong"
+                                            >{{ m.title }}</a
+                                        >
+                                        <p
+                                            v-if="m.description"
+                                            class="mt-0.5 text-sm text-content-secondary truncate"
+                                        >
+                                            {{ m.description }}
+                                        </p>
+                                        <div
+                                            class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+                                        >
+                                            <span :class="difficultyConfig[m.difficulty]?.class">{{
+                                                difficultyConfig[m.difficulty]?.label
+                                            }}</span>
+                                            <span :class="priorityConfig[m.priority]?.class">{{
+                                                priorityConfig[m.priority]?.label
+                                            }}</span>
+                                            <span v-if="m.due_date" class="text-content-muted">{{
+                                                m.due_date
+                                            }}</span>
+                                            <span
+                                                v-if="m.subtask_count > 0"
+                                                class="text-content-muted"
+                                            >
                                                 {{ m.subtask_done }}/{{ m.subtask_count }}
                                             </span>
                                         </div>
                                         <div class="mt-2 space-y-1">
                                             <div
-v-for="s in m.subtasks" :key="s.id"
+                                                v-for="s in m.subtasks"
+                                                :key="s.id"
                                                 class="flex items-center gap-1.5 rounded px-1 text-sm"
-                                                :class="{ 'line-through text-content-muted': s.is_completed, 'bg-surface-raised': dragSubtaskId === s.id }"
+                                                :class="{
+                                                    'line-through text-content-muted':
+                                                        s.is_completed,
+                                                    'bg-surface-raised': dragSubtaskId === s.id,
+                                                }"
                                                 draggable="true"
                                                 @dragstart="onDragStart(s.id)"
                                                 @dragover="onDragOver"
-                                                @drop="onDrop(m.id, s.id)">
-                                                <span class="cursor-grab text-content-muted select-none">⠿</span>
+                                                @drop="onDrop(m.id, s.id)"
+                                            >
+                                                <span
+                                                    class="cursor-grab text-content-muted select-none"
+                                                    >⠿</span
+                                                >
                                                 <input
-type="checkbox" :checked="s.is_completed"
+                                                    type="checkbox"
+                                                    :checked="s.is_completed"
                                                     class="h-4 w-4 shrink-0 accent-primary"
-                                                    @change="toggleSubtask(m.id, s.id)" />
+                                                    @change="toggleSubtask(m.id, s.id)"
+                                                />
                                                 <template v-if="editingSubtaskId === s.id">
                                                     <input
-ref="editInput"
+                                                        ref="editInput"
                                                         v-model="editingSubtaskTitle"
                                                         class="min-w-0 flex-1 rounded border-border bg-surface px-1.5 py-0.5 text-sm outline-none focus:border-primary"
                                                         @keyup.enter="saveEditSubtask(m.id, s.id)"
                                                         @keyup.escape="cancelEditSubtask"
-                                                        @blur="saveEditSubtask(m.id, s.id)" />
+                                                        @blur="saveEditSubtask(m.id, s.id)"
+                                                    />
                                                 </template>
                                                 <template v-else>
                                                     <span
-class="min-w-0 flex-1 cursor-pointer truncate"
-                                                        @click="startEditSubtask(s)">{{ s.title }}</span>
+                                                        class="min-w-0 flex-1 cursor-pointer truncate"
+                                                        @click="startEditSubtask(s)"
+                                                        >{{ s.title }}</span
+                                                    >
                                                 </template>
                                             </div>
                                             <div class="flex items-center gap-1.5 pl-5">
                                                 <input
-v-model="addSubtaskTitles[m.id]"
+                                                    v-model="addSubtaskTitles[m.id]"
                                                     class="min-w-0 flex-1 rounded border-border bg-surface px-1.5 py-0.5 text-xs outline-none placeholder:text-content-muted focus:border-primary"
                                                     placeholder="+ Nueva subtarea…"
-                                                    @keyup.enter="addSubtask(m.id)" />
+                                                    @keyup.enter="addSubtask(m.id)"
+                                                />
                                             </div>
                                         </div>
                                     </div>
                                     <div class="flex shrink-0 items-start gap-1">
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
-                                            title="Completar misión" @click="completeMission(m.id)">✅</button>
+                                            title="Completar misión"
+                                            @click="completeMission(m.id)"
+                                        >
+                                            ✅
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-primary-strong"
-                                            title="Enfocarme" @click="startPomodoro(m.id)">⏱</button>
+                                            title="Enfocarme"
+                                            @click="startPomodoro(m.id)"
+                                        >
+                                            ⏱
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
-                                            title="Editar" @click="openEditModal(m)">✏️</button>
+                                            title="Editar"
+                                            @click="openEditModal(m)"
+                                        >
+                                            ✏️
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-danger-text"
-                                            title="Eliminar" @click="deleteMission(m.id)">🗑️</button>
+                                            title="Eliminar"
+                                            @click="deleteMission(m.id)"
+                                        >
+                                            🗑️
+                                        </button>
                                     </div>
                                 </div>
                             </BaseCard>
@@ -535,78 +717,134 @@ type="button"
                     </div>
 
                     <div v-if="restMissions.length > 0" class="mb-4">
-                        <h2 class="mb-2 text-sm font-semibold text-content-muted">Otras misiones</h2>
+                        <h2 class="mb-2 text-sm font-semibold text-content-muted">
+                            Otras misiones
+                        </h2>
                         <div class="space-y-2">
                             <BaseCard
-v-for="m in restMissions" :key="m.id"
-                                class="border-l-4 p-4" :class="stateClass(m.state)">
+                                v-for="m in restMissions"
+                                :key="m.id"
+                                class="border-l-4 p-4"
+                                :class="stateClass(m.state)"
+                            >
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="min-w-0 flex-1">
-                                        <a :href="route('missions.show', { id: m.id })" class="font-semibold text-content-primary hover:text-primary-strong">{{ m.title }}</a>
-                                        <p v-if="m.description" class="mt-0.5 text-sm text-content-secondary truncate">{{ m.description }}</p>
-                                        <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                                            <span :class="difficultyConfig[m.difficulty]?.class">{{ difficultyConfig[m.difficulty]?.label }}</span>
-                                            <span :class="priorityConfig[m.priority]?.class">{{ priorityConfig[m.priority]?.label }}</span>
-                                            <span v-if="m.due_date" class="text-content-muted">{{ m.due_date }}</span>
-                                            <span v-if="m.subtask_count > 0" class="text-content-muted">
+                                        <a
+                                            :href="route('missions.show', { id: m.id })"
+                                            class="font-semibold text-content-primary hover:text-primary-strong"
+                                            >{{ m.title }}</a
+                                        >
+                                        <p
+                                            v-if="m.description"
+                                            class="mt-0.5 text-sm text-content-secondary truncate"
+                                        >
+                                            {{ m.description }}
+                                        </p>
+                                        <div
+                                            class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+                                        >
+                                            <span :class="difficultyConfig[m.difficulty]?.class">{{
+                                                difficultyConfig[m.difficulty]?.label
+                                            }}</span>
+                                            <span :class="priorityConfig[m.priority]?.class">{{
+                                                priorityConfig[m.priority]?.label
+                                            }}</span>
+                                            <span v-if="m.due_date" class="text-content-muted">{{
+                                                m.due_date
+                                            }}</span>
+                                            <span
+                                                v-if="m.subtask_count > 0"
+                                                class="text-content-muted"
+                                            >
                                                 {{ m.subtask_done }}/{{ m.subtask_count }}
                                             </span>
                                         </div>
                                         <div class="mt-2 space-y-1">
                                             <div
-v-for="s in m.subtasks" :key="s.id"
+                                                v-for="s in m.subtasks"
+                                                :key="s.id"
                                                 class="flex items-center gap-1.5 rounded px-1 text-sm"
-                                                :class="{ 'line-through text-content-muted': s.is_completed, 'bg-surface-raised': dragSubtaskId === s.id }"
+                                                :class="{
+                                                    'line-through text-content-muted':
+                                                        s.is_completed,
+                                                    'bg-surface-raised': dragSubtaskId === s.id,
+                                                }"
                                                 draggable="true"
                                                 @dragstart="onDragStart(s.id)"
                                                 @dragover="onDragOver"
-                                                @drop="onDrop(m.id, s.id)">
-                                                <span class="cursor-grab text-content-muted select-none">⠿</span>
+                                                @drop="onDrop(m.id, s.id)"
+                                            >
+                                                <span
+                                                    class="cursor-grab text-content-muted select-none"
+                                                    >⠿</span
+                                                >
                                                 <input
-type="checkbox" :checked="s.is_completed"
+                                                    type="checkbox"
+                                                    :checked="s.is_completed"
                                                     class="h-4 w-4 shrink-0 accent-primary"
-                                                    @change="toggleSubtask(m.id, s.id)" />
+                                                    @change="toggleSubtask(m.id, s.id)"
+                                                />
                                                 <template v-if="editingSubtaskId === s.id">
                                                     <input
-ref="editInput"
+                                                        ref="editInput"
                                                         v-model="editingSubtaskTitle"
                                                         class="min-w-0 flex-1 rounded border-border bg-surface px-1.5 py-0.5 text-sm outline-none focus:border-primary"
                                                         @keyup.enter="saveEditSubtask(m.id, s.id)"
                                                         @keyup.escape="cancelEditSubtask"
-                                                        @blur="saveEditSubtask(m.id, s.id)" />
+                                                        @blur="saveEditSubtask(m.id, s.id)"
+                                                    />
                                                 </template>
                                                 <template v-else>
                                                     <span
-class="min-w-0 flex-1 cursor-pointer truncate"
-                                                        @click="startEditSubtask(s)">{{ s.title }}</span>
+                                                        class="min-w-0 flex-1 cursor-pointer truncate"
+                                                        @click="startEditSubtask(s)"
+                                                        >{{ s.title }}</span
+                                                    >
                                                 </template>
                                             </div>
                                             <div class="flex items-center gap-1.5 pl-5">
                                                 <input
-v-model="addSubtaskTitles[m.id]"
+                                                    v-model="addSubtaskTitles[m.id]"
                                                     class="min-w-0 flex-1 rounded border-border bg-surface px-1.5 py-0.5 text-xs outline-none placeholder:text-content-muted focus:border-primary"
                                                     placeholder="+ Nueva subtarea…"
-                                                    @keyup.enter="addSubtask(m.id)" />
+                                                    @keyup.enter="addSubtask(m.id)"
+                                                />
                                             </div>
                                         </div>
                                     </div>
                                     <div class="flex shrink-0 items-start gap-1">
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
-                                            title="Completar misión" @click="completeMission(m.id)">✅</button>
+                                            title="Completar misión"
+                                            @click="completeMission(m.id)"
+                                        >
+                                            ✅
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-primary-strong"
-                                            title="Enfocarme" @click="startPomodoro(m.id)">⏱</button>
+                                            title="Enfocarme"
+                                            @click="startPomodoro(m.id)"
+                                        >
+                                            ⏱
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
-                                            title="Editar" @click="openEditModal(m)">✏️</button>
+                                            title="Editar"
+                                            @click="openEditModal(m)"
+                                        >
+                                            ✏️
+                                        </button>
                                         <button
-type="button"
+                                            type="button"
                                             class="rounded p-1 text-sm text-content-muted hover:text-danger-text"
-                                            title="Eliminar" @click="deleteMission(m.id)">🗑️</button>
+                                            title="Eliminar"
+                                            @click="deleteMission(m.id)"
+                                        >
+                                            🗑️
+                                        </button>
                                     </div>
                                 </div>
                             </BaseCard>
@@ -616,22 +854,50 @@ type="button"
 
                 <div v-if="completedMissions.length > 0">
                     <button
-type="button"
+                        type="button"
                         class="flex w-full items-center justify-between rounded-xl bg-surface px-4 py-2 text-sm font-semibold text-content-secondary transition hover:bg-surface-raised"
-                        @click="showCompleted = !showCompleted">
-                        <span class="flex items-center gap-1"><AppIcon name="check-circle" :size="14" class="text-success" /> Completadas ({{ completedMissions.length }})</span>
-                        <AppIcon name="chevron-down" :size="14" class="transition" :class="showCompleted ? 'rotate-180' : ''" />
+                        @click="showCompleted = !showCompleted"
+                    >
+                        <span class="flex items-center gap-1"
+                            ><AppIcon name="check-circle" :size="14" class="text-success" />
+                            Completadas ({{ completedMissions.length }})</span
+                        >
+                        <AppIcon
+                            name="chevron-down"
+                            :size="14"
+                            class="transition"
+                            :class="showCompleted ? 'rotate-180' : ''"
+                        />
                     </button>
                     <div v-if="showCompleted" class="mt-2 space-y-2">
-                        <BaseCard v-for="m in completedMissions" :key="m.id" class="border-l-4 border-l-success p-4 opacity-70">
+                        <BaseCard
+                            v-for="m in completedMissions"
+                            :key="m.id"
+                            class="border-l-4 border-l-success p-4 opacity-70"
+                        >
                             <div class="flex items-center justify-between gap-4">
                                 <div class="min-w-0">
-                                    <h3 class="font-semibold text-content-primary line-through">{{ m.title }}</h3>
-                                    <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                                        <span class="text-success">Completada {{ m.completed_at }}</span>
-                                        <span v-if="m.xp_awarded > 0" class="text-accent">+{{ m.xp_awarded }} XP</span>
-                                        <span v-if="m.days_early_or_late !== null" class="text-content-muted">
-                                            {{ m.days_early_or_late < 0 ? `${Math.abs(m.days_early_or_late)} días antes` : `${m.days_early_or_late} días tarde` }}
+                                    <h3 class="font-semibold text-content-primary line-through">
+                                        {{ m.title }}
+                                    </h3>
+                                    <div
+                                        class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+                                    >
+                                        <span class="text-success"
+                                            >Completada {{ m.completed_at }}</span
+                                        >
+                                        <span v-if="m.xp_awarded > 0" class="text-accent"
+                                            >+{{ m.xp_awarded }} XP</span
+                                        >
+                                        <span
+                                            v-if="m.days_early_or_late !== null"
+                                            class="text-content-muted"
+                                        >
+                                            {{
+                                                m.days_early_or_late < 0
+                                                    ? `${Math.abs(m.days_early_or_late)} días antes`
+                                                    : `${m.days_early_or_late} días tarde`
+                                            }}
                                         </span>
                                     </div>
                                 </div>
@@ -642,39 +908,59 @@ type="button"
             </div>
 
             <BaseCard
-v-if="missions.length === 0 && completedMissions.length === 0"
-                class="flex flex-col items-center p-12 text-center">
+                v-if="missions.length === 0 && completedMissions.length === 0"
+                class="flex flex-col items-center p-12 text-center"
+            >
                 <AppIcon name="target" :size="48" class="mb-3 text-content-muted" />
                 <h2 class="text-lg font-semibold text-content-primary">No tienes misiones</h2>
                 <p class="mt-1 max-w-sm text-sm text-content-secondary">
                     Crea tu primera misión y divide las tareas grandes en pasos pequeños.
                 </p>
-                <BaseButton class="mt-6" variant="primary" @click="openCreateModal">Crear mi primera misión</BaseButton>
+                <BaseButton class="mt-6" variant="primary" @click="openCreateModal"
+                    >Crear mi primera misión</BaseButton
+                >
             </BaseCard>
         </div>
 
         <BaseModal :show="showCreateModal" title="Nueva Misión" @close="closeCreateModal">
             <form class="space-y-4" @submit.prevent="submitCreate">
                 <BaseInput
-id="create-title" v-model="createForm.title" label="Título"
-                    placeholder="Ej. Terminar práctica de Cálculo" :error="createForm.errors.title" required />
+                    id="create-title"
+                    v-model="createForm.title"
+                    label="Título"
+                    placeholder="Ej. Terminar práctica de Cálculo"
+                    :error="createForm.errors.title"
+                    required
+                />
 
                 <BaseInput
-id="create-desc" v-model="createForm.description" label="Descripción (opcional)"
-                    placeholder="Detalles de la tarea..." />
+                    id="create-desc"
+                    v-model="createForm.description"
+                    label="Descripción (opcional)"
+                    placeholder="Detalles de la tarea..."
+                />
 
                 <div class="grid grid-cols-2 gap-4">
                     <BaseSelect
-id="create-difficulty" v-model="createForm.difficulty" label="Dificultad"
-                        :options="difficultyOptions" />
+                        id="create-difficulty"
+                        v-model="createForm.difficulty"
+                        label="Dificultad"
+                        :options="difficultyOptions"
+                    />
                     <BaseSelect
-id="create-priority" v-model="createForm.priority" label="Prioridad"
-                        :options="priorityOptions" />
+                        id="create-priority"
+                        v-model="createForm.priority"
+                        label="Prioridad"
+                        :options="priorityOptions"
+                    />
                 </div>
 
                 <BaseInput
-id="create-due" v-model="createForm.due_date" label="Fecha de vencimiento (opcional)"
-                    type="date" />
+                    id="create-due"
+                    v-model="createForm.due_date"
+                    label="Fecha de vencimiento (opcional)"
+                    type="date"
+                />
 
                 <fieldset>
                     <legend class="mb-2 text-sm font-semibold text-content-secondary">
@@ -682,30 +968,51 @@ id="create-due" v-model="createForm.due_date" label="Fecha de vencimiento (opcio
                         <span class="text-content-muted font-normal">(0–20, opcional)</span>
                     </legend>
                     <div class="space-y-2">
-                        <div v-for="(_, i) in createForm.subtasks" :key="'st-'+i" class="flex items-center gap-2">
+                        <div
+                            v-for="(_, i) in createForm.subtasks"
+                            :key="'st-' + i"
+                            class="flex items-center gap-2"
+                        >
                             <BaseInput
-:id="'subtask-'+i" v-model="createForm.subtasks[i]"
-                                :placeholder="`Paso ${i+1}`" class="flex-1" />
+                                :id="'subtask-' + i"
+                                v-model="createForm.subtasks[i]"
+                                :placeholder="`Paso ${i + 1}`"
+                                class="flex-1"
+                            />
                             <button
-v-if="createForm.subtasks.length > 1" type="button"
+                                v-if="createForm.subtasks.length > 1"
+                                type="button"
                                 class="shrink-0 rounded p-1.5 text-sm text-content-muted hover:text-danger-text"
-                                @click="removeSubtaskField(i)">✕</button>
+                                @click="removeSubtaskField(i)"
+                            >
+                                ✕
+                            </button>
                         </div>
                     </div>
                     <button
-v-if="createForm.subtasks.length < 20" type="button"
+                        v-if="createForm.subtasks.length < 20"
+                        type="button"
                         class="mt-2 text-sm text-content-secondary hover:text-content-primary"
-                        @click="addSubtaskField">+ Agregar paso</button>
+                        @click="addSubtaskField"
+                    >
+                        + Agregar paso
+                    </button>
                 </fieldset>
 
                 <div
-v-if="createForm.difficulty === 'hard' && createForm.subtasks.filter(s => s.trim()).length === 0"
-                    class="rounded-lg bg-primary/20 px-3 py-2 text-sm text-content-secondary">
+                    v-if="
+                        createForm.difficulty === 'hard' &&
+                        createForm.subtasks.filter((s) => s.trim()).length === 0
+                    "
+                    class="rounded-lg bg-primary/20 px-3 py-2 text-sm text-content-secondary"
+                >
                     💡 Las tareas grandes se sienten menos pesadas por partes. ¿Quieres dividirla?
                 </div>
 
                 <div class="flex justify-end gap-3 pt-2">
-                    <BaseButton variant="ghost" type="button" @click="closeCreateModal">Cancelar</BaseButton>
+                    <BaseButton variant="ghost" type="button" @click="closeCreateModal"
+                        >Cancelar</BaseButton
+                    >
                     <BaseButton type="submit" :disabled="createForm.processing">
                         {{ createForm.processing ? 'Guardando…' : 'Crear Misión' }}
                     </BaseButton>
@@ -713,24 +1020,47 @@ v-if="createForm.difficulty === 'hard' && createForm.subtasks.filter(s => s.trim
             </form>
         </BaseModal>
 
-        <BaseModal :show="showEditModal" :title="`Editar: ${editingMission?.title || ''}`" @close="closeEditModal">
+        <BaseModal
+            :show="showEditModal"
+            :title="`Editar: ${editingMission?.title || ''}`"
+            @close="closeEditModal"
+        >
             <form class="space-y-4" @submit.prevent="submitEdit">
-                <BaseInput id="edit-title" v-model="editForm.title" label="Título" :error="editForm.errors.title" required />
+                <BaseInput
+                    id="edit-title"
+                    v-model="editForm.title"
+                    label="Título"
+                    :error="editForm.errors.title"
+                    required
+                />
                 <BaseInput id="edit-desc" v-model="editForm.description" label="Descripción" />
 
                 <div class="grid grid-cols-2 gap-4">
                     <BaseSelect
-id="edit-difficulty" v-model="editForm.difficulty" label="Dificultad"
-                        :options="difficultyOptions" />
+                        id="edit-difficulty"
+                        v-model="editForm.difficulty"
+                        label="Dificultad"
+                        :options="difficultyOptions"
+                    />
                     <BaseSelect
-id="edit-priority" v-model="editForm.priority" label="Prioridad"
-                        :options="priorityOptions" />
+                        id="edit-priority"
+                        v-model="editForm.priority"
+                        label="Prioridad"
+                        :options="priorityOptions"
+                    />
                 </div>
 
-                <BaseInput id="edit-due" v-model="editForm.due_date" label="Fecha de vencimiento" type="date" />
+                <BaseInput
+                    id="edit-due"
+                    v-model="editForm.due_date"
+                    label="Fecha de vencimiento"
+                    type="date"
+                />
 
                 <div class="flex justify-end gap-3 pt-2">
-                    <BaseButton variant="ghost" type="button" @click="closeEditModal">Cancelar</BaseButton>
+                    <BaseButton variant="ghost" type="button" @click="closeEditModal"
+                        >Cancelar</BaseButton
+                    >
                     <BaseButton type="submit" :disabled="editForm.processing">
                         {{ editForm.processing ? 'Guardando…' : 'Guardar cambios' }}
                     </BaseButton>

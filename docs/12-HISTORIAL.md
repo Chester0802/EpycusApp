@@ -1,6 +1,22 @@
 \
 # 12 — Historial de sesiones de IA
 
+## 2026-08-06 — opencode [Avatar procedural por carrera/género/fase, fixes de Edy y pulido visual]
+
+**Qué se hizo:**
+1. **Fixes del asistente Edy (AiAssistant):** Se corrigió la respuesta vacía de DeepSeek — `DeepSeekApiClient` ahora usa `extractContent()`, que si `message.content` viene vacío cae a `message.reasoning_content` (modelos de razonamiento v4). Se agregó la relación `conversation()` en `AiMessageModel` que faltaba y rompía el `whereHas` de `RateAdviceUseCase` (fix: el rating ya no devuelve `422`). El indicador de carga ahora muestra el **gif del gato** (`/assets/gifs/benny-typing-v2.gif`) + 3 puntos rebotando, con un mínimo de 2.4 s para que se alcance a ver.
+2. **Prototipo Opción 4 — Avatar procedural con DiceBear:** Nuevo componente `ProceduralAvatar.vue` (estilo `avataaars`) que **genera el avatar por semilla** de la carrera + género + fase, mapeando rasgos reales: **carrera → ropa + color + anteojos** (health→bata, technical→overol, business→traje, systems→hoodie, law→traje formal), **género → peinado** (5 por sexo) y **fase → credenciales** (3+ anteojos, 7+ ropa formal, fondo cambia por fase). `clothingGraphic` fijado a un valor neutro para que nunca aparezca el cráneo/logo por defecto. `vite.config.js` pre-bundla `@dicebear/core` y `@dicebear/avataaars`. `DashboardController` ahora pasan `avatarStyle`/`avatarGender` y `Dashboard.vue` usa el componente (fallback al PNG).
+3. **Animación del villano:** clase CSS `villain-idle` (flotación suave vía `transform`, respeta `prefers-reduced-motion`) aplicada en la imagen del villano en `Dashboard.vue` y `Villains/Index.vue`.
+4. **Pulido visual acumulado en el working tree:** toggle de mostrar/ocultar contraseña en `BaseInput.vue` (ocultando el revelado nativo del navegador), modo Vidrio en tema claro sin forzar modo oscuro (`useTheme.js`, toggle, layouts, settings), eliminación de `bg-surface-eraised` en contenedores de avatar, `WallpaperSelector` sin título/descripción, y la carrera del usuario (`userCareer`) bajo el saludo del Dashboard.
+
+**Decisiones tomadas:** Para resolver el bloqueo de "cientos de imágenes de avatar", se elige un **avatar procedural generado en runtime** (sin inventario de PNG ni AI/Bénder): la identidad por carrera/género va en la semilla y los rasgos de `avataaars`, y la progresión de fase se nota por credenciales y fondo. Queda como prototipo a validar estéticamente — se documenta el trade-off (sin uniforme real por carrera; igualdad entre usuarios con la misma carrera/género/fase; bundle mayor en el Dashboard).
+
+**Verificado cómo:** 100 combinaciones (5 carreras × 2 géneros × 10 fases) de `ProceduralAvatar` renderiza sin error en Node; `npm run build` ✅ (bundles OK con DiceBear); el gif se sirve por HTTP 200 `image/gif`; rates y respuesta de la IA verificados contra la BD (mensaje de assistant ya no queda vacío y el rating se guarda).
+
+**Pendiente / qué falta:** decidir si el avatar procedural pasa a producción (estética) y, si se queda, evaluar unicidad por usuario (seed con `userId`) vs. progresión única; docum. Es el prototipo Opción 4 conversado en la sesión.
+
+---
+
 ## 2026-08-05 — Antigravity [Sistema de Selección y Desbloqueo de Fondos de Pantalla con Monedas en Modo Vidrio]
 
 **Qué se hizo:**
