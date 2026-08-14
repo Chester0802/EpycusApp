@@ -43,7 +43,7 @@ final class GetQuoteForLoginUseCase
 
         // 4. Elegir con NoRepeatPicker
         $selectedId = $this->picker->pick($allQuoteIds, $alreadyShownIds);
-        if (!$selectedId) {
+        if (! $selectedId) {
             return null;
         }
 

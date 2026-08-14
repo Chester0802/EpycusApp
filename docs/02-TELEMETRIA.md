@@ -1,17 +1,17 @@
 \
 # 02 — Telemetría
 
-> **Este es el documento más importante del repositorio.** La telemetría es la evidencia empírica del artículo científico. Los datos de los 66 días de intervención no se pueden reconstruir después: si un evento no se registra el 15 de octubre, esa información se perdió para siempre.
+> **Este es el documento más importante del repositorio.** La telemetría es la evidencia empírica del artículo científico. Los datos de los 40 días de intervención no se pueden reconstruir después: si un evento no se registra durante la ventana de intervención, esa información se pierde para siempre.
 
 ---
 
 ## 1. Qué sostiene la telemetría
 
-El estudio tiene tres pilares. El tercero es la **triangulación**: contrastar lo que el estudiante *dice* en los cuestionarios psicométricos contra lo que *hace* de verdad en la aplicación.
+El estudio tiene tres pilares. El tercero es la **triangulación**: contrastar lo que el estudiante *dice* en los cuestionarios psicométricos (Escala EPA de 8 ítems para procrastinación y SUS de 10 ítems para usabilidad) contra lo que *hace* de verdad en la aplicación.
 
 | Fuente | Qué mide | Sensibilidad al cambio |
 |---|---|---|
-| Escala EPA / DASS-21 | Percepción declarada (rasgo) | Lenta — un rasgo es estable por definición |
+| Escala EPA (8 ítems) / DASS-21 | Percepción declarada (rasgo) | Lenta — un rasgo es estable por definición |
 | **Telemetría** | **Comportamiento real** | **Rápida — cambia día a día** |
 
 Sin telemetría fiable, el estudio se reduce a autoinformes y pierde su aporte original. Con ella, se puede afirmar que el comportamiento cambió aunque la escala psicométrica se mueva poco.
@@ -86,11 +86,11 @@ CREATE TABLE telemetry_events (
 
 **`ON DELETE RESTRICT` es deliberado.** Si alguien intenta borrar un usuario, la base lo impide. Los datos del estudio no se borran por accidente. Para el derecho de supresión de la Ley 29733 existe un procedimiento manual documentado en `docs/06-SEGURIDAD.md`.
 
-**`intervention_day`** es el día 1–66 de la intervención, calculado al insertar. Fuera del periodo va `NULL`. Esto ahorra cálculos costosos en el análisis posterior.
+**`intervention_day`** es el día 1–40 de la intervención, calculado al insertar. Fuera del periodo va `NULL`. Esto ahorra cálculos costosos en el análisis posterior.
 
 ### Volumen estimado
 
-70 participantes × ~120 eventos/día × 66 días ≈ **554.400 filas**. Con `payload` promedio de 100 bytes, son unos **250 MB**. Dentro del límite de 3 GB por base de datos del hosting. No requiere particionado.
+70 participantes × ~120 eventos/día × 40 días ≈ **336.000 filas**. Con `payload` promedio de 100 bytes, son unos **150 MB**. Dentro del límite de 3 GB por base de datos del hosting. No requiere particionado.
 
 ---
 
@@ -445,7 +445,7 @@ La tarea 7.8 del proyecto es una **compuerta**: si no pasa, la intervención no 
 - [ ] `sendBeacon` funciona al cerrar la pestaña de golpe (probado en Chrome y Firefox)
 - [ ] Un fallo de red no pierde eventos (quedan en buffer y se reintentan)
 - [ ] Un fallo de telemetría no impide completar la acción del usuario
-- [ ] `intervention_day` se calcula bien en los bordes (día 1 y día 66)
+- [ ] `intervention_day` se calcula bien en los bordes (día 1 y día 40)
 - [ ] Los inserts son en lote, verificado con el log de consultas
 - [ ] Ningún evento contiene datos personales, verificado por inspección manual
 - [ ] El export genera los tres CSV correctamente con datos de prueba

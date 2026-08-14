@@ -13,7 +13,7 @@ final class AwardXpFromStudyGroupsListener
 {
     public function __construct(private AwardXpUseCase $awardXp) {}
 
-    public function handle(ParticipantJoined | GroupMessageSent | StudySessionCreated $event): void
+    public function handle(ParticipantJoined|GroupMessageSent|StudySessionCreated $event): void
     {
         $this->awardXp->execute(
             userId: $event->userId,

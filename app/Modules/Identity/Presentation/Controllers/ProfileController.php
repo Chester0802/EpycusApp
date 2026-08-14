@@ -11,13 +11,18 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
+use Illuminate\Http\Request;
+
 final readonly class ProfileController
 {
     public function __construct(private CompleteProfileUseCase $completeProfile) {}
 
-    public function edit(): Response
+    public function edit(Request $request): Response
     {
+        $user = $request->user();
+
         return Inertia::render('Identity/CompleteProfile', [
+            'userAlias' => $user ? $user->alias : '',
             'careers' => config('careers.styles'),
             'cycles' => config('careers.cycles'),
             'institutionTypes' => config('careers.institution_types'),
@@ -33,6 +38,7 @@ final readonly class ProfileController
             avatarGender: $request->input('avatar_gender'),
             cycle: (int) $request->input('cycle'),
             institutionType: $request->input('institution_type'),
+            alias: $request->input('alias'),
         );
 
         $this->completeProfile->execute($dto);

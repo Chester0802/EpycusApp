@@ -53,6 +53,7 @@ final readonly class AdvancePhaseUseCase
             if ($userId === null) {
                 return ['advanced' => false, 'phase' => $phase->value(), 'cycle' => $session->current_cycle];
             }
+
             return $this->startFocus($session, $now);
         }
 

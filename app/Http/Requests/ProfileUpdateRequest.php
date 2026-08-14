@@ -24,6 +24,9 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(UserModel::class)->ignore($this->user()->id),
             ],
             'alias' => ['nullable', 'string', 'max:40', Rule::unique(UserModel::class)->ignore($this->user()->id)],
+            'career' => ['nullable', 'string', 'max:60'],
+            'cycle' => ['nullable', 'integer', 'between:1,10'],
+            'institution_type' => ['nullable', 'string', 'in:universidad,instituto'],
         ];
     }
 }

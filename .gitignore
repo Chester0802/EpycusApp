@@ -23,4 +23,5 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
-vite.config.js.timestamp-*.mjs
+*.zip
+docs/14-CREDENCIAIS-PRODUCCION.md

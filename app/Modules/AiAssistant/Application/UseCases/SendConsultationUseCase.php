@@ -12,7 +12,6 @@ use App\Modules\AiAssistant\Infrastructure\Models\AiQuotaModel;
 use App\Modules\AiAssistant\Infrastructure\Services\DeepSeekApiClient;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 final class SendConsultationUseCase
@@ -114,7 +113,7 @@ SYS;
         try {
             $responseText = $this->apiClient->chat($formattedMessages);
         } catch (Exception $e) {
-            Log::error('Fallo en API DeepSeek para usuario ID ' . $userId . ': ' . $e->getMessage());
+            Log::error('Fallo en API DeepSeek para usuario ID '.$userId.': '.$e->getMessage());
             // No se descuenta la cuota si falla la API
             throw new Exception('Ocurrió un inconveniente al conectar con el servidor de IA. No se ha descontado tu cuota diaria. Por favor reintenta en unos instantes.');
         }
@@ -157,7 +156,7 @@ SYS;
 
         return AiConversationModel::create([
             'user_id' => $userId,
-            'title' => 'Conversación ' . Carbon::now()->format('d/m H:i'),
+            'title' => 'Conversación '.Carbon::now()->format('d/m H:i'),
         ]);
     }
 }

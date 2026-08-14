@@ -95,7 +95,11 @@ final class User
         AvatarGender $avatarGender,
         Cycle $cycle,
         InstitutionType $institutionType,
+        ?string $alias = null,
     ): void {
+        if ($alias !== null && trim($alias) !== '') {
+            $this->alias = trim($alias);
+        }
         $this->career = $career;
         $this->avatarStyle = $avatarStyle;
         $this->avatarGender = $avatarGender;

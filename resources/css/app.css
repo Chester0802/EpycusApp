@@ -785,16 +785,26 @@
     }
 
     /*
-     * Vidrio + tema claro: el overlay base (var(--color-bg), casi blanco en
-     * claro) lava la imagen y la deja demasiado brillante/deslavada. En esta
-     * combinación solo se baja la opacidad de ese lavado para que la imagen
-     * recupere su color real, sin añadir un overlay oscuro que afecta a las
-     * tarjetas (pedido del usuario, 2026-08-06).
+     * Vidrio + tema claro: en imágenes claras o con zonas blancas, los paneles
+     * translúcidos mantenían apenas un 12% de opacidad, lo que hacía que las letras y
+     * botones se perdieran con el fondo. Se eleva la opacidad a 88% con blur de 16px
+     * y un velo de contraste sobre el fondo para garantizar lectura nítida.
      */
-    [data-theme='light'][data-surface='glass'] .app-background::before {
-        background: var(--color-bg);
-        opacity: 0;
+    [data-theme='light'][data-surface='glass'] .panel-raised,
+    [data-theme='light'][data-surface='glass'] .panel-nav {
+        background-color: color-mix(in oklch, var(--color-surface) 88%, transparent);
+        backdrop-filter: blur(16px) saturate(1.15);
+        -webkit-backdrop-filter: blur(16px) saturate(1.15);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 35%, transparent);
+        box-shadow: 0 6px 24px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        color: var(--color-content-primary);
     }
+
+    [data-theme='light'][data-surface='glass'] .app-background::before {
+        background: color-mix(in oklch, var(--color-bg) 65%, black 35%);
+        opacity: 0.40;
+    }
+
 }
 
 /* Oculta el botón de "mostrar contraseña" nativo del navegador (Edge/Chromium

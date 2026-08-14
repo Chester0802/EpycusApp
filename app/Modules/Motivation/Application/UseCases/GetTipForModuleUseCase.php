@@ -31,7 +31,7 @@ final class GetTipForModuleUseCase
             ->toArray();
 
         $selectedId = $this->picker->pick($allTipIds, $dismissedTipIds);
-        if (!$selectedId) {
+        if (! $selectedId) {
             return null;
         }
 

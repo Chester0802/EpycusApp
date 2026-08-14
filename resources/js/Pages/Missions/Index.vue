@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, reactive } from 'vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
@@ -8,13 +8,16 @@ import BaseSelect from '@/Components/ui/BaseSelect.vue';
 import BaseModal from '@/Components/ui/BaseModal.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
 import AppIcon from '@/Components/AppIcon.vue';
+import ProceduralAvatar from '@/Components/ProceduralAvatar.vue';
 
 const props = defineProps({
     missions: { type: Array, default: () => [] },
     completedMissions: { type: Array, default: () => [] },
     todayDate: { type: String, required: true },
     sortBy: { type: String, default: 'default' },
-    avatarImage: { type: String, default: null },
+    avatarStyle: { type: String, default: 'base' },
+    avatarGender: { type: String, default: 'm' },
+    progress: { type: Object, default: () => ({ phase: 1 }) },
 });
 
 const showCreateModal = ref(false);
@@ -155,6 +158,10 @@ function completeMission(missionId) {
     router.post(route('missions.complete', { id: missionId }), {}, { preserveScroll: true });
 }
 
+function uncompleteMission(missionId) {
+    router.post(route('missions.uncomplete', { id: missionId }), {}, { preserveScroll: true });
+}
+
 function toggleSubtask(missionId, subtaskId) {
     router.post(
         route('missions.subtasks.toggle', { id: missionId, subtaskId }),
@@ -265,10 +272,13 @@ function stateClass(state) {
                 <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-4">
                         <div
-                            v-if="avatarImage"
-                            class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl p-1"
+                            class="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border-interactive bg-surface-raised/40 p-2 shadow-sm"
                         >
-                            <img :src="avatarImage" alt="" class="h-full w-full object-contain" />
+                            <img
+                                src="/assets/gifs/missions.gif"
+                                alt="Misiones y Objetivos"
+                                class="h-full w-full object-contain"
+                            />
                         </div>
                         <div>
                             <h1 class="font-display text-3xl text-content-primary">Misiones</h1>
@@ -331,10 +341,10 @@ function stateClass(state) {
                             >
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="min-w-0 flex-1">
-                                        <a
+                                        <Link
                                             :href="route('missions.show', { id: m.id })"
                                             class="font-semibold text-content-primary hover:text-primary-strong"
-                                            >{{ m.title }}</a
+                                            >{{ m.title }}</Link
                                         >
                                         <p
                                             v-if="m.description"
@@ -464,9 +474,11 @@ function stateClass(state) {
                             >
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="min-w-0 flex-1">
-                                        <h3 class="font-semibold text-content-primary">
-                                            {{ m.title }}
-                                        </h3>
+                                        <Link
+                                            :href="route('missions.show', { id: m.id })"
+                                            class="font-semibold text-content-primary hover:text-primary-strong"
+                                            >{{ m.title }}</Link
+                                        >
                                         <p
                                             v-if="m.description"
                                             class="mt-0.5 text-sm text-content-secondary truncate"
@@ -545,11 +557,11 @@ function stateClass(state) {
                                     <div class="flex shrink-0 items-start gap-1">
                                         <button
                                             type="button"
-                                            class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
+                                            class="rounded p-1 text-sm text-content-muted hover:text-success"
                                             title="Completar misión"
                                             @click="completeMission(m.id)"
                                         >
-                                            ✅
+                                            <AppIcon name="check-circle" :size="14" />
                                         </button>
                                         <button
                                             type="button"
@@ -557,7 +569,7 @@ function stateClass(state) {
                                             title="Enfocarme"
                                             @click="startPomodoro(m.id)"
                                         >
-                                            ⏱
+                                            <AppIcon name="timer" :size="14" />
                                         </button>
                                         <button
                                             type="button"
@@ -565,7 +577,7 @@ function stateClass(state) {
                                             title="Editar"
                                             @click="openEditModal(m)"
                                         >
-                                            ✏️
+                                            <AppIcon name="pencil" :size="14" />
                                         </button>
                                         <button
                                             type="button"
@@ -573,7 +585,7 @@ function stateClass(state) {
                                             title="Eliminar"
                                             @click="deleteMission(m.id)"
                                         >
-                                            🗑️
+                                            <AppIcon name="trash" :size="14" />
                                         </button>
                                     </div>
                                 </div>
@@ -594,10 +606,10 @@ function stateClass(state) {
                             >
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="min-w-0 flex-1">
-                                        <a
+                                        <Link
                                             :href="route('missions.show', { id: m.id })"
                                             class="font-semibold text-content-primary hover:text-primary-strong"
-                                            >{{ m.title }}</a
+                                            >{{ m.title }}</Link
                                         >
                                         <p
                                             v-if="m.description"
@@ -680,11 +692,11 @@ function stateClass(state) {
                                     <div class="flex shrink-0 items-start gap-1">
                                         <button
                                             type="button"
-                                            class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
+                                            class="rounded p-1 text-sm text-content-muted hover:text-success"
                                             title="Completar misión"
                                             @click="completeMission(m.id)"
                                         >
-                                            ✅
+                                            <AppIcon name="check-circle" :size="14" />
                                         </button>
                                         <button
                                             type="button"
@@ -692,7 +704,7 @@ function stateClass(state) {
                                             title="Enfocarme"
                                             @click="startPomodoro(m.id)"
                                         >
-                                            ⏱
+                                            <AppIcon name="timer" :size="14" />
                                         </button>
                                         <button
                                             type="button"
@@ -700,7 +712,7 @@ function stateClass(state) {
                                             title="Editar"
                                             @click="openEditModal(m)"
                                         >
-                                            ✏️
+                                            <AppIcon name="pencil" :size="14" />
                                         </button>
                                         <button
                                             type="button"
@@ -708,7 +720,7 @@ function stateClass(state) {
                                             title="Eliminar"
                                             @click="deleteMission(m.id)"
                                         >
-                                            🗑️
+                                            <AppIcon name="trash" :size="14" />
                                         </button>
                                     </div>
                                 </div>
@@ -729,10 +741,10 @@ function stateClass(state) {
                             >
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="min-w-0 flex-1">
-                                        <a
+                                        <Link
                                             :href="route('missions.show', { id: m.id })"
                                             class="font-semibold text-content-primary hover:text-primary-strong"
-                                            >{{ m.title }}</a
+                                            >{{ m.title }}</Link
                                         >
                                         <p
                                             v-if="m.description"
@@ -815,11 +827,11 @@ function stateClass(state) {
                                     <div class="flex shrink-0 items-start gap-1">
                                         <button
                                             type="button"
-                                            class="rounded p-1 text-sm text-content-muted hover:text-content-primary"
+                                            class="rounded p-1 text-sm text-content-muted hover:text-success"
                                             title="Completar misión"
                                             @click="completeMission(m.id)"
                                         >
-                                            ✅
+                                            <AppIcon name="check-circle" :size="14" />
                                         </button>
                                         <button
                                             type="button"
@@ -827,7 +839,7 @@ function stateClass(state) {
                                             title="Enfocarme"
                                             @click="startPomodoro(m.id)"
                                         >
-                                            ⏱
+                                            <AppIcon name="timer" :size="14" />
                                         </button>
                                         <button
                                             type="button"
@@ -835,7 +847,7 @@ function stateClass(state) {
                                             title="Editar"
                                             @click="openEditModal(m)"
                                         >
-                                            ✏️
+                                            <AppIcon name="pencil" :size="14" />
                                         </button>
                                         <button
                                             type="button"
@@ -843,7 +855,7 @@ function stateClass(state) {
                                             title="Eliminar"
                                             @click="deleteMission(m.id)"
                                         >
-                                            🗑️
+                                            <AppIcon name="trash" :size="14" />
                                         </button>
                                     </div>
                                 </div>
@@ -860,7 +872,7 @@ function stateClass(state) {
                     >
                         <span class="flex items-center gap-1"
                             ><AppIcon name="check-circle" :size="14" class="text-success" />
-                            Completadas ({{ completedMissions.length }})</span
+                            Completadas / Archivadas ({{ completedMissions.length }})</span
                         >
                         <AppIcon
                             name="chevron-down"
@@ -873,20 +885,23 @@ function stateClass(state) {
                         <BaseCard
                             v-for="m in completedMissions"
                             :key="m.id"
-                            class="border-l-4 border-l-success p-4 opacity-70"
+                            class="border-l-4 border-l-success p-4 opacity-80"
                         >
-                            <div class="flex items-center justify-between gap-4">
-                                <div class="min-w-0">
-                                    <h3 class="font-semibold text-content-primary line-through">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="min-w-0 flex-1">
+                                    <Link
+                                        :href="route('missions.show', { id: m.id })"
+                                        class="font-semibold text-content-primary line-through hover:text-primary-strong"
+                                    >
                                         {{ m.title }}
-                                    </h3>
+                                    </Link>
                                     <div
                                         class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
                                     >
-                                        <span class="text-success"
+                                        <span class="text-success font-medium"
                                             >Completada {{ m.completed_at }}</span
                                         >
-                                        <span v-if="m.xp_awarded > 0" class="text-accent"
+                                        <span v-if="m.xp_awarded > 0" class="text-accent font-semibold"
                                             >+{{ m.xp_awarded }} XP</span
                                         >
                                         <span
@@ -900,6 +915,27 @@ function stateClass(state) {
                                             }}
                                         </span>
                                     </div>
+                                    <div v-if="m.subtasks && m.subtasks.length > 0" class="mt-2 space-y-1 pl-1">
+                                        <div
+                                            v-for="s in m.subtasks"
+                                            :key="s.id"
+                                            class="flex items-center gap-1.5 text-xs text-content-muted line-through"
+                                        >
+                                            <span>✓</span>
+                                            <span>{{ s.title }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex shrink-0 items-center gap-2">
+                                    <button
+                                        type="button"
+                                        class="flex items-center gap-1 rounded bg-surface-raised px-2.5 py-1 text-xs font-medium text-content-secondary transition hover:bg-surface-sunken hover:text-content-primary"
+                                        title="Reabrir / Desarchivar misión"
+                                        @click="uncompleteMission(m.id)"
+                                    >
+                                        <AppIcon name="rotate-ccw" :size="12" />
+                                        Desarchivar
+                                    </button>
                                 </div>
                             </div>
                         </BaseCard>

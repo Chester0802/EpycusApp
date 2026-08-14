@@ -51,6 +51,9 @@ final class PomodoroSessionModel extends Model
         ];
     }
 
+    /**
+     * @return HasMany<PomodoroSessionSubtaskModel, $this>
+     */
     public function subtaskCompletions(): HasMany
     {
         return $this->hasMany(PomodoroSessionSubtaskModel::class, 'pomodoro_session_id');

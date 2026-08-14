@@ -56,7 +56,6 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
             ->delete();
     }
 
-
     /** @return Collection<int, HolidayModel> */
     private function getAllHolidays(): Collection
     {

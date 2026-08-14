@@ -6,8 +6,6 @@ namespace Tests\Feature\Identity;
 
 use App\Modules\Gamification\Infrastructure\Models\UserProgressModel;
 use App\Modules\Identity\Infrastructure\Models\UserModel;
-use App\Modules\Identity\Infrastructure\Models\UserPreferencesModel;
-use App\Modules\Identity\Infrastructure\Models\UserUnlockedWallpaperModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,18 +13,18 @@ final class WallpaperPreferencesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_select_default_wallpaper_atardecer(): void
+    public function test_user_can_select_default_wallpaper_fondo_1(): void
     {
         $user = UserModel::factory()->create();
 
         $response = $this->actingAs($user)->post('/preferences/wallpaper/select', [
-            'wallpaper_key' => 'atardecer',
+            'wallpaper_key' => 'Fondo_1',
         ]);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('user_preferences', [
             'user_id' => $user->id,
-            'wallpaper_key' => 'atardecer',
+            'wallpaper_key' => 'Fondo_1',
         ]);
     }
 
@@ -45,7 +43,7 @@ final class WallpaperPreferencesTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->post('/preferences/wallpaper/unlock', [
-            'wallpaper_key' => 'chica_anime',
+            'wallpaper_key' => 'Fondo_2',
         ]);
 
         $response->assertRedirect();
@@ -58,7 +56,7 @@ final class WallpaperPreferencesTest extends TestCase
         ]);
         $this->assertDatabaseMissing('user_unlocked_wallpapers', [
             'user_id' => $user->id,
-            'wallpaper_key' => 'chica_anime',
+            'wallpaper_key' => 'Fondo_2',
         ]);
     }
 
@@ -77,7 +75,7 @@ final class WallpaperPreferencesTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->post('/preferences/wallpaper/unlock', [
-            'wallpaper_key' => 'lofi_gato',
+            'wallpaper_key' => 'Fondo_3',
         ]);
 
         $response->assertRedirect();
@@ -91,13 +89,13 @@ final class WallpaperPreferencesTest extends TestCase
         // Se registra el desbloqueo
         $this->assertDatabaseHas('user_unlocked_wallpapers', [
             'user_id' => $user->id,
-            'wallpaper_key' => 'lofi_gato',
+            'wallpaper_key' => 'Fondo_3',
         ]);
 
         // Se establece como fondo activo
         $this->assertDatabaseHas('user_preferences', [
             'user_id' => $user->id,
-            'wallpaper_key' => 'lofi_gato',
+            'wallpaper_key' => 'Fondo_3',
         ]);
     }
 
@@ -106,7 +104,7 @@ final class WallpaperPreferencesTest extends TestCase
         $user = UserModel::factory()->create();
 
         $response = $this->actingAs($user)->post('/preferences/wallpaper/select', [
-            'wallpaper_key' => 'dragon_ball',
+            'wallpaper_key' => 'Fondo_4',
         ]);
 
         $response->assertRedirect();
@@ -114,7 +112,7 @@ final class WallpaperPreferencesTest extends TestCase
 
         $this->assertDatabaseMissing('user_preferences', [
             'user_id' => $user->id,
-            'wallpaper_key' => 'dragon_ball',
+            'wallpaper_key' => 'Fondo_4',
         ]);
     }
 }

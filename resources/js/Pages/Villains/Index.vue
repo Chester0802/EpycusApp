@@ -1,26 +1,43 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue'
-import BaseCard from '@/Components/ui/BaseCard.vue'
-import ProgressBar from '@/Components/ui/ProgressBar.vue'
-import EmptyState from '@/Components/ui/EmptyState.vue'
-import AppIcon from '@/Components/AppIcon.vue'
+import { computed } from 'vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
+import BaseCard from '@/Components/ui/BaseCard.vue';
+import ProgressBar from '@/Components/ui/ProgressBar.vue';
+import EmptyState from '@/Components/ui/EmptyState.vue';
+import AppIcon from '@/Components/AppIcon.vue';
 
-defineProps({
+const props = defineProps({
     villain: { type: Object, default: null },
-})
+});
+
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    // Reemplaza espacio por 'T' si viene en formato "YYYY-MM-DD HH:mm:ss"
+    const formatted = dateStr.includes('T') ? dateStr : dateStr.replace(' ', 'T');
+    const d = new Date(formatted);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('es-PE', { day: 'numeric', month: 'long' });
+}
+
+const dateRangeLabel = computed(() => {
+    if (!props.villain) return '';
+    const start = formatDate(props.villain.assigned_at);
+    const end = formatDate(props.villain.expires_at);
+    return `Semana: Del ${start} al ${end}`;
+});
 </script>
 
 <template>
     <AppLayout title="Villano semanal">
-        <div class="max-w-2xl mx-auto space-y-6">
+        <div class="mx-auto max-w-2xl space-y-6">
             <div class="text-center">
-                <h1 class="text-2xl font-display font-bold text-content-primary">
+                <h1 class="font-display text-2xl font-bold text-content-primary">
                     Villano de la semana
                 </h1>
-                <p v-if="villain" class="text-sm text-content-secondary mt-1">
+                <p v-if="villain" class="mt-1 text-sm text-content-secondary">
                     Semana {{ villain.week_number }}
                 </p>
-                <p v-else class="text-sm text-content-secondary mt-1">
+                <p v-else class="mt-1 text-sm text-content-secondary">
                     Desafío semanal
                 </p>
             </div>
@@ -36,17 +53,17 @@ defineProps({
                 </EmptyState>
             </BaseCard>
 
-            <BaseCard v-else class="p-6 space-y-4">
+            <BaseCard v-else class="space-y-4 p-6">
                 <div class="flex flex-col items-center gap-4">
                     <img
                         :src="villain.image_url"
                         :alt="villain.name"
-                        class="villain-idle w-40 h-40 object-contain rounded-xl"
+                        class="villain-idle h-40 w-40 rounded-xl object-contain"
                     />
-                    <h2 class="text-xl font-display font-bold text-content-primary">
+                    <h2 class="font-display text-xl font-bold text-content-primary">
                         {{ villain.name }}
                     </h2>
-                    <p class="text-content-secondary text-center max-w-md">
+                    <p class="max-w-md text-center text-content-secondary">
                         {{ villain.description }}
                     </p>
                 </div>
@@ -64,21 +81,21 @@ defineProps({
                     />
                 </div>
 
-                <div v-if="villain.status === 'defeated'" class="text-center py-2">
-                    <span class="inline-flex items-center gap-2 text-success font-bold text-lg">
+                <div v-if="villain.status === 'defeated'" class="py-2 text-center">
+                    <span class="inline-flex items-center gap-2 text-lg font-bold text-success">
                         <AppIcon name="trophy" :size="20" class="text-warning" /> ¡Derrotado!
                     </span>
                 </div>
 
-                <div class="p-4 rounded-lg border border-border-interactive">
-                    <h3 class="font-semibold text-content-primary mb-1">Debilidad</h3>
-                    <p class="text-content-secondary text-sm">
+                <div class="rounded-lg border border-border-interactive p-4">
+                    <h3 class="mb-1 font-semibold text-content-primary">Debilidad</h3>
+                    <p class="text-sm text-content-secondary">
                         {{ villain.weakness_description }}
                     </p>
                 </div>
 
-                <div class="text-xs text-content-secondary text-center">
-                    Asignado: {{ villain.assigned_at }} · Expira: {{ villain.expires_at }}
+                <div class="text-center text-xs font-medium text-content-secondary">
+                    {{ dateRangeLabel }}
                 </div>
             </BaseCard>
         </div>

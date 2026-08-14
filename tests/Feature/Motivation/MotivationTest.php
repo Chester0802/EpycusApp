@@ -17,7 +17,7 @@ final class MotivationTest extends TestCase
 
     public function test_no_repeat_picker_cycles_items(): void
     {
-        $picker = new NoRepeatPicker();
+        $picker = new NoRepeatPicker;
         $pool = [1, 2, 3];
         $alreadyShown = [1, 2];
 

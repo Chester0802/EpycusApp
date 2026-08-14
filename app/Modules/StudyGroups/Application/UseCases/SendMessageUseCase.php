@@ -11,6 +11,7 @@ use App\Modules\StudyGroups\Domain\Events\GroupMessageSent;
 use App\Modules\StudyGroups\Domain\Exceptions\ChatBlockedException;
 use App\Modules\StudyGroups\Domain\Exceptions\MessageBlockedException;
 use App\Modules\StudyGroups\Domain\Exceptions\NotInSessionException;
+use App\Modules\StudyGroups\Domain\Exceptions\SessionNotFoundException;
 use App\Modules\StudyGroups\Domain\ValueObjects\MessageBody;
 use App\Modules\StudyGroups\Domain\ValueObjects\RoomPhase;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -28,7 +29,7 @@ final readonly class SendMessageUseCase
     {
         $session = $this->repository->findById($dto->sessionId);
         if (! $session) {
-            throw new \App\Modules\StudyGroups\Domain\Exceptions\SessionNotFoundException($dto->sessionId);
+            throw new SessionNotFoundException($dto->sessionId);
         }
 
         $phase = RoomPhase::from($session->phase ?? 'idle');

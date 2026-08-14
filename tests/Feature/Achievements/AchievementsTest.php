@@ -6,6 +6,7 @@ namespace Tests\Feature\Achievements;
 
 use App\Modules\Achievements\Application\UseCases\EvaluateAchievementsUseCase;
 use App\Modules\Identity\Infrastructure\Models\UserModel;
+use Database\Seeders\AchievementsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -16,7 +17,7 @@ final class AchievementsTest extends TestCase
 
     public function test_user_can_view_achievements_page(): void
     {
-        $this->seed(\Database\Seeders\AchievementsSeeder::class);
+        $this->seed(AchievementsSeeder::class);
 
         $user = UserModel::factory()->create();
 
@@ -32,7 +33,7 @@ final class AchievementsTest extends TestCase
 
     public function test_evaluate_achievements_unlocks_and_awards_xp(): void
     {
-        $this->seed(\Database\Seeders\AchievementsSeeder::class);
+        $this->seed(AchievementsSeeder::class);
 
         $user = UserModel::factory()->create();
 

@@ -93,15 +93,15 @@ La moneda blanda del juego se acumula desde el MVP, pero no hay nada que comprar
 
 **Contexto.** El avatar tiene 50 niveles en 10 fases. Había que calibrar cuánta experiencia cuesta cada nivel.
 
-**Alternativas.** (a) Curva que permita alcanzar el nivel 50 en los 66 días. (b) Curva donde el participante medio quede a mitad de camino.
+**Alternativas.** (a) Curva que permita alcanzar el nivel 50 durante los 40 días de intervención. (b) Curva donde el participante medio quede a mitad de camino.
 
-**Decisión.** Curva `XP(n) = 100 + (n-1) × 45`, con la que nadie alcanza el nivel 50 en 66 días. Proyección: perfil bajo llega a nivel 8, medio a 19, alto a 28, máximo teórico a 35.
+**Decisión.** Curva `XP(n) = 100 + (n-1) × 45`, con la que nadie alcanza el nivel 50 durante los 40 días. Proyección: perfil bajo llega a nivel 6, medio a 14, alto a 22, máximo teórico a 28.
 
 **Fundamento.** Hay una razón de producto y una razón estadística, y la segunda es la que decidió.
 
 La de producto: una progresión alcanzable produce un techo, y quien llega al techo pierde el incentivo justo cuando el estudio necesita que siga.
 
-La estadística: **el nivel alcanzado es una variable continua del análisis.** Si la mayoría de los participantes tocara el máximo, la variable se comprimiría contra el techo (efecto techo) y perdería capacidad de correlacionarse con el cambio psicométrico. Una distribución que va de 8 a 35 da recorrido suficiente para detectar asociación.
+La estadística: **el nivel alcanzado es una variable continua del análisis.** Si la mayoría de los participantes tocara el máximo, la variable se comprimiría contra el techo (efecto techo) y perdería capacidad de correlacionarse con el cambio psicométrico en la escala EPA (8 ítems). Una distribución diferenciada da recorrido suficiente para detectar asociación.
 
 **Costo asumido.** Las fases 8, 9 y 10 del avatar no las verá casi nadie durante el estudio, pese a que hay que producir sus assets. Se acepta: quedan como contenido posterior y como demostración de que el sistema tiene recorrido.
 
@@ -145,9 +145,17 @@ La ausencia de logros negativos responde al riesgo de deserción, que es el mayo
 
 **Decisión.** Tres días de gracia por mes calendario, no acumulables. Al usar uno, la racha se congela en vez de romperse.
 
-**Fundamento.** El reinicio total tiene un efecto documentado de abandono: quien pierde una racha larga tiende a dejar el sistema, porque siente que perdió lo acumulado. Con una intervención de 66 días donde la deserción es el riesgo principal, ese diseño es contraproducente.
+## D-G · Recuperación progresiva de rachas
 
-Esta opción apareció además en la encuesta institucional como característica valorada por los participantes.
+**Contexto.** Las rachas premian la constancia. En los sistemas clásicos, fallar un día la reduce a cero.
+
+**Alternativas.** (a) Reinicio total, como Duolingo clásico. (b) Sin rachas. (c) Días de gracia.
+
+**Decisión.** Tres días de gracia por mes calendario, no acumulables. Al usar uno, la racha se congela en vez de romperse.
+
+**Fundamento.** El reinicio total tiene un efecto documentado de abandono: quien pierde una racha larga tiende a dejar el sistema, porque siente que perdió lo acumulado. Con una intervención de 40 días donde la deserción es el riesgo principal, ese diseño es contraproducente.
+
+Esta opción apareció además en las encuestas exploratorias (Cajamarca: Encuesta 1 $n=98$, Encuesta 2 $n=31$) como característica valorada por los participantes.
 
 **Costo asumido.** La racha deja de ser una medida pura de días consecutivos. Se compensa registrando en telemetría cada uso de día de gracia, de modo que en el análisis se puede reconstruir la racha estricta si hace falta.
 
@@ -169,17 +177,17 @@ Las restricciones de lectura responden a protección de datos y al compromiso de
 
 ---
 
-## D-I · Congelamiento de producción durante los 66 días
+## D-I · Congelamiento de producción durante los 40 días de intervención
 
-**Contexto.** El desarrollo continúa después de que empiece la intervención.
+**Contexto.** El desarrollo continúa antes y después de la intervención de campo.
 
-**Decisión.** Ningún despliegue a producción entre el 07/09 y el 11/11, salvo fallo que impida el uso. Entorno de staging separado para todo lo demás. Toda excepción se registra en bitácora con fecha, hora y efecto.
+**Decisión.** Ningún despliegue a producción durante la ventana de los 40 días de intervención (fechas de inicio y fin aún por definir), salvo fallo que impida el uso. Entorno de staging separado para todo lo demás. Toda excepción se registra en bitácora con fecha, hora y efecto.
 
-**Fundamento.** Si el sistema cambia a mitad del periodo, los participantes no reciben la misma intervención: quienes usaron la versión de la semana 3 y quienes usaron la de la semana 7 tuvieron experiencias distintas. Eso rompe el supuesto de tratamiento homogéneo.
+**Fundamento.** Si el sistema cambia a mitad del periodo, los participantes no reciben la misma intervención: quienes usaron la versión de la semana 2 y quienes usaron la de la semana 5 tuvieron experiencias distintas. Eso rompe el supuesto de tratamiento homogéneo.
 
 El registro en bitácora existe porque cualquier cambio inevitable debe declararse en las limitaciones del artículo. Un revisor tiene derecho a preguntar si el instrumento fue idéntico durante todo el periodo.
 
-**Costo asumido.** Dos meses sin desplegar mejoras. Se compensa con staging, que además no supone gasto extra porque el plan de hosting admite cien sitios.
+**Costo asumido.** Periodo de intervención sin desplegar mejoras. Se compensa con staging, que además no supone gasto extra porque el plan de hosting admite cien sitios.
 
 ---
 
@@ -191,7 +199,7 @@ El registro en bitácora existe porque cualquier cambio inevitable debe declarar
 
 **Decisión.** Los cinco villanos son: la Postergación, la Distracción, la Ansiedad, el Desorden y el Cansancio.
 
-**Fundamento.** No son categorías inventadas. Corresponden a las opciones de "mayor obstáculo para mantener hábitos de estudio" de la encuesta diagnóstica (n=98), con esta distribución: falta de motivación o constancia 25,5%; distracción con el celular 19,4%; olvido de lo planificado 18,4%; no saber por dónde empezar 14,3%; cansancio tras las clases 12,2%.
+**Fundamento.** No son categorías inventadas. Corresponden al **Diagrama de Pareto de Obstáculos** de la encuesta diagnóstica (Google Forms, 4–6 abr. 2026, $n=98$), con esta distribución: falta de motivación o constancia 25,5 %; distracción con el celular o redes 19,4 %; olvido de lo planificado 18,4 % (acumulando el 63,3 %); no saber por dónde empezar 14,3 % (alcanzando el 77,6 %); cansancio tras las clases 12,2 %.
 
 Esto permite argumentar ante el jurado que la mecánica del juego no es decorativa: **cada villano representa una barrera real y medida de la población objetivo**. Y en el análisis se puede examinar si los participantes derrotan con más frecuencia al villano que corresponde a su obstáculo declarado.
 
@@ -205,7 +213,7 @@ Esto permite argumentar ante el jurado que la mecánica del juego no es decorati
 
 **Decisión.** Ambos campos son listas desplegables. Nunca texto libre.
 
-**Fundamento.** La encuesta institucional recogió la carrera como texto libre y produjo **25 variantes escritas para 11 carreras reales** ("Ing. Sistemas", "ING de sistemas y computacionales", "Ing. Sitemas computacionales"). Agrupar exigió normalización manual y sujeta a criterio.
+**Fundamento.** La encuesta 2 (Microsoft Forms, 8 abr.–6 may. 2026, $n=31$) y los antecedentes institucionales recogieron la carrera como texto libre y produjeron **25 variantes escritas para 11 carreras reales** ("Ing. Sistemas", "ING de sistemas y computacionales", "Ing. Sitemas computacionales"). Agrupar exigió normalización manual y sujeta a criterio.
 
 Si ese error se repitiera en la aplicación, la telemetría del Pilar 2 sería inservible: no se podría agrupar por carrera ni verificar que el avatar correcto se asignó a cada participante.
 
@@ -217,7 +225,49 @@ Si ese error se repitiera en la aplicación, la telemetría del Pilar 2 sería i
 
 **Contexto.** Había que priorizar un tamaño de pantalla.
 
-**Fundamento.** La encuesta diagnóstica muestra que la mayoría de los participantes accede desde teléfono. Pero las sesiones largas de trabajo académico —cuando más se usan el Pomodoro y las misiones— ocurren en computadora.
+**Fundamento.** La encuesta diagnóstica ($n=98$) muestra que la mayoría de los participantes accede desde teléfono. Pero las sesiones largas de trabajo académico —cuando más se usan el Pomodoro y las misiones— ocurren en computadora.
+
+**Decisión.** Se diseña móvil primero, pero el escritorio recibe una composición propia, no una versión estirada del móvil.
+
+**Costo asumido.** Más trabajo de diseño. Necesario: una experiencia degradada en escritorio afectaría justamente el escenario de uso más intensivo.
+
+---
+
+## D-P · Selección de 8 ítems de la Escala EPA para medir procrastinación (Variable Dependiente)
+
+**Contexto.** La Escala de Procrastinación Académica (EPA) original posee múltiples reactivos. Se requería una versión ágil y validada para pre/postest sin fatigar al participante.
+
+**Decisión.** Seleccionar exactamente 8 ítems estratégicos de la EPA (reactivos 2, 5, 7, 10, 11, 12, 13 y 14):
+1. Ítem 2: Generalmente me preparo por adelantado para los exámenes.
+2. Ítem 5: Cuando tengo problemas para entender algo, inmediatamente trato de buscar ayuda.
+3. Ítem 7: Trato de completar el trabajo asignado lo más pronto posible.
+4. Ítem 10: Constantemente intento mejorar mis hábitos de estudio.
+5. Ítem 11: Invierto el tiempo necesario en estudiar aun cuando el tema sea aburrido.
+6. Ítem 12: Trato de motivarme para mantener mi ritmo de estudio.
+7. Ítem 13: Trato de terminar mis trabajos importantes con tiempo de sobra.
+8. Ítem 14: Me tomo el tiempo de revisar mis tareas antes de entregarlas.
+
+**Fundamento.** Estos 8 ítems cubren directamente la autorregulación académica y la gestión del tiempo frente al estudio. Al medirse antes de la intervención (pretest) y al finalizar los 40 días (postest), constituyen la métrica principal para probar la hipótesis $H_1$.
+
+---
+
+## D-Q · Evaluación de Usabilidad mediante los 10 ítems de la Escala SUS
+
+**Contexto.** Cumplimiento del Objetivo Específico 3 para medir la usabilidad percibida del software Epycus.
+
+**Decisión.** Implementar el cuestionario SUS estandarizado de 10 ítems:
+1. Creo que me gustaría utilizar frecuentemente este sitio web.
+2. Encontré el sitio web sencillo.
+3. Pienso que el sitio web es fácil de usar.
+4. Pienso que podré utilizar este sitio web sin el apoyo de personal técnico.
+5. Encontré que varias de las funciones en el sitio web estaban bien integradas.
+6. Pensé que había demasiada consistencia en el sitio web.
+7. Me imagino que la mayoría de las personas podrían aprender a usar este sitio web muy rápido.
+8. Encontré el sitio web muy intuitivo.
+9. Me sentí muy confiado (seguro) al utilizar el sitio web.
+10. Pude utilizar el sitio web sin tener que aprender nada nuevo.
+
+**Fundamento.** Permite obtener un puntaje normalizado (0 a 100) sobre la usabilidad percibida del sistema y validar cuantitativamente si la interfaz no representó una barrera tecnológica durante los 40 días de intervención.
 
 **Decisión.** Se diseña móvil primero, pero el escritorio recibe una composición propia, no una versión estirada del móvil.
 

@@ -1,12 +1,18 @@
 <script setup>
 import { useTheme } from '@/composables/useTheme';
+import { useTelemetry } from '@/composables/useTelemetry';
 
 const { theme, setTheme } = useTheme();
+const { track } = useTelemetry();
 
 function toggle() {
-    setTheme(theme.value === 'dark' ? 'light' : 'dark');
+    const from = theme.value;
+    const to = from === 'dark' ? 'light' : 'dark';
+    setTheme(to);
+    track('theme.changed', 'app', { from, to });
 }
 </script>
+
 
 <template>
     <button

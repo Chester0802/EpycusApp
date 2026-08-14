@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Missions\Presentation\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Identity\Infrastructure\Models\UserModel;
 use App\Modules\Missions\Application\DTOs\CreateMissionDTO;
 use App\Modules\Missions\Application\DTOs\UpdateMissionDTO;
 use App\Modules\Missions\Application\UseCases\AddSubtaskUseCase;
@@ -13,19 +14,22 @@ use App\Modules\Missions\Application\UseCases\CreateMissionUseCase;
 use App\Modules\Missions\Application\UseCases\DeleteMissionUseCase;
 use App\Modules\Missions\Application\UseCases\ReorderSubtasksUseCase;
 use App\Modules\Missions\Application\UseCases\ToggleSubtaskUseCase;
+use App\Modules\Missions\Application\UseCases\UncompleteMissionUseCase;
 use App\Modules\Missions\Application\UseCases\UpdateMissionUseCase;
 use App\Modules\Missions\Application\UseCases\UpdateSubtaskUseCase;
 use App\Modules\Missions\Domain\Contracts\MissionRepositoryInterface;
+use App\Modules\Missions\Infrastructure\Models\MissionModel;
+use App\Modules\Missions\Infrastructure\Models\SubtaskModel;
 use App\Modules\Pomodoro\Domain\Contracts\PomodoroRepositoryInterface;
 use App\Modules\Pomodoro\Domain\ValueObjects\SessionState;
 use App\Modules\Pomodoro\Infrastructure\Models\PomodoroSessionModel;
 use App\Modules\Pomodoro\Infrastructure\Models\PomodoroSessionSubtaskModel;
 use App\Shared\Domain\Contracts\UserProgressReaderInterface;
-use App\Shared\Domain\Services\AvatarAssetResolver;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -38,21 +42,22 @@ final class MissionsController extends Controller
         private UpdateMissionUseCase $updateMission,
         private DeleteMissionUseCase $deleteMission,
         private CompleteMissionUseCase $completeMission,
+        private UncompleteMissionUseCase $uncompleteMission,
         private ToggleSubtaskUseCase $toggleSubtask,
         private UpdateSubtaskUseCase $updateSubtask,
         private AddSubtaskUseCase $addSubtask,
         private ReorderSubtasksUseCase $reorderSubtasks,
         private UserProgressReaderInterface $progress,
         private PomodoroRepositoryInterface $pomodoroRepo,
-        private AvatarAssetResolver $avatarResolver,
     ) {}
 
     public function index(Request $request): Response
     {
         $userId = (int) Auth::id();
+        /** @var UserModel|null $user */
         $user = Auth::user();
         $sortBy = in_array($request->query('sort_by'), ['priority', 'difficulty', 'created_at'], true)
-            ? $request->query('sort_by') : 'default';
+            ? (string) $request->query('sort_by') : 'default';
 
         $missions = $this->repository->getActiveForUser($userId, $sortBy);
         $completed = $this->repository->getCompletedForUser($userId);
@@ -62,33 +67,39 @@ final class MissionsController extends Controller
 
         $missionsData = $this->mapMissions($missions, $today);
         $completedData = $this->mapMissions($completed, $today);
-        $avatarImage = $this->avatarResolver->imageForModule(
-            $user?->avatar_style,
-            $user?->avatar_gender,
-            'missions'
-        );
 
         return Inertia::render('Missions/Index', [
             'missions' => $missionsData,
             'completedMissions' => $completedData,
             'todayDate' => $today,
             'sortBy' => $sortBy,
-            'avatarImage' => $avatarImage,
+            'avatarStyle' => $user ? $user->avatar_style : 'base',
+            'avatarGender' => $user ? $user->avatar_gender : 'm',
+            'progress' => [
+                'phase' => $this->progress->getPhaseFor($userId),
+            ],
         ]);
     }
 
-    private function markOverdue($missions, string $today): void
+    /**
+     * @param Collection<int, MissionModel> $missions
+     */
+    private function markOverdue(Collection $missions, string $today): void
     {
         foreach ($missions as $mission) {
-            if ($mission->due_date && $mission->due_date < $today && ! $mission->is_overdue) {
+            if ($mission->due_date && $mission->due_date->toDateString() < $today && ! $mission->is_overdue) {
                 $mission->update(['is_overdue' => true]);
             }
         }
     }
 
-    private function mapMissions($missions, string $today): array
+    /**
+     * @param Collection<int, MissionModel> $missions
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapMissions(Collection $missions, string $today): array
     {
-        return $missions->map(fn ($m) => $this->mapMission($m, $today))->toArray();
+        return $missions->map(fn (MissionModel $m) => $this->mapMission($m, $today))->values()->toArray();
     }
 
     public function store(Request $request): RedirectResponse
@@ -155,21 +166,29 @@ final class MissionsController extends Controller
         $today = Carbon::now()->toDateString();
         $data = $this->mapMission($mission, $today);
 
-        $pomodoroSessions = PomodoroSessionModel::with(['subtaskCompletions.subtask'])
+        /** @var Collection<int, PomodoroSessionModel> $rawPomodoros */
+        $rawPomodoros = PomodoroSessionModel::query()
             ->where('mission_id', $id)
             ->where('status', SessionState::COMPLETED)
+            ->with(['subtaskCompletions.subtask'])
             ->orderByDesc('started_at')
-            ->get()
-            ->map(fn ($s) => [
+            ->get();
+
+        $pomodoroSessions = $rawPomodoros->map(function (PomodoroSessionModel $s) {
+            return [
                 'id' => $s->id,
                 'started_at' => $s->started_at->toIso8601String(),
                 'focus_minutes' => $s->focus_minutes,
-                'subtasks' => $s->subtaskCompletions->map(fn ($p) => [
-                    'id' => $p->subtask_id,
-                    'title' => $p->subtask->title,
-                    'completed_at' => $p->completed_at->toIso8601String(),
-                ]),
-            ]);
+                'subtasks' => $s->subtaskCompletions->map(function ($p) {
+                    /** @var PomodoroSessionSubtaskModel $p */
+                    return [
+                        'id' => $p->subtask_id,
+                        'title' => $p->subtask ? $p->subtask->title : '',
+                        'completed_at' => $p->completed_at->toIso8601String(),
+                    ];
+                })->values()->toArray(),
+            ];
+        })->values()->toArray();
 
         return Inertia::render('Missions/Detail', [
             'mission' => $data,
@@ -177,16 +196,19 @@ final class MissionsController extends Controller
         ]);
     }
 
-    private function mapMission($m, string $today): array
+    /**
+     * @return array<string, mixed>
+     */
+    private function mapMission(MissionModel $m, string $today): array
     {
-        $subtasks = $m->subtasks->map(fn ($s) => [
+        $subtasks = $m->subtasks->map(fn (SubtaskModel $s) => [
             'id' => $s->id,
             'title' => $s->title,
             'is_completed' => $s->is_completed,
             'sort_order' => $s->sort_order,
-        ]);
+        ])->values()->toArray();
 
-        $allDone = $m->subtasks->count() > 0 && $m->subtasks->every(fn ($s) => $s->is_completed);
+        $allDone = $m->subtasks->count() > 0 && $m->subtasks->every(fn (SubtaskModel $s) => $s->is_completed);
 
         return [
             'id' => $m->id,
@@ -215,6 +237,13 @@ final class MissionsController extends Controller
         $msg = $xp > 0 ? "Misión completada. ¡+{$xp} XP!" : 'Misión completada.';
 
         return back()->with('success', $msg);
+    }
+
+    public function uncomplete(int $id): RedirectResponse
+    {
+        $this->uncompleteMission->execute($id, (int) Auth::id());
+
+        return back()->with('success', 'Misión reactivada.');
     }
 
     public function toggleSubtask(int $id, int $subtaskId): JsonResponse|RedirectResponse

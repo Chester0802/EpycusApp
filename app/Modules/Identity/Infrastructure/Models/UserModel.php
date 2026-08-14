@@ -36,6 +36,7 @@ final class UserModel extends Authenticatable
         'career',
         'avatar_style',
         'avatar_gender',
+        'avatar_options',
         'cycle',
         'institution_type',
     ];
@@ -51,6 +52,7 @@ final class UserModel extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'cycle' => 'integer',
+            'avatar_options' => 'array',
         ];
     }
 

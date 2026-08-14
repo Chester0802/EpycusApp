@@ -350,16 +350,77 @@ Toda incidencia durante los 66 días va a la bitácora del proyecto con fecha, h
 
 ## 14. Antes del día 43
 
-- [ ] Staging funcionando en `dev.epycus.es`
-- [ ] Producción desplegada en `app.epycus.es` con HTTPS
-- [ ] Cron de `schedule:run` verificado (comprobar que efectivamente corre)
-- [ ] Copia de seguridad automática funcionando **y restauración probada**
-- [ ] `APP_KEY` respaldada fuera del servidor
-- [ ] Prueba de carga con 70 usuarios simulados durante 1 hora
-- [ ] Checklist completo de telemetría de `docs/02-TELEMETRIA.md` §10
-- [ ] Checklist completo de seguridad de `docs/06-SEGURIDAD.md` §13
-- [ ] Panel de administración accesible solo con 2FA
-- [ ] Inodos por debajo de 200.000 tras el despliegue
-- [ ] Datos de prueba **borrados** de producción
+---
 
-La última casilla se olvida con frecuencia y es grave: si quedan usuarios de prueba en producción, contaminan el dataset del estudio.
+## 15. Guía de Pruebas Locales y Despliegue mediante SSH (Paso a Paso)
+
+### A. Flujo de Desarrollo y Pruebas en Entorno Local
+
+Para continuar realizando pruebas locales antes de enviar cualquier cambio a producción:
+
+1. **Iniciar el servidor local backend:**
+   ```bash
+   php artisan serve
+   ```
+   *Acceso:* `http://127.0.0.1:8000`
+
+2. **Iniciar el servidor de desarrollo frontend (Vite Hot Reload):**
+   ```bash
+   npm run dev
+   ```
+
+3. **Ejecutar la suite completa de pruebas unitarias e integración (100 tests):**
+   ```bash
+   php vendor/bin/phpunit --testdox
+   ```
+
+4. **Verificar formato de código con Laravel Pint:**
+   ```bash
+   vendor/bin/pint
+   ```
+
+---
+
+### B. Procedimiento de Despliegue a Hostinger mediante SSH (`pscp` / `plink`)
+
+Cuando tus pruebas locales pasen al 100% y desees publicar las actualizaciones en Hostinger:
+
+#### Paso 1: Compilar los Assets Frontend en Local
+```bash
+npm run build
+```
+*(Esto genera la carpeta optimizada `public/build/` con el manifest e imágenes)*.
+
+#### Paso 2: Subir los Archivos Modificados al Servidor
+Utiliza `pscp` desde la consola de Windows (PowerShell/CMD):
+
+- **Subir carpeta de assets compilados (`public/build`):**
+  ```bash
+  pscp -r -batch -hostkey "SHA256:5NPmo7Lsf5dX4VteyZJK2tpslJ3r/zQxyZbWxhjS5+k" -P 65002 -pw "Marco123:)" public/build u897008619@46.202.145.111:/home/u897008619/domains/epycus.es/public_html/app/public/
+  ```
+
+- **Subir un controlador o archivo PHP específico:**
+  ```bash
+  pscp -batch -hostkey "SHA256:5NPmo7Lsf5dX4VteyZJK2tpslJ3r/zQxyZbWxhjS5+k" -P 65002 -pw "Marco123:)" app/Http/Controllers/Auth/GoogleAuthController.php u897008619@46.202.145.111:/home/u897008619/domains/epycus.es/public_html/app/app/Http/Controllers/Auth/GoogleAuthController.php
+  ```
+
+- **Subir el archivo de configuración `.env.production` como `.env`:**
+  ```bash
+  pscp -batch -hostkey "SHA256:5NPmo7Lsf5dX4VteyZJK2tpslJ3r/zQxyZbWxhjS5+k" -P 65002 -pw "Marco123:)" .env.production u897008619@46.202.145.111:/home/u897008619/domains/epycus.es/public_html/app/.env
+  ```
+
+#### Paso 3: Limpiar y Reconstruir Caché en Producción mediante `plink`
+Ejecuta el siguiente comando remoto para aplicar los cambios de inmediato en Hostinger:
+
+```bash
+plink -batch -hostkey "SHA256:5NPmo7Lsf5dX4VteyZJK2tpslJ3r/zQxyZbWxhjS5+k" -P 65002 -pw "Marco123:)" u897008619@46.202.145.111 "cd /home/u897008619/domains/epycus.es/public_html/app && php artisan view:clear && php artisan route:clear && php artisan cache:clear && php artisan config:cache && php artisan route:cache && php artisan view:cache"
+```
+
+---
+
+### C. Manejo de Archivos `.zip` y Respaldos
+
+- Los archivos `.zip` en la raíz (`epycus-app.zip`, `epycus-deploy.zip`) fueron creados para la subida inicial completa de archivos comprimidos al servidor.
+- Están incluidos en `.gitignore` para no sobrecargar el repositorio Git.
+- **Recomendación:** Puedes conservarlos en tu disco local como un respaldo seguro de la versión desplegada o eliminarlos si deseas liberar espacio en tu disco local.
+

@@ -5,11 +5,14 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
 import ProgressBar from '@/Components/ui/ProgressBar.vue';
 import UsageTipBanner from '@/Components/ui/UsageTipBanner.vue';
+import ProceduralAvatar from '@/Components/ProceduralAvatar.vue';
 
 const props = defineProps({
     summary: { type: Object, required: true },
     achievements: { type: Array, default: () => [] },
-    avatarImage: { type: String, default: null },
+    avatarStyle: { type: String, default: 'base' },
+    avatarGender: { type: String, default: 'm' },
+    progress: { type: Object, default: () => ({ phase: 1 }) },
 });
 
 const activeCategory = ref('all');
@@ -40,12 +43,11 @@ const filteredAchievements = computed(() => {
                 <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-4">
                         <div
-                            v-if="avatarImage"
-                            class="flex h-24 w-16 shrink-0 items-center justify-center rounded-2xl p-1 border border-border-interactive shadow-sm"
+                            class="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border-interactive bg-surface-raised/40 p-2 shadow-sm"
                         >
                             <img
-                                :src="avatarImage"
-                                alt="Avatar"
+                                src="/assets/gifs/achievements.gif"
+                                alt="Logros e Insignias"
                                 class="h-full w-full object-contain"
                             />
                         </div>

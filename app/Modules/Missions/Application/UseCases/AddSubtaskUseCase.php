@@ -25,11 +25,14 @@ final class AddSubtaskUseCase
             throw new \RuntimeException('Max 20 subtasks per mission');
         }
 
-        $maxSort = $mission->subtasks()->max('sort_order') ?? 0;
+        $maxSort = (int) ($mission->subtasks()->max('sort_order') ?? 0);
 
-        return $mission->subtasks()->create([
+        /** @var SubtaskModel $subtask */
+        $subtask = $mission->subtasks()->create([
             'title' => $title,
             'sort_order' => $maxSort + 1,
         ]);
+
+        return $subtask;
     }
 }

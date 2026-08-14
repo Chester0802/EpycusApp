@@ -11,7 +11,7 @@ final class GenerateDatasetCsvUseCase
 {
     public function execute(string $datasetType): StreamedResponse
     {
-        $fileName = "epycus_dataset_{$datasetType}_" . date('Ymd_His') . ".csv";
+        $fileName = "epycus_dataset_{$datasetType}_".date('Ymd_His').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -45,6 +45,26 @@ final class GenerateDatasetCsvUseCase
                         ->chunk(100, function ($rows) use ($file) {
                             foreach ($rows as $r) {
                                 fputcsv($file, [$r->participant_code, $r->type, $r->planned_minutes, $r->status, $r->created_at]);
+                            }
+                        });
+                    break;
+
+                case 'epa_responses':
+                    fputcsv($file, [
+                        'participant_code', 'phase', 'item_2', 'item_5', 'item_7', 'item_10',
+                        'item_11', 'item_12', 'item_13', 'item_14', 'total_score', 'completed_at',
+                    ]);
+                    DB::table('epa_responses')
+                        ->select([
+                            'participant_code', 'phase', 'item_2', 'item_5', 'item_7', 'item_10',
+                            'item_11', 'item_12', 'item_13', 'item_14', 'total_score', 'completed_at',
+                        ])
+                        ->chunk(100, function ($rows) use ($file) {
+                            foreach ($rows as $r) {
+                                fputcsv($file, [
+                                    $r->participant_code, $r->phase, $r->item_2, $r->item_5, $r->item_7, $r->item_10,
+                                    $r->item_11, $r->item_12, $r->item_13, $r->item_14, $r->total_score, $r->completed_at,
+                                ]);
                             }
                         });
                     break;

@@ -48,22 +48,35 @@ Los módulos rojo y azul son los críticos: si fallan, se pierde el estudio.
 
 ## 1. Identity
 
-Autenticación, perfil y consentimiento del participante.
+Autenticación, perfil, consentimiento del participante e instrumentos de medición psicométrica y usabilidad.
 
-**Entidades:** `User`, `Participant`, `UserPreferences`
+**Entidades:** `User`, `Participant`, `UserPreferences`, `EpaEvaluation` (pre/postest), `SusEvaluation`
 
 **Campos clave del perfil:**
 
 | Campo | Tipo | Nota |
 |---|---|---|
-| `career` | enum cerrado | **Lista desplegable, NUNCA texto libre** (decisión D-16) |
-| `cycle` | enum 1–10 | Idem, cerrado |
+| `career` | enum cerrado | **Lista desplegable, NUNCA texto libre** (decisión D-16) — **Variable de Control** |
+| `cycle` | enum 1–10 | Idem, cerrado — **Variable de Control** |
 | `institution_type` | enum | `universidad` \| `instituto` |
 | `gender_avatar` | enum | `m` \| `f` — solo para elegir el asset |
 | `alias` | string | Nombre visible en ranking. No es el nombre real |
 | `participant_code` | string único | **Código seudonimizado del estudio** |
 
-El campo `career` alimenta directamente el estilo visual del avatar. La razón de que sea cerrado está documentada: en la encuesta 2 hubo 25 variantes de texto para 11 carreras reales, lo que hizo imposible agrupar. Ese error no se repite.
+El campo `career` alimenta directamente el estilo visual del avatar. La razón de que sea cerrado está documentada: en la encuesta 2 (Microsoft Forms, $n=31$) hubo 25 variantes de texto para 11 carreras reales, lo que hizo imposible agrupar. Ese error no se repite.
+
+**Instrumentos Psicométricos y de Usabilidad Incorporados:**
+1. **Escala EPA (8 ítems seleccionados para Pretest / Postest - Variable Dependiente):**
+   - Ítem 2: Generalmente me preparo por adelantado para los exámenes.
+   - Ítem 5: Cuando tengo problemas para entender algo, inmediatamente trato de buscar ayuda.
+   - Ítem 7: Trato de completar el trabajo asignado lo más pronto posible.
+   - Ítem 10: Constantemente intento mejorar mis hábitos de estudio.
+   - Ítem 11: Invierto el tiempo necesario en estudiar aun cuando el tema sea aburrido.
+   - Ítem 12: Trato de motivarme para mantener mi ritmo de estudio.
+   - Ítem 13: Trato de terminar mis trabajos importantes con tiempo de sobra.
+   - Ítem 14: Me tomo el tiempo de revisar mis tareas antes de entregarlas.
+2. **Escala SUS (10 ítems adaptados - Evaluación de Usabilidad / Objetivo Específico 3):**
+   - Ítems 1 al 10 estandarizados para evaluar la usabilidad percibida post-intervención.
 
 **Preferencias del usuario (`UserPreferences`, 1:1 obligatorio con `User`, se crea al registrar):**
 
@@ -74,9 +87,9 @@ El campo `career` alimenta directamente el estilo visual del avatar. La razón d
 
 No hay preferencia de idioma: toda la interfaz es en español, no existe selector ni se planea uno.
 
-**Casos de uso:** `RegisterUser`, `LoginUser`, `CompleteProfile`, `RecordConsent`, `UpdatePreferences`
+**Casos de uso:** `RegisterUser`, `LoginUser`, `CompleteProfile`, `RecordConsent`, `UpdatePreferences`, `RecordEpaPretest`, `RecordEpaPostest`, `RecordSusEvaluation`
 
-**Eventos emitidos:** `UserRegistered`, `ProfileCompleted`, `ConsentGranted`
+**Eventos emitidos:** `UserRegistered`, `ProfileCompleted`, `ConsentGranted`, `EpaEvaluated`, `SusEvaluated`
 
 > `participant_code` se genera al registrar. La tabla que mapea `participant_code` ↔ identidad real vive aparte y con acceso restringido. Ver `docs/06-SEGURIDAD.md`.
 

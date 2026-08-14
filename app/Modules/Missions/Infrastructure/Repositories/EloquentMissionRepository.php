@@ -28,8 +28,8 @@ final class EloquentMissionRepository implements MissionRepositoryInterface
             ->with('subtasks');
 
         return match ($sortBy) {
-            'priority' => $query->orderByRaw("FIELD(priority, 'alta', 'normal', 'baja')")->orderBy('due_date')->get(),
-            'difficulty' => $query->orderByRaw("FIELD(difficulty, 'hard', 'medium', 'easy')")->orderBy('due_date')->get(),
+            'priority' => $query->orderByRaw("CASE priority WHEN 'alta' THEN 1 WHEN 'normal' THEN 2 WHEN 'baja' THEN 3 ELSE 4 END")->orderBy('due_date')->get(),
+            'difficulty' => $query->orderByRaw("CASE difficulty WHEN 'hard' THEN 1 WHEN 'medium' THEN 2 WHEN 'easy' THEN 3 ELSE 4 END")->orderBy('due_date')->get(),
             'created_at' => $query->orderBy('created_at', 'desc')->get(),
             default => $query
                 ->orderByRaw('CASE
@@ -39,7 +39,7 @@ final class EloquentMissionRepository implements MissionRepositoryInterface
                     ELSE 3
                 END', [Carbon::now()->toDateString(), Carbon::now()->addWeek()->toDateString()])
                 ->orderBy('due_date')
-                ->orderByRaw("FIELD(priority, 'alta', 'normal', 'baja')")
+                ->orderByRaw("CASE priority WHEN 'alta' THEN 1 WHEN 'normal' THEN 2 WHEN 'baja' THEN 3 ELSE 4 END")
                 ->get(),
         };
     }
@@ -54,11 +54,13 @@ final class EloquentMissionRepository implements MissionRepositoryInterface
             ->get();
     }
 
+    /** @param array<string, mixed> $data */
     public function create(array $data): MissionModel
     {
         return MissionModel::create($data);
     }
 
+    /** @param array<string, mixed> $data */
     public function update(MissionModel $mission, array $data): MissionModel
     {
         $mission->update($data);

@@ -11,8 +11,11 @@ use Illuminate\Support\Facades\Log;
 final class DeepSeekApiClient
 {
     private string $apiKey;
+
     private string $baseUrl;
+
     private string $model;
+
     private int $timeout;
 
     public function __construct()
@@ -24,36 +27,38 @@ final class DeepSeekApiClient
     }
 
     /**
-     * @param array<array{role: string, content: string}> $messages
+     * @param  array<array{role: string, content: string}>  $messages
      */
     public function chat(array $messages): string
     {
         if (empty($this->apiKey)) {
             Log::warning('DeepSeek API Key no configurada. Usando respuesta simulada de respaldo.');
+
             return '¡Hola! Soy tu asistente de estudio EpyIA. ¿En qué te puedo ayudar hoy con tus hábitos, misiones o sesiones de estudio?';
         }
 
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer '.$this->apiKey,
                 'Content-Type' => 'application/json',
             ])
-            ->timeout($this->timeout)
-            ->post(rtrim($this->baseUrl, '/') . '/chat/completions', [
-                'model' => $this->model,
-                'messages' => $messages,
-                'stream' => false,
-            ]);
+                ->timeout($this->timeout)
+                ->post(rtrim($this->baseUrl, '/').'/chat/completions', [
+                    'model' => $this->model,
+                    'messages' => $messages,
+                    'stream' => false,
+                ]);
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return $this->extractContent($data);
             }
 
-            Log::error('Error HTTP en DeepSeek API: ' . $response->status() . ' - ' . $response->body());
-            throw new Exception('Error al comunicarse con DeepSeek API: ' . $response->status());
+            Log::error('Error HTTP en DeepSeek API: '.$response->status().' - '.$response->body());
+            throw new Exception('Error al comunicarse con DeepSeek API: '.$response->status());
         } catch (Exception $e) {
-            Log::error('Excepción al invocar DeepSeek API: ' . $e->getMessage());
+            Log::error('Excepción al invocar DeepSeek API: '.$e->getMessage());
             throw $e;
         }
     }
@@ -77,7 +82,8 @@ final class DeepSeekApiClient
             return $reasoning;
         }
 
-        Log::warning('DeepSeek API devolvió respuesta vacía: ' . json_encode($data));
+        Log::warning('DeepSeek API devolvió respuesta vacía: '.json_encode($data));
+
         return 'No recibí una respuesta adecuada del asistente.';
     }
 }

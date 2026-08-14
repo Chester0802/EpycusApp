@@ -17,7 +17,7 @@ final class RateAdviceUseCase
             $query->where('user_id', $userId);
         })->where('id', $messageId)->first();
 
-        if (!$message) {
+        if (! $message) {
             throw new Exception('Mensaje no encontrado.');
         }
 

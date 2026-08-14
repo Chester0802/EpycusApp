@@ -21,7 +21,7 @@ final class GetConversationHistoryUseCase
 
         $conversation = $query->first();
 
-        if (!$conversation) {
+        if (! $conversation) {
             return [
                 'conversation_id' => null,
                 'messages' => [],

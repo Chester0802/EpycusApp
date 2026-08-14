@@ -15,7 +15,7 @@ final class EnsureUserIsAdmin
     {
         $user = Auth::user();
 
-        if (!$user || $user->role !== 'admin') {
+        if (! $user || $user->role !== 'admin') {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Calendar\Infrastructure\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -15,8 +16,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $end_time
  * @property string|null $classroom
  * @property string $color
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 final class ClassScheduleModel extends Model
 {

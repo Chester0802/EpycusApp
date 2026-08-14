@@ -2,51 +2,17 @@
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
-import BaseSelect from '@/Components/ui/BaseSelect.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
 
 /*
  * Pantalla de registro — Epycus (Fase 1).
- * Formulario: Nombre completo, correo, contraseña, fecha de nacimiento, género, carrera.
- * Regla Género → Personaje/Avatar:
- *   - Masculino ('m')
- *   - Femenino ('f')
- *   - Prefiero no decir ('unspecified') → Asigna por defecto el avatar masculino ('m').
- * Términos y condiciones: Checkbox de aceptación y enlace a /terms.
+ * Formulario esencial de inicio de cuenta:
+ *   - Nombre completo, Alias público (con sugerencia automática), Correo, Contraseña y Términos.
  *
- * NOTA DE ARQUITECTURA (Cuestionario Pre-Uso Futuro):
- * Posterior al registro/completar perfil, en el futuro se intercalará el cuestionario
- * pre-uso del sistema (antes de acceder al Dashboard principal). Se deja estructurado
- * para integrarse fluidamente manteniendo una experiencia limpia ("todo bonito").
+ * Flujo de Arquitectura (docs/01-MODULOS.md):
+ *   Paso 1: Registro de credenciales e identidad inicial (/register).
+ *   Paso 2: Completar perfil de estudiante (/profile/complete) → Institución, Carrera, Ciclo y Género de Avatar.
  */
-
-const props = defineProps({
-    careers: {
-        type: Array,
-        default: () => [
-            'Ingeniería de Sistemas',
-            'Ingeniería Civil',
-            'Ingeniería Industrial',
-            'Ingeniería de Minas',
-            'Arquitectura',
-            'Administración de Empresas',
-            'Contabilidad',
-            'Medicina',
-            'Enfermería',
-            'Obstetricia',
-            'Derecho',
-        ],
-    },
-});
-
-const careerOptions = computed(() => props.careers.map((c) => ({ value: c, label: c })));
-
-const genderOptions = [
-    { value: 'm', label: 'Masculino' },
-    { value: 'f', label: 'Femenino' },
-    { value: 'unspecified', label: 'Prefiero no decir' },
-];
 
 const form = useForm({
     name: '',
@@ -54,20 +20,24 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
-    birthdate: '',
-    gender: 'm',
-    career: '',
     terms_accepted: false,
 });
 
-const submit = () => {
-    // Si selecciona "Prefiero no decir", se mapea avatar de género masculino por defecto
-    const avatarGender = form.gender === 'unspecified' ? 'm' : form.gender;
+const generateAlias = () => {
+    const firstWord = form.name
+        ? form.name
+              .trim()
+              .split(' ')[0]
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, '')
+        : 'estudiante';
+    const base = firstWord.length >= 2 ? firstWord : 'estudiante';
+    const randomCode = Math.floor(1000 + Math.random() * 9000);
+    form.alias = `${base}-${randomCode}`;
+};
 
-    form.transform((data) => ({
-        ...data,
-        avatar_gender: avatarGender,
-    })).post(route('register'), {
+const submit = () => {
+    form.post(route('register'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
@@ -80,6 +50,23 @@ const submit = () => {
         <template #tagline>
             <p class="text-sm font-medium text-content-secondary">Comienza tu progreso</p>
         </template>
+
+        <!-- Alertas flash de error y advertencia -->
+        <div
+            v-if="$page.props.flash?.error"
+            class="mb-5 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm font-semibold text-danger-text"
+            role="alert"
+        >
+            {{ $page.props.flash.error }}
+        </div>
+
+        <div
+            v-if="$page.props.flash?.warning"
+            class="mb-5 rounded-lg bg-warning/10 border border-warning/20 px-4 py-3 text-sm font-semibold text-warning-text"
+            role="alert"
+        >
+            {{ $page.props.flash.warning }}
+        </div>
 
         <h1 class="mb-2 font-display text-2xl font-bold text-content-primary">Crear cuenta</h1>
         <p class="mb-6 text-sm text-content-secondary">
@@ -98,17 +85,34 @@ const submit = () => {
                 required
             />
 
-            <!-- Alias público: visible en el ranking -->
-            <BaseInput
-                id="alias"
-                v-model="form.alias"
-                label="Alias (visible en el ranking)"
-                type="text"
-                autocomplete="username"
-                :error="form.errors.alias"
-                required
-            />
+            <!-- Alias público con botón interactivo de generación -->
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label for="alias" class="block text-sm font-semibold text-content-secondary">
+                        Alias público (visible en el ranking)
+                        <span class="text-danger-text">*</span>
+                    </label>
+                    <button
+                        type="button"
+                        class="text-xs font-semibold text-primary-strong hover:underline focus-visible:outline-none"
+                        @click="generateAlias"
+                    >
+                        ⚡ Generar alias
+                    </button>
+                </div>
+                <BaseInput
+                    id="alias"
+                    v-model="form.alias"
+                    label=""
+                    type="text"
+                    autocomplete="username"
+                    placeholder="Ej. estudiante-8492"
+                    :error="form.errors.alias"
+                    required
+                />
+            </div>
 
+            <!-- Correo electrónico -->
             <BaseInput
                 id="email"
                 v-model="form.email"
@@ -116,38 +120,6 @@ const submit = () => {
                 type="email"
                 autocomplete="email"
                 :error="form.errors.email"
-                required
-            />
-
-            <!-- Fecha de nacimiento -->
-            <BaseInput
-                id="birthdate"
-                v-model="form.birthdate"
-                label="Fecha de nacimiento"
-                type="date"
-                :error="form.errors.birthdate"
-                required
-            />
-
-            <!-- Género -->
-            <BaseSelect
-                id="gender"
-                v-model="form.gender"
-                label="Género"
-                :options="genderOptions"
-                placeholder="Selecciona tu género"
-                :error="form.errors.gender"
-                required
-            />
-
-            <!-- Carrera -->
-            <BaseSelect
-                id="career"
-                v-model="form.career"
-                label="Carrera profesional"
-                :options="careerOptions"
-                placeholder="Selecciona tu carrera"
-                :error="form.errors.career"
                 required
             />
 
@@ -162,6 +134,7 @@ const submit = () => {
                 required
             />
 
+            <!-- Confirmar contraseña -->
             <BaseInput
                 id="password_confirmation"
                 v-model="form.password_confirmation"

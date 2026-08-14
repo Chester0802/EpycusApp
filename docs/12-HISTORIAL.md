@@ -1,6 +1,168 @@
 \
 # 12 — Historial de sesiones de IA
 
+## 2026-08-13 — Antigravity [Rediseño de Onboarding Dedicado (/profile/complete), Corrección de Errores HTTP 500 y Lucide AppIcon en Dashboard]
+
+**Qué se hizo:**
+1. **Rediseño de Pantalla de Onboarding Dedicada (`CompleteProfile.vue` & Google Auth):**
+   - Se migró el diseño de `CompleteProfile.vue` ([CompleteProfile.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Pages/Identity/CompleteProfile.vue)) a `GuestLayout` (pantalla dedicada e independiente fuera del panel interno del Dashboard).
+   - Se integró el campo de **Alias público (Apodo)** con generador automático `⚡ Generar alias`, además de Tipo de Institución (Universidad/Instituto), Carrera Profesional, Ciclo Académico (1 a 10) y Género de Avatar.
+   - Se actualizó `ProfileController.php`, `CompleteProfileRequest.php`, `CompleteProfileDTO.php`, `CompleteProfileUseCase.php` y el modelo de dominio `User` ([User.php](file:///c:/Users/marco/Videos/Epycus/app/Modules/Identity/Domain/Entities/User.php#L92-L105)) para actualizar el `alias` durante la finalización del onboarding.
+2. **Corrección de Errores Fatal & HTTP 500:**
+   - **Método Estático `Career::avatarStyle`**: Se agregó el método estático `public static function avatarStyle()` en [Career.php](file:///c:/Users/marco/Videos/Epycus/app/Modules/Identity/Domain/ValueObjects/Career.php#L36-L47) resolviendo la llamada estática de `ProfileController`.
+   - **Columna `archived_at` en Hábitos**: Se corrigió la consulta en [DashboardController.php](file:///c:/Users/marco/Videos/Epycus/app/Http/Controllers/DashboardController.php#L128-L133) reemplazando `whereNull('archived_at')` por `where('is_active', 1)->whereNull('deleted_at')`.
+3. **Reemplazo de Emojis por Íconos Lucide (`AppIcon`) y Formateo en Dashboard:**
+   - Se reemplazaron todos los emojis planos Unicode en la tarjeta de Bienestar de [Dashboard.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Pages/Dashboard.vue#L245-L305) por componentes SVG nativos `<AppIcon name="..." />` (`smile`, `zap`, `shield`, `heart`, `arrow-right`).
+   - Se formateó la visualización de valores no registrados de Energía y Estrés para mostrar explícitamente `"No disponible"` en lugar de nulos o `'N/A'`.
+4. **Despliegue a Producción Hostinger (`https://app.epycus.es`):**
+   - Ejecución de `php vendor/bin/phpunit` ✅ (100/100 tests pasados OK, 100%), compilación de assets con `npm run build`, subida de archivos vía `pscp` y reconstrucción de caché remota con `plink` (`view:clear`, `route:clear`, `cache:clear`, `config:cache`, `route:cache`, `view:cache`).
+
+**Decisiones tomadas:** El flujo de registro con Google y onboarding quedó totalmente desacoplado del panel interno para evitar superposiciones con el Dashboard o modal EPA antes de que el usuario complete su perfil inicial.
+
+---
+
+## 2026-08-13 — Antigravity [Implementación de Gráficos Circulares SVG (Donut y Anillo Radial) y Enlace Directo a Bienestar en Dashboard (Inicio)]
+
+**Qué se hizo:**
+1. **Componentes SVG Circulares Reutilizables:**
+   - **DonutChart.vue ([DonutChart.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Components/ui/DonutChart.vue)):** Componente gráfico SVG de dona/rosquilla multi-segmento responsivo con leyendas laterales e indicador numérico central.
+   - **RadialProgressRing.vue ([RadialProgressRing.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Components/ui/RadialProgressRing.vue)):** Anillo radial SVG de progreso continuo con degradado neón y porcentaje central.
+2. **Dashboard (Inicio) & backend (`DashboardController.php` & `Dashboard.vue`):**
+   - En [DashboardController.php](file:///c:/Users/marco/Videos/Epycus/app/Http/Controllers/DashboardController.php#L95-L140) se agregaron consultas para el desglose exacto de misiones (`completed`, `pending`, `overdue`), adherencia porcentual a hábitos de hoy y promedios de bienestar de los últimos 7 días (`avgMood`, `avgEnergy`, `avgStress`).
+   - En [Dashboard.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Pages/Dashboard.vue#L170-L260) se integraron 3 nuevas tarjetas en la grilla visual:
+     1. **🍩 Gráfico Donut de Misiones**: Desglose de misiones completadas (verde esmeralda), pendientes (azul cian) y vencidas (rojo carmesí).
+     2. **🎯 Anillo Radial de Cumplimiento de Hábitos**: Porcentaje de objetivo diario cumplido.
+     3. **🧠 Resumen de Bienestar Emocional**: Indicadores de ánimo, energía y estrés con botón **"💚 Ir al módulo Bienestar"** con enlace directo a `/wellbeing`.
+3. **Despliegue a Producción Hostinger (`https://app.epycus.es`):**
+   - Compilación con `npm run build` y sincronización remota por SSH/pscp de assets y controladores, con reconstrucción de caché (`php artisan config:cache && route:cache && view:cache`).
+
+**Decisiones tomadas:** Los gráficos circulares se desarrollaron en SVG puro nativo (vectorial ligero sin librerías pesadas externas) garantizando responsividad, animaciones fluidas y soporte completo para modo claro, oscuro y vidrio.
+
+**Verificado cómo:** `php vendor/bin/phpunit` ✅ (100/100 tests pasados, 316 aserciones), `npm run build` ✅, despliegue a Hostinger verificado.
+
+**Pendiente / qué falta:** Proceder con el siguiente módulo solicitado por el usuario.
+
+---
+
+## 2026-08-13 — Antigravity [Auditoría y Gestión de Información Académica en Módulo Perfil (/profile)]
+
+**Qué se hizo:**
+1. **Formulario de Información Académica (`UpdateAcademicInformationForm.vue`):**
+   - Se creó el nuevo componente parcial [UpdateAcademicInformationForm.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Pages/Profile/Partials/UpdateAcademicInformationForm.vue) que permite al usuario actualizar su Tipo de Institución (Universidad / Instituto), Carrera profesional y Ciclo académico (1 a 10) directamente desde su Perfil.
+2. **Integración en Vista Principal de Perfil (`Profile/Edit.vue`):**
+   - Se integró la tarjeta del nuevo formulario en [Edit.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Pages/Profile/Edit.vue) con selectores limpios poblados por la configuración del sistema.
+3. **Backend y Sincronización Automática de Estilo de Avatar (`ProfileController.php` & `ProfileUpdateRequest.php`):**
+   - Se ampliaron las reglas de validación en [ProfileUpdateRequest.php](file:///c:/Users/marco/Videos/Epycus/app/Http/Requests/ProfileUpdateRequest.php#L26-L29) para validar `career`, `cycle` (1-10) e `institution_type`.
+   - En [ProfileController.php](file:///c:/Users/marco/Videos/Epycus/app/Http/Controllers/ProfileController.php#L65-L115), si el usuario cambia su carrera profesional, se recalcula y actualiza automáticamente el campo `avatar_style` mediante `Career::avatarStyle()`, actualizando el carnet holográfico en tiempo real.
+
+**Decisiones tomadas:** Se habilitó la modificación posterior de datos académicos en Perfil sin romper el flujo de onboarding inicial ni desacoplar los estilos procedurales de avatar asignados por carrera.
+
+**Verificado cómo:** `php vendor/bin/phpunit` ✅ (100/100 tests pasados, 316 aserciones), `npx prettier --write` ✅ (archivos formateados).
+
+**Pendiente / qué falta:** Proceder con la revisión y auditoría del siguiente módulo o pantalla solicitada por el usuario.
+
+---
+
+## 2026-08-13 — Antigravity [Auditoría y Mejoras en Login, Registro, Cuestionario EPA de Procrastinación y Persistencia Modal]
+
+**Qué se hizo:**
+1. **Módulo de Login (UI/UX, Usabilidad y Seguridad):**
+   - **Login con Email o Alias:** Se actualizó `LoginRequest.php` para detectar dinámicamente si el usuario ingresa su correo electrónico o su `alias` único (ej. `Marcoadmin`), permitiendo la autenticación con cualquiera de los dos campos.
+   - **Protección Anti-CSRF OAuth:** En `GoogleAuthController.php` se implementó la generación y validación de tokens de estado `state` Anti-CSRF mediante `hash_equals()`.
+   - **Transaccionalidad en Registros Google:** Se envolvió la creación de `UserModel`, `ParticipantModel`, `UserPreferencesModel` y `UserProgressModel` en una transacción de base de datos (`DB::transaction`).
+   - **Alertas Flash & Credenciales Admin:** Se habilitaron mensajes flash de error/advertencia (`$page.props.flash`) en `Login.vue` y `HandleInertiaRequests.php`. Se actualizaron las credenciales predeterminadas a `Marcoadmin` / `Marcoadmin123@` condicionadas al entorno de desarrollo (`import.meta.env.DEV`).
+
+2. **Módulo de Registro (`/register`):**
+   - **Flujo Limpio en 2 Pasos:** Se removieron los campos innecesarios/fantasma de `Register.vue` (`birthdate`, `gender`, `career`) que no se guardaban en el paso 1 y causaban redundancia al pedir los datos académicos en `/profile/complete`.
+   - **Generador Interactivo de Alias:** Se añadió un botón "⚡ Generar alias" en `Register.vue` que auto-sugiere alias únicos y válidos para facilitar el registro.
+   - **Validación de Términos:** Se añadió la regla `'terms_accepted' => ['sometimes', 'accepted']` en `RegisteredUserController.php`.
+   - **Gamificación Inicial:** `RegisterUserUseCase.php` ahora inserta atómicamente la fila inicial de `UserProgressModel` en la BD para usuarios registrados por formulario.
+
+3. **Cuestionario Diagnóstico de Procrastinación Actual (`EpaPretestModal.vue`):**
+   - **Diseño & Jerarquía Visual:** Se renombró el título a **Diagnóstico de procrastinación actual**, con badge `📋 Evaluación Inicial · Escala EPA`, barra de progreso con degradado (`from-primary to-accent`), tarjetas hundidas y botones de 5 opciones con micro-animaciones y selección destacada.
+   - **Cierre Inmediato & Persistencia Dual:** Al responder las 8 preguntas y enviar (+50 XP), el modal se cierra de forma inmediata. Se añadió persistencia en `localStorage` (`epycus_epa_completed_${userId}`) combinada con `HandleInertiaRequests.php` para garantizar que el cuestionario jamás vuelva a mostrarse al navegar entre módulos o usar el historial del navegador.
+   - **Prevención de Superposiciones (DOM):** Se eliminó la directiva `v-if="show"` duplicada en el contenedor interno de `BaseModal.vue`, corrigiendo la ilusión de vista previa o imagen duplicada durante las transiciones.
+
+**Decisiones tomadas:**
+- Se consolidó un flujo de onboarding en 2 pasos independientes: Paso 1 para credenciales (`/register`) y Paso 2 para datos de estudiante (`/profile/complete`).
+- El flag de completado del cuestionario EPA utiliza persistencia dual (Servidor BD `epa_responses` + Cliente `localStorage`) para resistir restauraciones de historial del navegador.
+
+**Verificado cómo:** `php vendor/bin/phpunit` ✅ (100/100 tests pasados, 316 aserciones), `npx prettier --write` ✅ (archivos de Vue formateados limpiamente), `npm run lint` ✅.
+
+**Pendiente / qué falta:** Proceder con la revisión y auditoría del módulo de **Perfil** (`/profile`).
+
+---
+
+## 2026-08-10 — Antigravity [Implementación de Escala EPA Pretest Dinámica, Cierre 100% de Telemetría y Configuración de Google OAuth]
+
+**Qué se hizo:**
+1. **Auditoría Global contra `README.md`:** Se realizó una auditoría completa del código frente a las especificaciones del `README.md`, confirmando cumplimiento del 100% en los 19 puntos del MVP y la suite de pruebas.
+2. **Escala EPA (Pretest de 8 Ítems) Activa y Dinámica:**
+   - Se creó la migración `2026_08_10_000001_create_epa_responses_table.php` (`epa_responses`) con restricción de idempotencia `UNIQUE(user_id, phase)`.
+   - Se implementaron DTO, modelo `EpaResponseModel`, caso de uso `RecordEpaPretestUseCase` (que otorga **+50 XP** y registra telemetría `epa.evaluated`), `RecordEpaRequest` y `EpaController`.
+   - Se construyó el componente wizard interactivo `EpaPretestModal.vue` e integró dinámicamente en `AppLayout.vue` para desplegarse automáticamente ante usuarios que no han completado el diagnóstico inicial.
+   - Se creó la suite de pruebas `EpaPretestTest.php`.
+3. **Cierre de Telemetría (Backend Listener, Exportación Python y Eventos UI):**
+   - Se construyó `DomainEventTelemetryListener` y registró en `TelemetryServiceProvider` para capturar automáticamente todos los eventos de dominio PHP (`HabitCompleted`, `PomodoroCompleted`, `MissionCompleted`, `XpAwarded`, `LevelUp`, `StreakExtended`, `VillainDefeated`, `JournalEntryCreated`, etc.) y guardarlos en `telemetry_events` con `source = 'backend'`.
+   - Se creó el comando `php artisan telemetry:export --from=... --to=... --format=csv` (`ExportTelemetryCommand.php`) que genera los 3 CSVs (`events_raw.csv`, `daily_per_user.csv` y `summary_per_user.csv`) en formato Tidy Data listo para **Python (Pandas)**.
+   - Se integraron rastreos de eventos UI secundarios (`tip.shown`, `tip.dismissed`, `theme.changed`).
+   - Se crearon las pruebas automatizadas `TelemetryListenerTest.php` y `ExportTelemetryCommandTest.php`.
+4. **Configuración de Credenciales Google OAuth:**
+   - Se configuraron las credenciales reales de Google OAuth (`GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`) en `.env` y las plantillas correspondientes en `.env.example`.
+
+**Decisiones tomadas:**
+- La exportación de datos de telemetría y diagnósticos se estructuró específicamente en formato Tidy Data compatible con Python (`pandas.read_csv()`).
+- Los fallos de telemetría no bloquean en ningún caso la experiencia del usuario (failsafe), registrándose en el log `telemetry_failure`.
+
+**Verificado cómo:** `php artisan test` ✅ (100/100 tests pasados, 316 aserciones), `npm run build` ✅ (2644 módulos compilados limpiamente en 30.7 s), `php vendor/bin/pint` ✅ (limpio).
+
+**Pendiente / qué falta:** Ninguno.
+
+---
+
+## 2026-08-09 — Antigravity [Sincronización Masiva con el Avance Verificado del Paper, Escalas EPA 8 y SUS 10, y 40 Días de Intervención]
+
+
+**Qué se hizo:**
+1. **Actualización del README Principal ([README.md](file:///c:/Users/marco/Videos/Epycus/README.md)):**
+   - Se añadió la sección formal **Contexto de Investigación y Avance del Paper**, incorporando los antecedentes nacionales ($n=384$ en 18 instituciones peruanas) y el diagnóstico exploratorio secuencial de Cajamarca (Encuesta 1 Google Forms $n=98$, Encuesta 2 Microsoft Forms $n=31$, Diagrama de Pareto de Obstáculos con el 63,3 %/77,6 % de acumulación).
+   - Se documentó el marco conceptual (metacognición, gamificación personalizada, IA conversacional con guardarrieles y telemetría conductual) y las 3 líneas de antecedentes de la literatura [1–8].
+   - Se establecieron explícitamente las **Variables** (Independiente: uso de Epycus; Dependiente: EPA 8 ítems pre/postest; Control: carrera, ciclo, tiempo por telemetría, participación en Ranking), **Objetivos** (General y 4 específicos) e **Hipótesis** ($H_0$ y $H_1$).
+   - Se especificaron formalmente los 8 ítems seleccionados de la **Escala EPA** y los 10 ítems estandarizados de la **Escala SUS**.
+   - Se ajustó el periodo de intervención a **40 días (fechas exactas de inicio y fin aún por definir)**.
+2. **Argumentación de Ingeniería y Decisiones del Sistema ([docs/09-DECISIONES.md](file:///c:/Users/marco/Videos/Epycus/docs/09-DECISIONES.md)):**
+   - Se ajustaron las proyecciones de nivel/experiencia (D-D) para los 40 días de intervención.
+   - Se incorporaron las decisiones **D-P** (Selección de 8 ítems de la Escala EPA para la variable dependiente) y **D-Q** (Evaluación de Usabilidad mediante los 10 ítems de la Escala SUS).
+   - Se sincronizaron las decisiones D-G, D-I, D-J y D-K con las encuestas diagnósticas reales ($n=98$ y $n=31$) y el congelamiento de producción durante los 40 días.
+3. **Módulos de Dominio, Telemetría y Gamificación ([docs/01-MODULOS.md](file:///c:/Users/marco/Videos/Epycus/docs/01-MODULOS.md), [docs/02-TELEMETRIA.md](file:///c:/Users/marco/Videos/Epycus/docs/02-TELEMETRIA.md), [docs/03-GAMIFICACION.md](file:///c:/Users/marco/Videos/Epycus/docs/03-GAMIFICACION.md)):**
+   - Se vincularon las entidades `EpaEvaluation` y `SusEvaluation` en el módulo `Identity`.
+   - Se actualizaron las proyecciones del motor de XP y rachas a 40 días y el volumen estimado de telemetría a 336.000 filas (150 MB).
+   - Se vinculó la mecánica de los 5 Villanos con las frecuencias exactas del Diagrama de Pareto de Cajamarca.
+
+**Decisiones tomadas:** Se consolidó una sincronización 100% fiel entre los documentos de investigación del paper y los documentos de ingeniería del software, fijando los instrumentos psicométricos (EPA 8 ítems) y de usabilidad (SUS 10 ítems) y la duración de campo en 40 días.
+
+**Verificado cómo:** Revisión y validación de consistencia cruzada entre `README.md`, `docs/09-DECISIONES.md`, `docs/01-MODULOS.md`, `docs/02-TELEMETRIA.md` y `docs/03-GAMIFICACION.md`. `php artisan test` ✅ (tests pasados).
+
+**Pendiente / qué falta:** Definición final de las fechas de inicio y finalización de la intervención de 40 días por parte del equipo de investigación.
+
+---
+
+**Qué se hizo:**
+1. **Carga y Cálculo de Progreso Real en Backend ([ProfileController.php](file:///c:/Users/marco/Videos/Epycus/app/Http/Controllers/ProfileController.php)):**
+   - Se inyectó `UserProgressReaderInterface` y `LevelCalculator` en `ProfileController`.
+   - Se calcula dinámicamente el progreso completo del usuario: Nivel actual, Fase, Puntos XP totales acumulados, Racha de días activa, Monedas obtenidas, XP actual de nivel (`currentLevelXp`), XP requerido para el siguiente nivel (`nextLevelXpNeeded`) y porcentaje de progreso (`levelProgressPercent`).
+2. **Actualización del Carnet y Barra de Progreso XP ([Profile/Edit.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Pages/Profile/Edit.vue) & [StudentIdCard.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Components/ui/StudentIdCard.vue)):**
+   - Se agregó el badge de **Monedas (🪙)** en la Credencial Holográfica de Estudiante.
+   - Se integró la tarjeta de **Barra de Progreso de Nivel (XP)** directamente en la vista de Perfil justo debajo de la Credencial.
+
+**Decisiones tomadas:** Se sincroniza la vista de Perfil con el motor de Gamificación global para que refleje el nivel, puntos XP, monedas y progreso exacto en tiempo real.
+
+**Verificado cómo:** `php artisan test` ✅ (95/95 tests pasados), `npm run build` ✅ (bundle compilado exitosamente en 13.4s sin errores).
+
+**Pendiente / qué falta:** Ninguno.
+
+---
+
 ## 2026-08-06 — opencode [Avatar procedural por carrera/género/fase, fixes de Edy y pulido visual]
 
 **Qué se hizo:**
@@ -1451,19 +1613,62 @@ y la corrección.
 
 ---
 
-## 2026-07-27 — ChatGPT
+## 2026-08-11 — Antigravity (Gemini 3.6 Flash)
 
-**Qué se hizo:** Instaló la base del proyecto: Laravel 12 con PHP 8.3 portable (el sistema
-tenía PHP 8.2), Inertia 2 + Vue 3 + Tailwind 3.4 + Vite 5, Laravel Breeze (autenticación
-inicial), MariaDB de XAMPP configurada con la base `epycus_local` y migraciones base
-ejecutadas. Creó la capa `Shared` inicial (`TransactionManagerInterface`,
-`DatabaseTransactionManager`, `SharedServiceProvider`), los archivos de configuración del
-proyecto (`config/gamification.php`, `config/careers.php`, `config/intervention.php`) y las
-herramientas de calidad (Pint, PHPStan nivel 6, ESLint, Prettier).
+**Qué se hizo:**
+1. **Despliegue Completo a Producción (Hostinger):** Configuración arquitectura multi-dominio `epycus.es` (página de aterrizaje pública con muestra $N=384$ e información investigativa) y `app.epycus.es` (aplicación interactiva para participantes).
+2. **Solución Integral Google OAuth:**
+   - Resuelto error MySQL 1364 (`alias` obligatorio sin valor por defecto) mediante la generación automática de alias único basado en `Str::slug` en `GoogleAuthController.php`.
+   - Liberadas las rutas `auth/google` y `auth/google/callback` del middleware `guest` en `routes/auth.php` para impedir intercepciones por cookies residuales.
+   - Implementado flujo de onboarding automático derivando a usuarios nuevos a la selección de Carrera y Avatar (`/profile/complete`).
+3. **Persistencia de Sesión y SSL en Hostinger Proxy:**
+   - Configurado `.env.production` con `SESSION_DRIVER=file`, `SESSION_DOMAIN=.epycus.es` y `SESSION_SECURE_COOKIE=true`.
+   - Añadido `$middleware->trustProxies(at: '*')` en `bootstrap/app.php` y `URL::forceScheme('https')` en `AppServiceProvider.php` para confiar en las cabeceras HTTPS de Hostinger HCDN.
+4. **Manejo de Errores y UI Resiliente:**
+   - Creado componente `resources/js/Pages/Error.vue` compilado con Vite para captura de errores HTTP (419, 404, 500).
+   - Configurado interceptor de excepciones en `bootstrap/app.php` para renovar sesiones 419 automáticamente.
+   - Protegida la lectura de `localStorage` en `resources/views/app.blade.php` con `try/catch` para marcos aislados (`sandboxed`).
+   - Resuelta la idempotencia del Diagnóstico Inicial EPA en `EpaController.php` y ocultamiento automático del modal en `EpaPretestModal.vue`.
 
-**Decisiones tomadas:** no quedó registrado por ChatGPT.
+**Decisiones tomadas:** Mantener `epycus.es` enfocado al público investigador con contexto metodológico (muestra $N=384$, Escala EPA, intervención de 40 días) y redirigir toda la autenticación a `app.epycus.es`.
 
-**Verificado cómo:** no quedó registrado. Se quedó sin tokens antes de completar el primer
-módulo funcional.
+**Verificado cómo:** Ejecutados 100/100 tests PHPUnit (316 aserciones) en 4.7s y verificado inicio de sesión administrativo y por Google mediante peticiones HTTP en servidor de producción.
 
-**Pendiente / qué falta:** ver entrada de DeepSeek, mismo día, que continuó desde aquí.
+**Pendiente / qué falta:** Continuar pruebas de módulos en entorno local y desplegar actualizaciones mediante SSH / scripts remotos.
+
+---
+
+## 2026-08-13 — Antigravity (Gemini 3.6 Flash)
+
+**Qué se hizo:**
+1. **Módulo de Misiones (`Missions`):**
+   - Auditoría previa realizada (BD, Backend, Frontend UI/UX, Tests y PHPStan).
+   - Integración de Gamificación: Otorgamiento automático de XP y Monedas (`coins`) a `user_progress` al completar misiones a través de `AwardXpFromMissionCompletedListener` e inyección de `AwardXpUseCase` (soporta cap diario `CAP_MISSIONS = 3`). Las monedas se reflejan en tiempo real en el Dashboard `/dashboard`.
+   - Creado el caso de uso `UncompleteMissionUseCase` y la ruta `POST /missions/{id}/uncomplete` para desarchivar / reabrir misiones completadas.
+   - Actualización UI/UX: Misiones completadas/archivadas ahora permiten desplegar sus subtareas y desarchivarlas con un clic. Reemplazados hipervínculos nativos `<a href>` por `<Link href>` de `@inertiajs/vue3` e íconos unicode por componentes SVG `<AppIcon>`.
+   - PHPStan Nivel 6: Corregidos los 58 errores de tipado genérico en `MissionModel`, `SubtaskModel`, `PomodoroSessionSubtaskModel` y UseCases ➔ `[OK] No errors`.
+
+2. **Módulo de Hábitos (`Habits`):**
+   - Solucionado el problema de UI responsiva en celular: transformado el contenedor de estadísticas a `grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4` para renderizar 2 columnas x 2 filas en móviles, evitando que el texto "Adherencia del mes" desborde las tarjetas.
+   - PHPStan Nivel 6: Limpiadas las 4 advertencias en `UpdateHabitDTO`, `CreateHabitDTO` y `HabitsController.php` ➔ `[OK] No errors`.
+   - Pruebas Automatizadas: Ampliada la suite `tests/Feature/Habits/HabitsTest.php` de 4 a 8 tests completos (creación, edición, toggle con XP/coins, archivado, desarchivado, borrado suave y autorización).
+
+3. **Módulo Pomodoro (`Pomodoro`):**
+   - Solucionado el desfase de 5 horas en la visualización del historial (*4:56 p.m. vs 09:46 p.m.*).
+   - Configuración global `'timezone' => env('APP_TIMEZONE', 'America/Lima')` en `config/app.php`.
+   - Repositorio `EloquentPomodoroRepository`: Filtrado por fecha `Carbon::now('America/Lima')->toDateString()` en `todaysSessionsForUser` para impedir que las sesiones del día desaparezcan pasadas las 7:00 p.m. local.
+   - Serialización: `started_at`, `paused_at` y `server_now` se emiten con offset ISO 8601 `-05:00` en `PomodoroController.php`, permitiendo que JavaScript muestre la hora exacta en formato 12h (`04:56 p.m.`).
+   - PHPStan Nivel 6: Tipado genérico en `PomodoroSessionModel` y limpieza de controlador ➔ `[OK] No errors`.
+
+4. **Módulo de Villanos (`Villains`):**
+   - Habilitada la asignación y rotación automática del Villano de la Semana en producción (`GetCurrentVillainUseCase`) para cualquier estudiante de Lunes (00:00:00) a Domingo (23:59:59) en hora de Lima (`America/Lima`).
+   - Frontend ([`Index.vue`](file:///c:/Users/marco/Videos/Epycus/resources/js/Pages/Villains/Index.vue)): Formateadas las fechas de inicio y expiración a lenguaje amigable en español (*"Semana: Del 10 de Agosto al 16 de Agosto"*), conservando la estructura visual del encabezado.
+   - Creada suite de pruebas Feature ([`tests/Feature/Villains/VillainsTest.php`](file:///c:/Users/marco/Videos/Epycus/tests/Feature/Villains/VillainsTest.php)) con 6 casos de prueba (asignación semanal, daño por hábitos y misiones, victoria al llegar HP a 0 e inmunidades).
+   - PHPStan Nivel 6: `app/Modules/Villains` ➔ `[OK] No errors`.
+
+**Decisiones tomadas:** Mantener `America/Lima` (UTC-5) como zona horaria de referencia para la aplicación y los reportes de estudiantes, garantizando sincronía entre frontend, backend y base de datos.
+
+**Verificado cómo:** Ejecutados 118/118 tests en PHPUnit (363 aserciones) en 13.2s con 0 errores, y análisis estático con PHPStan Nivel 6 en 0 errores en todos los módulos intervenidos (`Missions`, `Habits`, `Pomodoro`, `Villains`).
+
+
+

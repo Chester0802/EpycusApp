@@ -67,7 +67,7 @@ final class ApplyDamageUseCase
 
         if ($newHp <= 0) {
             $defeatedAt = $dto->occurredAt;
-            $assignedAt = new \DateTimeImmutable($instance->assigned_at);
+            $assignedAt = new \DateTimeImmutable((string) $instance->assigned_at);
             $daysTaken = (int) $assignedAt->diff($defeatedAt)->format('%a');
 
             $this->repository->updateInstance($instance, [

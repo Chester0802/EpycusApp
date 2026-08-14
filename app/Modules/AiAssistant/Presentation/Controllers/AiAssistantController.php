@@ -10,7 +10,6 @@ use App\Modules\AiAssistant\Application\UseCases\GetConversationHistoryUseCase;
 use App\Modules\AiAssistant\Application\UseCases\ListUserConversationsUseCase;
 use App\Modules\AiAssistant\Application\UseCases\RateAdviceUseCase;
 use App\Modules\AiAssistant\Application\UseCases\SendConsultationUseCase;
-use App\Shared\Domain\Services\AvatarAssetResolver;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,7 +25,6 @@ final class AiAssistantController extends Controller
         private readonly ListUserConversationsUseCase $listConversations,
         private readonly CheckQuotaUseCase $checkQuota,
         private readonly RateAdviceUseCase $rateAdvice,
-        private readonly AvatarAssetResolver $avatars,
     ) {}
 
     public function index(): Response
@@ -37,14 +35,14 @@ final class AiAssistantController extends Controller
         $history = $this->getHistory->execute($userId);
         $conversations = $this->listConversations->execute($userId);
         $quota = $this->checkQuota->execute($userId);
-        $avatarImage = $this->avatars->imageForModule($user?->avatar_style, $user?->avatar_gender, 'dashboard');
 
         return Inertia::render('AiAssistant/Index', [
             'initialConversationId' => $history['conversation_id'],
             'initialMessages' => $history['messages'],
             'conversations' => $conversations,
             'quota' => $quota,
-            'avatarImage' => $avatarImage,
+            'avatarStyle' => $user?->avatar_style ?? 'base',
+            'avatarGender' => $user?->avatar_gender ?? 'm',
         ]);
     }
 

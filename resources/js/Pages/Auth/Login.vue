@@ -14,6 +14,8 @@ defineProps({
     status: { type: String, default: '' },
 });
 
+const isDev = import.meta.env.DEV;
+
 const form = useForm({
     email: '',
     password: '',
@@ -56,13 +58,30 @@ const submit = () => {
             />
         </template>
 
-        <!-- Mensaje de estado (p. ej. "Enlace de restablecimiento enviado") -->
+        <!-- Mensajes de estado (p. ej. "Enlace de restablecimiento enviado") -->
         <div
             v-if="status"
-            class="mb-5 rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-on-accent"
+            class="mb-5 rounded-lg bg-accent/20 border border-accent/30 px-4 py-3 text-sm font-semibold text-content-primary"
             role="alert"
         >
             {{ status }}
+        </div>
+
+        <!-- Alertas flash de error y advertencia (ej. OAuth Google) -->
+        <div
+            v-if="$page.props.flash?.error"
+            class="mb-5 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm font-semibold text-danger-text"
+            role="alert"
+        >
+            {{ $page.props.flash.error }}
+        </div>
+
+        <div
+            v-if="$page.props.flash?.warning"
+            class="mb-5 rounded-lg bg-warning/10 border border-warning/20 px-4 py-3 text-sm font-semibold text-warning-text"
+            role="alert"
+        >
+            {{ $page.props.flash.warning }}
         </div>
 
         <h1 class="mb-2 font-display text-2xl font-bold text-content-primary">
@@ -76,8 +95,8 @@ const submit = () => {
             <BaseInput
                 id="email"
                 v-model="form.email"
-                label="Correo electrónico"
-                type="email"
+                label="Correo electrónico o Alias"
+                type="text"
                 autocomplete="username"
                 :error="form.errors.email"
                 required
@@ -153,14 +172,14 @@ const submit = () => {
             Continuar con Google
         </a>
 
-        <!-- Acceso Administrador / Investigador -->
-        <div class="mt-4 text-center">
+        <!-- Acceso Administrador / Investigador (Solo visible en desarrollo) -->
+        <div v-if="isDev" class="mt-4 text-center">
             <button
                 type="button"
                 class="text-xs text-content-muted hover:text-primary-strong transition-colors underline-offset-2 hover:underline"
                 @click="
-                    form.email = 'admin@epycus.es';
-                    form.password = 'admin1234';
+                    form.email = 'Marcoadmin';
+                    form.password = 'Marcoadmin123@';
                 "
             >
                 🛡️ Acceso Administrador / Investigación

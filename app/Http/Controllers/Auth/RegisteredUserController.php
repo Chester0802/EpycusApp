@@ -32,6 +32,7 @@ final class RegisteredUserController extends Controller
             'email' => 'required|string|lowercase|email|max:255|unique:'.UserModel::class,
             'alias' => 'required|string|max:40|unique:'.UserModel::class.',alias',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'terms_accepted' => ['sometimes', 'accepted'],
         ]);
 
         $dto = new RegisterUserDTO(
@@ -48,7 +49,9 @@ final class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
+        $request->session()->regenerate();
 
         return redirect(route('profile.complete'));
+
     }
 }

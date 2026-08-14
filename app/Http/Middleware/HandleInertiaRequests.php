@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Modules\Identity\Domain\Contracts\UserPreferencesRepositoryInterface;
 use App\Modules\Identity\Domain\ValueObjects\UserId;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -35,11 +36,13 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         $preferences = $user ? $this->preferences->findByUserId(new UserId($user->id)) : null;
+        $hasCompletedEpaPretest = $user ? DB::table('epa_responses')->where('user_id', $user->id)->where('phase', 'pretest')->exists() : true;
 
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $user,
+                'hasCompletedEpaPretest' => $hasCompletedEpaPretest,
             ],
             'preferences' => $preferences ? [
                 'surfaceMode' => $preferences->surfaceMode()->value(),
@@ -49,6 +52,7 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
             ],
         ];
     }

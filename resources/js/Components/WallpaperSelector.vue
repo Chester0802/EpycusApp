@@ -6,8 +6,8 @@ import BaseCard from '@/Components/ui/BaseCard.vue';
 
 const props = defineProps({
     wallpapers: { type: Array, default: () => [] },
-    unlockedWallpapers: { type: Array, default: () => ['atardecer'] },
-    activeWallpaperKey: { type: String, default: 'atardecer' },
+    unlockedWallpapers: { type: Array, default: () => ['Fondo_1'] },
+    activeWallpaperKey: { type: String, default: 'Fondo_1' },
     userCoins: { type: Number, default: 0 },
 });
 
@@ -18,18 +18,22 @@ const currentCoins = computed(() => {
 });
 
 function isUnlocked(key) {
-    return props.unlockedWallpapers.includes(key) || key === 'atardecer';
+    return key === 'Fondo_1' || key === 'atardecer' || props.unlockedWallpapers.includes(key);
 }
 
 function isActive(key) {
-    return (props.activeWallpaperKey || page.props.preferences?.wallpaperKey || 'atardecer') === key;
+    const current = props.activeWallpaperKey || page.props.preferences?.wallpaperKey || 'Fondo_1';
+    return current === key || (current === 'atardecer' && key === 'Fondo_1');
+}
+
+function handleImageError(e, file) {
+    e.target.src = `/assets/wallpapers/full/${file}`;
 }
 
 function selectWallpaper(key) {
     router.post(route('preferences.wallpaper.select'), { wallpaper_key: key }, {
         preserveScroll: true,
         onSuccess: () => {
-            // Actualizar estilo visual en tiempo real en la página
             const wallpaperItem = props.wallpapers.find(w => w.key === key);
             if (wallpaperItem) {
                 document.documentElement.style.setProperty('--user-wallpaper', `url('/assets/wallpapers/full/${wallpaperItem.file}')`);
@@ -44,7 +48,7 @@ function unlockWallpaper(key, cost) {
         return;
     }
 
-    if (confirm(`¿Deseas desbloquear este fondo de pantalla por 🪙 ${cost} monedas?`)) {
+    if (confirm(`¿Deseas desbloquear este fondo por 🪙 ${cost} monedas?`)) {
         router.post(route('preferences.wallpaper.unlock'), { wallpaper_key: key }, {
             preserveScroll: true,
             onSuccess: () => {
@@ -82,12 +86,18 @@ function unlockWallpaper(key, cost) {
                     isActive(item.key) ? 'border-primary ring-2 ring-primary bg-primary/5' : 'border-border bg-surface-raised hover:border-border-strong'
                 ]"
             >
-                <div class="relative mb-2 aspect-video w-full overflow-hidden rounded-lg bg-surface-sunken">
+                <!-- Cabecera del fondo: Muestra únicamente el código (ej. Fondo_1) -->
+                <div class="mb-2 flex items-center justify-between">
+                    <span class="font-mono text-xs font-bold text-content-primary">{{ item.key }}</span>
+                </div>
+
+                <div class="relative mb-3 aspect-video w-full overflow-hidden rounded-lg bg-surface-sunken">
                     <img
                         :src="`/assets/wallpapers/thumbs/${item.file}`"
-                        :alt="item.name"
+                        :alt="item.key"
                         class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                         loading="lazy"
+                        @error="(e) => handleImageError(e, item.file)"
                     />
 
                     <!-- Badge de estado -->
@@ -137,3 +147,4 @@ function unlockWallpaper(key, cost) {
         </div>
     </BaseCard>
 </template>
+

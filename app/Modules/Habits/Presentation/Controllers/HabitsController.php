@@ -35,12 +35,12 @@ final class HabitsController extends Controller
         private ArchiveHabitUseCase $archiveHabit,
         private UnarchiveHabitUseCase $unarchiveHabit,
         private UserProgressReaderInterface $progress,
-        private AvatarAssetResolver $avatars,
     ) {}
 
     public function index(): Response
     {
         $userId = (int) Auth::id();
+        /** @var \App\Modules\Identity\Infrastructure\Models\UserModel|null $user */
         $user = Auth::user();
         $habits = $this->repository->getActiveForUser($userId);
         $today = Carbon::now()->toDateString();
@@ -96,8 +96,11 @@ final class HabitsController extends Controller
                 'max_streak' => $totalStreak,
                 'active_habits' => $habitsData->count(),
             ],
-            // Personaje fijo de Hábitos (orden=2, ver AvatarAssetResolver).
-            'avatarImage' => $this->avatars->imageForModule($user?->avatar_style, $user?->avatar_gender, 'habits'),
+            'avatarStyle' => $user ? $user->avatar_style : 'base',
+            'avatarGender' => $user ? $user->avatar_gender : 'm',
+            'progress' => [
+                'phase' => $this->progress->getPhaseFor($userId),
+            ],
         ]);
     }
 
@@ -175,9 +178,13 @@ final class HabitsController extends Controller
             icon: $validated['icon'] ?? null,
         );
 
-        $this->updateHabit->execute($dto);
+        try {
+            $this->updateHabit->execute($dto);
 
-        return back()->with('success', 'Hábito actualizado correctamente.');
+            return back()->with('success', 'Hábito actualizado correctamente.');
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function toggle(Request $request, int $id): JsonResponse|RedirectResponse

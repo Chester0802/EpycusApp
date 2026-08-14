@@ -10,4 +10,3 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/calendar/schedules', [CalendarController::class, 'storeSchedule'])->name('calendar.schedules.store');
     Route::delete('/calendar/schedules/{id}', [CalendarController::class, 'destroySchedule'])->name('calendar.schedules.destroy');
 });
-

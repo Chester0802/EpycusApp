@@ -1,20 +1,20 @@
 <?php
 
+use App\Modules\Achievements\Infrastructure\Providers\AchievementsServiceProvider;
+use App\Modules\Admin\Infrastructure\Providers\AdminServiceProvider;
 use App\Modules\AiAssistant\Infrastructure\Providers\AiAssistantServiceProvider;
 use App\Modules\Calendar\Infrastructure\Providers\CalendarServiceProvider;
 use App\Modules\Gamification\Infrastructure\Providers\GamificationServiceProvider;
 use App\Modules\Habits\Infrastructure\Providers\HabitsServiceProvider;
 use App\Modules\Identity\Infrastructure\Providers\IdentityServiceProvider;
 use App\Modules\Missions\Infrastructure\Providers\MissionsServiceProvider;
+use App\Modules\Motivation\Infrastructure\Providers\MotivationServiceProvider;
 use App\Modules\Pomodoro\Infrastructure\Providers\PomodoroServiceProvider;
 use App\Modules\Ranking\Infrastructure\Providers\RankingServiceProvider;
 use App\Modules\StudyGroups\Infrastructure\Providers\StudyGroupsServiceProvider;
 use App\Modules\Telemetry\Infrastructure\Providers\TelemetryServiceProvider;
 use App\Modules\Villains\Infrastructure\Providers\VillainsServiceProvider;
 use App\Modules\Wellbeing\Infrastructure\Providers\WellbeingServiceProvider;
-use App\Modules\Motivation\Infrastructure\Providers\MotivationServiceProvider;
-use App\Modules\Admin\Infrastructure\Providers\AdminServiceProvider;
-use App\Modules\Achievements\Infrastructure\Providers\AchievementsServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Shared\Infrastructure\Providers\SharedServiceProvider;
 

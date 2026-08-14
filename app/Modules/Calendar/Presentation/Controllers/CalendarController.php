@@ -117,4 +117,3 @@ final class CalendarController extends Controller
         return back()->with('success', 'Horario eliminado.');
     }
 }
-

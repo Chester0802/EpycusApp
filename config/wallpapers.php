@@ -9,76 +9,59 @@ return [
     |--------------------------------------------------------------------------
     |
     | Catálogo oficial de fondos disponibles para la superficie Vidrio.
-    | 'atardecer' es el fondo por defecto (gratuito). Cada fondo adicional
-    | cuesta 50 monedas acumuladas por el usuario al ganar XP.
+    | 'Fondo_1' es el fondo por defecto (gratuito). Cada fondo adicional
+    | secuencial (Fondo_2, Fondo_3, ...) cuesta 50 monedas acumuladas.
+    | Identificación exclusiva por código (Fondo_N), sin título ni descripción.
     |
     */
-    'default_wallpaper' => 'atardecer',
+    'default_wallpaper' => 'Fondo_1',
     'unlock_cost' => 50,
 
     'items' => [
-        'atardecer' => [
-            'key' => 'atardecer',
-            'name' => 'Atardecer cálido',
-            'file' => 'atardecer.avif',
+        'Fondo_1' => [
+            'key' => 'Fondo_1',
+            'file' => 'Fondo_1.avif',
             'cost' => 0,
-            'description' => 'Fondo por defecto de la aplicación.',
         ],
-        'chica_anime' => [
-            'key' => 'chica_anime',
-            'name' => 'Chica Anime',
-            'file' => 'chica_anime.jpg',
+        'Fondo_2' => [
+            'key' => 'Fondo_2',
+            'file' => 'Fondo_2.jpg',
             'cost' => 50,
-            'description' => 'Ilustración anime con tonos suaves.',
         ],
-        'claro_bts' => [
-            'key' => 'claro_bts',
-            'name' => 'BTS Claro',
-            'file' => 'claro_bts.jpg',
+        'Fondo_3' => [
+            'key' => 'Fondo_3',
+            'file' => 'Fondo_3.jpg',
             'cost' => 50,
-            'description' => 'Estilo estético claro y minimalista.',
         ],
-        'dragon_ball' => [
-            'key' => 'dragon_ball',
-            'name' => 'Dragon Ball',
-            'file' => 'dragon_ball.png',
+        'Fondo_4' => [
+            'key' => 'Fondo_4',
+            'file' => 'Fondo_4.png',
             'cost' => 50,
-            'description' => 'Fondo épico de anime de acción.',
         ],
-        'anime_morado' => [
-            'key' => 'anime_morado',
-            'name' => 'Anime Neón Morado',
-            'file' => 'anime_morado.jpg',
+        'Fondo_5' => [
+            'key' => 'Fondo_5',
+            'file' => 'Fondo_5.jpg',
             'cost' => 50,
-            'description' => 'Paisaje nocturno con tonalidades púrpuras.',
         ],
-        'lofi_naturaleza' => [
-            'key' => 'lofi_naturaleza',
-            'name' => 'Lo-Fi Naturaleza',
-            'file' => 'lofi_naturaleza.jpg',
+        'Fondo_6' => [
+            'key' => 'Fondo_6',
+            'file' => 'Fondo_6.jpg',
             'cost' => 50,
-            'description' => 'Ambiente relajante de estudio en el bosque.',
         ],
-        'gris_pinguino' => [
-            'key' => 'gris_pinguino',
-            'name' => 'Pingüino Gris',
-            'file' => 'gris_pinguino.jpeg',
+        'Fondo_7' => [
+            'key' => 'Fondo_7',
+            'file' => 'Fondo_7.jpeg',
             'cost' => 50,
-            'description' => 'Fondo minimalista en tonos grises.',
         ],
-        'verde_cactus' => [
-            'key' => 'verde_cactus',
-            'name' => 'Cactus Verde',
-            'file' => 'verde_cactus.jpg',
+        'Fondo_8' => [
+            'key' => 'Fondo_8',
+            'file' => 'Fondo_8.jpg',
             'cost' => 50,
-            'description' => 'Naturaleza botánica en verde fresco.',
         ],
-        'lofi_gato' => [
-            'key' => 'lofi_gato',
-            'name' => 'Lo-Fi Gato',
-            'file' => 'lofi_gato.jpg',
+        'Fondo_9' => [
+            'key' => 'Fondo_9',
+            'file' => 'Fondo_9.jpg',
             'cost' => 50,
-            'description' => 'Ilustración lo-fi acogedora con un felino.',
         ],
     ],
 ];

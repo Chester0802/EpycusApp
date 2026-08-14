@@ -6,6 +6,7 @@ import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
 import BaseModal from '@/Components/ui/BaseModal.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
+import ProceduralAvatar from '@/Components/ProceduralAvatar.vue';
 
 import { useTelemetry } from '@/Composables/useTelemetry';
 const { track } = useTelemetry();
@@ -394,17 +395,13 @@ onUnmounted(() => {
                             :key="p.id"
                             class="flex items-center gap-3"
                         >
-                            <img
-                                v-if="p.avatar"
-                                :src="p.avatar"
-                                :alt="p.alias"
-                                class="h-10 w-10 rounded-full border border-border-interactive object-contain p-0.5"
-                            />
-                            <div
-                                v-else
-                                class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-strong/20 text-sm font-bold text-primary-strong"
-                            >
-                                {{ (p.alias || '?')[0] }}
+                            <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border-interactive bg-surface-raised">
+                                <ProceduralAvatar
+                                    :career="p.avatar_style || 'base'"
+                                    :gender="p.avatar_gender || 'm'"
+                                    :avatar-options="p.avatar_options"
+                                    :size="64"
+                                />
                             </div>
                             <div class="min-w-0 flex-1">
                                 <p class="truncate text-sm font-medium text-content-primary">

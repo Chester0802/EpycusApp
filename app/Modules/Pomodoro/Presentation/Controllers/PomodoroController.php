@@ -35,7 +35,6 @@ final class PomodoroController extends Controller
         private ResumePomodoroUseCase $resumePomodoro,
         private CompletePomodoroUseCase $completePomodoro,
         private AbandonPomodoroUseCase $abandonPomodoro,
-        private AvatarAssetResolver $avatars,
         private UserProgressReaderInterface $progress,
         private MissionRepositoryInterface $missions,
     ) {}
@@ -43,6 +42,7 @@ final class PomodoroController extends Controller
     public function index(): Response
     {
         $userId = (int) Auth::id();
+        /** @var \App\Modules\Identity\Infrastructure\Models\UserModel|null $user */
         $user = Auth::user();
 
         // Esto es lo que resuelve "cerré el navegador con un Pomodoro
@@ -55,28 +55,33 @@ final class PomodoroController extends Controller
         $xpFromAutoComplete = max(0, $this->progress->getTotalXpFor($userId) - $xpBefore);
 
         $today = $this->repository->todaysSessionsForUser($userId);
-        $lastWeek = $this->repository->sessionsSinceForUser($userId, CarbonImmutable::now()->subDays(7));
+        $lastWeek = $this->repository->sessionsSinceForUser($userId, CarbonImmutable::now('America/Lima')->subDays(7));
 
         $completed = $lastWeek->where('status', SessionState::COMPLETED);
         $startedCount = $lastWeek->count();
 
-        $todayDate = Carbon::now()->toDateString();
         $missions = $this->missions->getActiveForUser($userId);
-        $missionsData = $missions->map(fn ($m) => [
-            'id' => $m->id,
-            'title' => $m->title,
-            'difficulty' => $m->difficulty,
-            'priority' => $m->priority,
-            'due_date' => $m->due_date?->toDateString(),
-            'is_overdue' => $m->is_overdue,
-            'subtask_count' => $m->subtasks->count(),
-            'subtask_done' => $m->subtasks->where('is_completed', true)->count(),
-            'subtasks' => $m->subtasks->map(fn ($s) => [
-                'id' => $s->id,
-                'title' => $s->title,
-                'is_completed' => $s->is_completed,
-            ])->values(),
-        ])->values();
+        $missionsData = $missions->map(function ($m) {
+            /** @var \App\Modules\Missions\Infrastructure\Models\MissionModel $m */
+            return [
+                'id' => $m->id,
+                'title' => $m->title,
+                'difficulty' => $m->difficulty,
+                'priority' => $m->priority,
+                'due_date' => $m->due_date?->toDateString(),
+                'is_overdue' => $m->is_overdue,
+                'subtask_count' => $m->subtasks->count(),
+                'subtask_done' => $m->subtasks->where('is_completed', true)->count(),
+                'subtasks' => $m->subtasks->map(function ($s) {
+                    /** @var \App\Modules\Missions\Infrastructure\Models\SubtaskModel $s */
+                    return [
+                        'id' => $s->id,
+                        'title' => $s->title,
+                        'is_completed' => (bool) $s->is_completed,
+                    ];
+                })->values()->all(),
+            ];
+        })->values()->all();
 
         return Inertia::render('Pomodoro/Index', [
             'activeSession' => $resolved->session ? $this->serializeSession($resolved->session) : null,
@@ -89,8 +94,11 @@ final class PomodoroController extends Controller
                 'completionRate' => $startedCount > 0 ? round(($completed->count() / $startedCount) * 100) : 0,
                 'focusMinutesTotal' => (int) $completed->sum('focus_minutes'),
             ],
-            // Personaje fijo de Pomodoro (orden=4) — "sentado estudiando".
-            'avatarImage' => $this->avatars->imageForModule($user?->avatar_style, $user?->avatar_gender, 'pomodoro'),
+            'avatarStyle' => $user ? $user->avatar_style : 'base',
+            'avatarGender' => $user ? $user->avatar_gender : 'm',
+            'progress' => [
+                'phase' => $this->progress->getPhaseFor($userId),
+            ],
             // Misiones activas para el panel lateral
             'missions' => $missionsData,
         ]);
@@ -157,15 +165,15 @@ final class PomodoroController extends Controller
         return [
             'id' => $session->id,
             'planned_minutes' => $session->planned_minutes,
-            'started_at' => $session->started_at->toIso8601String(),
-            'paused_at' => $session->paused_at?->toIso8601String(),
+            'started_at' => $session->started_at->setTimezone('America/Lima')->toIso8601String(),
+            'paused_at' => $session->paused_at?->setTimezone('America/Lima')->toIso8601String(),
             'total_paused_seconds' => $session->total_paused_seconds,
             'status' => $session->status,
             'focus_minutes' => $session->focus_minutes,
             // El cliente reconstruye el conteo regresivo con esto — no
             // confía en su propio reloj/JS previo, siempre parte de acá
             // (ver Pomodoro/Index.vue).
-            'server_now' => CarbonImmutable::now()->toIso8601String(),
+            'server_now' => CarbonImmutable::now('America/Lima')->toIso8601String(),
         ];
     }
 }

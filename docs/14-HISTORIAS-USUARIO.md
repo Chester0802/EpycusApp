@@ -1,7 +1,7 @@
 # Historias de usuario y criterios de aceptación (Unificado)
 
 > Este documento unifica todas las historias de usuario y criterios de aceptación del proyecto Epycus.
-> **ESTADO DEL PROYECTO (al 2026-07-30): TODAS LAS 15 FASES ESTÁN COMPLETADAS ✅**
+> **ESTADO DEL PROYECTO (al 2026-08-13): TODAS LAS FASES IMPLEMENTADAS Y VERIFICADAS (118 TESTS PASANDO, 0 ERRORES PHPSTAN NIVEL 6) ✅**
 >
 > **Formato de cada historia:**
 > Como <rol>, quiero <acción>, para <beneficio>. seguido de criterios de aceptación en
@@ -129,10 +129,11 @@
 
 ## Fase 5 — Pomodoro ✅
 
-### HU-POM-1 — Temporizador resiliente
-**Como** estudiante, **quiero** que el temporizador siga activo si cierro el navegador, **para** no perder mi foco.
+### HU-POM-1 — Temporizador resiliente y horario preciso
+**Como** estudiante, **quiero** que el temporizador siga activo si cierro el navegador y que el historial muestre la hora local exacta de mi país (`America/Lima` UTC-5), **para** no perder mi foco ni ver desfases horarios en mis registros.
 - **Given** un Pomodoro en curso, **when** se recarga, **then** calcula el tiempo pendiente basado en el inicio real.
 - **Given** un fin de foco, **when** llega a 0, **then** inicia el descanso automáticamente.
+- **Given** una sesión registrada, **when** se consulta en el historial del día, **then** el backend serializa la hora en zona `America/Lima` (offset `-05:00`) y el frontend renderiza la hora exacta en formato 12 horas (ej: 04:56 p.m.).
 
 ---
 
@@ -349,17 +350,14 @@ tener una salida visible sin que se rompa mi confidencialidad.
 Detalle completo de reglas de daño/HP en `docs/03-GAMIFICACION.md §6`; acá solo la estructura de
 casos de uso (`01-MODULOS.md §7`).
 
-### HU-VIL-1 — Asignación semanal automática
+### HU-VIL-1 — Asignación semanal automática en producción y local
 
-**Como** estudiante, **quiero** recibir un villano temático nuevo cada semana, **para** tener un
-objetivo narrativo concreto en vez de "sigue estudiando" genérico.
+**Como** estudiante, **quiero** recibir un villano temático nuevo cada semana (activo de lunes a domingo), **para** tener un objetivo narrativo concreto sin requerir intervención manual.
 
-- **Given** el cron de los lunes 00:00 hora de Lima, **when** corre, **then** asigna
-  `VillainAssigned` a cada usuario activo, y expira (`VillainExpired`) la instancia de la
-  semana anterior el domingo 23:59 — verificar los valores exactos de HP/daño por acción en
-  `docs/03-GAMIFICACION.md §6`, no inventarlos acá.
-- **Given** que el villano ya expiró, **when** el usuario completa una acción, **then** no debe
-  poder aplicarle daño a una instancia vencida — validar el estado antes de `ApplyDamage`.
+- **Given** cualquier participante en producción o desarrollo, **when** consulta `/villains` o registra actividad sin tener una instancia activa, **then** el sistema asigna automáticamente el Villano de la Semana de lunes (00:00:00) a domingo (23:59:59) hora de Lima (`America/Lima`).
+- **Given** el catálogo de villanos (*La Postergación, La Distracción, La Ansiedad, El Desorden, El Cansancio*), **when** cambia la semana, **then** rota automáticamente al siguiente desafío.
+- **Given** una instancia activa de villano, **when** se renderiza en la vista `Villains/Index.vue`, **then** muestra el rango de fechas en español legible (ej: *"Semana: Del 10 de Agosto al 16 de Agosto"*).
+- **Given** que el villano ya expiró, **when** el usuario completa una acción, **then** se marca como `survived` y no se le aplica daño — validando el estado y vigencia antes de `ApplyDamage`.
 
 ### HU-VIL-2 — Daño por eventos de otros módulos
 

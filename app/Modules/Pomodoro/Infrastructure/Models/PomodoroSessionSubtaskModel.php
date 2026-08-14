@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $pomodoro_session_id
  * @property int $subtask_id
  * @property Carbon $completed_at
+ * @property-read SubtaskModel|null $subtask
+ * @property-read PomodoroSessionModel|null $session
  */
 final class PomodoroSessionSubtaskModel extends Model
 {
@@ -34,11 +36,17 @@ final class PomodoroSessionSubtaskModel extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<PomodoroSessionModel, $this>
+     */
     public function session(): BelongsTo
     {
         return $this->belongsTo(PomodoroSessionModel::class, 'pomodoro_session_id');
     }
 
+    /**
+     * @return BelongsTo<SubtaskModel, $this>
+     */
     public function subtask(): BelongsTo
     {
         return $this->belongsTo(SubtaskModel::class, 'subtask_id');

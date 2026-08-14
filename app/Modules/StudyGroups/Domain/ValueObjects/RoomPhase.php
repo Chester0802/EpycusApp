@@ -19,8 +19,11 @@ final class RoomPhase
     }
 
     public const IDLE = 'idle';
+
     public const FOCUS = 'focus';
+
     public const BREAK = 'break';
+
     public const COMPLETED = 'completed';
 
     public static function idle(): self

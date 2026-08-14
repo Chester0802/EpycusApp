@@ -22,7 +22,6 @@ use App\Shared\Domain\Exceptions\DomainException;
 use App\Shared\Domain\Exceptions\ForbiddenException;
 use App\Shared\Domain\Exceptions\NotFoundException;
 use App\Shared\Domain\Exceptions\ValidationException;
-use App\Shared\Domain\Services\AvatarAssetResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -43,7 +42,6 @@ final class StudyGroupController extends Controller
         private AdvancePhaseUseCase $advancePhase,
         private StudySessionRepositoryInterface $repository,
         private StudyGroupMapper $mapper,
-        private AvatarAssetResolver $avatarResolver,
     ) {}
 
     public function index(): Response
@@ -161,15 +159,6 @@ final class StudyGroupController extends Controller
         }
 
         $data = $this->pollSession->execute($id, $lastMessageId);
-
-        $data['participants'] = array_map(fn (array $p) => [
-            ...$p,
-            'avatar' => $this->avatarResolver->imageForModule(
-                $p['avatar_style'] ?? null,
-                $p['avatar_gender'] ?? null,
-                'groups',
-            ),
-        ], $data['participants']);
 
         return response()->json($data);
     }
@@ -302,7 +291,9 @@ final class StudyGroupController extends Controller
             $result[] = [
                 'id' => $p->id,
                 'alias' => $p->alias,
-                'avatar' => $this->avatarResolver->imageForModule($p->avatar_style, $p->avatar_gender, 'groups'),
+                'avatar_style' => $p->avatar_style ?? 'base',
+                'avatar_gender' => $p->avatar_gender ?? 'm',
+                'avatar_options' => isset($p->avatar_options) ? (is_array($p->avatar_options) ? $p->avatar_options : json_decode((string) $p->avatar_options, true)) : null,
                 'joined_at' => $p->joined_at,
             ];
         }

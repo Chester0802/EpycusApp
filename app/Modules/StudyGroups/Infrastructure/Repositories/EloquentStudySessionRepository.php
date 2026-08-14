@@ -99,6 +99,7 @@ final class EloquentStudySessionRepository implements StudySessionRepositoryInte
                 'users.alias',
                 'users.avatar_style',
                 'users.avatar_gender',
+                'users.avatar_options',
                 'session_participants.joined_at',
             )
             ->get();

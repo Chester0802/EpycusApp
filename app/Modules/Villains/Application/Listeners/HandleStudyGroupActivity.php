@@ -16,7 +16,7 @@ final class HandleStudyGroupActivity
         private ApplyDamageUseCase $applyDamage,
     ) {}
 
-    public function handle(ParticipantJoined | GroupMessageSent | StudySessionCreated $event): void
+    public function handle(ParticipantJoined|GroupMessageSent|StudySessionCreated $event): void
     {
         $this->applyDamage->execute(new ApplyDamageDTO(
             userId: $event->userId,

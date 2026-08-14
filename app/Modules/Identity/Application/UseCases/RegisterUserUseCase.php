@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application\UseCases;
 
+use App\Modules\Gamification\Infrastructure\Models\UserProgressModel;
 use App\Modules\Identity\Application\DTOs\RegisterUserDTO;
 use App\Modules\Identity\Application\DTOs\UserDTO;
 use App\Modules\Identity\Domain\Contracts\ParticipantRepositoryInterface;
@@ -60,6 +61,20 @@ final readonly class RegisterUserUseCase
                 surfaceMode: SurfaceMode::default(),
             );
             $this->preferences->save($preferences);
+
+            // Inicializar progreso de gamificación para la cuenta nueva
+            UserProgressModel::query()->firstOrCreate(
+                ['user_id' => $user->id()->value()],
+                [
+                    'total_xp' => 0,
+                    'current_level' => 1,
+                    'current_phase' => 1,
+                    'current_streak' => 0,
+                    'longest_streak' => 0,
+                    'grace_days_left' => (int) config('gamification.streak.grace_days_per_month', 1),
+                    'coins' => 0,
+                ]
+            );
 
             return $user;
         });

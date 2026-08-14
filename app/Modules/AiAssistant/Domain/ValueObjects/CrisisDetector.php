@@ -36,7 +36,7 @@ final class CrisisDetector
 
     public static function containmentMessage(): string
     {
-        return 'Tu vida y bienestar son lo más importante. Si estás pasando por un momento muy difícil o sientes angustia severa, por favor busca ayuda de inmediato.' . "\n\n" .
+        return 'Tu vida y bienestar son lo más importante. Si estás pasando por un momento muy difícil o sientes angustia severa, por favor busca ayuda de inmediato.'."\n\n".
             'Puedes comunicarte de forma gratuita y confidencial desde cualquier teléfono en el Perú a la **Línea 113 (Opción 5)** de Salud Mental del MINSA, o acudir al centro de salud o centro de salud mental comunitario más cercano. No estás solo/a en esto.';
     }
 }

@@ -8,21 +8,32 @@ import ProgressBar from '@/Components/ui/ProgressBar.vue';
 import UsageTipBanner from '@/Components/ui/UsageTipBanner.vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import ProceduralAvatar from '@/Components/ProceduralAvatar.vue';
+import StudentIdCard from '@/Components/ui/StudentIdCard.vue';
+
+import DonutChart from '@/Components/ui/DonutChart.vue';
+import RadialProgressRing from '@/Components/ui/RadialProgressRing.vue';
 
 const props = defineProps({
     userName: { type: String, default: 'Estudiante' },
     userCareer: { type: String, default: null },
     avatarStyle: { type: String, default: null },
     avatarGender: { type: String, default: null },
+    avatarOptions: { type: Object, default: () => ({}) },
     progress: { type: Object, required: true },
     activity: { type: Array, default: () => [] },
     stats: { type: Object, default: () => ({}) },
+    wellbeing: { type: Object, default: () => ({}) },
     villain: { type: Object, default: null },
     motivationalQuote: { type: Object, default: null },
-    avatarImage: { type: String, default: null },
 });
 
 const activeTab = ref('focus'); // 'focus' | 'habits'
+
+const missionDonutSegments = computed(() => [
+    { label: 'Completadas', value: props.stats?.completedMissions || 0, hexColor: '#10b981' },
+    { label: 'Pendientes', value: props.stats?.pendingMissions || 0, hexColor: '#0284c7' },
+    { label: 'Vencidas', value: props.stats?.overdueMissions || 0, hexColor: '#f43f5e' },
+]);
 
 const totalWeeklyFocusMinutes = computed(() => {
     return props.activity.reduce((sum, d) => sum + (d.focusMinutes || 0), 0);
@@ -58,70 +69,16 @@ function habitsBarHeight(count) {
 
     <AppLayout>
         <div class="space-y-6">
-            <!-- Header Card: Saludo + Avatar + Acciones Rápidas -->
-            <BaseCard class="p-6">
-                <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="flex items-center gap-4">
-                        <div
-                            v-if="avatarImage || avatarStyle"
-                            class="relative flex h-36 w-24 shrink-0 items-center justify-center rounded-2xl p-2 border border-border-interactive shadow-sm"
-                        >
-                            <ProceduralAvatar
-                                v-if="avatarStyle"
-                                :career="avatarStyle"
-                                :gender="avatarGender ?? 'm'"
-                                :phase="progress.phase"
-                            />
-                            <img
-                                v-else
-                                :src="avatarImage"
-                                alt="Tu avatar"
-                                class="h-full w-full object-contain"
-                            />
-                            <span
-                                class="absolute -bottom-2 -right-2 rounded-full bg-primary-strong px-2 py-0.5 text-[10px] font-bold text-on-accent shadow"
-                            >
-                                Fase {{ progress.phase }}
-                            </span>
-                        </div>
-                        <div>
-                            <h1
-                                class="font-display text-3xl font-bold tracking-tight text-content-primary"
-                            >
-                                ¡Hola, {{ userName }}!
-                            </h1>
-                            <p
-                                v-if="userCareer"
-                                class="mt-1 text-sm font-medium text-primary-strong"
-                            >
-                                {{ userCareer }}
-                            </p>
-                            <p class="mt-1 text-sm text-content-secondary">
-                                Revisa tu progreso académico y mantén tu racha activa hoy.
-                            </p>
-                            <div class="mt-3 flex flex-wrap gap-2 text-xs">
-                                <span
-                                    class="inline-flex items-center gap-1 rounded-full bg-surface-raised px-3 py-1 font-semibold text-content-primary border border-border-interactive"
-                                >
-                                    <AppIcon name="trophy" :size="14" class="text-warning" /> Nivel
-                                    {{ progress.level }}
-                                </span>
-                                <span
-                                    class="inline-flex items-center gap-1 rounded-full bg-surface-raised px-3 py-1 font-semibold text-content-primary border border-border-interactive"
-                                >
-                                    <AppIcon name="flame" :size="14" class="text-danger" />
-                                    {{ progress.currentStreak }} días de racha
-                                </span>
-                                <span
-                                    class="inline-flex items-center gap-1 rounded-full bg-surface-raised px-3 py-1 font-semibold text-content-primary border border-border-interactive"
-                                >
-                                    <AppIcon name="coins" :size="14" class="text-warning" />
-                                    {{ progress.coins }} monedas
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
+            <!-- Credencial de Estudiante Digital Holográfica -->
+            <StudentIdCard
+                :user-name="userName"
+                :user-career="userCareer"
+                :avatar-style="avatarStyle"
+                :avatar-gender="avatarGender ?? 'm'"
+                :avatar-options="avatarOptions"
+                :progress="progress"
+            >
+                <template #actions>
                     <div class="flex flex-wrap gap-3 sm:flex-col sm:items-end">
                         <Link :href="route('pomodoro.index')">
                             <BaseButton variant="primary" size="sm">
@@ -130,31 +87,31 @@ function habitsBarHeight(count) {
                         </Link>
                         <Link :href="route('habits.index')">
                             <BaseButton variant="secondary" size="sm">
-                                <AppIcon name="zap" :size="14" class="mr-1" /> Ver Hábitos
+                                <AppIcon name="check-circle" :size="14" class="mr-1" /> Mis Hábitos
                             </BaseButton>
                         </Link>
                     </div>
-                </div>
+                </template>
+            </StudentIdCard>
 
-                <!-- Barra de Progreso de Nivel (XP) -->
-                <div class="mt-6 border-t border-border-interactive pt-4">
-                    <div
-                        class="flex items-center justify-between text-xs font-semibold text-content-secondary mb-1.5"
+            <!-- Barra de Progreso de Nivel (XP) -->
+            <BaseCard class="p-6">
+                <div
+                    class="flex items-center justify-between text-xs font-semibold text-content-secondary mb-1.5"
+                >
+                    <span>Progreso hacia Nivel {{ progress.level + 1 }}</span>
+                    <span
+                        >{{ progress.currentLevelXp }} / {{ progress.nextLevelXpNeeded }} XP ({{
+                            progress.levelProgressPercent
+                        }}%)</span
                     >
-                        <span>Progreso hacia Nivel {{ progress.level + 1 }}</span>
-                        <span
-                            >{{ progress.currentLevelXp }} / {{ progress.nextLevelXpNeeded }} XP ({{
-                                progress.levelProgressPercent
-                            }}%)</span
-                        >
-                    </div>
-                    <ProgressBar
-                        :value="progress.currentLevelXp"
-                        :max="progress.nextLevelXpNeeded"
-                        color="bg-primary-strong"
-                        size="h-3"
-                    />
                 </div>
+                <ProgressBar
+                    :value="progress.currentLevelXp"
+                    :max="progress.nextLevelXpNeeded"
+                    color="bg-primary-strong"
+                    size="h-3"
+                />
             </BaseCard>
 
             <!-- Usage Tip Banner descartable -->
@@ -217,6 +174,146 @@ function habitsBarHeight(count) {
                         {{ stats.completedMissions }}
                     </p>
                     <p class="text-xs text-content-secondary">Misiones completadas</p>
+                </BaseCard>
+            </div>
+
+            <!-- Sección de Gráficos Circulares de Datos y Bienestar -->
+            <div class="grid gap-6 md:grid-cols-3">
+                <!-- Card 1: Gráfico de Donut de Misiones -->
+                <BaseCard class="p-6 space-y-4">
+                    <div>
+                        <h2
+                            class="font-display text-base font-bold text-content-primary flex items-center gap-2"
+                        >
+                            <AppIcon name="clipboard" :size="18" class="text-accent" />
+                            Estado de Misiones
+                        </h2>
+                        <p class="text-xs text-content-secondary">Distribución por estado actual</p>
+                    </div>
+
+                    <DonutChart
+                        :segments="missionDonutSegments"
+                        :center-title="stats.totalMissions || 0"
+                        center-subtitle="Total"
+                    />
+                </BaseCard>
+
+                <!-- Card 2: Anillo Radial de Cumplimiento de Hábitos -->
+                <BaseCard class="p-6 space-y-4 flex flex-col justify-between">
+                    <div>
+                        <h2
+                            class="font-display text-base font-bold text-content-primary flex items-center gap-2"
+                        >
+                            <AppIcon name="zap" :size="18" class="text-warning" />
+                            Adherencia a Hábitos Hoy
+                        </h2>
+                        <p class="text-xs text-content-secondary">Porcentaje del objetivo diario</p>
+                    </div>
+
+                    <div class="my-auto py-2">
+                        <RadialProgressRing
+                            :percentage="stats.habitAdherencePercent || 0"
+                            subtitle="Cumplido"
+                        />
+                    </div>
+
+                    <div
+                        class="text-center text-xs font-semibold text-content-secondary bg-surface-sunken rounded-lg py-1.5 border border-border-interactive"
+                    >
+                        {{ stats.todayHabitsDone }} de {{ stats.totalActiveHabits || 0 }} hábitos
+                        completados hoy
+                    </div>
+                </BaseCard>
+
+                <!-- Card 3: Bienestar Emocional Semanal con Enlace Directo -->
+                <BaseCard
+                    class="p-6 space-y-4 flex flex-col justify-between border-l-4 border-l-danger"
+                >
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <h2
+                                class="font-display text-base font-bold text-content-primary flex items-center gap-2"
+                            >
+                                <AppIcon name="heart" :size="18" class="text-danger" />
+                                Bienestar Emocional
+                            </h2>
+                            <span class="text-[11px] font-bold text-content-muted">Últimos 7d</span>
+                        </div>
+                        <p class="text-xs text-content-secondary">
+                            Promedio registrado en tu diario
+                        </p>
+                    </div>
+
+                    <div v-if="wellbeing && wellbeing.totalEntries > 0" class="space-y-3">
+                        <div class="flex items-center justify-between text-xs font-semibold">
+                            <span class="text-content-secondary flex items-center gap-1.5">
+                                <AppIcon name="smile" :size="15" class="text-primary-strong" />
+                                Estado de Ánimo
+                            </span>
+                            <span class="font-bold text-content-primary">{{
+                                wellbeing.avgMood ? `${wellbeing.avgMood} / 5.0` : 'No disponible'
+                            }}</span>
+                        </div>
+                        <ProgressBar
+                            :value="wellbeing.avgMood || 0"
+                            :max="5"
+                            color="bg-primary-strong"
+                            size="h-2"
+                        />
+
+                        <div class="flex items-center justify-between text-xs font-semibold pt-1">
+                            <span class="text-content-secondary flex items-center gap-1.5">
+                                <AppIcon name="zap" :size="15" class="text-warning" />
+                                Nivel de Energía
+                            </span>
+                            <span class="font-bold text-content-primary">{{
+                                wellbeing.avgEnergy
+                                    ? `${wellbeing.avgEnergy} / 5.0`
+                                    : 'No disponible'
+                            }}</span>
+                        </div>
+                        <ProgressBar
+                            :value="wellbeing.avgEnergy || 0"
+                            :max="5"
+                            color="bg-warning"
+                            size="h-2"
+                        />
+
+                        <div class="flex items-center justify-between text-xs font-semibold pt-1">
+                            <span class="text-content-secondary flex items-center gap-1.5">
+                                <AppIcon name="shield" :size="15" class="text-success" />
+                                Control de Estrés
+                            </span>
+                            <span class="font-bold text-content-primary">{{
+                                wellbeing.avgStress
+                                    ? `${wellbeing.avgStress} / 5.0`
+                                    : 'No disponible'
+                            }}</span>
+                        </div>
+                        <ProgressBar
+                            :value="wellbeing.avgStress || 0"
+                            :max="5"
+                            color="bg-success"
+                            size="h-2"
+                        />
+                    </div>
+
+                    <div v-else class="py-4 text-center text-xs text-content-muted space-y-1">
+                        <AppIcon name="heart" :size="24" class="mx-auto text-content-muted block" />
+                        <p>No has registrado tu diario en los últimos 7 días.</p>
+                    </div>
+
+                    <Link :href="route('wellbeing.index')" class="w-full">
+                        <BaseButton
+                            class="w-full flex items-center justify-center gap-1.5"
+                            variant="ghost"
+                            size="sm"
+                        >
+                            <AppIcon name="heart" :size="14" class="text-danger" />
+                            Ir al módulo Bienestar
+                            <AppIcon name="arrow-right" :size="14" />
+                        </BaseButton>
+                    </Link>
                 </BaseCard>
             </div>
 

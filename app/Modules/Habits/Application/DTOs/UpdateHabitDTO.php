@@ -6,6 +6,9 @@ namespace App\Modules\Habits\Application\DTOs;
 
 final readonly class UpdateHabitDTO
 {
+    /**
+     * @param  array<string, mixed>  $frequency
+     */
     public function __construct(
         public int $habitId,
         public int $userId,

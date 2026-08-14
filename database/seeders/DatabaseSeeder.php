@@ -15,19 +15,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        UserModel::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'alias' => 'test-user',
-            'role' => 'student',
-        ]);
-
         UserModel::firstOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'alias' => 'test-user',
+                'password' => bcrypt('password'),
+                'role' => 'student',
+            ]
+        );
+
+
+        UserModel::updateOrCreate(
             ['email' => 'admin@epycus.es'],
             [
                 'name' => 'Investigador Principal',
-                'alias' => 'AdminEpycus',
-                'password' => bcrypt('admin1234'),
+                'alias' => 'Marcoadmin',
+                'password' => bcrypt('Marcoadmin123@'),
                 'role' => 'admin',
             ]
         );

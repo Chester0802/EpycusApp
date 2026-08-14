@@ -14,60 +14,28 @@ Esto no es un juego comercial que busca maximizar el tiempo de uso. Es el mecani
 
 ---
 
-## 2. Avatar: estilos, fases y niveles
+## 2. Avatar y Progresión Visual Completa
 
-Decisión cerrada del proyecto (D-01, D-02, D-04):
+Epycus combina la **personalización cosmética libre del usuario** con **4 mecánicas de evolución visual por código** (Fases 1 a 10, Niveles 1 a 50):
 
-| Parámetro | Valor |
-|---|---|
-| Estilos visuales | 5 |
-| Fases por estilo | 10 |
-| Niveles por fase | 5 |
-| **Niveles totales** | **50** |
-| Géneros | 2 (masculino, femenino) |
-| Posiciones por outfit | 4 |
-| **Total de assets** | **400** (5 × 2 × 10 × 4) |
-| Formato | PNG sin fondo, 2D |
-| **Estilo visual** | **Funko Pop** |
+### 2.1 Identidad del Avatar (Open Peeps por Pablo Stanley)
+* **Motor Procedural:** [@dicebear/open-peeps](file:///c:/Users/marco/Videos/Epycus/resources/js/Components/ProceduralAvatar.vue) con biblioteca vectorial dinámicamente renderizada.
+* **Editor Personalizable (`/profile`):** [AvatarCustomizer.vue](file:///c:/Users/marco/Videos/Epycus/resources/js/Components/AvatarCustomizer.vue) permite al estudiante elegir libremente tono de piel (5 tonos), corte de cabello (15 estilos), expresión facial (8 emociones), lentes/accesorios (7 estilos), vello facial (5 estilos), color de ropa (8 colores) y color de fondo (6 tonos).
+* **Persistencia:** Guardado en la columna `users.avatar_options` (JSON).
 
-### Estilo visual del personaje: Funko Pop
+### 2.2 Las 4 Mecánicas de Evolución y Crecimiento Visual (Fases 1 a 10)
+1. 🖼️ **Marcos Evolutivos de Avatar (`AvatarFrame.vue`):** Envoltorio de avatar que evoluciona de Fase 1 a 10 en 5 niveles de materiales metálicos (Bronce ➔ Plata Estelar ➔ Oro Reluciente ➔ Neón Esmeralda ➔ Diamante Mítico).
+2. 📜 **Escalafón de Títulos por Carrera Individual (`careerRanks.js`):** 10 títulos evolutivos únicos para las 11 carreras profesionales (Medicina, Enfermería, Obstetricia, Adm. de Empresas, Contabilidad, Ing. Civil, Ing. Industrial, Ing. de Minas, Arquitectura, Ing. de Sistemas y Derecho).
+3. 🎴 **Credencial Estudiantil Digital Holográfica (`StudentIdCard.vue`):** Tarjeta estilo credencial VIP con acabado de cristal (Glassmorphism), sellos metálicos de verificación, racha, nivel, XP, monedas y efecto holográfico 3D al hover.
+4. ⚡ **Aura de Racha Activa (`StreakAura.vue`):** Anillo de energía luminosa en gradiente fuego/naranja que se activa al mantener 3+ días de racha.
 
-El avatar sigue las proporciones características de una figura Funko Pop:
-
-| Rasgo | Especificación |
-|---|---|
-| Proporción cabeza/cuerpo | Cabeza grande, aproximadamente 1/3 de la altura total |
-| Ojos | Negros, redondos, grandes, **sin pupila ni brillo** |
-| Nariz | Ausente o apenas insinuada |
-| Boca | Ausente en el estilo clásico |
-| Cuerpo | Pequeño, compacto, extremidades cortas y simplificadas |
-| Postura | Rígida, frontal, brazos ligeramente separados |
-| Acabado | Superficie mate, colores planos con sombreado suave |
-
-**Lo que identifica a cada carrera es la vestimenta y los accesorios, no la anatomía.** El cuerpo Funko es el mismo en los 5 estilos; lo que cambia es la ropa que evoluciona por fase (bata y estetoscopio para Salud, casco y chaleco para Técnica, toga para Derecho, etc.).
-
->
-> Sea cual sea el método, **el entregable final es PNG sin fondo** (decisión D-02). El sistema no carga modelos 3D en el MVP.
-
-### Agrupación de carreras por estilo
-
-| Estilo | Código | Carreras |
-|---|---|---|
-| Salud | `health` | Medicina, Enfermería, Obstetricia |
-| Negocios | `business` | Administración de Empresas, Contabilidad |
-| Técnica | `technical` | Ing. Civil, Ing. Industrial, Ing. de Minas, Arquitectura |
-| Sistemas | `systems` | Ingeniería de Sistemas |
-| Derecho | `law` | Derecho |
-
-Si un usuario elige una carrera fuera de esta lista, se le asigna el estilo `technical` por defecto y se registra en telemetría para saber cuántos casos hubo.
-
-### Nomenclatura de archivos de assets
-
-```
-public/assets/avatars/{estilo}/{genero}/fase-{NN}/{posicion}.png
-
-Ejemplo:
-public/assets/avatars/health/f/fase-03/frontal.png
+### 2.3 GIFs Animados Contextuales en Módulos de Estudio
+Para mantener una identidad visual enfocada, los módulos de estudio funcionales muestran GIFs animados temáticos en su cabecera:
+* ⏱️ **Pomodoro:** `pomodoro.gif`
+* 📅 **Hábitos:** `habits.gif`
+* 🎯 **Misiones:** `missions.gif`
+* 🏅 **Logros e Insignias:** `achievements.gif`
+* 🤖 **Asistente IA:** `benny-typing-v2.gif`
 public/assets/avatars/systems/m/fase-10/lateral-izq.png
 ```
 
@@ -122,20 +90,20 @@ XP_para_subir_al_nivel(n) = 100 + (n - 1) × 45
 | 25 → 26 | 1.180 | 15.100 | 5 → 6 |
 | 49 → 50 | 2.260 | 58.850 | 10 |
 
-### Verificación contra los 66 días
+### Verificación contra los 40 días de intervención
 
-| Perfil de usuario | XP/día | XP en 66 días | Nivel alcanzado | Fase |
+| Perfil de usuario | XP/día | XP en 40 días | Nivel alcanzado | Fase |
 |---|---|---|---|---|
-| Bajo (1 hábito, 1 pomodoro) | ~25 | 1.650 | ~8 | 2 |
-| Medio (3 hábitos, 3 pomodoros, 1 misión/sem) | ~110 | 7.260 | ~19 | 4 |
-| Alto (topes casi completos + rachas) | ~280 | 18.480 | ~28 | 6 |
-| Máximo teórico (todo al tope, racha perfecta) | ~450 | 29.700 | ~35 | 7 |
+| Bajo (1 hábito, 1 pomodoro) | ~25 | 1.000 | ~6 | 2 |
+| Medio (3 hábitos, 3 pomodoros, 1 misión/sem) | ~110 | 4.400 | ~14 | 3 |
+| Alto (topes casi completos + rachas) | ~280 | 11.200 | ~22 | 5 |
+| Máximo teórico (todo al tope, racha perfecta) | ~450 | 18.000 | ~28 | 6 |
 
-**Diseño intencional: nadie llega al nivel 50 en 66 días.** Razones:
+**Diseño intencional: nadie llega al nivel 50 en 40 días.** Razones:
 
 - Mantiene la progresión aspiracional durante todo el periodo, sin techo alcanzable que desmotive.
-- Las fases 8, 9 y 10 quedan como contenido posterior a la intervención.
-- El rango de niveles alcanzados (8–35) da **buena varianza para el análisis estadístico**, que es lo que se necesita para correlacionar progreso con cambio psicométrico. Si todos llegaran al tope, la variable sería inútil.
+- Las fases superiores quedan como contenido posterior a la intervención.
+- El rango de niveles alcanzados (6–28) da **buena varianza para el análisis estadístico**, que es lo que se necesita para correlacionar progreso con cambio psicométrico en la Escala EPA (8 ítems). Si todos llegaran al tope, la variable sería inútil.
 
 ---
 
@@ -196,7 +164,7 @@ Un villano por semana, asignado automáticamente el lunes a las 00:00 (hora de L
 | El Desorden | `disorder` | No saber por dónde empezar | Misiones creadas con subtareas |
 | El Cansancio | `fatigue` | Llegar agotado de clases | Hábitos de descanso y sueño |
 
-Los cinco villanos salen directamente de las categorías de "mayor obstáculo" de la encuesta diagnóstica (n=98). **Eso es deliberado: conecta la mecánica del juego con el diagnóstico real de la población**, y es un argumento defendible ante el jurado.
+Los cinco villanos salen directamente del **Diagrama de Pareto de Obstáculos (Fig. 1)** de la encuesta diagnóstica (Google Forms, 4–6 abr. 2026, $n=98$): falta de motivación (25,5 %), distracción por celular/redes (19,4 %), olvido de lo planificado (18,4 %), no saber por dónde empezar (14,3 %) y cansancio tras clases (12,2 %). **Eso es deliberado: conecta la mecánica del juego con el diagnóstico real de la población**, y es un argumento defendible ante el jurado.
 
 ### Mecánica
 

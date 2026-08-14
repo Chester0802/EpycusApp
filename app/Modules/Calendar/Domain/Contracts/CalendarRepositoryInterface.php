@@ -21,4 +21,3 @@ interface CalendarRepositoryInterface
 
     public function deleteSchedule(int $userId, int $id): bool;
 }
-

@@ -15,6 +15,7 @@ final class CompleteProfileRequest extends FormRequest
         $allCareers = Career::all();
 
         return [
+            'alias' => ['nullable', 'string', 'max:40', 'unique:users,alias,'.($this->user()?->id ?? 'NULL')],
             'career' => ['required', 'string', 'in:'.implode(',', $allCareers)],
             'avatar_style' => ['required', 'string', 'in:health,business,technical,systems,law'],
             'avatar_gender' => ['required', 'string', 'in:m,f'],
@@ -26,6 +27,7 @@ final class CompleteProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'alias.unique' => 'Este alias ya está en uso por otro estudiante.',
             'career.in' => 'La carrera seleccionada no es válida.',
             'avatar_style.in' => 'El estilo de avatar no es válido.',
             'avatar_gender.in' => 'El género del avatar no es válido.',

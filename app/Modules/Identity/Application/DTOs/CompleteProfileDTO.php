@@ -13,5 +13,6 @@ final readonly class CompleteProfileDTO
         public string $avatarGender,
         public int $cycle,
         public string $institutionType,
+        public ?string $alias = null,
     ) {}
 }

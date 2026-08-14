@@ -3,30 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Modules\Gamification\Domain\Services\LevelCalculator;
+use App\Modules\Motivation\Application\UseCases\GetQuoteForLoginUseCase;
 use App\Modules\Villains\Application\UseCases\GetCurrentVillainUseCase;
 use App\Shared\Domain\Contracts\UserProgressReaderInterface;
-use App\Shared\Domain\Services\AvatarAssetResolver;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
-use App\Modules\Motivation\Application\UseCases\GetQuoteForLoginUseCase;
-
 class DashboardController extends Controller
 {
     public function __construct(
         private UserProgressReaderInterface $progress,
-        private AvatarAssetResolver $avatars,
         private GetCurrentVillainUseCase $getCurrentVillain,
         private GetQuoteForLoginUseCase $getQuote,
     ) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
         $userId = (int) Auth::id();
         $user = Auth::user();
+
+        // Si el usuario no ha completado su perfil inicial (carrera o institución), redirigir a /profile/complete
+        if ($user && (empty($user->career) || empty($user->institution_type))) {
+            return redirect()->route('profile.complete');
+        }
 
         // 1. Gamificación y cálculo de progreso de nivel
         $level = $this->progress->getLevelFor($userId);
@@ -96,20 +99,52 @@ class DashboardController extends Controller
             }
         }
 
-        // 3. Misiones y métricas rápidas
-        $pendingMissionsCount = DB::table('missions')
-            ->where('user_id', $userId)
-            ->whereNull('completed_at')
-            ->whereNull('deleted_at')
-            ->count();
-
+        // 3. Misiones y desgloses
         $completedMissionsCount = DB::table('missions')
             ->where('user_id', $userId)
             ->whereNotNull('completed_at')
             ->whereNull('deleted_at')
             ->count();
 
-        // 4. Villano activo
+        $overdueMissionsCount = DB::table('missions')
+            ->where('user_id', $userId)
+            ->whereNull('completed_at')
+            ->whereNull('deleted_at')
+            ->where('due_date', '<', $today->format('Y-m-d H:i:s'))
+            ->count();
+
+        $pendingMissionsCount = DB::table('missions')
+            ->where('user_id', $userId)
+            ->whereNull('completed_at')
+            ->whereNull('deleted_at')
+            ->where(function ($q) use ($today) {
+                $q->whereNull('due_date')
+                  ->orWhere('due_date', '>=', $today->format('Y-m-d H:i:s'));
+            })
+            ->count();
+
+        $totalMissionsCount = $completedMissionsCount + $overdueMissionsCount + $pendingMissionsCount;
+
+        // 4. Adherencia de Hábitos
+        $totalActiveHabits = DB::table('habits')
+            ->where('user_id', $userId)
+            ->where('is_active', 1)
+            ->whereNull('deleted_at')
+            ->count();
+
+        $todayHabitsDone = $last7Days[$endDateStr]['habitsDone'] ?? 0;
+        $habitAdherencePercent = $totalActiveHabits > 0
+            ? min(100, (int) round(($todayHabitsDone / $totalActiveHabits) * 100))
+            : ($todayHabitsDone > 0 ? 100 : 0);
+
+        // 5. Resumen de Bienestar Semanal (Últimos 7 días)
+        $wellbeingSummary = DB::table('journal_entries')
+            ->selectRaw('AVG(mood_score) as avg_mood, AVG(energy) as avg_energy, AVG(stress) as avg_stress, COUNT(*) as total_entries')
+            ->where('user_id', $userId)
+            ->whereBetween('date', [$startDateStr, $endDateStr])
+            ->first();
+
+        // 6. Villano activo
         $villain = $this->getCurrentVillain->execute($userId);
 
         return Inertia::render('Dashboard', [
@@ -117,6 +152,7 @@ class DashboardController extends Controller
             'userCareer' => $user?->career,
             'avatarStyle' => $user?->avatar_style,
             'avatarGender' => $user?->avatar_gender,
+            'avatarOptions' => $user?->avatar_options,
             'progress' => [
                 'level' => $level,
                 'phase' => $phase,
@@ -131,12 +167,21 @@ class DashboardController extends Controller
             'stats' => [
                 'pendingMissions' => $pendingMissionsCount,
                 'completedMissions' => $completedMissionsCount,
+                'overdueMissions' => $overdueMissionsCount,
+                'totalMissions' => $totalMissionsCount,
                 'todayFocusMinutes' => $last7Days[$endDateStr]['focusMinutes'] ?? 0,
-                'todayHabitsDone' => $last7Days[$endDateStr]['habitsDone'] ?? 0,
+                'todayHabitsDone' => $todayHabitsDone,
+                'totalActiveHabits' => $totalActiveHabits,
+                'habitAdherencePercent' => $habitAdherencePercent,
+            ],
+            'wellbeing' => [
+                'avgMood' => $wellbeingSummary?->avg_mood ? round((float) $wellbeingSummary->avg_mood, 1) : null,
+                'avgEnergy' => $wellbeingSummary?->avg_energy ? round((float) $wellbeingSummary->avg_energy, 1) : null,
+                'avgStress' => $wellbeingSummary?->avg_stress ? round((float) $wellbeingSummary->avg_stress, 1) : null,
+                'totalEntries' => (int) ($wellbeingSummary?->total_entries ?? 0),
             ],
             'villain' => $villain,
             'motivationalQuote' => $this->getQuote->execute($userId),
-            'avatarImage' => $this->avatars->imageForModule($user?->avatar_style, $user?->avatar_gender, 'dashboard'),
         ]);
     }
 }

@@ -21,9 +21,14 @@ final class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'alias' => fake()->unique()->userName(),
+            'name' => \fake()->name(),
+            'email' => \fake()->unique()->safeEmail(),
+            'alias' => \fake()->unique()->userName(),
+            'career' => 'Ingeniería de Sistemas',
+            'avatar_style' => 'systems',
+            'avatar_gender' => 'm',
+            'cycle' => 1,
+            'institution_type' => 'universidad',
             'email_verified_at' => now(),
             'password' => self::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
@@ -45,11 +50,12 @@ final class UserFactory extends Factory
         ];
 
         return $this->state(fn (array $attributes) => [
-            'career' => fake()->randomElement($careers),
-            'avatar_style' => fake()->randomElement(['health', 'business', 'technical', 'systems', 'law']),
-            'avatar_gender' => fake()->randomElement(['m', 'f']),
-            'cycle' => fake()->numberBetween(1, 10),
-            'institution_type' => fake()->randomElement(['universidad', 'instituto']),
+            'career' => \fake()->randomElement($careers),
+            'avatar_style' => \fake()->randomElement(['health', 'business', 'technical', 'systems', 'law']),
+            'avatar_gender' => \fake()->randomElement(['m', 'f']),
+            'cycle' => \fake()->numberBetween(1, 10),
+            'institution_type' => \fake()->randomElement(['universidad', 'instituto']),
         ]);
     }
+
 }

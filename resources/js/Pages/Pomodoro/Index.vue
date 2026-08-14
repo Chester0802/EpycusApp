@@ -6,6 +6,7 @@ import BaseCard from '@/Components/ui/BaseCard.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseSelect from '@/Components/ui/BaseSelect.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
+import ProceduralAvatar from '@/Components/ProceduralAvatar.vue';
 
 const props = defineProps({
     activeSession: { type: Object, default: null },
@@ -13,7 +14,9 @@ const props = defineProps({
     autoCompletedXp: { type: Number, default: null },
     todaySessions: { type: Array, default: () => [] },
     stats: { type: Object, required: true },
-    avatarImage: { type: String, default: null },
+    avatarStyle: { type: String, default: 'base' },
+    avatarGender: { type: String, default: 'm' },
+    progress: { type: Object, default: () => ({ phase: 1 }) },
     missions: { type: Array, default: () => [] },
 });
 
@@ -584,10 +587,13 @@ onUnmounted(() => {
                 <BaseCard class="mb-8">
                     <header class="flex items-center gap-4">
                         <div
-                            v-if="avatarImage"
-                            class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl p-1"
+                            class="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border-interactive bg-surface-raised/40 p-2 shadow-sm"
                         >
-                            <img :src="avatarImage" alt="" class="h-full w-full object-contain" />
+                            <img
+                                src="/assets/gifs/pomodoro.gif"
+                                alt="Temporizador Pomodoro"
+                                class="h-full w-full object-contain"
+                            />
                         </div>
                         <div>
                             <h1

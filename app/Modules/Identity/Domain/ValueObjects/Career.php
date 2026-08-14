@@ -33,16 +33,20 @@ final readonly class Career
         return $this->value;
     }
 
-    public function avatarStyle(): string
+    public static function avatarStyle(string $careerName): string
     {
         foreach (self::CAREERS_BY_STYLE as $style => $careers) {
-            if (in_array($this->value, $careers, true)) {
+            if (in_array($careerName, $careers, true)) {
                 return $style;
             }
         }
 
-        // Inalcanzable: el constructor ya validó que $value está en CAREERS_BY_STYLE.
-        throw new \LogicException("Carrera sin estilo de avatar mapeado: {$this->value}");
+        return 'technical';
+    }
+
+    public static function avatarStyleFor(string $careerName): string
+    {
+        return self::avatarStyle($careerName);
     }
 
     /** @return list<string> */

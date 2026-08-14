@@ -12,6 +12,9 @@ final class ReorderSubtasksUseCase
         private MissionRepositoryInterface $repository,
     ) {}
 
+    /**
+     * @param array<int, int> $orderedIds
+     */
     public function execute(int $missionId, int $userId, array $orderedIds): void
     {
         $mission = $this->repository->findByIdAndUser($missionId, $userId);

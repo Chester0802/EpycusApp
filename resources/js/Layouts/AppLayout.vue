@@ -1,10 +1,11 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import NavIcon from '@/Components/NavIcon.vue';
 import BaseBadge from '@/Components/ui/BaseBadge.vue';
+import EpaPretestModal from '@/Components/EpaPretestModal.vue';
 import { useTheme } from '@/composables/useTheme';
 
 /*
@@ -66,11 +67,35 @@ const navItems = [
 const page = usePage();
 const mobileMenuOpen = ref(false);
 const { surface } = useTheme();
+
+const showEpaModal = computed(() => {
+    const user = page.props.auth?.user;
+    if (!user) return false;
+
+    // No mostrar el cuestionario EPA en la vista de completar perfil (/profile/complete)
+    if (page.url.includes('/profile/complete')) return false;
+
+    // No mostrar el cuestionario si el usuario no ha completado su perfil académico inicial
+    if (!user.career || !user.institution_type) return false;
+
+    if (page.props.auth?.hasCompletedEpaPretest === true) return false;
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+        if (localStorage.getItem(`epycus_epa_completed_${user.id}`) === '1') {
+            return false;
+        }
+    }
+    return true;
+});
 </script>
 
 <template>
     <div class="min-h-screen bg-bg lg:flex">
+        <!-- Modal de Diagnóstico Inicial EPA -->
+        <EpaPretestModal :show="showEpaModal" />
+
         <!-- Fondo de pantalla — solo modo Vidrio (skill epycus-ui §2, §6) -->
+
         <div v-if="surface === 'glass'" class="app-background" aria-hidden="true" />
         <!-- Barra lateral — solo escritorio -->
         <aside class="panel-nav relative z-10 hidden w-[260px] shrink-0 lg:flex lg:flex-col">

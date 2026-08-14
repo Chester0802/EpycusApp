@@ -17,8 +17,11 @@ final class SessionState
     }
 
     public const OPEN = 'open';
+
     public const RUNNING = 'running';
+
     public const COMPLETED = 'completed';
+
     public const CLOSED = 'closed';
 
     public static function open(): self

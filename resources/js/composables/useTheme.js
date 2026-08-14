@@ -18,23 +18,32 @@ const theme = ref(document.documentElement.getAttribute('data-theme') || 'light'
 const surface = ref(document.documentElement.getAttribute('data-surface') || 'neumorphism');
 const palette = ref(document.documentElement.getAttribute('data-palette') || 'kawaii');
 
+function safeSet(key, value) {
+    try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.setItem(key, value);
+        }
+    } catch (e) {}
+}
+
 function applyTheme(value) {
     theme.value = value;
     document.documentElement.setAttribute('data-theme', value);
-    localStorage.setItem('epycus.theme', value);
+    safeSet('epycus.theme', value);
 }
 
 function applySurface(value) {
     surface.value = value;
     document.documentElement.setAttribute('data-surface', value);
-    localStorage.setItem('epycus.surface', value);
+    safeSet('epycus.surface', value);
 }
 
 function applyPalette(value) {
     palette.value = value;
     document.documentElement.setAttribute('data-palette', value);
-    localStorage.setItem('epycus.palette', value);
+    safeSet('epycus.palette', value);
 }
+
 
 /**
  * Degradación en gama baja — skill epycus-ui §6. Un dispositivo de gama
@@ -54,19 +63,36 @@ function detectLowEndDevice() {
 detectLowEndDevice();
 
 const wallpaperFileMap = {
-    atardecer: 'atardecer.avif',
-    chica_anime: 'chica_anime.jpg',
-    claro_bts: 'claro_bts.jpg',
-    dragon_ball: 'dragon_ball.png',
-    anime_morado: 'anime_morado.jpg',
-    lofi_naturaleza: 'lofi_naturaleza.jpg',
-    gris_pinguino: 'gris_pinguino.jpeg',
-    verde_cactus: 'verde_cactus.jpg',
-    lofi_gato: 'lofi_gato.jpg',
+    Fondo_1: 'Fondo_1.avif',
+    atardecer: 'Fondo_1.avif',
+    Fondo_2: 'Fondo_2.jpg',
+    Fondo_3: 'Fondo_3.jpg',
+    Fondo_4: 'Fondo_4.png',
+    Fondo_5: 'Fondo_5.jpg',
+    Fondo_6: 'Fondo_6.jpg',
+    Fondo_7: 'Fondo_7.jpeg',
+    Fondo_8: 'Fondo_8.jpg',
+    Fondo_9: 'Fondo_9.jpg',
 };
 
 function applyWallpaper(key) {
-    const file = wallpaperFileMap[key] || 'atardecer.avif';
+    if (!key) return;
+    let file = wallpaperFileMap[key];
+    if (!file) {
+        try {
+            const page = usePage();
+            const catalog = page.props?.wallpapers || [];
+            const found = catalog.find((w) => w.key === key);
+            if (found) {
+                file = found.file;
+            }
+        } catch (e) {
+            // Silencioso en SSR / fuera de contexto
+        }
+    }
+    if (!file) {
+        file = `${key}.jpg`;
+    }
     document.documentElement.style.setProperty(
         '--user-wallpaper',
         `url('/assets/wallpapers/full/${file}')`,

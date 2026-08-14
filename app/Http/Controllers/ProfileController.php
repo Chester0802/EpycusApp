@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Modules\Gamification\Domain\Services\LevelCalculator;
 use App\Modules\Identity\Infrastructure\Models\ParticipantModel;
-use App\Shared\Domain\Services\AvatarAssetResolver;
+use App\Shared\Domain\Contracts\UserProgressReaderInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,25 +16,55 @@ use Inertia\Response;
 class ProfileController extends Controller
 {
     public function __construct(
-        private readonly AvatarAssetResolver $avatarResolver,
+        private UserProgressReaderInterface $progressReader,
     ) {}
 
     public function edit(Request $request): Response
     {
         $user = $request->user();
-        $participant = ParticipantModel::where('user_id', $user->id)->first();
+        $userId = (int) $user->id;
+        $participant = ParticipantModel::where('user_id', $userId)->first();
 
-        $avatarImage = $this->avatarResolver->imageForModule(
-            $user->avatar_style,
-            $user->avatar_gender,
-            'dashboard',
-        );
+        // Cargar progreso de gamificación real del usuario
+        $level = $this->progressReader->getLevelFor($userId);
+        $phase = $this->progressReader->getPhaseFor($userId);
+        $totalXp = $this->progressReader->getTotalXpFor($userId);
+        $streak = $this->progressReader->getCurrentStreakFor($userId);
+        $coins = $this->progressReader->getCoinsFor($userId);
+
+        $levelCalc = app(LevelCalculator::class);
+        $accumulated = 0;
+        for ($l = 1; $l < $level; $l++) {
+            $accumulated += $levelCalc->xpNeededToAdvanceFromLevel($l);
+        }
+        $currentLevelXp = max(0, $totalXp - $accumulated);
+        $nextLevelXpNeeded = $levelCalc->xpNeededToAdvanceFromLevel($level);
+        $levelProgressPercent = $nextLevelXpNeeded > 0
+            ? min(100, (int) round(($currentLevelXp / $nextLevelXpNeeded) * 100))
+            : 100;
+
+        $progressData = [
+            'level' => $level,
+            'phase' => $phase,
+            'totalXp' => $totalXp,
+            'currentStreak' => $streak,
+            'coins' => $coins,
+            'currentLevelXp' => $currentLevelXp,
+            'nextLevelXpNeeded' => $nextLevelXpNeeded,
+            'levelProgressPercent' => $levelProgressPercent,
+        ];
 
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => false,
             'status' => session('status'),
-            'avatarImage' => $avatarImage,
+            'avatarStyle' => $user->avatar_style ?? 'base',
+            'avatarGender' => $user->avatar_gender ?? 'm',
+            'avatarOptions' => $user->avatar_options,
+            'progress' => $progressData,
             'participantCode' => $participant?->participant_code,
+            'careers' => config('careers.styles'),
+            'cycles' => config('careers.cycles'),
+            'institutionTypes' => config('careers.institution_types'),
             'profileData' => [
                 'alias' => $user->alias,
                 'career' => $user->career,
@@ -45,19 +76,48 @@ class ProfileController extends Controller
     }
 
     /**
+     * Update the user's customized avatar options.
+     */
+    public function updateAvatarOptions(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'skinColor' => ['nullable', 'string', 'max:10'],
+            'head' => ['nullable', 'string', 'max:50'],
+            'face' => ['nullable', 'string', 'max:50'],
+            'accessories' => ['nullable', 'string', 'max:50'],
+            'facialHair' => ['nullable', 'string', 'max:50'],
+            'clothingColor' => ['nullable', 'string', 'max:10'],
+            'backgroundColor' => ['nullable', 'string', 'max:10'],
+        ]);
+
+        $user = $request->user();
+        $user->avatar_options = array_filter($validated, fn ($v) => $v !== null);
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('success', 'Avatar personalizado guardado.');
+    }
+
+    /**
      * Update the user's profile information.
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $validated = $request->validated();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if (! empty($validated['career'])) {
+            $validated['avatar_style'] = \App\Modules\Identity\Domain\ValueObjects\Career::avatarStyle($validated['career']);
         }
 
-        $request->user()->save();
+        $user->fill($validated);
 
-        return Redirect::route('profile.edit');
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('success', 'Perfil actualizado correctamente.');
     }
 
     /**

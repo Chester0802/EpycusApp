@@ -10,13 +10,16 @@ import BaseCard from '@/Components/ui/BaseCard.vue';
 import BaseBadge from '@/Components/ui/BaseBadge.vue';
 import UsageTipBanner from '@/Components/ui/UsageTipBanner.vue';
 import AppIcon from '@/Components/AppIcon.vue';
+import ProceduralAvatar from '@/Components/ProceduralAvatar.vue';
 import { useTelemetry } from '@/Composables/useTelemetry';
 
 const props = defineProps({
     habits: { type: Array, default: () => [] },
     archivedHabits: { type: Array, default: () => [] },
     todayDate: { type: String, required: true },
-    avatarImage: { type: String, default: null },
+    avatarStyle: { type: String, default: 'base' },
+    avatarGender: { type: String, default: 'm' },
+    progress: { type: Object, default: () => ({ phase: 1 }) },
     stats: {
         type: Object,
         default: () => ({ total_weekly: 0, max_streak: 0, active_habits: 0 }),
@@ -328,10 +331,13 @@ const triggerXpToast = (msg) => {
                 <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-4">
                         <div
-                            v-if="avatarImage"
-                            class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl p-1"
+                            class="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border-interactive bg-surface-raised/40 p-2 shadow-sm"
                         >
-                            <img :src="avatarImage" alt="" class="h-full w-full object-contain" />
+                            <img
+                                src="/assets/gifs/habits.gif"
+                                alt="Hábitos Diarios"
+                                class="h-full w-full object-contain"
+                            />
                         </div>
                         <div>
                             <h1 class="font-display text-3xl text-content-primary">
@@ -348,26 +354,26 @@ const triggerXpToast = (msg) => {
                 </header>
             </BaseCard>
 
-            <div v-if="habits.length > 0" class="mb-6 grid grid-cols-4 gap-4">
-                <BaseCard class="p-4 text-center">
+            <div v-if="habits.length > 0" class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+                <BaseCard class="p-3 sm:p-4 text-center">
                     <p class="font-display text-2xl text-content-primary">
                         {{ stats.active_habits }}
                     </p>
-                    <p class="text-xs text-content-muted">Activos</p>
+                    <p class="text-xs text-content-muted leading-tight">Activos</p>
                 </BaseCard>
-                <BaseCard class="p-4 text-center">
+                <BaseCard class="p-3 sm:p-4 text-center">
                     <p class="font-display text-2xl text-content-primary">
                         {{ stats.total_weekly }}
                     </p>
-                    <p class="text-xs text-content-muted">Esta semana</p>
+                    <p class="text-xs text-content-muted leading-tight">Esta semana</p>
                 </BaseCard>
-                <BaseCard class="p-4 text-center">
+                <BaseCard class="p-3 sm:p-4 text-center">
                     <p class="font-display text-2xl text-content-primary">{{ stats.max_streak }}</p>
-                    <p class="text-xs text-content-muted flex items-center gap-1">
+                    <p class="text-xs text-content-muted flex items-center justify-center gap-1 leading-tight">
                         Mejor racha <AppIcon name="flame" :size="11" class="text-danger" />
                     </p>
                 </BaseCard>
-                <BaseCard class="p-4 text-center">
+                <BaseCard class="p-3 sm:p-4 text-center">
                     <p class="font-display text-2xl text-content-primary">
                         {{
                             habits.length > 0
@@ -378,7 +384,7 @@ const triggerXpToast = (msg) => {
                                 : 0
                         }}%
                     </p>
-                    <p class="text-xs text-content-muted">Adherencia del mes</p>
+                    <p class="text-xs text-content-muted leading-tight px-1 break-words">Adherencia del mes</p>
                 </BaseCard>
             </div>
 

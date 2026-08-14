@@ -17,7 +17,7 @@ final class ListUserConversationsUseCase
             ->map(function ($conv) {
                 $lastMsg = $conv->messages->first()?->content ?? 'Sin mensajes';
                 if (mb_strlen($lastMsg) > 35) {
-                    $lastMsg = mb_substr($lastMsg, 0, 35) . '...';
+                    $lastMsg = mb_substr($lastMsg, 0, 35).'...';
                 }
 
                 return [

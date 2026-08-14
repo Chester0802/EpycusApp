@@ -37,6 +37,7 @@ final readonly class CompleteProfileUseCase
             avatarGender: new AvatarGender($dto->avatarGender),
             cycle: new Cycle($dto->cycle),
             institutionType: new InstitutionType($dto->institutionType),
+            alias: $dto->alias,
         );
 
         $saved = $this->transaction->run(function () use ($user) {

@@ -16,15 +16,23 @@
         --}}
         <script nonce="{{ $cspNonce }}">
             (function () {
-                var theme = localStorage.getItem('epycus.theme')
-                    || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                var surface = localStorage.getItem('epycus.surface') || 'neumorphism';
-                var palette = localStorage.getItem('epycus.palette') || 'kawaii';
+                var theme = 'light', surface = 'neumorphism', palette = 'kawaii';
+                try {
+                    if (window.localStorage) {
+                        theme = localStorage.getItem('epycus.theme')
+                            || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                        surface = localStorage.getItem('epycus.surface') || 'neumorphism';
+                        palette = localStorage.getItem('epycus.palette') || 'kawaii';
+                    }
+                } catch (e) {
+                    theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                }
                 document.documentElement.setAttribute('data-theme', theme);
                 document.documentElement.setAttribute('data-surface', surface);
                 document.documentElement.setAttribute('data-palette', palette);
             })();
         </script>
+
 
         <!-- Scripts -->
         @routes(nonce: $cspNonce)

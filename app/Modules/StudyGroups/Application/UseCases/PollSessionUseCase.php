@@ -36,6 +36,7 @@ final readonly class PollSessionUseCase
                 'alias' => $p->alias,
                 'avatar_style' => $p->avatar_style,
                 'avatar_gender' => $p->avatar_gender,
+                'avatar_options' => isset($p->avatar_options) ? (is_array($p->avatar_options) ? $p->avatar_options : json_decode((string) $p->avatar_options, true)) : null,
                 'joined_at' => $p->joined_at,
             ])->values()->all(),
         ];

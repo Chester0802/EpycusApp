@@ -17,7 +17,7 @@ final class GetAdminSystemHealthUseCase
             $pdo = DB::connection()->getPdo();
             $dbVersion = $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION);
         } catch (Exception $e) {
-            $dbStatus = 'ERROR: ' . $e->getMessage();
+            $dbStatus = 'ERROR: '.$e->getMessage();
         }
 
         $todayAiConsultations = DB::table('ai_quotas')

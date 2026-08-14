@@ -5,12 +5,17 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
 import BaseBadge from '@/Components/ui/BaseBadge.vue';
 import AppIcon from '@/Components/AppIcon.vue';
+import ProceduralAvatar from '@/Components/ProceduralAvatar.vue';
+import AvatarFrame from '@/Components/ui/AvatarFrame.vue';
+import { getCareerRankTitle } from '@/constants/careerRanks';
 import { useTelemetry } from '@/Composables/useTelemetry';
 
 const props = defineProps({
     ranking: { type: Array, default: () => [] },
     ownPosition: { type: Object, required: true },
-    avatarImage: { type: String, default: null },
+    avatarStyle: { type: String, default: 'base' },
+    avatarGender: { type: String, default: 'm' },
+    avatarOptions: { type: Object, default: () => ({}) },
 });
 
 const { track } = useTelemetry();
@@ -34,13 +39,14 @@ const topThree = computed(() => props.ranking.slice(0, 3));
                 <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-4">
                         <div
-                            v-if="avatarImage"
-                            class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl p-1 border border-border-interactive shadow-sm"
+                            v-if="avatarStyle"
+                            class="flex h-32 w-20 shrink-0 items-center justify-center rounded-2xl p-1 border border-border-interactive bg-surface-raised/40"
                         >
-                            <img
-                                :src="avatarImage"
-                                alt="Avatar"
-                                class="h-full w-full object-contain"
+                            <ProceduralAvatar
+                                :career="avatarStyle"
+                                :gender="avatarGender ?? 'm'"
+                                :avatar-options="avatarOptions"
+                                :phase="ownPosition?.phase ?? 1"
                             />
                         </div>
                         <div>
@@ -191,15 +197,36 @@ const topThree = computed(() => props.ranking.slice(0, 3));
                                 </td>
 
                                 <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2">
-                                        <span>{{ user.name }}</span>
-                                        <BaseBadge
-                                            v-if="user.user_id === ownPosition.user_id"
-                                            variant="primary"
-                                            class="text-[10px]"
+                                    <div class="flex items-center gap-3">
+                                        <AvatarFrame
+                                            :phase="user.phase || 1"
+                                            :streak="user.current_streak || 0"
+                                            size-class="h-10 w-10 shrink-0"
+                                            :show-badge="false"
                                         >
-                                            Tú
-                                        </BaseBadge>
+                                            <ProceduralAvatar
+                                                :career="user.avatar_style || 'base'"
+                                                :gender="user.avatar_gender || 'm'"
+                                                :avatar-options="user.avatar_options"
+                                                :phase="user.phase || 1"
+                                                :size="64"
+                                            />
+                                        </AvatarFrame>
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-bold text-content-primary">{{ user.name }}</span>
+                                                <BaseBadge
+                                                    v-if="user.user_id === ownPosition.user_id"
+                                                    variant="primary"
+                                                    class="text-[10px]"
+                                                >
+                                                    Tú
+                                                </BaseBadge>
+                                            </div>
+                                            <p class="text-[11px] font-semibold text-primary-strong">
+                                                🛡️ {{ getCareerRankTitle(user.career, user.phase || 1) }}
+                                            </p>
+                                        </div>
                                     </div>
                                 </td>
 

@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace Tests\Feature\StudyGroups;
 
 use App\Modules\Identity\Infrastructure\Models\UserModel;
+use App\Modules\StudyGroups\Application\DTOs\CreateSessionDTO;
+use App\Modules\StudyGroups\Application\DTOs\SendMessageDTO;
 use App\Modules\StudyGroups\Application\UseCases\CreateStudySessionUseCase;
 use App\Modules\StudyGroups\Application\UseCases\JoinSessionUseCase;
 use App\Modules\StudyGroups\Application\UseCases\LeaveSessionUseCase;
+use App\Modules\StudyGroups\Application\UseCases\PollSessionUseCase;
 use App\Modules\StudyGroups\Application\UseCases\SendMessageUseCase;
 use App\Modules\StudyGroups\Application\UseCases\StartGroupPomodoroUseCase;
-use App\Modules\StudyGroups\Application\UseCases\PollSessionUseCase;
-use App\Modules\StudyGroups\Application\DTOs\CreateSessionDTO;
-use App\Modules\StudyGroups\Application\DTOs\SendMessageDTO;
-use App\Modules\StudyGroups\Domain\Exceptions\AlreadyInSessionException;
-use App\Modules\StudyGroups\Domain\Exceptions\NotInSessionException;
-use App\Modules\StudyGroups\Domain\Exceptions\SessionFullException;
 use App\Modules\StudyGroups\Domain\Contracts\StudySessionRepositoryInterface;
+use App\Modules\StudyGroups\Domain\Exceptions\AlreadyInSessionException;
+use App\Modules\StudyGroups\Domain\Exceptions\SessionFullException;
 use App\Modules\StudyGroups\Infrastructure\Models\StudySessionModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -298,7 +297,7 @@ final class StudyGroupSessionTest extends TestCase
         );
 
         $response = $this->actingAs($user)->getJson(
-            route('study-groups.poll', $session->id) . '?since=0'
+            route('study-groups.poll', $session->id).'?since=0'
         );
 
         $response->assertStatus(200);

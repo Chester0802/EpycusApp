@@ -67,12 +67,12 @@ final class AiContextBuilderService
             : 'Ninguna';
 
         return sprintf(
-            "Contexto de progreso del participante (Anónimo):\n" .
-            "- Nivel actual: %d (Fase %d)\n" .
-            "- Racha activa: %d días\n" .
-            "- Hábitos completados hoy: %d\n" .
-            "- Minutos de foco acumulados hoy: %d min (Total 7 días: %d min)\n" .
-            "- Promedio de ánimo últimos 7 días: %s / 5 (Etiquetas frecuentes: %s)",
+            "Contexto de progreso del participante (Anónimo):\n".
+            "- Nivel actual: %d (Fase %d)\n".
+            "- Racha activa: %d días\n".
+            "- Hábitos completados hoy: %d\n".
+            "- Minutos de foco acumulados hoy: %d min (Total 7 días: %d min)\n".
+            '- Promedio de ánimo últimos 7 días: %s / 5 (Etiquetas frecuentes: %s)',
             $level,
             $phase,
             $streak,

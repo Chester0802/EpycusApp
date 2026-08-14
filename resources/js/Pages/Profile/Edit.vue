@@ -1,9 +1,13 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
+import ProgressBar from '@/Components/ui/ProgressBar.vue';
+import UpdateAcademicInformationForm from './Partials/UpdateAcademicInformationForm.vue';
 import DeleteUserForm from './Partials/DeleteUserForm.vue';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
+import AvatarCustomizer from '@/Components/AvatarCustomizer.vue';
+import StudentIdCard from '@/Components/ui/StudentIdCard.vue';
 import { Head } from '@inertiajs/vue3';
 
 defineProps({
@@ -15,9 +19,30 @@ defineProps({
         type: String,
         default: '',
     },
-    avatarImage: {
+    avatarStyle: {
         type: String,
-        default: null,
+        default: 'base',
+    },
+    avatarGender: {
+        type: String,
+        default: 'm',
+    },
+    avatarOptions: {
+        type: Object,
+        default: () => ({}),
+    },
+    progress: {
+        type: Object,
+        default: () => ({
+            phase: 1,
+            level: 1,
+            currentStreak: 0,
+            totalXp: 0,
+            coins: 0,
+            currentLevelXp: 0,
+            nextLevelXpNeeded: 100,
+            levelProgressPercent: 0,
+        }),
     },
     participantCode: {
         type: String,
@@ -27,80 +52,63 @@ defineProps({
         type: Object,
         default: () => ({}),
     },
+    careers: {
+        type: Object,
+        default: () => ({}),
+    },
+    cycles: {
+        type: Array,
+        default: () => [],
+    },
+    institutionTypes: {
+        type: Array,
+        default: () => [],
+    },
 });
-
-const labelMap = {
-    alias: 'Alias',
-    career: 'Carrera',
-    cycle: 'Ciclo',
-    avatarGender: 'Género del avatar',
-    institutionType: 'Tipo de institución',
-};
-
-const genderMap = {
-    m: 'Masculino',
-    f: 'Femenino',
-};
-
-const instMap = {
-    universidad: 'Universidad',
-    instituto: 'Instituto',
-};
 </script>
 
 <template>
-    <Head title="Perfil" />
+    <Head title="Perfil — Epycus" />
 
     <AppLayout>
-        <h1 class="mb-6 font-display text-3xl text-content-primary">Perfil</h1>
+        <h1 class="mb-6 font-display text-3xl font-bold text-content-primary">Perfil</h1>
 
         <div class="space-y-6">
-            <BaseCard>
-                <div class="flex flex-col items-center gap-6 lg:flex-row">
-                    <div
-                        v-if="avatarImage"
-                        class="flex h-40 w-60 shrink-0 items-center justify-center rounded-2xl p-4 lg:h-[360px] lg:w-[360px]"
+            <!-- Credencial de Estudiante Digital Holográfica -->
+            <StudentIdCard
+                :user-name="profileData.alias || 'Estudiante'"
+                :user-career="profileData.career"
+                :avatar-style="avatarStyle"
+                :avatar-gender="avatarGender ?? 'm'"
+                :avatar-options="avatarOptions"
+                :progress="progress"
+            />
+
+            <!-- Barra de Progreso de Nivel (XP) y Monedas -->
+            <BaseCard class="p-6">
+                <div
+                    class="flex items-center justify-between text-xs font-semibold text-content-secondary mb-1.5"
+                >
+                    <span>Progreso hacia Nivel {{ progress.level + 1 }}</span>
+                    <span
+                        >{{ progress.currentLevelXp }} / {{ progress.nextLevelXpNeeded }} XP ({{
+                            progress.levelProgressPercent
+                        }}%)</span
                     >
-                        <img
-                            :src="avatarImage"
-                            alt="Tu avatar"
-                            class="h-full w-full object-contain"
-                        />
-                    </div>
-
-                    <div class="w-full flex-1 space-y-4">
-                        <h2 class="font-display text-xl text-content-primary">Datos del perfil</h2>
-
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div v-for="(value, key) in profileData" :key="key">
-                                <p class="text-xs uppercase tracking-wide text-content-muted">
-                                    {{ labelMap[key] || key }}
-                                </p>
-                                <p class="text-base text-content-primary">
-                                    {{
-                                        key === 'avatarGender'
-                                            ? genderMap[value] || value
-                                            : key === 'institutionType'
-                                              ? instMap[value] || value
-                                              : value || '—'
-                                    }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div v-if="participantCode">
-                            <p class="text-xs uppercase tracking-wide text-content-muted">
-                                Código de participante
-                            </p>
-                            <p class="font-mono text-sm text-content-secondary">
-                                {{ participantCode }}
-                            </p>
-                        </div>
-                    </div>
                 </div>
+                <ProgressBar
+                    :value="progress.currentLevelXp"
+                    :max="progress.nextLevelXpNeeded"
+                    color="bg-primary-strong"
+                    size="h-3"
+                />
             </BaseCard>
 
-            <BaseCard>
+            <!-- Editor / Creador de Avatar Personalizable -->
+            <AvatarCustomizer :initial-options="avatarOptions" :gender="avatarGender" />
+
+            <!-- Formulario de Información de Cuenta -->
+            <BaseCard class="p-6">
                 <UpdateProfileInformationForm
                     :must-verify-email="mustVerifyEmail"
                     :status="status"
@@ -108,11 +116,22 @@ const instMap = {
                 />
             </BaseCard>
 
-            <BaseCard>
+            <!-- Formulario de Información Académica -->
+            <BaseCard class="p-6">
+                <UpdateAcademicInformationForm
+                    :careers="careers"
+                    :cycles="cycles"
+                    :institution-types="institutionTypes"
+                    class="max-w-xl"
+                />
+            </BaseCard>
+
+            <!-- Seguridad / Contraseña -->
+            <BaseCard class="p-6">
                 <UpdatePasswordForm class="max-w-xl" />
             </BaseCard>
 
-            <BaseCard>
+            <BaseCard class="p-6">
                 <DeleteUserForm class="max-w-xl" />
             </BaseCard>
         </div>

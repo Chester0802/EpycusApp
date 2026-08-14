@@ -14,10 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
+
         $middleware->validateCsrfTokens(except: [
             'api/*',
             'api/v1/telemetry/batch',
         ]);
+
 
         $middleware->web(append: [
             HandleInertiaRequests::class,
@@ -26,5 +29,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response, \Throwable $exception, \Illuminate\Http\Request $request) {
+            if ($response->getStatusCode() === 419) {
+                return redirect()->route('login')->with('status', 'Tu sesión ha sido renovada. Por favor, vuelve a ingresar.');
+            }
+
+            return $response;
+        });
     })->create();
+

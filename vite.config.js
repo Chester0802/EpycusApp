@@ -28,6 +28,6 @@ export default defineConfig({
     // Pre-bundlarlos evita que el optimizador de Vite falle al extraer exports
     // en frío y mantiene estable el dev server.
     optimizeDeps: {
-        include: ['@dicebear/core', '@dicebear/avataaars'],
+        include: ['@dicebear/core', '@dicebear/avataaars', '@dicebear/open-peeps'],
     },
 });

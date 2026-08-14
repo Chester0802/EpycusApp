@@ -21,10 +21,50 @@ final readonly class PreferencesController
 {
     public function __construct(private UpdatePreferencesUseCase $updatePreferences) {}
 
+    /**
+     * Obtiene el catálogo de fondos de pantalla fusionando config e imágenes Fondo_*.* de assets/wallpapers/full.
+     *
+     * @return array<string, array{key: string, file: string, cost: int}>
+     */
+    private function getWallpaperCatalog(): array
+    {
+        $items = config('wallpapers.items', []);
+        $fullPath = public_path('assets/wallpapers/full');
+
+        if (is_dir($fullPath)) {
+            $files = glob($fullPath.'/Fondo_*.*');
+            if (is_array($files)) {
+                foreach ($files as $filePath) {
+                    $filename = basename($filePath);
+                    $key = pathinfo($filename, PATHINFO_FILENAME);
+                    if (! isset($items[$key])) {
+                        $items[$key] = [
+                            'key' => $key,
+                            'file' => $filename,
+                            'cost' => $key === 'Fondo_1' ? 0 : 50,
+                        ];
+                    }
+                }
+            }
+        }
+
+        // Ordenar numéricamente por Fondo_N
+        uksort($items, function ($a, $b) {
+            preg_match('/Fondo_(\d+)/i', (string) $a, $mA);
+            preg_match('/Fondo_(\d+)/i', (string) $b, $mB);
+            $numA = isset($mA[1]) ? (int) $mA[1] : 999;
+            $numB = isset($mB[1]) ? (int) $mB[1] : 999;
+
+            return $numA <=> $numB;
+        });
+
+        return $items;
+    }
+
     public function edit(): Response
     {
         $userId = (int) Auth::id();
-        $catalog = config('wallpapers.items', []);
+        $catalog = $this->getWallpaperCatalog();
 
         $userProgress = UserProgressModel::find($userId);
         $userCoins = $userProgress ? $userProgress->coins : 0;
@@ -32,10 +72,14 @@ final readonly class PreferencesController
         $unlockedKeys = UserUnlockedWallpaperModel::where('user_id', $userId)
             ->pluck('wallpaper_key')
             ->toArray();
-        $unlockedKeys[] = 'atardecer'; // Default is always unlocked
+        $unlockedKeys[] = 'Fondo_1';
+        $unlockedKeys[] = 'atardecer'; // Retrocompatibilidad
 
         $prefModel = UserPreferencesModel::where('user_id', $userId)->first();
-        $activeKey = $prefModel?->wallpaper_key ?? 'atardecer';
+        $activeKey = $prefModel?->wallpaper_key ?? 'Fondo_1';
+        if ($activeKey === 'atardecer') {
+            $activeKey = 'Fondo_1';
+        }
 
         return Inertia::render('Settings/Index', [
             'wallpapers' => array_values($catalog),
@@ -62,7 +106,7 @@ final readonly class PreferencesController
     {
         $userId = (int) Auth::id();
         $wallpaperKey = (string) $request->input('wallpaper_key');
-        $catalog = config('wallpapers.items', []);
+        $catalog = $this->getWallpaperCatalog();
 
         if (! isset($catalog[$wallpaperKey])) {
             return back()->with('error', 'El fondo de pantalla especificado no existe.');
@@ -72,9 +116,11 @@ final readonly class PreferencesController
         $cost = (int) ($item['cost'] ?? 50);
 
         // Check if already unlocked
-        $alreadyUnlocked = $wallpaperKey === 'atardecer' || UserUnlockedWallpaperModel::where('user_id', $userId)
-            ->where('wallpaper_key', $wallpaperKey)
-            ->exists();
+        $alreadyUnlocked = $wallpaperKey === 'Fondo_1'
+            || $wallpaperKey === 'atardecer'
+            || UserUnlockedWallpaperModel::where('user_id', $userId)
+                ->where('wallpaper_key', $wallpaperKey)
+                ->exists();
 
         if ($alreadyUnlocked) {
             return back()->with('info', 'Este fondo de pantalla ya está desbloqueado.');
@@ -110,15 +156,17 @@ final readonly class PreferencesController
     {
         $userId = (int) Auth::id();
         $wallpaperKey = (string) $request->input('wallpaper_key');
-        $catalog = config('wallpapers.items', []);
+        $catalog = $this->getWallpaperCatalog();
 
         if (! isset($catalog[$wallpaperKey])) {
             return back()->with('error', 'El fondo de pantalla especificado no existe.');
         }
 
-        $isUnlocked = $wallpaperKey === 'atardecer' || UserUnlockedWallpaperModel::where('user_id', $userId)
-            ->where('wallpaper_key', $wallpaperKey)
-            ->exists();
+        $isUnlocked = $wallpaperKey === 'Fondo_1'
+            || $wallpaperKey === 'atardecer'
+            || UserUnlockedWallpaperModel::where('user_id', $userId)
+                ->where('wallpaper_key', $wallpaperKey)
+                ->exists();
 
         if (! $isUnlocked) {
             return back()->with('error', 'Debes desbloquear este fondo de pantalla antes de seleccionarlo.');
@@ -132,4 +180,3 @@ final readonly class PreferencesController
         return back()->with('success', 'Fondo de pantalla actualizado.');
     }
 }
-

@@ -45,7 +45,7 @@ final class EloquentPomodoroRepository implements PomodoroRepositoryInterface
     {
         return PomodoroSessionModel::query()
             ->where('user_id', $userId)
-            ->whereDate('started_at', Carbon::now()->toDateString())
+            ->whereDate('started_at', Carbon::now('America/Lima')->toDateString())
             ->orderByDesc('started_at')
             ->get();
     }

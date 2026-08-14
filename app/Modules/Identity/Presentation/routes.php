@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Identity\Presentation\Controllers\ConsentController;
+use App\Modules\Identity\Presentation\Controllers\EpaController;
 use App\Modules\Identity\Presentation\Controllers\PreferencesController;
 use App\Modules\Identity\Presentation\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,8 @@ Route::middleware(['web', 'auth'])->group(function () {
     // Ambos necesitaban existir — el GET faltaba en el controlador original.
     Route::get('/consent', [ConsentController::class, 'show'])->name('consent.show');
     Route::post('/consent', [ConsentController::class, 'store'])->name('consent.store');
+
+    Route::post('/epa/pretest', [EpaController::class, 'storePretest'])->name('epa.pretest.store');
 
     Route::get('/settings', [PreferencesController::class, 'edit'])->name('settings.edit');
     Route::patch('/preferences', [PreferencesController::class, 'update'])->name('preferences.update');

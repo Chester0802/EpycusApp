@@ -7,7 +7,6 @@ namespace App\Modules\Achievements\Application\UseCases;
 use App\Modules\Achievements\Infrastructure\Models\AchievementModel;
 use App\Modules\Achievements\Infrastructure\Models\UserAchievementModel;
 use App\Shared\Domain\Contracts\UserProgressReaderInterface;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 

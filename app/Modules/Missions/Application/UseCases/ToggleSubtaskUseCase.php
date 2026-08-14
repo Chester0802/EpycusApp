@@ -7,6 +7,7 @@ namespace App\Modules\Missions\Application\UseCases;
 use App\Modules\Missions\Domain\Contracts\MissionRepositoryInterface;
 use App\Modules\Missions\Domain\Events\MissionStarted;
 use App\Modules\Missions\Domain\Events\SubtaskCompleted;
+use App\Modules\Missions\Infrastructure\Models\MissionModel;
 use App\Modules\Missions\Infrastructure\Models\SubtaskModel;
 use Carbon\Carbon;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -18,27 +19,34 @@ final class ToggleSubtaskUseCase
         private Dispatcher $events,
     ) {}
 
+    /**
+     * @return array{completed: bool, mission_completed: bool}
+     */
     public function execute(int $subtaskId, int $userId): array
     {
+        /** @var SubtaskModel $subtask */
         $subtask = SubtaskModel::with('mission')->findOrFail($subtaskId);
+        /** @var MissionModel $mission */
+        $mission = $subtask->mission;
 
-        if ($subtask->mission->user_id !== $userId) {
+        if ($mission->user_id !== $userId) {
             throw new \RuntimeException('Unauthorized');
         }
 
-        if ($subtask->mission->completed_at) {
+        if ($mission->completed_at) {
             return ['completed' => false, 'mission_completed' => false];
         }
 
         $now = Carbon::now();
+        $newCompleted = ! $subtask->is_completed;
         $subtask->update([
-            'is_completed' => ! $subtask->is_completed,
-            'completed_at' => $subtask->is_completed ? null : $now,
+            'is_completed' => $newCompleted,
+            'completed_at' => $newCompleted ? $now : null,
         ]);
 
-        if ($subtask->is_completed) {
-            $total = $subtask->mission->subtasks()->count();
-            $done = $subtask->mission->subtasks()->where('is_completed', true)->count();
+        if ($newCompleted) {
+            $total = $mission->subtasks()->count();
+            $done = $mission->subtasks()->where('is_completed', true)->count();
 
             $this->events->dispatch(new SubtaskCompleted(
                 subtaskId: $subtask->id,
@@ -52,10 +60,10 @@ final class ToggleSubtaskUseCase
 
         $missionCompleted = false;
 
-        if ($subtask->is_completed) {
-            $allDone = $subtask->mission->subtasks()
+        if ($newCompleted) {
+            $allDone = $mission->subtasks()
                 ->where('is_completed', true)
-                ->count() === $subtask->mission->subtasks()->count();
+                ->count() === $mission->subtasks()->count();
 
             if ($allDone) {
                 (new CompleteMissionUseCase($this->repository, $this->events))->execute(
@@ -72,6 +80,6 @@ final class ToggleSubtaskUseCase
             }
         }
 
-        return ['completed' => $subtask->is_completed, 'mission_completed' => $missionCompleted];
+        return ['completed' => $newCompleted, 'mission_completed' => $missionCompleted];
     }
 }

@@ -12,7 +12,8 @@ const props = defineProps({
     initialMessages: { type: Array, default: () => [] },
     conversations: { type: Array, default: () => [] },
     quota: { type: Object, required: true },
-    avatarImage: { type: String, default: null },
+    avatarStyle: { type: String, default: 'base' },
+    avatarGender: { type: String, default: 'm' },
 });
 
 const { track } = useTelemetry();
@@ -217,11 +218,11 @@ async function rateMessage(msg, stars) {
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="flex items-center gap-4">
                         <div
-                            class="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-surface-raised p-1 border border-border-interactive shadow-sm"
+                            class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border-interactive bg-surface-raised/40 p-1 shadow-sm"
                         >
                             <img
-                                src="/assets/Edy.png"
-                                alt="Edy Avatar"
+                                src="/assets/gifs/benny-typing-v2.gif"
+                                alt="Edy Asistente IA"
                                 class="h-full w-full object-contain"
                             />
                         </div>
