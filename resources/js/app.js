@@ -25,3 +25,17 @@ createInertiaApp({
         color: '#4B5563',
     },
 });
+
+/**
+ * Fix para bfcache en móvil:
+ * Cuando el navegador restaura la página desde el Back-Forward Cache
+ * (evento pageshow con persisted=true), Vue y el runtime de Inertia
+ * ya no están activos. Si el usuario navega, el servidor devuelve JSON
+ * de Inertia pero no hay nada que lo consuma → se muestra como texto plano.
+ * Solución: forzar un reload completo al detectar restauración desde bfcache.
+ */
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});

@@ -23,6 +23,9 @@ final class GetAdminDropoutUseCase
             ->where('users.updated_at', '<=', $threeDaysAgo)
             ->select([
                 'participants.participant_code',
+                'users.alias',
+                'users.career',
+                'users.cycle',
                 'user_progress.current_level',
                 'user_progress.current_streak',
                 'users.updated_at as last_active_at',
@@ -34,10 +37,13 @@ final class GetAdminDropoutUseCase
 
                 return [
                     'participant_code' => $p->participant_code,
-                    'current_level' => $p->current_level ?? 1,
-                    'current_streak' => $p->current_streak ?? 0,
-                    'days_inactive' => $daysInactive,
-                    'last_active_at' => date('d/m/Y H:i', strtotime($p->last_active_at)),
+                    'alias'            => $p->alias ?? '—',
+                    'career'           => $p->career ?? '—',
+                    'cycle'            => $p->cycle ? "Ciclo {$p->cycle}" : '—',
+                    'current_level'    => $p->current_level ?? 1,
+                    'current_streak'   => $p->current_streak ?? 0,
+                    'days_inactive'    => $daysInactive,
+                    'last_active_at'   => date('d/m/Y H:i', strtotime($p->last_active_at)),
                 ];
             })
             ->toArray();

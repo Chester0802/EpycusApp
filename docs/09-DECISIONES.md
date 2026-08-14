@@ -581,4 +581,36 @@ Esa inversión de prioridades —el instrumento por encima del producto— es lo
 
 **Costo asumido:** El use case now tiene un side effect de sesión, que no es ideal para un caso de uso puro. Alternativa más limpia sería retornar el DTO, pero requeriría cambiar la firma del execute() — y eso cascaría en ToggleSubtaskUseCase que también llama a CompleteMissionUseCase.
 
+---
 
+## D-N+1. Estrategia ante bfcache en móvil: reload forzado en `pageshow`
+
+**Contexto.** Chrome y Safari móvil implementan el Back-Forward Cache (bfcache): al volver a una pestaña o página visitada, el browser restaura el estado congelado del DOM y JS en lugar de hacer un request nuevo. Con Inertia.js, Vue queda congelado y cualquier navegación posterior devuelve JSON del servidor que nadie consume, mostrándose como texto plano.
+
+**Alternativas.**
+- (a) `router.reload()` de Inertia en `pageshow` — riesgo: el runtime de Inertia también está congelado, podría no ejecutarse.
+- (b) Deshabilitar bfcache con `Cache-Control: no-store` — afecta rendimiento en todos los navegadores, incluso en desktop.
+- (c) `window.location.reload()` en `pageshow` con `persisted === true` — solo actúa cuando la página viene de bfcache; el resto del tiempo es un no-op.
+
+**Decisión.** Opción (c): `window.location.reload()` condicionado a `event.persisted`. Añadido en `resources/js/app.js` fuera del setup de Inertia para garantizar ejecución incluso si Vue está congelado.
+
+**Fundamento.** Es la solución recomendada por la especificación de bfcache del W3C y por la documentación de web.dev. Reload solo ocurre si hay restauración desde cache — impacto mínimo en UX.
+
+**Costo asumido:** El usuario experimenta un flash de carga al retomar la pestaña después de horas. Preferible al JSON crudo.
+
+---
+
+## D-N+2. Exportación CSV en memoria (`php://temp`) vs streaming en Hostinger
+
+**Contexto.** Hostinger usa PHP-FPM con output buffering activo. `response()->stream()` (StreamedResponse de Symfony) falla con `ERR_INVALID_RESPONSE` porque intenta hacer flush de headers cuando PHP ya tiene un buffer activo.
+
+**Alternativas.**
+- (a) Deshabilitar output buffering en `.htaccess` (`php_flag output_buffering Off`) — no soportado en hosting compartido.
+- (b) `StreamedResponse` con `ob_end_clean()` antes del callback — frágil, puede romper sesiones.
+- (c) Construir CSV completo en `php://temp` (memoria/disco temporal de PHP) y devolver `response()` normal.
+
+**Decisión.** Opción (c). `php://temp` usa memoria RAM hasta 2MB y desborda a disco temporal automáticamente. Para datasets de investigación (< 500 estudiantes), cabe siempre en RAM.
+
+**Fundamento.** Solución robusta y sin side effects. El contenido se construye completo antes de enviar un solo byte al cliente, lo que garantiza headers correctos.
+
+**Costo asumido:** Para datasets muy grandes (> 100K rows) podría consumir mucha RAM. Mitigado con `chunk(100/200)` que procesa en lotes pequeños aunque todo se acumule en el buffer.

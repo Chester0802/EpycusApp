@@ -27,7 +27,8 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         // Si el usuario no ha completado su perfil inicial (carrera o institución), redirigir a /profile/complete
-        if ($user && (empty($user->career) || empty($user->institution_type))) {
+        // Los administradores no tienen perfil de estudiante, por lo que se omite esta verificación
+        if ($user && $user->role !== 'admin' && (empty($user->career) || empty($user->institution_type))) {
             return redirect()->route('profile.complete');
         }
 

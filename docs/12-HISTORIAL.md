@@ -1,6 +1,53 @@
 \
 # 12 — Historial de sesiones de IA
 
+## 2026-08-13 — Antigravity [Panel Admin Completo, Fix Login Admin, Fix CSV Exports, Fix bfcache Móvil]
+
+**Qué se hizo:**
+
+1. **Fix: Admin redirigido a `/profile/complete` al iniciar sesión**
+   - **Causa raíz:** `DashboardController.php` verificaba `career` e `institution_type` sin excluir a admins, que no tienen perfil de estudiante.
+   - **Fix:** Añadida condición `$user->role !== 'admin'` en la verificación de perfil completo (`DashboardController.php:30`).
+   - **Fix adicional:** `AuthenticatedSessionController::store()` usaba `redirect()->intended()` que redirigía a la URL guardada en sesión (`/dashboard`) en vez de `/admin`. Cambiado a `redirect()->route('admin.index')` directo.
+
+2. **Panel de Administración — Mejoras Completas**
+   - **`GetAdminParticipantsUseCase.php`:** Añadidos campos `alias`, `career`, `cycle`, `institution_type` a la query y al retorno. Tabla ahora muestra 10 columnas con buscador en tiempo real y orden por columna (nivel, XP, racha).
+   - **`GetAdminTelemetryMetricsUseCase.php`:** Añadidas keys `recent_events` (log de 200 últimos eventos con `participant_code` + `alias` + categoría + fecha) y `top_users` (ranking de los 20 usuarios con más eventos y barra de progreso relativa).
+   - **`GetAdminDropoutUseCase.php`:** Añadidos campos `alias`, `career`, `cycle` al resultado.
+   - **`GenerateDatasetCsvUseCase.php`:** `alias` añadido a todos los CSVs; `career`, `cycle`, `institution_type` en participantes y deserción; `focus_minutes` en hábitos/pomodoro; nuevo tipo `dropout` exportable.
+   - **`Index.vue` (Admin):** Emojis reemplazados por iconos Lucide (`@lucide/vue`). Participantes: tabla completa con buscador + sort. Telemetría: 3 sub-vistas (Log detallado / Por categoría / Top usuarios). Exportar: 5 datasets con `window.open()` directo (fix para Inertia). Deserción: alias + carrera + ciclo.
+
+3. **Fix: Descargas CSV con `ERR_INVALID_RESPONSE` → 500**
+   - **Primera causa:** Hostinger PHP-FPM con output buffering activo incompatible con `response()->stream()`. Reemplazado por construcción en memoria con `php://temp` y `response()` normal.
+   - **Segunda causa:** `chunk()` de Laravel requiere `orderBy()` obligatorio. Error: `"You must specify an orderBy clause when using this function"`. Añadido `orderBy` en las 5 queries del use case.
+
+4. **Fix: JSON crudo de Inertia visible en móvil al retomar el navegador (bfcache)**
+   - **Causa raíz:** El Back-Forward Cache (bfcache) de Chrome/Safari móvil restaura páginas congeladas. Vue ya no está montado, por lo que cualquier navegación Inertia posterior devuelve JSON que se muestra como texto plano.
+   - **Fix 1 — `app.js`:** Añadido listener `window.addEventListener('pageshow', ...)` que detecta `event.persisted === true` y fuerza `window.location.reload()`.
+   - **Fix 2 — `HandleInertiaRequests.php`:** Sobreescrito `handle()` para añadir header `Vary: X-Inertia` en todas las respuestas, instruyendo a navegadores y proxies a tratar las respuestas XHR y HTML como entradas de caché distintas.
+
+**Archivos modificados:**
+- `app/Http/Controllers/DashboardController.php`
+- `app/Http/Controllers/Auth/AuthenticatedSessionController.php`
+- `app/Http/Middleware/HandleInertiaRequests.php`
+- `app/Modules/Admin/Application/UseCases/GetAdminParticipantsUseCase.php`
+- `app/Modules/Admin/Application/UseCases/GetAdminTelemetryMetricsUseCase.php`
+- `app/Modules/Admin/Application/UseCases/GetAdminDropoutUseCase.php`
+- `app/Modules/Admin/Application/UseCases/GenerateDatasetCsvUseCase.php`
+- `app/Modules/Admin/Presentation/Controllers/AdminController.php`
+- `resources/js/Pages/Admin/Index.vue`
+- `resources/js/app.js`
+- `package.json` (nueva dependencia: `@lucide/vue`)
+
+**Decisiones tomadas:**
+- Se eligió `php://temp` sobre `StreamedResponse` para compatibilidad con PHP-FPM de Hostinger shared hosting, que no permite flushing de output buffer durante el streaming.
+- Se optó por `window.location.reload()` en bfcache (no `router.reload()` de Inertia) porque el runtime de Vue puede estar completamente congelado al restaurar desde cache.
+- El header `Vary: X-Inertia` se añade a nivel de middleware para cubrir todas las rutas sin modificar controladores individuales.
+
+**Verificado:** Despliegue exitoso en `app.epycus.es`. Login admin → `/admin` directo ✅. CSV participants descarga correctamente ✅. Panel admin muestra alias, carrera, ciclo y telemetría por usuario ✅.
+
+---
+
 ## 2026-08-13 — Antigravity [Auditoría de Módulos (Misiones, Hábitos, Pomodoro, Villanos, Admin), Pruebas UAT y Despliegue de Producción Completo]
 
 **Qué se hizo:**

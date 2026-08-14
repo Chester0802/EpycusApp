@@ -41,7 +41,32 @@ Hostinger permite conexiones WebSocket **salientes**, pero no que un proceso se 
 
 ---
 
-## 3. Carga prevista
+## 3. Gotchas conocidos de Hostinger PHP-FPM
+
+### ❌ `response()->stream()` / `StreamedResponse` no funciona
+PHP-FPM con output buffering activo. `StreamedResponse` causa `ERR_INVALID_RESPONSE` porque los headers están enviados cuando PHP hace flush.
+
+**Solución:** Construir en memoria con `php://temp` y devolver `response()` normal:
+```php
+$handle = fopen('php://temp', 'r+');
+// ... escribir al handle ...
+rewind($handle); $content = stream_get_contents($handle); fclose($handle);
+return response($content, 200, ['Content-Type' => 'text/csv', ...]);
+```
+
+### ❌ `chunk()` requiere `orderBy()` obligatorio
+MariaDB 11.x en Hostinger lanza `"You must specify an orderBy clause when using this function"` si se usa `chunk()` sin `orderBy()`. Siempre añadir `->orderBy('tabla.id')` antes de `->chunk()`.
+
+### ⚠️ bfcache móvil muestra JSON crudo de Inertia
+Chrome/Safari móvil restaura páginas desde bfcache con Vue congelado. Al navegar, el servidor devuelve JSON de Inertia que se muestra como texto plano (bug visual, no pérdida de datos).
+
+**Solución aplicada (2026-08-13):**
+1. `resources/js/app.js`: listener `pageshow` + `event.persisted` → `location.reload()`
+2. `HandleInertiaRequests.php`: header `Vary: X-Inertia` en todas las respuestas
+
+---
+
+## 4. Carga prevista
 
 Escenario pico ampliado (capacidad teórica comprobada de 1500-3000 DAU):
 

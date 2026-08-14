@@ -13,6 +13,7 @@ use App\Modules\Admin\Application\UseCases\GetAdminSystemHealthUseCase;
 use App\Modules\Admin\Application\UseCases\GetAdminTelemetryMetricsUseCase;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\Response as HttpResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class AdminController extends Controller
@@ -37,7 +38,7 @@ final class AdminController extends Controller
         ]);
     }
 
-    public function exportCsv(string $type): StreamedResponse
+    public function exportCsv(string $type): HttpResponse
     {
         return $this->generateCsv->execute($type);
     }

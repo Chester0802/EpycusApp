@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Calendar\Infrastructure\Repositories;
 
 use App\Modules\Calendar\Domain\Contracts\CalendarRepositoryInterface;
-use App\Modules\Calendar\Infrastructure\Models\ClassScheduleModel;
+use App\Modules\Calendar\Infrastructure\Models\CourseModel;
+use App\Modules\Calendar\Infrastructure\Models\CourseNoteModel;
+use App\Modules\Calendar\Infrastructure\Models\CourseSessionModel;
 use App\Modules\Calendar\Infrastructure\Models\HolidayModel;
 use App\Shared\Domain\Contracts\CalendarReaderInterface;
 use Carbon\Carbon;
@@ -18,42 +20,14 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
 
     private const CACHE_TTL = 86400;
 
+    // ── Feriados ─────────────────────────────────────────────────────────────
+
     public function getHolidaysInMonth(int $year, int $month): Collection
     {
         $all = $this->getAllHolidays();
 
         return $all->filter(fn ($h) => (int) $h->date->format('m') === $month && (int) $h->date->format('Y') === $year)
             ->values();
-    }
-
-    public function getSchedulesForUser(int $userId): Collection
-    {
-        return ClassScheduleModel::query()
-            ->where('user_id', $userId)
-            ->orderBy('day_of_week')
-            ->orderBy('start_time')
-            ->get();
-    }
-
-    public function createSchedule(int $userId, array $data): ClassScheduleModel
-    {
-        return ClassScheduleModel::query()->create([
-            'user_id' => $userId,
-            'course_name' => $data['course_name'],
-            'day_of_week' => (int) $data['day_of_week'],
-            'start_time' => $data['start_time'],
-            'end_time' => $data['end_time'],
-            'classroom' => $data['classroom'] ?? null,
-            'color' => $data['color'] ?? 'primary',
-        ]);
-    }
-
-    public function deleteSchedule(int $userId, int $id): bool
-    {
-        return (bool) ClassScheduleModel::query()
-            ->where('user_id', $userId)
-            ->where('id', $id)
-            ->delete();
     }
 
     /** @return Collection<int, HolidayModel> */
@@ -68,6 +42,8 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
     {
         return $this->getAllHolidays()->first(fn ($h) => $h->date->toDateString() === $date);
     }
+
+    // ── CalendarReaderInterface ───────────────────────────────────────────────
 
     public function isHoliday(\DateTimeImmutable $date): bool
     {
@@ -86,7 +62,7 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
 
         foreach ($examWeeks as $week) {
             $from = Carbon::parse($week['from']);
-            $to = Carbon::parse($week['to']);
+            $to   = Carbon::parse($week['to']);
 
             if ($check->between($from, $to)) {
                 return true;
@@ -111,5 +87,74 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
         }
 
         return (int) $start->startOfDay()->diffInDays($check->startOfDay()) + 1;
+    }
+
+    // ── Cursos ───────────────────────────────────────────────────────────────
+
+    /** @return Collection<int, CourseModel> */
+    public function getCoursesForUser(int $userId): Collection
+    {
+        return CourseModel::query()
+            ->where('user_id', $userId)
+            ->with(['sessions'])
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * @param array<string, mixed> $data  {name, color, sessions: [{day_of_week, start_time, end_time, classroom}]}
+     */
+    public function createCourse(int $userId, array $data): CourseModel
+    {
+        $course = CourseModel::query()->create([
+            'user_id' => $userId,
+            'name'    => $data['name'],
+            'color'   => $data['color'] ?? 'primary',
+        ]);
+
+        foreach ($data['sessions'] as $session) {
+            CourseSessionModel::query()->create([
+                'course_id'   => $course->id,
+                'day_of_week' => (int) $session['day_of_week'],
+                'start_time'  => $session['start_time'],
+                'end_time'    => $session['end_time'],
+                'classroom'   => $session['classroom'] ?? null,
+            ]);
+        }
+
+        return $course->load('sessions');
+    }
+
+    public function deleteCourse(int $userId, int $courseId): bool
+    {
+        return (bool) CourseModel::query()
+            ->where('user_id', $userId)
+            ->where('id', $courseId)
+            ->delete();
+    }
+
+    // ── Apuntes ──────────────────────────────────────────────────────────────
+
+    public function getNoteForCourse(int $userId, int $courseId): ?CourseNoteModel
+    {
+        return CourseNoteModel::query()
+            ->where('user_id', $userId)
+            ->where('course_id', $courseId)
+            ->with('images')
+            ->first();
+    }
+
+    /** @param array<string, mixed> $content */
+    public function upsertNote(int $userId, int $courseId, array $content): CourseNoteModel
+    {
+        $note = CourseNoteModel::query()->firstOrNew([
+            'user_id'   => $userId,
+            'course_id' => $courseId,
+        ]);
+
+        $note->content = $content;
+        $note->save();
+
+        return $note->load('images');
     }
 }
