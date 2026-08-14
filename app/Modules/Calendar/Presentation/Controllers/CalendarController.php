@@ -116,6 +116,25 @@ final class CalendarController extends Controller
         return back()->with('success', 'Curso registrado correctamente.');
     }
 
+    public function updateCourse(Request $request, int $id): RedirectResponse
+    {
+        $userId = (int) Auth::id();
+
+        $validated = $request->validate([
+            'name'                       => ['required', 'string', 'max:120'],
+            'color'                      => ['nullable', 'string', 'in:primary,accent,success,warning,secondary'],
+            'sessions'                   => ['required', 'array', 'min:1', 'max:7'],
+            'sessions.*.day_of_week'     => ['required', 'integer', 'between:1,7'],
+            'sessions.*.start_time'      => ['required', 'date_format:H:i'],
+            'sessions.*.end_time'        => ['required', 'date_format:H:i', 'after:sessions.*.start_time'],
+            'sessions.*.classroom'       => ['nullable', 'string', 'max:60'],
+        ]);
+
+        $this->calendar->updateCourse($userId, $id, $validated);
+
+        return back()->with('success', 'Curso actualizado correctamente.');
+    }
+
     public function destroyCourse(int $id): RedirectResponse
     {
         $userId = (int) Auth::id();

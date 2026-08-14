@@ -22,6 +22,9 @@ interface CalendarRepositoryInterface
     /** @param array<string, mixed> $data */
     public function createCourse(int $userId, array $data): CourseModel;
 
+    /** @param array<string, mixed> $data */
+    public function updateCourse(int $userId, int $courseId, array $data): CourseModel;
+
     public function deleteCourse(int $userId, int $courseId): bool;
 
     // ── Apuntes ─────────────────────────────────────────────────────────────

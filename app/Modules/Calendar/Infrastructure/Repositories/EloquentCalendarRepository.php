@@ -125,6 +125,33 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
         return $course->load('sessions');
     }
 
+    public function updateCourse(int $userId, int $courseId, array $data): CourseModel
+    {
+        $course = CourseModel::query()
+            ->where('user_id', $userId)
+            ->where('id', $courseId)
+            ->firstOrFail();
+
+        $course->update([
+            'name'  => $data['name'],
+            'color' => $data['color'] ?? 'primary',
+        ]);
+
+        $course->sessions()->delete();
+
+        foreach ($data['sessions'] as $session) {
+            CourseSessionModel::query()->create([
+                'course_id'   => $course->id,
+                'day_of_week' => (int) $session['day_of_week'],
+                'start_time'  => $session['start_time'],
+                'end_time'    => $session['end_time'],
+                'classroom'   => $session['classroom'] ?? null,
+            ]);
+        }
+
+        return $course->load('sessions');
+    }
+
     public function deleteCourse(int $userId, int $courseId): bool
     {
         return (bool) CourseModel::query()

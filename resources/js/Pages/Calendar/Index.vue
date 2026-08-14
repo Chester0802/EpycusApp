@@ -15,6 +15,7 @@ import {
     Trash2,
     NotebookText,
     Plus,
+    Pencil,
     ChevronLeft,
     ChevronRight,
 } from '@lucide/vue';
@@ -50,6 +51,18 @@ const props = defineProps({
 
 const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const dayNames   = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+// ── Formato de hora en 12h (a.m. / p.m.) ───────────────────────────────────
+function formatTime12h(timeStr) {
+    if (!timeStr) return '';
+    const parts = timeStr.split(':');
+    const h = parseInt(parts[0], 10);
+    const m = parts[1] ? parts[1].slice(0, 2) : '00';
+    if (isNaN(h)) return timeStr;
+    const period = h >= 12 ? 'p.m.' : 'a.m.';
+    const h12 = h % 12 || 12;
+    return `${String(h12).padStart(2, '0')}:${m} ${period}`;
+}
 
 const today        = new Date(props.todayDate);
 const currentMonth = today.getMonth() + 1;
@@ -159,7 +172,8 @@ const scheduleColorStyles = {
 
 // ── Modal de Gestión de Cursos ─────────────────────────────────────────────
 const showCourseModal   = ref(false);
-const showAddCourseForm = ref(false);
+const showCourseForm    = ref(false);
+const editingCourseId   = ref(null);
 
 // Formulario multi-sesión
 const courseForm = useForm({
@@ -168,26 +182,60 @@ const courseForm = useForm({
     sessions: [{ day_of_week: 1, start_time: '08:00', end_time: '10:00', classroom: '' }],
 });
 
+function openCreateCourseForm() {
+    editingCourseId.value = null;
+    courseForm.reset();
+    courseForm.clearErrors();
+    courseForm.name = '';
+    courseForm.color = 'primary';
+    courseForm.sessions = [{ day_of_week: 1, start_time: '08:00', end_time: '10:00', classroom: '' }];
+    showCourseForm.value = true;
+}
+
+function openEditCourseForm(course) {
+    editingCourseId.value = course.id;
+    courseForm.clearErrors();
+    courseForm.name = course.name;
+    courseForm.color = course.color || 'primary';
+    courseForm.sessions = (course.sessions && course.sessions.length > 0)
+        ? course.sessions.map(s => ({
+            day_of_week: Number(s.day_of_week),
+            start_time:  s.start_time,
+            end_time:    s.end_time,
+            classroom:   s.classroom || '',
+        }))
+        : [{ day_of_week: 1, start_time: '08:00', end_time: '10:00', classroom: '' }];
+    showCourseForm.value = true;
+}
+
 function addSession() {
     courseForm.sessions.push({ day_of_week: 1, start_time: '08:00', end_time: '10:00', classroom: '' });
 }
 function removeSession(index) {
     if (courseForm.sessions.length > 1) courseForm.sessions.splice(index, 1);
 }
-// Asegurar que day_of_week sea siempre Number al cambiar
 function setSessionDay(idx, val) {
     courseForm.sessions[idx].day_of_week = Number(val);
 }
 
 function submitCourse() {
-    courseForm.post(route('calendar.courses.store'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            courseForm.reset('name');
-            courseForm.sessions = [{ day_of_week: 1, start_time: '08:00', end_time: '10:00', classroom: '' }];
-            showAddCourseForm.value = false;
-        },
-    });
+    if (editingCourseId.value) {
+        courseForm.put(route('calendar.courses.update', { id: editingCourseId.value }), {
+            preserveScroll: true,
+            onSuccess: () => {
+                showCourseForm.value = false;
+                editingCourseId.value = null;
+            },
+        });
+    } else {
+        courseForm.post(route('calendar.courses.store'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                showCourseForm.value = false;
+                courseForm.reset();
+            },
+        });
+    }
 }
 
 function deleteCourse(id) {
@@ -288,13 +336,13 @@ function openNote(courseId) {
                                 v-for="s in cell.sessions"
                                 :key="s.id"
                                 type="button"
-                                class="flex w-full items-center gap-0.5 truncate rounded border px-1 py-0.5 text-left text-[9px] font-medium leading-tight transition hover:opacity-80"
+                                class="flex w-full items-center gap-1 truncate rounded border px-1 py-0.5 text-left text-[9px] font-medium leading-tight transition hover:opacity-80"
                                 :class="scheduleColorStyles[s.color] || scheduleColorStyles.primary"
-                                :title="`${s.course_name} (${s.start_time} - ${s.end_time})${s.classroom ? ' [' + s.classroom + ']' : ''} — Clic para ver apunte`"
+                                :title="`${s.course_name} (${formatTime12h(s.start_time)} - ${formatTime12h(s.end_time)})${s.classroom ? ' [' + s.classroom + ']' : ''} — Clic para ver apunte`"
                                 @click="openNote(s.course_id)"
                             >
                                 <BookOpen :size="9" class="shrink-0" />
-                                {{ s.start_time }} {{ s.course_name }}
+                                <span class="truncate">{{ formatTime12h(s.start_time) }} {{ s.course_name }}</span>
                             </button>
                         </div>
 
@@ -330,7 +378,7 @@ function openNote(courseId) {
                     No hay feriados, semanas de examen, cursos ni misiones registradas.
                 </p>
                 <div class="mt-4 flex gap-3">
-                    <BaseButton variant="primary" @click="showCourseModal = true">Agregar mis cursos</BaseButton>
+                    <BaseButton variant="primary" @click="showCourseModal = true; openCreateCourseForm()">Agregar mis cursos</BaseButton>
                     <a :href="route('missions.index')" class="inline-flex items-center rounded-lg border border-border px-3 py-1.5 text-sm text-content-secondary hover:text-content-primary">
                         Crear una misión <ChevronRight :size="14" />
                     </a>
@@ -344,16 +392,23 @@ function openNote(courseId) {
 
                 <!-- Botón para agregar nuevo curso -->
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-content-primary">Cursos registrados</h3>
-                    <BaseButton v-if="!showAddCourseForm" variant="primary" class="px-3 py-1 text-xs" @click="showAddCourseForm = true">
+                    <h3 class="text-sm font-semibold text-content-primary">
+                        {{ showCourseForm ? (editingCourseId ? 'Editar Curso' : 'Nuevo Curso') : 'Cursos registrados' }}
+                    </h3>
+                    <BaseButton v-if="!showCourseForm" variant="primary" class="px-3 py-1 text-xs" @click="openCreateCourseForm">
                         <Plus :size="14" />
                         Nuevo Curso
                     </BaseButton>
                 </div>
 
-                <!-- ── Formulario multi-sesión ─────────────────────────────── -->
-                <form v-if="showAddCourseForm" class="space-y-4 rounded-xl border border-border bg-surface-raised p-4" @submit.prevent="submitCourse">
-                    <h4 class="text-xs font-semibold uppercase tracking-wider text-content-primary">Nuevo curso</h4>
+                <!-- ── Formulario multi-sesión (Crear / Editar) ─────────────── -->
+                <form v-if="showCourseForm" class="space-y-4 rounded-xl border border-border bg-surface-raised p-4" @submit.prevent="submitCourse">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-semibold uppercase tracking-wider text-content-primary">
+                            {{ editingCourseId ? 'Modificar datos del curso' : 'Detalles del nuevo curso' }}
+                        </h4>
+                        <span v-if="editingCourseId" class="rounded bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">Modo Edición</span>
+                    </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div class="col-span-2">
@@ -395,7 +450,7 @@ function openNote(courseId) {
                                     class="flex items-center gap-1 text-[10px] text-danger hover:underline"
                                     @click="removeSession(idx)"
                                 >
-                                    <Trash2 :size="11" /> Eliminar
+                                    <Trash2 :size="11" /> Eliminar sesión
                                 </button>
                             </div>
                             <div class="grid grid-cols-3 gap-2">
@@ -411,31 +466,35 @@ function openNote(courseId) {
                                     />
                                 </div>
                                 <div>
-                                    <label class="mb-1 block text-[10px] text-content-muted">Entrada *</label>
+                                    <label class="mb-1 block text-[10px] text-content-muted">Entrada (24h) *</label>
                                     <BaseInput v-model="session.start_time" type="time" required />
+                                    <span class="mt-0.5 block text-[9px] text-content-muted">{{ formatTime12h(session.start_time) }}</span>
                                 </div>
                                 <div>
-                                    <label class="mb-1 block text-[10px] text-content-muted">Salida *</label>
+                                    <label class="mb-1 block text-[10px] text-content-muted">Salida (24h) *</label>
                                     <BaseInput v-model="session.end_time" type="time" required />
+                                    <span class="mt-0.5 block text-[9px] text-content-muted">{{ formatTime12h(session.end_time) }}</span>
                                 </div>
                             </div>
                             <div>
-                                <label class="mb-1 block text-[10px] text-content-muted">Aula (opcional)</label>
-                                <BaseInput v-model="session.classroom" placeholder="Ej. Aula 204" />
+                                <label class="mb-1 block text-[10px] text-content-muted">Aula / Salón (opcional)</label>
+                                <BaseInput v-model="session.classroom" placeholder="Ej. Aula 204, Laboratorio B" />
                             </div>
                         </div>
                     </div>
 
                     <div class="flex items-center justify-end gap-2 pt-2">
-                        <button type="button" class="px-3 py-1.5 text-xs text-content-muted hover:text-content-primary" @click="showAddCourseForm = false">Cancelar</button>
+                        <button type="button" class="px-3 py-1.5 text-xs text-content-muted hover:text-content-primary" @click="showCourseForm = false; editingCourseId = null">
+                            Cancelar
+                        </button>
                         <BaseButton variant="primary" type="submit" :disabled="courseForm.processing">
-                            Guardar Curso
+                            {{ editingCourseId ? 'Guardar Cambios' : 'Guardar Curso' }}
                         </BaseButton>
                     </div>
                 </form>
 
                 <!-- ── Lista de todos los cursos ───────────────────────────── -->
-                <div v-if="courses.length > 0 && !showAddCourseForm" class="space-y-2">
+                <div v-if="courses.length > 0 && !showCourseForm" class="space-y-2">
                     <div
                         v-for="c in courses"
                         :key="c.id"
@@ -445,19 +504,27 @@ function openNote(courseId) {
                         <div class="flex items-start justify-between gap-2">
                             <div class="min-w-0">
                                 <span class="font-semibold text-sm">{{ c.name }}</span>
-                                <!-- Todas las sessions del curso -->
+                                <!-- Todas las sessions del curso con formato 12h (a.m. / p.m.) -->
                                 <div class="mt-1 space-y-0.5">
                                     <div
                                         v-for="s in c.sessions"
                                         :key="s.id"
-                                        class="text-xs opacity-80"
+                                        class="text-xs opacity-85"
                                     >
-                                        {{ dayNames[s.day_of_week - 1] }}: {{ s.start_time }} — {{ s.end_time }}
-                                        <span v-if="s.classroom" class="ml-1 opacity-70">· {{ s.classroom }}</span>
+                                        <strong>{{ dayNames[s.day_of_week - 1] }}:</strong> {{ formatTime12h(s.start_time) }} — {{ formatTime12h(s.end_time) }}
+                                        <span v-if="s.classroom" class="ml-1 opacity-75">· 📍 {{ s.classroom }}</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="flex shrink-0 items-center gap-1">
+                                <button
+                                    type="button"
+                                    class="rounded p-1.5 text-content-muted transition hover:bg-surface/50 hover:text-content-primary"
+                                    title="Modificar curso y horarios"
+                                    @click="openEditCourseForm(c)"
+                                >
+                                    <Pencil :size="15" />
+                                </button>
                                 <button
                                     type="button"
                                     class="rounded p-1.5 text-content-muted transition hover:bg-surface/50 hover:text-content-primary"
@@ -479,7 +546,7 @@ function openNote(courseId) {
                     </div>
                 </div>
 
-                <div v-else-if="courses.length === 0 && !showAddCourseForm" class="py-6 text-center text-xs text-content-muted">
+                <div v-else-if="courses.length === 0 && !showCourseForm" class="py-6 text-center text-xs text-content-muted">
                     No tienes cursos registrados todavía.
                 </div>
             </div>

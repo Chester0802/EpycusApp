@@ -45,6 +45,17 @@ const editorEl       = ref(null);
 
 const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
+function formatTime12h(timeStr) {
+    if (!timeStr) return '';
+    const parts = timeStr.split(':');
+    const h = parseInt(parts[0], 10);
+    const m = parts[1] ? parts[1].slice(0, 2) : '00';
+    if (isNaN(h)) return timeStr;
+    const period = h >= 12 ? 'p.m.' : 'a.m.';
+    const h12 = h % 12 || 12;
+    return `${String(h12).padStart(2, '0')}:${m} ${period}`;
+}
+
 // ── Cargar apunte al abrir ─────────────────────────────────────────────────
 watch(() => props.show, async (val) => {
     if (val && props.course) {
@@ -395,7 +406,7 @@ onBeforeUnmount(() => stopCamera());
                                     </h2>
                                     <p class="note-course-sessions">
                                         <span v-for="s in course.sessions" :key="s.id" class="note-session-badge">
-                                            {{ DAY_NAMES[s.day_of_week] }} {{ s.start_time }}–{{ s.end_time }}
+                                            {{ DAY_NAMES[s.day_of_week] }} {{ formatTime12h(s.start_time) }} – {{ formatTime12h(s.end_time) }}
                                         </span>
                                     </p>
                                 </div>

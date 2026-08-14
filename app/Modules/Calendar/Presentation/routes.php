@@ -12,6 +12,7 @@ Route::middleware(['web', 'auth'])->group(function () {
 
     // Cursos (reemplaza /calendar/schedules)
     Route::post('/calendar/courses', [CalendarController::class, 'storeCourse'])->name('calendar.courses.store');
+    Route::put('/calendar/courses/{id}', [CalendarController::class, 'updateCourse'])->name('calendar.courses.update');
     Route::delete('/calendar/courses/{id}', [CalendarController::class, 'destroyCourse'])->name('calendar.courses.destroy');
 
     // Apuntes
