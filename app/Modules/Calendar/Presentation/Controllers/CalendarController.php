@@ -28,8 +28,8 @@ final class CalendarController extends Controller
     public function index(Request $request): Response
     {
         $userId = (int) Auth::id();
-        $month  = (int) $request->query('month', Carbon::now()->month);
-        $year   = (int) $request->query('year', Carbon::now()->year);
+        $month  = $request->integer('month', Carbon::now()->month);
+        $year   = $request->integer('year', Carbon::now()->year);
 
         $start = Carbon::createFromDate($year, $month, 1)->startOfMonth();
         $end   = (clone $start)->endOfMonth();
