@@ -354,7 +354,20 @@ function formatColor(color) {
 function resetFormat() {
     editorEl.value?.focus();
     document.execCommand('removeFormat', false, null);
-    document.execCommand('foreColor', false, '#f1f5f9');
+    // Limpiar color residual en la selección para que herede el color del tema actual (claro/oscuro)
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+        const node = selection.anchorNode;
+        const parent = node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
+        if (parent && parent.closest('.note-editor')) {
+            if (parent.tagName === 'FONT') {
+                parent.removeAttribute('color');
+            }
+            if (parent.style && parent.style.color) {
+                parent.style.color = '';
+            }
+        }
+    }
     syncBlocks();
 }
 
