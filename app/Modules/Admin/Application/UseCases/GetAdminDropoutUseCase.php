@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 
 final class GetAdminDropoutUseCase
 {
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function execute(): array
     {
         $threeDaysAgo = Carbon::now()->subDays(3);

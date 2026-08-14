@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\DB;
 
 final class GetAdminParticipantsUseCase
 {
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function execute(): array
     {
         return DB::table('participants')

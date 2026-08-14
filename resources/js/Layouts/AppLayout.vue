@@ -152,6 +152,15 @@ const showEpaModal = computed(() => {
                     <NavIcon name="settings" />
                     Ajustes
                 </Link>
+                <Link
+                    v-if="page.props.auth.user.role === 'admin'"
+                    :href="route('admin.index')"
+                    class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 border border-primary-strong/30 bg-primary-strong/10 text-primary-strong hover:bg-primary-strong hover:text-white"
+                    :class="{ '!bg-primary-strong !text-white': route().current('admin.index') }"
+                >
+                    <NavIcon name="ranking" />
+                    Panel Investigación
+                </Link>
             </nav>
 
             <div class="border-t border-border p-4">

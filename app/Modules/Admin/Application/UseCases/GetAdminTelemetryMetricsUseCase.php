@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\DB;
 
 final class GetAdminTelemetryMetricsUseCase
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $totalEvents = DB::table('telemetry_events')->count();

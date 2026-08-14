@@ -246,7 +246,7 @@ const tabs = [
                         </p>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <a :href="route('admin.export', 'participants')" target="_blank" class="p-4 rounded-xl border border-border-interactive bg-surface-raised hover:bg-surface transition-all text-center space-y-2 group">
                             <span class="text-3xl block group-hover:scale-110 transition-transform">📄</span>
                             <strong class="text-xs block text-content-primary font-bold">1. Dataset Participantes</strong>
@@ -265,6 +265,13 @@ const tabs = [
                             <span class="text-3xl block group-hover:scale-110 transition-transform">📈</span>
                             <strong class="text-xs block text-content-primary font-bold">3. Dataset Telemetría</strong>
                             <p class="text-[11px] text-content-muted">Eventos de comportamiento completo.</p>
+                            <BaseButton variant="primary" size="sm" class="w-full text-xs">Descargar CSV</BaseButton>
+                        </a>
+
+                        <a :href="route('admin.export', 'epa_responses')" target="_blank" class="p-4 rounded-xl border border-border-interactive bg-surface-raised hover:bg-surface transition-all text-center space-y-2 group">
+                            <span class="text-3xl block group-hover:scale-110 transition-transform">📝</span>
+                            <strong class="text-xs block text-content-primary font-bold">4. Diagnóstico EPA</strong>
+                            <p class="text-[11px] text-content-muted">Respuestas de evaluación inicial.</p>
                             <BaseButton variant="primary" size="sm" class="w-full text-xs">Descargar CSV</BaseButton>
                         </a>
                     </div>

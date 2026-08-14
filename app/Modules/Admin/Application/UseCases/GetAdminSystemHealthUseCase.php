@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 
 final class GetAdminSystemHealthUseCase
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $dbStatus = 'OK';

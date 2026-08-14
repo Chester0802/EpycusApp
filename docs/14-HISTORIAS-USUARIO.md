@@ -1,7 +1,7 @@
 # Historias de usuario y criterios de aceptación (Unificado)
 
 > Este documento unifica todas las historias de usuario y criterios de aceptación del proyecto Epycus.
-> **ESTADO DEL PROYECTO (al 2026-08-13): TODAS LAS FASES IMPLEMENTADAS Y VERIFICADAS (118 TESTS PASANDO, 0 ERRORES PHPSTAN NIVEL 6) ✅**
+> **ESTADO DEL PROYECTO (al 2026-08-13): TODAS LAS FASES IMPLEMENTADAS Y VERIFICADAS (120 TESTS PASANDO, 0 ERRORES PHPSTAN NIVEL 6) ✅**
 >
 > **Formato de cada historia:**
 > Como <rol>, quiero <acción>, para <beneficio>. seguido de criterios de aceptación en

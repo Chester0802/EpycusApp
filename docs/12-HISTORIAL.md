@@ -1,7 +1,50 @@
 \
 # 12 — Historial de sesiones de IA
 
-## 2026-08-13 — Antigravity [Rediseño de Onboarding Dedicado (/profile/complete), Corrección de Errores HTTP 500 y Lucide AppIcon en Dashboard]
+## 2026-08-13 — Antigravity [Auditoría de Módulos (Misiones, Hábitos, Pomodoro, Villanos, Admin), Pruebas UAT y Despliegue de Producción Completo]
+
+**Qué se hizo:**
+1. **Módulo de Misiones (`Missions`):**
+   - Integrado otorgamiento automático de XP y Monedas (`coins`) reflejados en vivo en el Dashboard (`/dashboard`) mediante `AwardXpFromMissionCompletedListener`.
+   - Implementado caso de uso `UncompleteMissionUseCase.php` (`POST /missions/{id}/uncomplete`) para desarchivar / reabrir misiones completadas.
+   - Habilitada la visualización y desglose de subtareas en misiones archivadas y migración a hipervínculos SPA `<Link>`.
+   - Creada la suite de 7 pruebas de integración `tests/Feature/Missions/MissionsTest.php`.
+
+2. **Módulo de Hábitos (`Habits`):**
+   - Transformado el contenedor de estadísticas en `resources/js/Pages/Habits/Index.vue` a `grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4` para renderizado `2x2` en móviles, evitando que *"Adherencia del mes"* desborde la tarjeta.
+   - PHPStan Nivel 6 limpio sin errores en DTOs y controladores.
+   - Suite de pruebas Feature ampliada a 8 casos de prueba en `tests/Feature/Habits/HabitsTest.php`.
+
+3. **Módulo Pomodoro (`Pomodoro`):**
+   - Sincronizada la zona horaria `'timezone' => env('APP_TIMEZONE', 'America/Lima')` en `config/app.php`.
+   - Filtrado por fecha en repositorio usando `Carbon::now('America/Lima')->toDateString()` para evitar pérdida de registros pasadas las 7:00 p.m. local.
+   - Serialización con offset ISO 8601 `-05:00` en `PomodoroController.php` permitiendo que JavaScript renderice la hora local exacta de Lima (ej: *04:56 p.m.*).
+
+4. **Módulo de Villanos (`Villanos`):**
+   - Habilitada la auto-asignación del Villano de la Semana en producción en `GetCurrentVillainUseCase.php` de **Lunes (00:00:00) a Domingo (23:59:59)** en hora de Lima (`America/Lima`).
+   - Rotación dinámica de los 5 villanos del catálogo (*La Postergación, La Distracción, La Ansiedad, El Desorden, El Cansancio*).
+   - Formateadas las fechas en `Index.vue` a lenguaje amigable en español (*"Semana: Del 10 de Agosto al 16 de Agosto"*), manteniendo la estética del encabezado intacta.
+   - Creada la suite de pruebas Feature `tests/Feature/Villains/VillainsTest.php` con 6 casos de prueba (100% pasando).
+
+5. **Módulo de Administración e Investigación (`Admin`):**
+   - **Redirección de Login Admin**: Actualizado `AuthenticatedSessionController.php` para que los usuarios con `role === 'admin'` (`admin@epycus.es`) sean redirigidos automáticamente a `route('admin.index')` (`/admin`).
+   - **Acceso Directo en Navegación (`AppLayout.vue`)**: Agregado el enlace *"📊 Panel Investigación"* visible en la barra lateral para usuarios administradores.
+   - **Dataset Diagnóstico EPA**: Habilitada la exportación en CSV del dataset de respuestas del cuestionario EPA (`epa_responses`) en `Admin/Index.vue` y `GenerateDatasetCsvUseCase.php`.
+   - **Pruebas Automatizadas (`tests/Feature/Admin/AdminTest.php`)**: Creada la suite de 5 pruebas de integración para verificar acceso, redirección y descargas de datasets CSV.
+
+6. **Despliegue a Producción Hostinger (`app.epycus.es`):**
+   - Assets frontend compilados limpiamente con `npm run build` en 4.32s.
+   - Transferencia SSH vía `pscp` de assets (`public/build`), vistas, rutas, controladores backend y módulos.
+   - Regeneración de cachés de Laravel con `plink`: `config:cache`, `route:cache`, `view:cache` y `cache:clear`.
+   - 120/120 pruebas PHPUnit pasando (100%), PHPStan nivel 6 limpio y commit git guardado en local.
+
+**Decisiones tomadas:**
+- Se desacopló el flujo de navegación de administradores e investigadores del flujo de estudiantes regulares, asegurando acceso directo a los 4 datasets de investigación (Participantes, Hábitos/Pomodoro, Telemetría y Diagnóstico EPA).
+- Las fechas en producción utilizan `America/Lima` (UTC-5) para garantizar sincronización de villanos semanales y marcas de tiempo en el temporizador Pomodoro.
+
+**Verificado cómo:** `php vendor/bin/phpunit` ✅ (120/120 tests pasados OK, 100%), `vendor/bin/phpstan analyse app/Modules/Admin --level=6` ✅ (limpio), `npm run build` ✅, Despliegue en `app.epycus.es` verificado.
+
+---
 
 **Qué se hizo:**
 1. **Rediseño de Pantalla de Onboarding Dedicada (`CompleteProfile.vue` & Google Auth):**

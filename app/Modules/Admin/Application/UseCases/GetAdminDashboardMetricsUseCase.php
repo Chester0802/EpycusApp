@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 
 final class GetAdminDashboardMetricsUseCase
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $today = Carbon::now()->toDateString();
