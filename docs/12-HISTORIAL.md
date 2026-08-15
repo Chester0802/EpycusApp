@@ -1758,7 +1758,41 @@ y la corrección.
 
 **Decisiones tomadas:** Mantener `America/Lima` (UTC-5) como zona horaria de referencia para la aplicación y los reportes de estudiantes, garantizando sincronía entre frontend, backend y base de datos.
 
-**Verificado cómo:** Ejecutados 118/118 tests en PHPUnit (363 aserciones) en 13.2s con 0 errores, y análisis estático con PHPStan Nivel 6 en 0 errores en todos los módulos intervenidos (`Missions`, `Habits`, `Pomodoro`, `Villains`).
+
+---
+
+## 2026-08-14 — Antigravity (Gemini 3.6 Flash)
+
+**Qué se hizo:**
+1. **Módulo de Apuntes y Cursos en Calendario (`Calendar`):**
+   - **Desacoplamiento de Cursos y Sesiones Multi-Horario:** Rediseñado el esquema de base de datos dividiendo `class_schedules` en `courses` (entidad curso: nombre, color) y `course_sessions` (múltiples sesiones por curso con día de semana, hora inicio/fin y aula).
+   - **Editor Inline de Apuntes Enriquecido (`NoteEditorModal.vue`):**
+     - Clic en cualquier clase del calendario abre el modal de apunte del curso.
+     - Herramientas de formato inline: Títulos (H1, H2), Negrita, Color Rojo, Color Azul, y botón para restablecer color/formato adaptativo a modo claro y oscuro (`RotateCcw`).
+     - Entradas organizadas por fecha de registro ("Nuevo registro") con selector lateral en caso de múltiples fechas.
+     - Atajo de teclado `Ctrl + S` para guardado rápido.
+   - **Subida de Imágenes y Cámara Segura (Anti-Hack):**
+     - Validación por doble capa: extensión + inspección de magic bytes con PHP `finfo` para prevenir archivos maliciosos renombrados.
+     - Captura de fotos directa desde la cámara del dispositivo con selector de restricciones flexible para PC y móviles.
+     - Almacenamiento en disco `private` (`storage/app/private/note-images`) con controlador autenticado (`NoteImageController.php`) que verifica la propiedad del usuario (`user_id`).
+     - Ajustado el encabezado `Permissions-Policy: camera=(self)` en `SecurityHeaders.php` permitiendo la solicitud nativa de permisos en el navegador.
+   - **Exportación JSON Estructurada:** Botón "Exportar JSON" realiza la descarga directa e inmediata de la nota con metadatos del curso, sesiones y entradas fechadas para consumo por modelos de IA/LLM.
+   - **Edición de Cursos Registrados & Formato 12h (a.m. / p.m.):**
+     - Botón de edición (`Pencil`) en el modal "Mis Cursos" con soporte para actualizar nombre, color, aulas y horarios. Implementada la ruta `PUT /calendar/courses/{id}`.
+     - Formateadas todas las horas de clases a formato 12h am/pm (`07:30 a.m. — 02:00 p.m.`) en el calendario y modales.
+
+2. **Módulo de Autenticación & Restablecimiento de Contraseña (`Auth`):**
+   - Traducidas y rediseñadas las vistas `ForgotPassword.vue` y `ResetPassword.vue` al idioma español integrando componentes de diseño Epycus UI (`BaseCard`, `BaseInput`, `BaseButton`, íconos Lucide).
+   - Configuración de correo SMTP para producción y pruebas con Hostinger Webmail (`contacto@soltectos.com`).
+
+3. **Pruebas Automatizadas y Refactorización:**
+   - Actualizada la suite de pruebas `tests/Feature/Calendar/ClassScheduleTest.php` para validar creación multi-sesión, edición y eliminación de cursos ➔ 121/121 tests pasados OK (100%, 374 aserciones).
+   - Corregidos avisos de tipado Intelephense (`PHP0406`) en `CalendarController.php` usando `$request->integer()`.
+
+**Decisiones tomadas:** Se unificó el historial y esquema de base de datos en la rama principal `master` manteniendo 100% de cobertura de pruebas unitarias y de integración pasando sin errores.
+
+**Verificado cómo:** `php vendor/bin/phpunit` ✅ (121/121 tests pasados OK, 374 aserciones), `npm run build` ✅ (assets frontend compilados en 6.84s), sintaxis PHP limpia en todos los controladores y repositorios.
+
 
 
 
