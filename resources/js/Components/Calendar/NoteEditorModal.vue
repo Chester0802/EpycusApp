@@ -13,6 +13,7 @@ import {
     NotebookText,
     ImagePlus,
     FileJson,
+    FileText,
     Check,
     Type,
     RotateCcw,
@@ -335,6 +336,75 @@ function exportAndDownloadJson() {
     URL.revokeObjectURL(url);
 }
 
+// ── Exportar PDF (Imprimible/Descargable) ──────────────────────────────────
+function exportPdf() {
+    syncBlocks();
+    const cleanCourseName = props.course?.name ?? 'Curso';
+    const sessionsList = (props.course?.sessions ?? []).map(s =>
+        `${DAY_NAMES[s.day_of_week]} ${formatTime12h(s.start_time)} – ${formatTime12h(s.end_time)}${s.classroom ? ' [' + s.classroom + ']' : ''}`
+    ).join(' | ');
+
+    let entriesHtml = '';
+    for (const entry of entries.value) {
+        const dateStr = formatDate(entry.recorded_at);
+        const html = entry.blocks?.[0]?.html ?? '<p><em>Sin contenido</em></p>';
+        entriesHtml += `
+            <div class="pdf-entry">
+                <div class="pdf-entry-date">📅 ${dateStr}</div>
+                <div class="pdf-entry-body">${html}</div>
+            </div>
+        `;
+    }
+
+    const printHtml = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="utf-8">
+            <title>Apunte - ${cleanCourseName}</title>
+            <style>
+                @page { margin: 15mm; size: A4; }
+                body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; background: #fff; margin: 0; padding: 20px; line-height: 1.6; }
+                .pdf-header { border-bottom: 2px solid #cbd5e1; padding-bottom: 15px; margin-bottom: 25px; }
+                .pdf-title { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; }
+                .pdf-subtitle { font-size: 13px; color: #64748b; margin: 0; }
+                .pdf-entry { margin-bottom: 30px; page-break-inside: avoid; }
+                .pdf-entry-date { font-size: 13px; font-weight: 600; color: #9333ea; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; margin-bottom: 12px; }
+                .pdf-entry-body { font-size: 14px; color: #334155; }
+                .pdf-entry-body h1 { font-size: 20px; font-weight: 700; color: #0f172a; margin: 16px 0 8px; }
+                .pdf-entry-body h2 { font-size: 16px; font-weight: 600; color: #1e293b; margin: 12px 0 6px; }
+                .pdf-entry-body strong { font-weight: 700; }
+                .pdf-entry-body img { max-width: 100%; height: auto; border-radius: 6px; margin: 10px 0; display: block; border: 1px solid #e2e8f0; }
+                .pdf-footer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 12px; text-align: center; font-size: 11px; color: #94a3b8; }
+            </style>
+        </head>
+        <body>
+            <div class="pdf-header">
+                <h1 class="pdf-title">📖 Apunte: ${cleanCourseName}</h1>
+                <p class="pdf-subtitle"><strong>Horarios:</strong> ${sessionsList || 'Sin horario especificado'}</p>
+            </div>
+            ${entriesHtml || '<p>No hay registros guardados en este apunte.</p>'}
+            <div class="pdf-footer">
+                Documento exportado desde Epycus · ${new Date().toLocaleDateString('es')}
+            </div>
+            <script>
+                window.onload = function() {
+                    window.print();
+                };
+            <\/script>
+        </body>
+        </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+        printWindow.document.write(printHtml);
+        printWindow.document.close();
+    } else {
+        alert('Por favor habilita las ventanas emergentes (popups) para exportar el PDF.');
+    }
+}
+
 // ── Formato inline ─────────────────────────────────────────────────────────
 function formatHeading(level) {
     editorEl.value?.focus();
@@ -425,6 +495,14 @@ onBeforeUnmount(() => stopCamera());
                                 </div>
                             </div>
                             <div class="note-header-actions">
+                                <button
+                                    type="button"
+                                    class="note-btn note-btn-secondary"
+                                    title="Exportar apunte en formato PDF / Imprimir"
+                                    @click="exportPdf"
+                                >
+                                    <FileText :size="15" /> Exportar PDF
+                                </button>
                                 <button
                                     type="button"
                                     class="note-btn note-btn-secondary"
