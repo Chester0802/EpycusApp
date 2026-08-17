@@ -59,7 +59,13 @@ function startPomodoro() {
 
     <AppLayout>
         <div class="mx-auto max-w-3xl">
-            <Link :href="route('missions.index')" class="mb-4 inline-block text-sm text-content-secondary hover:text-content-primary">← Volver a misiones</Link>
+            <button
+                type="button"
+                class="mb-4 inline-flex items-center gap-1 text-sm text-content-secondary hover:text-content-primary cursor-pointer"
+                @click="router.visit(route('missions.index'))"
+            >
+                ← Volver a misiones
+            </button>
 
             <BaseCard class="mb-6 p-6" :class="mission.is_completed ? 'border-l-4 border-l-success' : (mission.is_overdue ? 'border-l-4 border-l-danger' : 'border-l-4 border-l-primary')">
                 <div class="flex items-start justify-between gap-4">

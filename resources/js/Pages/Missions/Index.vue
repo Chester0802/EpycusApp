@@ -423,6 +423,10 @@ function stateClass(state) {
     };
     return classes[state] || 'border-l-border-interactive';
 }
+
+function goToMission(id) {
+    router.visit(route('missions.show', { id }));
+}
 </script>
 
 <template>
@@ -623,12 +627,13 @@ function stateClass(state) {
                                         <div class="flex items-start justify-between gap-3">
                                             <div class="min-w-0 flex-1">
                                                 <div class="flex items-center gap-2 flex-wrap">
-                                                    <Link
-                                                        :href="route('missions.show', { id: m.id })"
-                                                        class="font-semibold text-sm text-content-primary hover:text-primary-strong truncate"
+                                                    <button
+                                                        type="button"
+                                                        class="text-left font-semibold text-sm text-content-primary hover:text-primary-strong truncate cursor-pointer"
+                                                        @click="goToMission(m.id)"
                                                     >
                                                         {{ m.title }}
-                                                    </Link>
+                                                    </button>
                                                     <span v-if="m.is_overdue" class="rounded bg-danger/20 px-1.5 py-0.2 text-[10px] font-bold text-danger">
                                                         Vencida
                                                     </span>
@@ -731,12 +736,13 @@ function stateClass(state) {
                                         <div class="flex items-start justify-between gap-3">
                                             <div class="min-w-0 flex-1">
                                                 <div class="flex items-center gap-2 flex-wrap">
-                                                    <Link
-                                                        :href="route('missions.show', { id: m.id })"
-                                                        class="font-semibold text-sm text-content-primary hover:text-primary-strong truncate"
+                                                    <button
+                                                        type="button"
+                                                        class="text-left font-semibold text-sm text-content-primary hover:text-primary-strong truncate cursor-pointer"
+                                                        @click="goToMission(m.id)"
                                                     >
                                                         {{ m.title }}
-                                                    </Link>
+                                                    </button>
                                                     <span
                                                         v-if="m.state === 'in_progress'"
                                                         class="rounded bg-primary-strong/20 px-1.5 py-0.2 text-[10px] font-bold text-primary-strong"
@@ -840,12 +846,13 @@ function stateClass(state) {
                                     >
                                         <div class="flex items-start justify-between gap-3">
                                             <div class="min-w-0 flex-1">
-                                                <Link
-                                                    :href="route('missions.show', { id: m.id })"
-                                                    class="font-semibold text-sm text-content-primary hover:text-primary-strong truncate block"
+                                                <button
+                                                    type="button"
+                                                    class="text-left font-semibold text-sm text-content-primary hover:text-primary-strong truncate block cursor-pointer"
+                                                    @click="goToMission(m.id)"
                                                 >
                                                     {{ m.title }}
-                                                </Link>
+                                                </button>
                                                 <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
                                                     <span :class="difficultyConfig[m.difficulty]?.class" class="rounded px-1.5 py-0.2 font-medium">
                                                         {{ difficultyConfig[m.difficulty]?.label }}
@@ -928,12 +935,13 @@ function stateClass(state) {
                                     >
                                         <div class="flex items-start justify-between gap-3">
                                             <div class="min-w-0 flex-1">
-                                                <Link
-                                                    :href="route('missions.show', { id: m.id })"
-                                                    class="font-medium text-sm text-content-secondary hover:text-content-primary truncate block"
+                                                <button
+                                                    type="button"
+                                                    class="text-left font-medium text-sm text-content-secondary hover:text-content-primary truncate block cursor-pointer"
+                                                    @click="goToMission(m.id)"
                                                 >
                                                     {{ m.title }}
-                                                </Link>
+                                                </button>
                                                 <p v-if="m.description" class="mt-0.5 text-xs text-content-muted line-clamp-1">
                                                     {{ m.description }}
                                                 </p>
@@ -1014,12 +1022,13 @@ function stateClass(state) {
                                 ></div>
 
                                 <div class="flex items-start justify-between gap-1.5 mt-0.5">
-                                    <Link
-                                        :href="route('missions.show', { id: m.id })"
-                                        class="font-bold text-xs hover:underline flex-1 line-clamp-2 leading-tight"
+                                    <button
+                                        type="button"
+                                        class="text-left font-bold text-xs hover:underline flex-1 line-clamp-2 leading-tight cursor-pointer"
+                                        @click="goToMission(m.id)"
                                     >
                                         {{ m.title }}
-                                    </Link>
+                                    </button>
                                     <span
                                         class="rounded px-1.5 py-0.2 text-[9px] font-black shrink-0"
                                         :class="eisenhowerConfig[m.eisenhower_quadrant || 'q2']?.bgBadge"
@@ -1132,12 +1141,13 @@ function stateClass(state) {
                                 ></div>
 
                                 <div class="flex items-start justify-between gap-1.5 mt-0.5">
-                                    <Link
-                                        :href="route('missions.show', { id: m.id })"
-                                        class="font-bold text-xs hover:underline flex-1 line-clamp-2 leading-tight"
+                                    <button
+                                        type="button"
+                                        class="text-left font-bold text-xs hover:underline flex-1 line-clamp-2 leading-tight cursor-pointer"
+                                        @click="goToMission(m.id)"
                                     >
                                         {{ m.title }}
-                                    </Link>
+                                    </button>
                                     <span
                                         class="rounded px-1.5 py-0.2 text-[9px] font-black shrink-0"
                                         :class="eisenhowerConfig[m.eisenhower_quadrant || 'q2']?.bgBadge"
@@ -1248,12 +1258,13 @@ function stateClass(state) {
                                 ></div>
 
                                 <div class="flex items-start justify-between gap-1.5 mt-0.5">
-                                    <Link
-                                        :href="route('missions.show', { id: m.id })"
-                                        class="font-bold text-xs hover:underline flex-1 line-clamp-2 leading-tight"
+                                    <button
+                                        type="button"
+                                        class="text-left font-bold text-xs hover:underline flex-1 line-clamp-2 leading-tight cursor-pointer"
+                                        @click="goToMission(m.id)"
                                     >
                                         {{ m.title }}
-                                    </Link>
+                                    </button>
                                     <span class="rounded bg-success/20 px-1.5 py-0.2 text-[9px] font-black text-success">
                                         100% LISTO
                                     </span>
@@ -1299,12 +1310,13 @@ function stateClass(state) {
                                 :class="idx % 2 === 0 ? 'rotate-[-0.6deg]' : 'rotate-[0.6deg]'"
                             >
                                 <div class="flex items-start justify-between gap-1.5">
-                                    <Link
-                                        :href="route('missions.show', { id: m.id })"
-                                        class="font-semibold text-xs line-through text-content-secondary hover:text-content-primary flex-1 line-clamp-2 leading-tight"
+                                    <button
+                                        type="button"
+                                        class="text-left font-semibold text-xs line-through text-content-secondary hover:text-content-primary flex-1 line-clamp-2 leading-tight cursor-pointer"
+                                        @click="goToMission(m.id)"
                                     >
                                         {{ m.title }}
-                                    </Link>
+                                    </button>
                                     <span v-if="m.xp_awarded > 0" class="rounded bg-accent/20 px-1.5 py-0.2 text-[9px] font-black text-accent shrink-0">
                                         +{{ m.xp_awarded }} XP
                                     </span>
@@ -1343,12 +1355,13 @@ function stateClass(state) {
                             <div class="flex items-start justify-between gap-4">
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <Link
-                                            :href="route('missions.show', { id: m.id })"
-                                            class="font-semibold text-content-primary hover:text-primary-strong"
+                                        <button
+                                            type="button"
+                                            class="text-left font-semibold text-content-primary hover:text-primary-strong cursor-pointer"
+                                            @click="goToMission(m.id)"
                                         >
                                             {{ m.title }}
-                                        </Link>
+                                        </button>
                                         <span
                                             v-if="m.eisenhower_quadrant"
                                             class="rounded px-1.5 py-0.2 text-[10px] font-bold"
@@ -1415,12 +1428,13 @@ function stateClass(state) {
                             <div class="flex items-start justify-between gap-4">
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <Link
-                                            :href="route('missions.show', { id: m.id })"
-                                            class="font-semibold text-content-primary hover:text-primary-strong"
+                                        <button
+                                            type="button"
+                                            class="text-left font-semibold text-content-primary hover:text-primary-strong cursor-pointer"
+                                            @click="goToMission(m.id)"
                                         >
                                             {{ m.title }}
-                                        </Link>
+                                        </button>
                                         <span
                                             v-if="m.eisenhower_quadrant"
                                             class="rounded px-1.5 py-0.2 text-[10px] font-bold"
@@ -1486,12 +1500,13 @@ function stateClass(state) {
                             <div class="flex items-start justify-between gap-4">
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <Link
-                                            :href="route('missions.show', { id: m.id })"
-                                            class="font-semibold text-content-primary hover:text-primary-strong"
+                                        <button
+                                            type="button"
+                                            class="text-left font-semibold text-content-primary hover:text-primary-strong cursor-pointer"
+                                            @click="goToMission(m.id)"
                                         >
                                             {{ m.title }}
-                                        </Link>
+                                        </button>
                                         <span
                                             v-if="m.eisenhower_quadrant"
                                             class="rounded px-1.5 py-0.2 text-[10px] font-bold"
@@ -1564,12 +1579,13 @@ function stateClass(state) {
                     >
                         <div class="flex items-start justify-between gap-4">
                             <div class="min-w-0 flex-1">
-                                <Link
-                                    :href="route('missions.show', { id: m.id })"
-                                    class="font-semibold text-content-primary line-through hover:text-primary-strong text-sm"
+                                <button
+                                    type="button"
+                                    class="text-left font-semibold text-content-primary line-through hover:text-primary-strong text-sm cursor-pointer"
+                                    @click="goToMission(m.id)"
                                 >
                                     {{ m.title }}
-                                </Link>
+                                </button>
                                 <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-content-muted">
                                     <span class="text-success font-medium">✓ Completada {{ m.completed_at }}</span>
                                     <span v-if="m.xp_awarded > 0" class="text-accent font-semibold">+{{ m.xp_awarded }} XP</span>

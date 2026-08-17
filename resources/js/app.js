@@ -6,16 +6,20 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
-// Bloqueo estricto anti-iframe / anti-widgets flotantes (Framebuster)
-if (typeof window !== 'undefined' && window.self !== window.top) {
-    try {
-        window.top.location.href = window.self.location.href;
-    } catch {
-        // Si el contenedor restringe el top, ocultar el iframe secundario
-        if (document.documentElement) {
-            document.documentElement.style.display = 'none';
-        }
+// Bloqueo total para iframes o ventanas de previsualización (about:srcdoc / widgets)
+let isFramed = false;
+try {
+    isFramed = typeof window !== 'undefined' && window.self !== window.top;
+} catch {
+    isFramed = true;
+}
+
+if (isFramed) {
+    if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.style.display = 'none';
+        document.documentElement.innerHTML = '';
     }
+    throw new Error('Execution prevented inside iframe preview.');
 }
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
