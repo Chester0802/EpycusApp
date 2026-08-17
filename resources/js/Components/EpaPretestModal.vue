@@ -85,32 +85,49 @@ const answers = ref({
     item_14: null,
 });
 
-const currentItem = computed(() => items[currentStep.value]);
-const progressPercent = computed(() => Math.round(((currentStep.value + 1) / items.length) * 100));
+const currentItem = computed(() => {
+    const idx = Math.max(0, Math.min(currentStep.value, items.length - 1));
+    return items[idx] || items[0];
+});
 
-const isCurrentAnswered = computed(() => answers.value[currentItem.value.key] !== null);
+const progressPercent = computed(() => {
+    const step = Math.max(0, Math.min(currentStep.value, items.length - 1));
+    return Math.round(((step + 1) / items.length) * 100);
+});
+
+const isCurrentAnswered = computed(() => {
+    return currentItem.value ? answers.value[currentItem.value.key] !== null : false;
+});
 
 const isAllAnswered = computed(() => {
     return items.every((item) => answers.value[item.key] !== null);
 });
 
+let advanceTimeout = null;
+
 function selectOption(val) {
+    if (!currentItem.value) return;
     answers.value[currentItem.value.key] = val;
+    if (advanceTimeout) clearTimeout(advanceTimeout);
     // Auto-advance if not on last step
     if (currentStep.value < items.length - 1) {
-        setTimeout(() => {
-            currentStep.value++;
+        advanceTimeout = setTimeout(() => {
+            if (currentStep.value < items.length - 1) {
+                currentStep.value++;
+            }
         }, 220);
     }
 }
 
 function prevStep() {
+    if (advanceTimeout) clearTimeout(advanceTimeout);
     if (currentStep.value > 0) {
         currentStep.value--;
     }
 }
 
 function nextStep() {
+    if (advanceTimeout) clearTimeout(advanceTimeout);
     if (currentStep.value < items.length - 1 && isCurrentAnswered.value) {
         currentStep.value++;
     }
