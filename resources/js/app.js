@@ -14,33 +14,27 @@ try {
     isFramed = true;
 }
 
-if (isFramed) {
-    if (typeof document !== 'undefined' && document.documentElement) {
-        document.documentElement.style.display = 'none';
-        document.documentElement.innerHTML = '';
-    }
-    throw new Error('Execution prevented inside iframe preview.');
+if (!isFramed) {
+    const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+    createInertiaApp({
+        title: (title) => `${title} - ${appName}`,
+        resolve: (name) =>
+            resolvePageComponent(
+                `./Pages/${name}.vue`,
+                import.meta.glob('./Pages/**/*.vue'),
+            ),
+        setup({ el, App, props, plugin }) {
+            return createApp({ render: () => h(App, props) })
+                .use(plugin)
+                .use(ZiggyVue)
+                .mount(el);
+        },
+        progress: {
+            color: '#4B5563',
+        },
+    });
 }
-
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
-
-createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
-    resolve: (name) =>
-        resolvePageComponent(
-            `./Pages/${name}.vue`,
-            import.meta.glob('./Pages/**/*.vue'),
-        ),
-    setup({ el, App, props, plugin }) {
-        return createApp({ render: () => h(App, props) })
-            .use(plugin)
-            .use(ZiggyVue)
-            .mount(el);
-    },
-    progress: {
-        color: '#4B5563',
-    },
-});
 
 /**
  * Fix para bfcache en móvil:

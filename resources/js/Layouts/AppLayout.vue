@@ -194,7 +194,7 @@ const showEpaModal = computed(() => {
         <!-- Barra lateral — solo escritorio -->
         <aside class="panel-nav relative z-10 hidden w-[260px] shrink-0 lg:flex lg:flex-col">
             <div class="flex h-16 items-center justify-between gap-2 px-6">
-                <Link :href="route('dashboard')" class="flex items-center gap-2">
+                <button type="button" @click="navigate('dashboard')" class="flex items-center gap-2 cursor-pointer">
                     <span
                         class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-strong p-1"
                     >
@@ -203,7 +203,7 @@ const showEpaModal = computed(() => {
                     <span class="font-display text-lg font-semibold text-content-primary"
                         >Epycus</span
                     >
-                </Link>
+                </button>
                 <ThemeToggle />
             </div>
 
@@ -264,14 +264,13 @@ const showEpaModal = computed(() => {
                 <div class="mb-2 truncate text-sm font-semibold text-content-primary">
                     {{ page.props.auth.user.name }}
                 </div>
-                <Link
-                    :href="route('logout')"
-                    method="post"
-                    as="button"
-                    class="flex min-h-[44px] w-full items-center justify-center rounded-xl border border-danger-text px-3 text-sm font-semibold text-danger-text transition-colors duration-150 hover:bg-surface-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
+                <button
+                    type="button"
+                    class="flex min-h-[44px] w-full items-center justify-center rounded-xl border border-danger-text px-3 text-sm font-semibold text-danger-text transition-colors duration-150 hover:bg-surface-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong cursor-pointer"
+                    @click="router.post(route('logout'))"
                 >
                     Salir
-                </Link>
+                </button>
             </div>
         </aside>
 
@@ -280,13 +279,13 @@ const showEpaModal = computed(() => {
             <header
                 class="panel-nav relative z-10 flex h-16 items-center justify-between px-4 lg:hidden"
             >
-                <Link :href="route('dashboard')" class="flex items-center gap-2">
+                <button type="button" @click="navigate('dashboard')" class="flex items-center gap-2 cursor-pointer">
                     <span
                         class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-strong p-1"
                     >
                         <ApplicationLogo class="h-full w-full rounded" />
                     </span>
-                </Link>
+                </button>
                 <div class="flex items-center gap-2">
                     <ThemeToggle />
                     <button
@@ -345,14 +344,13 @@ const showEpaModal = computed(() => {
                         <span>Ajustes</span>
                     </button>
 
-                    <Link
-                        :href="route('logout')"
-                        method="post"
-                        as="button"
-                        class="flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold text-danger-text hover:bg-surface-raised transition-colors duration-150"
+                    <button
+                        type="button"
+                        class="flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold text-danger-text hover:bg-surface-raised transition-colors duration-150 cursor-pointer text-left"
+                        @click="router.post(route('logout'))"
                     >
                         Salir
-                    </Link>
+                    </button>
                 </div>
             </div>
 
