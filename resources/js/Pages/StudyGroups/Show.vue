@@ -112,11 +112,59 @@ function postJson(url, body = {}) {
     });
 }
 
+function playPhaseChime(phase) {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        if (phase === 'focus') {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.setValueAtTime(520, now);
+            osc.frequency.exponentialRampToValueAtTime(660, now + 0.3);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            osc.start(now);
+            osc.stop(now + 0.5);
+        } else if (phase === 'break') {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.setValueAtTime(880, now);
+            osc.frequency.exponentialRampToValueAtTime(587, now + 0.4);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+            osc.start(now);
+            osc.stop(now + 0.6);
+        } else if (phase === 'completed') {
+            [523.25, 659.25, 783.99].forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.15, now + i * 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.7);
+                osc.start(now + i * 0.1);
+                osc.stop(now + i * 0.1 + 0.7);
+            });
+        }
+    } catch {
+        // Silencioso si el navegador no permite audio automático sin interacción previa
+    }
+}
+
 function advancePhase() {
     postJson(route('study-groups.advance', props.session.id))
         .then((r) => r.json())
         .then((data) => {
             if (data.advanced) {
+                playPhaseChime(data.phase);
                 track(
                     data.phase === 'focus' ? 'group_focus.started' : 'group_break.started',
                     'study_groups',
@@ -202,6 +250,7 @@ function poll() {
                 }
 
                 if (data.room.phase !== prevPhase) {
+                    playPhaseChime(data.room.phase);
                     updateRemaining();
                     if (data.room.phase === 'focus' || data.room.phase === 'break') {
                         startTicker();
@@ -309,7 +358,7 @@ onUnmounted(() => {
                     <div v-for="msg in chatMessages" :key="msg.id" class="flex items-start gap-3">
                         <div class="flex flex-col">
                             <span class="text-xs text-content-muted">
-                                {{ msg.user_id === userId ? 'Tú' : `Usuario #${msg.user_id}` }}
+                                {{ msg.user_id === userId ? 'Tú' : (msg.alias || (chatParticipants.find(p => p.id === msg.user_id)?.alias || 'Compañero')) }}
                             </span>
                             <div
                                 class="mt-1 max-w-[80%] rounded-xl px-4 py-2 text-sm"
