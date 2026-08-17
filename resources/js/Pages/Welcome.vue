@@ -592,33 +592,31 @@ const faqs = [
 
                                 <!-- Vista Tab 3: Misiones -->
                                 <div v-else-if="activeTab === 'missions'" class="space-y-4">
-                                    <h3 class="text-2xl sm:text-3xl font-black" :class="isDark ? 'text-white' : 'text-slate-900'">Misiones & Hábitos con Retroalimentación Sonora</h3>
+                                    <h3 class="text-2xl sm:text-3xl font-black" :class="isDark ? 'text-white' : 'text-slate-900'">Matriz Eisenhower, Tablero Kanban & Subtareas</h3>
                                     <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-                                        "Empieza en pequeño para realizar cosas grandes". Marca subtareas en tiempo real, activa hábitos diarios y celebra cada logro con confeti y timbre armónico instantáneo.
+                                        Prioriza con el cuadrante de 4 zonas (Urgente vs Importante) o gestiona tu flujo de trabajo en el tablero Kanban (Pendiente, En Progreso, Completada). Descompón entregas complejas en micro-pasos de 20 minutos con avance automático.
                                     </p>
-                                    <div class="mt-4 space-y-2 text-xs">
-                                        <div
-                                            class="p-3 rounded-xl border flex items-center justify-between"
-                                            :class="isDark ? 'bg-[#070A12] border-emerald-500/30 text-slate-200' : 'bg-emerald-50/50 border-emerald-200 text-slate-700'"
-                                        >
-                                            <div class="flex items-center gap-2">
-                                                <AppIcon name="check-circle" :size="16" class="text-emerald-500" />
-                                                <span>Esquema de Tesis — Introducción (Paso 1)</span>
+                                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                                        <div class="p-3 rounded-xl border" :class="isDark ? 'bg-[#070A12] border-indigo-500/30' : 'bg-indigo-50/50 border-indigo-200'">
+                                            <div class="font-bold text-indigo-400 flex items-center justify-between">
+                                                <span>📋 Pendientes</span>
+                                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20">2</span>
                                             </div>
-                                            <span class="font-bold text-emerald-500">+5 XP</span>
+                                            <p class="text-[11px] mt-2 text-content-secondary line-clamp-1">Ensayo de Bioética</p>
                                         </div>
-                                        <div
-                                            class="p-3 rounded-xl border flex items-center justify-between"
-                                            :class="isDark ? 'bg-[#070A12] border-white/[0.08] text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'"
-                                        >
-                                            <div class="flex items-center gap-2">
-                                                <AppIcon name="circle-dot" :size="16" class="text-cyan-500" />
-                                                <span>Búsqueda de antecedentes indexados (Paso 2)</span>
+                                        <div class="p-3 rounded-xl border" :class="isDark ? 'bg-[#070A12] border-cyan-500/30' : 'bg-cyan-50/50 border-cyan-200'">
+                                            <div class="font-bold text-cyan-400 flex items-center justify-between">
+                                                <span>⚡ En Progreso</span>
+                                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20">1</span>
                                             </div>
-                                            <span class="font-bold text-cyan-500 flex items-center gap-1">
-                                                <AppIcon name="zap" :size="12" />
-                                                <span>En Progreso</span>
-                                            </span>
+                                            <p class="text-[11px] mt-2 text-content-secondary line-clamp-1">Informe Lab 4 (2/3 subtareas)</p>
+                                        </div>
+                                        <div class="p-3 rounded-xl border" :class="isDark ? 'bg-[#070A12] border-emerald-500/30' : 'bg-emerald-50/50 border-emerald-200'">
+                                            <div class="font-bold text-emerald-400 flex items-center justify-between">
+                                                <span>✅ Completadas</span>
+                                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20">+40 XP</span>
+                                            </div>
+                                            <p class="text-[11px] mt-2 text-content-secondary line-clamp-1">Práctica Calificada 1</p>
                                         </div>
                                     </div>
                                 </div>
@@ -627,7 +625,7 @@ const faqs = [
                                 <div v-else class="space-y-4">
                                     <h3 class="text-2xl sm:text-3xl font-black" :class="isDark ? 'text-white' : 'text-slate-900'">Credencial Holográfica & 50 Niveles de Progresión</h3>
                                     <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-                                        Personaliza tu avatar con el estilo Open Peeps, desbloquea 10 marcos evolutivos según tu constancia y gana títulos profesionales basados en tu carrera universitaria.
+                                        Personaliza tu avatar con el estilo Open Peeps, desbloquea 10 marcos evolutivos según tu constancia, acumula monedas (1 moneda por cada 10 XP) y gana títulos profesionales según tu carrera universitaria.
                                     </p>
                                     <div
                                         class="mt-4 p-4 rounded-2xl border flex items-center justify-between"
@@ -643,7 +641,7 @@ const faqs = [
                                                 <div class="font-bold text-sm" :class="isDark ? 'text-white' : 'text-slate-900'">Credencial Estudiantil Digital</div>
                                                 <div class="text-xs text-amber-500 font-mono flex items-center gap-1 mt-0.5">
                                                     <AppIcon name="coins" :size="13" />
-                                                    <span>2,000 Monedas • Nivel 14</span>
+                                                    <span>2,000 Monedas • Nivel 14 • Racha +20% XP</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -721,6 +719,97 @@ const faqs = [
                                     <span>{{ car.ranks }}</span>
                                 </p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Sección: El Reto Científico de los 66 Días & Evaluación EPA ─ -->
+            <section
+                id="metodologia-66-dias"
+                class="py-20 lg:py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t"
+                :class="isDark ? 'border-white/[0.08]' : 'border-slate-200'"
+            >
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold mb-4">
+                        <AppIcon name="brain" :size="14" />
+                        <span>Fundamento Científico · University College London</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-5xl font-black tracking-tight" :class="isDark ? 'text-white' : 'text-slate-900'">
+                        El Ciclo de los <span class="bg-gradient-to-r from-cyan-400 via-indigo-400 to-teal-400 bg-clip-text text-transparent">66 Días</span> y la Escala EPA
+                    </h2>
+                    <p class="mt-4 text-base sm:text-lg leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
+                        La ciencia demostró que se requieren en promedio <strong>66 días consecutivos</strong> para que un comportamiento de estudio se convierta en un hábito automático. Epycus mide tu evolución real de inicio a fin.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                    <!-- Paso 1 -->
+                    <div
+                        class="p-7 rounded-3xl border flex flex-col justify-between relative overflow-hidden transition-all hover:-translate-y-1 shadow-xl"
+                        :class="isDark ? 'bg-[#0E1322] border-white/[0.08]' : 'bg-white border-slate-200 shadow-sm'"
+                    >
+                        <div class="absolute top-0 right-0 px-4 py-2 rounded-bl-2xl bg-indigo-500/20 text-indigo-400 font-mono text-xs font-bold">
+                            Día 1
+                        </div>
+                        <div>
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mb-5">
+                                <AppIcon name="clipboard" :size="22" />
+                            </div>
+                            <h3 class="text-xl font-black mb-2" :class="isDark ? 'text-white' : 'text-slate-900'">1. Diagnóstico Inicial (Pre-test EPA)</h3>
+                            <p class="text-xs sm:text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
+                                Respondes la Escala de Procrastinación Académica (8 preguntas) para identificar tu nivel de autorregulación y gestión del tiempo. Recibes <strong>+50 XP inmediatos</strong> y tus primeras monedas.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t text-[11px] font-semibold text-indigo-400 flex items-center gap-1.5" :class="isDark ? 'border-white/[0.06]' : 'border-slate-100'">
+                            <AppIcon name="check-circle" :size="14" />
+                            <span>Punto de partida calibrado</span>
+                        </div>
+                    </div>
+
+                    <!-- Paso 2 -->
+                    <div
+                        class="p-7 rounded-3xl border flex flex-col justify-between relative overflow-hidden transition-all hover:-translate-y-1 shadow-xl"
+                        :class="isDark ? 'bg-[#0E1322] border-cyan-500/30' : 'bg-cyan-50/30 border-cyan-200 shadow-sm'"
+                    >
+                        <div class="absolute top-0 right-0 px-4 py-2 rounded-bl-2xl bg-cyan-500/20 text-cyan-400 font-mono text-xs font-bold">
+                            Días 2 – 65
+                        </div>
+                        <div>
+                            <div class="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mb-5">
+                                <AppIcon name="zap" :size="22" />
+                            </div>
+                            <h3 class="text-xl font-black mb-2" :class="isDark ? 'text-white' : 'text-slate-900'">2. Entrenamiento y Racha</h3>
+                            <p class="text-xs sm:text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
+                                Estudias con Pomodoro, marcas tus hábitos protegidos con Días de Gracia, ordenas tus misiones en la matriz Kanban y aplicas daño a los 5 villanos del semestre. Multiplicador de hasta <strong>+50% XP extra</strong>.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t text-[11px] font-semibold text-cyan-400 flex items-center gap-1.5" :class="isDark ? 'border-white/[0.06]' : 'border-slate-100'">
+                            <AppIcon name="flame" :size="14" />
+                            <span>Construcción de consistencia</span>
+                        </div>
+                    </div>
+
+                    <!-- Paso 3 -->
+                    <div
+                        class="p-7 rounded-3xl border flex flex-col justify-between relative overflow-hidden transition-all hover:-translate-y-1 shadow-xl"
+                        :class="isDark ? 'bg-[#0E1322] border-emerald-500/30' : 'bg-emerald-50/30 border-emerald-200 shadow-sm'"
+                    >
+                        <div class="absolute top-0 right-0 px-4 py-2 rounded-bl-2xl bg-emerald-500/20 text-emerald-400 font-mono text-xs font-bold">
+                            Día 66
+                        </div>
+                        <div>
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-5">
+                                <AppIcon name="trophy" :size="22" />
+                            </div>
+                            <h3 class="text-xl font-black mb-2" :class="isDark ? 'text-white' : 'text-slate-900'">3. Evaluación Final (Post-test EPA)</h3>
+                            <p class="text-xs sm:text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
+                                Al cumplir los 66 días se desbloquea el Post-test para comparar de forma tangible la reducción en tus índices de procrastinación, evaluar tu crecimiento y celebrar tu nuevo nivel de maestría.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5" :class="isDark ? 'border-white/[0.06]' : 'border-slate-100'">
+                            <AppIcon name="sparkles" :size="14" />
+                            <span>Transformación y hábito consolidado</span>
                         </div>
                     </div>
                 </div>
