@@ -15,5 +15,6 @@ final readonly class CreateMissionDTO
         public ?string $dueDate,
         /** @var array<int, string> */
         public array $subtasks,
+        public ?string $eisenhowerQuadrant = 'q2',
     ) {}
 }

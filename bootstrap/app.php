@@ -19,12 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/*',
             'api/v1/telemetry/batch',
+            'feedback',
         ]);
 
 
         $middleware->web(append: [
             HandleInertiaRequests::class,
-            AddLinkHeadersForPreloadedAssets::class,
             SecurityHeaders::class,
         ]);
     })

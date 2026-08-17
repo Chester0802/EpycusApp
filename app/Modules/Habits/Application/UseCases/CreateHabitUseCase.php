@@ -25,6 +25,8 @@ final class CreateHabitUseCase
             'category' => $dto->category,
             'frequency' => $dto->frequency,
             'icon' => $dto->icon,
+            'time_of_day' => $dto->timeOfDay,
+            'cue_trigger' => $dto->cueTrigger,
             'is_active' => true,
         ]);
 

@@ -30,6 +30,8 @@ final class UpdateHabitUseCase
             'category' => $dto->category,
             'frequency' => $dto->frequency,
             'icon' => $dto->icon,
+            'time_of_day' => $dto->timeOfDay,
+            'cue_trigger' => $dto->cueTrigger,
         ]);
 
         $this->events->dispatch(new HabitUpdated(

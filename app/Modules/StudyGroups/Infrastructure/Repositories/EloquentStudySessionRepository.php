@@ -117,7 +117,8 @@ final class EloquentStudySessionRepository implements StudySessionRepositoryInte
 
     public function getMessagesSince(int $sessionId, int $lastMessageId): Collection
     {
-        return ChatMessageModel::where('session_id', $sessionId)
+        return ChatMessageModel::with('user:id,alias')
+            ->where('session_id', $sessionId)
             ->where('id', '>', $lastMessageId)
             ->orderBy('id')
             ->get();
@@ -125,7 +126,8 @@ final class EloquentStudySessionRepository implements StudySessionRepositoryInte
 
     public function getRecentMessages(int $sessionId, int $limit = 50): Collection
     {
-        return ChatMessageModel::where('session_id', $sessionId)
+        return ChatMessageModel::with('user:id,alias')
+            ->where('session_id', $sessionId)
             ->orderBy('id', 'desc')
             ->limit($limit)
             ->get()

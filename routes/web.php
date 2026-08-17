@@ -27,11 +27,13 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
 Route::matched(function (\Illuminate\Routing\Events\RouteMatched $event) {
     $request = request();
     $path = $request->path();
-    if ($request->getHost() === 'epycus.es' && $path !== '/' && $path !== 'terms') {
+    if ($request->getHost() === 'epycus.es' && !in_array($path, ['/', 'terms', 'feedback', 'sitemap.xml', 'robots.txt'])) {
         header('Location: https://app.epycus.es'.$request->getRequestUri());
         exit;
     }
 });
+
+Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
 
 
 

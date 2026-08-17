@@ -56,6 +56,7 @@ Autenticación, perfil, consentimiento del participante e instrumentos de medici
 
 | Campo | Tipo | Nota |
 |---|---|---|
+| `google_id` | string nullable | ID de Google OAuth 2.0 (si se autentica con cuenta Google) |
 | `career` | enum cerrado | **Lista desplegable, NUNCA texto libre** (decisión D-16) — **Variable de Control** |
 | `cycle` | enum 1–10 | Idem, cerrado — **Variable de Control** |
 | `institution_type` | enum | `universidad` \| `instituto` |
@@ -64,6 +65,11 @@ Autenticación, perfil, consentimiento del participante e instrumentos de medici
 | `participant_code` | string único | **Código seudonimizado del estudio** |
 
 El campo `career` alimenta directamente el estilo visual del avatar. La razón de que sea cerrado está documentada: en la encuesta 2 (Microsoft Forms, $n=31$) hubo 25 variantes de texto para 11 carreras reales, lo que hizo imposible agrupar. Ese error no se repite.
+
+**Autenticación y Perfil:**
+- Soporte para inicio de sesión clásico (correo / contraseña) y **Google OAuth 2.0**.
+- Cuando el usuario se autentica mediante Google, el formulario de cambio de contraseña se oculta automáticamente en `/profile`, reemplazándose por un panel informativo de seguridad.
+- Al completar el diagnóstico inicial EPA (`/epa`), se otorgan **+50 XP** con retroalimentación celebratoria (notificación flotante toast, animación de confeti a 60 FPS y timbre armónico Web Audio API).
 
 **Instrumentos Psicométricos y de Usabilidad Incorporados:**
 1. **Escala EPA (8 ítems seleccionados para Pretest / Postest - Variable Dependiente):**
@@ -97,7 +103,7 @@ No hay preferencia de idioma: toda la interfaz es en español, no existe selecto
 
 ## 2. Habits
 
-Hábitos diarios del estudiante.
+Hábitos diarios del estudiante con retroalimentación audiovisual inmediata al marcar (confeti canvas + chime melódico).
 
 **Entidades:** `Habit`, `HabitCompletion`
 
@@ -473,15 +479,22 @@ ningún módulo podía leer el saldo sin tocar clases internas de Gamification.
 
 ## 7. Villains
 
-Villano semanal temático.
+Villano semanal temático que personifica obstáculos de autorregulación (Procrastinación, Distracción, Ansiedad, Desorden, Cansancio).
 
 **Entidades:** `Villain`, `VillainInstance` (la instancia asignada a un usuario en una semana)
 
-**Reglas:** en `docs/03-GAMIFICACION.md` §6.
+**Vulnerabilidades y Daño:**
+- **Procrastinación:** Débil contra misiones (`mission`) y grupos de estudio (`study_group`).
+- **Distracción:** Débil contra pomodoros (`pomodoro`).
+- **Ansiedad:** Débil contra hábitos (`habit`) y diario de bienestar (`journal`). Al registrar una entrada en el diario (`JournalEntryCreated`), se aplica daño automáticamente (-10 HP).
+- **Desorden:** Débil contra hábitos (`habit`) y misiones (`mission`).
+- **Cansancio:** Débil contra pomodoros (`pomodoro`) y hábitos (`habit`).
 
 **Casos de uso:** `AssignWeeklyVillain`, `ApplyDamage`, `CheckDefeat`, `ExpireVillain`, `GetCurrentVillain`
 
-**Eventos:** `VillainAssigned`, `VillainWeakened`, `VillainDefeated`, `VillainSurvived`
+**Eventos escuchados:** `HabitCompleted`, `PomodoroCompleted`, `MissionCompleted`, `ParticipantJoined`, `GroupMessageSent`, `StudySessionCreated`, `JournalEntryCreated`.
+
+**Eventos emitidos:** `VillainAssigned`, `VillainWeakened`, `VillainDefeated`, `VillainSurvived`
 
 **Cron:** lunes 00:00 hora de Lima asigna el villano de la semana; domingo 23:59 expira el anterior.
 
@@ -565,7 +578,7 @@ Asistente conversacional con la API de DeepSeek.
 
 > **Guardrails obligatorios.** El asistente toca temas de salud mental de estudiantes. El prompt de sistema debe:
 > - Prohibir explícitamente dar consejo clínico, diagnóstico o recomendación farmacológica
-> - Ante señales de crisis (ideación suicida, autolesión, angustia severa), responder con un mensaje de contenció*.
+> - Ante señales de crisis (ideación suicida, autolesión, angustia severa), responder con un mensaje de contención.
 > - No prometer resultados académicos
 > - Responder siempre en español peruano neutro
 >
@@ -615,7 +628,7 @@ Temas visuales y fondos de pantalla.
 
 **Reglas:**
 - Los fondos son un catálogo cerrado que provee el equipo. El usuario elige, no sube archivos propios
-- Algunos fondos se desbloquean al derrotar villanos
+- Algunos fondos se desbloquean con monedas (`coins`) o al derrotar villanos
 - El tema se aplica sin recargar la página
 
 **Casos de uso:** `UpdateTheme`, `SelectWallpaper`, `UpdatePomodoroSettings`, `GetAvailableWallpapers`
@@ -655,199 +668,74 @@ Logros e insignias desbloqueables.
 
 **Eventos emitidos:** `AchievementUnlocked`
 
-**Cómo se evalúa:** `Achievements` escucha los eventos de dominio de los demás módulos (`HabitCompleted`, `PomodoroCompleted`, `StreakExtended`, `VillainDefeated`, etc.) y tras cada uno evalúa si alguna condición se cumplió. La evaluación es idempotente: si el logro ya estaba desbloqueado, no hace nada.
-
-**Rendimiento:** la evaluación se hace en cola, no en la petición del usuario. Con 1 núcleo de CPU, evaluar 30 condiciones en cada acción bloquearía la respuesta.
-
 ---
 
 ## 14. Motivation — Frases y consejos de uso
 
-Dos tipos de contenido curado, con el mismo mecanismo de rotación por debajo. **No otorga XP, no tiene reglas de negocio complejas: es contenido, no gamificación.**
+Dos tipos de contenido curado: citas célebres de científicos y pensadores, y sugerencias accionables de uso.
 
 **Entidades:** `MotivationalQuote`, `UsageTip`, `UserQuoteView`, `UserTipView`
 
-### 14.1 Frase motivacional
+### 14.1 Frases motivacionales
 
-Una frase al **iniciar sesión**, mostrada en el Dashboard. No en cada visita al dashboard dentro de la misma sesión, solo al entrar de nuevo.
-
-**Catálogo inicial: 10 frases**, extensible sin límite. Cada una con su nivel de respaldo declarado, porque muchas frases célebres circulan mal atribuidas y no vale la pena arriesgar credibilidad por una cita falsa:
-
-| # | Frase | Autor | Respaldo |
-|---|---|---|---|
-| 1 | "Aunque no seamos personas muy brillantes, con perseverancia y dedicación conseguiremos todo lo que nos propongamos." | Santiago Ramón y Cajal | Documentada (escritos propios) |
-| 2 | "Todo ser humano, si se lo propone, puede ser escultor de su propio cerebro." | Santiago Ramón y Cajal | Documentada (escritos propios) |
-| 3 | "Saber más es ser más libre." | César Vallejo | Documentada |
-| 4 | "Enseñar exige respeto a los saberes de los educandos." | Paulo Freire | Documentada (Pedagogía de la autonomía) |
-| 5 | "La educación es el arma más poderosa que puedes usar para cambiar el mundo." | Nelson Mandela | Documentada (discurso 2003) |
-| 6 | "En la vida, nada es para temer, todo es para ser comprendido." | Marie Curie | Documentada |
-| 7 | "Nunca consideres el estudio como una obligación, sino como una oportunidad para penetrar en el bello mundo del saber." | Albert Einstein | Atribuida, sin fuente primaria confirmada |
-| 8 | "No fracase, solo descubrí formas que no funcionan." | Thomas Edison | Atribuida, popularizada tras su muerte |
-| 9 | "El que tiene un porqué para vivir puede soportar casi cualquier cómo." | Viktor Frankl | Documentada (El hombre en busca de sentido) |
-| 10 | "No hay camino para el aprendizaje, el aprendizaje es el camino." | Proverbio, tradición oriental | Atribuida, sin autor único verificable |
-
-**Nota de honestidad:** solo 6 de las 10 tienen fuente primaria confirmada. Las otras 4 se marcan como "atribuida" en el catálogo y se muestran igual, porque son frases que el público reconoce y transmiten la idea correcta, pero el sistema **no las presenta como cita textual verificada**. Al ampliar el catálogo, seguir el mismo criterio: verificar antes de agregar, y marcar honestamente cuando no se pueda confirmar.
-
-**Recomendación para ampliar:** priorizar más figuras peruanas y latinoamericanas de la educación (por ahora solo Vallejo representa esa voz). Jorge Basadre, Gabriela Mistral y Ricardo Palma son candidatos naturales, pendientes de verificar cita exacta antes de sumarlos.
-
-### 14.2 Consejos de uso por módulo
-
-Un consejo práctico, breve, mostrado como tarjeta descartable dentro de cada módulo. No es motivación genérica: es una sugerencia concreta de cómo sacarle mejor provecho a esa función.
-
-| Módulo | Consejo |
-|---|---|
-| Hábitos | Empieza con 2 o 3 hábitos. Diez hábitos abandonados a la semana desmotivan más que tres sostenidos todo el mes. |
-| Hábitos | Si un hábito lleva varios días sin marcarse, quizás es momento de ajustarlo, no de forzarlo. |
-| Pomodoro | Si te cuesta concentrarte al inicio, prueba sesiones de 15 minutos antes de saltar a 25. |
-| Pomodoro | Vincula el Pomodoro a una misión concreta: enfocarte en algo específico rinde más que "estudiar en general". |
-| Misiones | Si una tarea te parece enorme, divide en subtareas de 20 a 30 minutos cada una. |
-| Misiones | Registra la fecha límite real, no una fecha optimista. El sistema mide mejor con datos honestos. |
-| Diario de ánimo | No hace falta escribir mucho. Registrar solo el emoji ya sirve para ver tu patrón en el mes. |
-| Diario de ánimo | Si notas varios días seguidos con ánimo bajo, revisa la sección de apoyo en Ajustes. |
-| Avatar | Cada fase representa un paso real en tu constancia, no en tu suerte. Se gana con XP acumulado, sin atajos. |
-| Villano semanal | Fíjate en qué villano te tocó: suele coincidir con tu obstáculo más frecuente. Atácalo con esa información. |
-| Asistente IA | Cuéntale contexto específico ("tengo examen el viernes de Cálculo") en vez de preguntas generales: la respuesta será más útil. |
-| Sesiones grupales | Estudiar acompañado ayuda a sostener el enfoque, pero elige compañeros con una meta similar a la tuya. |
-| Ranking | El ranking es solo un dato más. Tu propio progreso frente a ti mismo importa más que tu posición. |
-
-**Catálogo inicial: entre 1 y 2 consejos por módulo**, extensible. Se pueden agregar más sin límite, siguiendo el mismo tono: específico, breve, accionable — nunca genérico tipo "tú puedes lograrlo".
-
-### Mecanismo de rotación (compartido entre frases y consejos)
-
-Ambos usan el mismo servicio de dominio, para no duplicar lógica:
-
-```php
-// Shared/Domain/Services/NoRepeatPicker.php
-final class NoRepeatPicker
-{
-    /**
-     * Elige un elemento al azar de $pool que NO esté en $alreadyShown.
-     * Si ya se mostraron todos, reinicia el ciclo y elige de nuevo.
-     */
-    public function pick(array $pool, array $alreadyShown): mixed
-    {
-        $remaining = array_diff($pool, $alreadyShown);
-        if (empty($remaining)) {
-            $remaining = $pool;   // se agotó el ciclo, se reinicia
-        }
-        return $remaining[array_rand($remaining)];
-    }
-}
-```
-
-**Por qué ciclo completo y no aleatorio puro:** con 10 frases, un azar puro puede repetir la misma 3 veces en una semana y tardar meses en mostrar otra. El ciclo garantiza que las 10 se vean antes de que cualquiera se repita — mejor sensación de variedad con el mismo catálogo pequeño.
-
-**Frases:** una elección por login, registrada en `user_quote_views`.
-**Consejos:** una elección por módulo la primera vez que se visita en la sesión, descartable, registrada en `user_tip_views`. Si el usuario descarta un consejo, no vuelve a aparecer ese mismo hasta agotar el ciclo del módulo.
-
-### Excepción a la regla de congelamiento
-
-`docs/07-DEPLOY.md` prohíbe desplegar a producción durante los 66 días, salvo fallo crítico. **El catálogo de frases y consejos es la única excepción explícita:** agregar contenido nuevo aquí no modifica ninguna variable medida del estudio (a diferencia de tocar `config/gamification.php`), así que se puede ampliar durante la intervención sin comprometer la validez. Cualquier adición igual se registra en la bitácora, por transparencia.
-
-**Casos de uso:** `GetQuoteForLogin`, `GetTipForModule`, `DismissTip`, `ListQuotes` (admin), `ListTips` (admin)
-
-**Eventos:** `QuoteShown`, `TipShown`, `TipDismissed` — los tres se registran en Telemetry para saber que contenido efectivamente circula.
-
-**No emite eventos de dominio hacia otros módulos.** Es contenido de presentación, no lógica de negocio.
+Una frase al iniciar sesión mostrada en el Dashboard, rotada sin repetición inmediata mediante `NoRepeatPicker`. Incluye citas de científicos e investigadores destacados:
+- Albert Einstein
+- Marie Curie
+- Richard Feynman
+- Nikola Tesla
+- Carl Sagan
+- Ada Lovelace
+- Louis Pasteur
+- Isaac Newton
+- Stephen Hawking
+- Santiago Ramón y Cajal
+- César Vallejo
+- Paulo Freire
+- Nelson Mandela
+- Viktor Frankl
 
 ---
 
-## 15. Calendar — Calendario peruano
+## 15. Calendar — Calendario y Gestión de Cursos
 
-Servicio de calendario compartido con interfaz propia (`/calendar`). Provee datos a Wellbeing, Missions y Dashboard mediante `CalendarReaderInterface`, y además muestra una vista unificada con feriados, semanas de examen y misiones por fecha de vencimiento.
+Servicio integral de agenda académica e institucional (`/calendar`).
 
-**Entidades:** `Holiday`, `AcademicPeriod`
+**Entidades:** `Course`, `CourseSession`, `CourseNote`, `NoteImage`, `Holiday`
 
-### Por qué existe como módulo
+### Gestión de Cursos y Sesiones
+- **Cursos:** `name`, `color` (`primary`, `accent`, `success`, `warning`, `secondary`), `starts_at` (fecha de inicio del curso, opcional) y `ends_at` (fecha de fin de ciclo/curso, opcional).
+- **Sesiones:** Multi-horario por curso (`day_of_week` 1–7, `start_time`, `end_time`, `classroom`).
+- **Filtrado temporal en cuadrícula:** Las clases se renderizan únicamente en los días del mes que se encuentren dentro del rango `[starts_at, ends_at]` del curso.
+- **Apuntes Integrados y Carga de Imágenes:** Cada curso posee un bloc de notas enriquecido (`course_notes`) con capacidad de subir capturas e imágenes de pizarras / diapositivas (`note_images`).
 
-Tres módulos necesitan saber qué día es y qué significa ese día: el diario de ánimo lo pinta en su calendario, las misiones calculan vencimientos, y el análisis necesita distinguir un día lectivo de un feriado. Si cada uno resolviera esto por su cuenta, habría tres implementaciones distintas de la misma lógica.
-
-### Feriados nacionales del Perú
-
-Son 16 al año. Se cargan por seeder desde `config/holidays.php`.
-
-| Fecha | Feriado | Tipo |
-|---|---|---|
-| 1 enero | Año Nuevo | Fijo |
-| Jueves Santo | Semana Santa | **Móvil** |
-| Viernes Santo | Semana Santa | **Móvil** |
-| 1 mayo | Día del Trabajo | Fijo |
-| 7 junio | Batalla de Arica y Día de la Bandera | Fijo |
-| 29 junio | San Pedro y San Pablo | Fijo |
-| 23 julio | Día de la Fuerza Aérea | Fijo |
-| 28 julio | Fiestas Patrias | Fijo |
-| 29 julio | Fiestas Patrias | Fijo |
-| 6 agosto | Batalla de Junín | Fijo |
-| 30 agosto | Santa Rosa de Lima | Fijo |
-| 8 octubre | Combate de Angamos | Fijo |
-| 1 noviembre | Todos los Santos | Fijo |
-| 8 diciembre | Inmaculada Concepción | Fijo |
-| 9 diciembre | Batalla de Ayacucho | Fijo |
-| 25 diciembre | Navidad | Fijo |
-
-**Para 2026:** Jueves Santo cae el **2 de abril** y Viernes Santo el **3 de abril** (Domingo de Resurrección: 5 de abril).
-
-> **Verificar antes de cargar los datos.** La lista de feriados por ley es estable, pero el Ejecutivo publica cada año **días no laborables adicionales** por decreto supremo, que no son lo mismo que un feriado. Confirmar en gob.pe/feriados antes de sembrar la tabla, y anotar la fecha de consulta.
-
-### Distinción importante
-
-| Concepto | Definición | En el sistema |
-|---|---|---|
-| **Feriado** | Establecido por ley. Obliga a descanso en sector público y privado | `type = 'holiday'` |
-| **Día no laborable** | Medida excepcional del Ejecutivo, suele aplicar solo al sector público | `type = 'non_working'` |
-
-Se guardan ambos pero se distinguen, porque para un estudiante de universidad privada un día no laborable del sector público probablemente sí sea día de clases.
-
-### Feriados dentro de la intervención
-
-Del 07/09 al 11/11/2026 caen dos:
-
-| Fecha | Feriado | Día de intervención |
-|---|---|---|
-| 8 octubre | Combate de Angamos | Día 32 |
-| 1 noviembre | Todos los Santos | Día 56 |
-
-**Esto importa para el análisis.** Es esperable que la adherencia caiga esos días, y hay que poder distinguir una caída por feriado de una caída por desmotivación. El campo `is_holiday` viaja en los agregados diarios de telemetría justamente para eso.
-
-### Período académico
-
-```php
-// config/academic.php
-return [
-    'current_cycle' => [
-        'name'       => '2026-2',
-        'starts_on'  => '2026-08-17',
-        'ends_on'    => '2026-12-14',
-        'exam_weeks' => [
-            ['from' => '2026-10-05', 'to' => '2026-10-10'],  // parciales
-            ['from' => '2026-12-07', 'to' => '2026-12-14'],  // finales
-        ],
-    ],
-];
-```
-
-Las semanas de exámenes se marcan en el calendario del diario. Igual que con los feriados: una caída de adherencia en semana de parciales tiene una explicación distinta a una caída en semana normal, y el análisis debe poder separarlas.
-
-### Horario de Clases Semanal
-
-El módulo permite gestionar el horario recurrente del estudiante (`class_schedules`):
-- Campos: `course_name` (string), `day_of_week` (1-7), `start_time` (H:i), `end_time` (H:i), `classroom` (opcional), `color` (`primary`, `accent`, `success`, `warning`, `secondary`).
-- Permite la creación y eliminación por usuario autenticado.
-- Se integra visualmente tanto en la pestaña por días del modal de horario como en la vista de cuadrícula mensual del calendario.
+### Feriados Nacionales del Perú
+Catálogo oficial sembrado de 16 feriados por ley (D. Leg. 713 y leyes modificatorias 31530, 31701 y 31822) para los años 2025, 2026, 2027 y 2028:
+- **1 de Enero:** Año Nuevo
+- **Jueves Santo y Viernes Santo:** Semana Santa (fechas móviles)
+- **1 de Mayo:** Día del Trabajo
+- **7 de Junio:** Batalla de Arica y Día de la Bandera
+- **29 de Junio:** San Pedro y San Pablo
+- **23 de Julio:** Día de la Fuerza Aérea del Perú
+- **28 y 29 de Julio:** Fiestas Patrias
+- **6 de Agosto:** Batalla de Junín
+- **30 de Agosto:** Santa Rosa de Lima
+- **8 de Octubre:** Combate de Angamos
+- **1 de Noviembre:** Día de Todos los Santos
+- **8 de Diciembre:** Inmaculada Concepción
+- **9 de Diciembre:** Batalla de Ayacucho
+- **25 de Diciembre:** Navidad
 
 ### Contratos que expone
-
 ```php
 interface CalendarRepositoryInterface
 {
     public function getHolidaysInMonth(int $year, int $month): Collection;
-    public function getSchedulesForUser(int $userId): Collection;
-    public function createSchedule(int $userId, array $data): ClassScheduleModel;
-    public function deleteSchedule(int $userId, int $id): bool;
+    public function getCoursesForUser(int $userId): Collection;
+    public function createCourse(int $userId, array $data): CourseModel;
+    public function updateCourse(int $userId, int $courseId, array $data): CourseModel;
+    public function deleteCourse(int $userId, int $courseId): bool;
 }
-
-interface CalendarReaderInterface
-{
+```
     public function isHoliday(DateTimeImmutable $date): bool;
     public function isNonWorkingDay(DateTimeImmutable $date): bool;
     public function isExamWeek(DateTimeImmutable $date): bool;

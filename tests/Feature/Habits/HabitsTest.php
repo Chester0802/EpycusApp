@@ -189,4 +189,27 @@ final class HabitsTest extends TestCase
         $response->assertRedirect();
         $this->assertEquals('Hábito Privado de User 1', $habit->fresh()->title);
     }
+
+    public function test_user_can_create_habit_with_time_of_day_and_cue_trigger(): void
+    {
+        $user = UserModel::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('habits.store'), [
+            'title' => 'Repaso de 20 min',
+            'category' => 'estudio',
+            'frequency' => ['type' => 'daily'],
+            'icon' => 'book-open',
+            'time_of_day' => 'morning',
+            'cue_trigger' => 'Después de tomar café en la mañana',
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('habits', [
+            'user_id' => $user->id,
+            'title' => 'Repaso de 20 min',
+            'time_of_day' => 'morning',
+            'cue_trigger' => 'Después de tomar café en la mañana',
+        ]);
+    }
 }

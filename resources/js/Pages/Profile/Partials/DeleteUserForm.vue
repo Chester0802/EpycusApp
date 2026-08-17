@@ -2,8 +2,11 @@
 import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
 import BaseModal from '@/Components/ui/BaseModal.vue';
-import { useForm } from '@inertiajs/vue3';
-import { nextTick, ref } from 'vue';
+import { useForm, usePage } from '@inertiajs/vue3';
+import { computed, nextTick, ref } from 'vue';
+
+const page = usePage();
+const isGoogleUser = computed(() => Boolean(page.props.auth?.user?.google_id));
 
 const confirmingUserDeletion = ref(false);
 const passwordInput = ref(null);
@@ -14,14 +17,20 @@ const form = useForm({
 
 const confirmUserDeletion = () => {
     confirmingUserDeletion.value = true;
-    nextTick(() => passwordInput.value?.focus());
+    if (!isGoogleUser.value) {
+        nextTick(() => passwordInput.value?.focus());
+    }
 };
 
 const deleteUser = () => {
     form.delete(route('profile.destroy'), {
         preserveScroll: true,
         onSuccess: () => closeModal(),
-        onError: () => passwordInput.value?.focus(),
+        onError: () => {
+            if (!isGoogleUser.value) {
+                passwordInput.value?.focus();
+            }
+        },
         onFinish: () => form.reset(),
     });
 };
@@ -52,15 +61,18 @@ const closeModal = () => {
 
         <BaseModal
             :show="confirmingUserDeletion"
-            title="¿Eliminar cuenta?"
+            title="¿Eliminar cuenta permanentemente?"
             @close="closeModal"
         >
-            <p class="text-sm text-content-secondary">
+            <p v-if="!isGoogleUser" class="text-sm text-content-secondary">
                 Esta acción es irreversible. Ingresa tu contraseña para confirmar que
                 deseas eliminar tu cuenta permanentemente.
             </p>
+            <p v-else class="text-sm text-content-secondary">
+                Tu cuenta está vinculada con <strong>Google</strong>. Esta acción es <strong>irreversible</strong> y eliminará permanentemente tu perfil, avance de gamificación, hábitos, misiones y estadísticas asociadas.
+            </p>
 
-            <div class="mt-4">
+            <div v-if="!isGoogleUser" class="mt-4">
                 <BaseInput
                     id="delete-password"
                     ref="passwordInput"

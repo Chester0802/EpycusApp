@@ -66,13 +66,28 @@ final class AiContextBuilderService
             ? implode(', ', array_slice(array_unique($allTags), 0, 3))
             : 'Ninguna';
 
+        // 4. Misiones Activas y Distribución en Matriz de Eisenhower
+        $activeMissions = DB::table('missions')
+            ->where('user_id', $userId)
+            ->whereNull('completed_at')
+            ->whereNull('deleted_at')
+            ->get(['title', 'difficulty', 'priority', 'eisenhower_quadrant', 'is_overdue', 'due_date']);
+
+        $totalActiveMissions = $activeMissions->count();
+        $q1CrisisCount = $activeMissions->where('eisenhower_quadrant', 'q1')->count();
+        $q2StrategicCount = $activeMissions->where('eisenhower_quadrant', 'q2')->count();
+        $overdueMissionsCount = $activeMissions->where('is_overdue', true)->count();
+        $urgentMissionTitles = $activeMissions->where('eisenhower_quadrant', 'q1')->pluck('title')->take(2)->implode(', ');
+        $urgentMissionDetails = ! empty($urgentMissionTitles) ? " [Atención inmediata requerida: '{$urgentMissionTitles}']" : '';
+
         return sprintf(
             "Contexto de progreso del participante (Anónimo):\n".
             "- Nivel actual: %d (Fase %d)\n".
             "- Racha activa: %d días\n".
             "- Hábitos completados hoy: %d\n".
             "- Minutos de foco acumulados hoy: %d min (Total 7 días: %d min)\n".
-            '- Promedio de ánimo últimos 7 días: %s / 5 (Etiquetas frecuentes: %s)',
+            "- Promedio de ánimo últimos 7 días: %s / 5 (Etiquetas frecuentes: %s)\n".
+            '- Misiones activas: %d (En Q1/Crisis: %d, En Q2/Estratégico: %d, Vencidas: %d)%s',
             $level,
             $phase,
             $streak,
@@ -80,7 +95,12 @@ final class AiContextBuilderService
             $focusMinutesToday,
             $focusMinutesWeek,
             $avgMood,
-            $topTags
+            $topTags,
+            $totalActiveMissions,
+            $q1CrisisCount,
+            $q2StrategicCount,
+            $overdueMissionsCount,
+            $urgentMissionDetails
         );
     }
 }

@@ -23,7 +23,7 @@ final class SecurityHeaders
 
         $response = $next($request);
 
-        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=(self)');
@@ -47,7 +47,7 @@ final class SecurityHeaders
             "font-src 'self' data:; ".
             "connect-src 'self' https://accounts.google.com https://api.deepseek.com{$viteOrigin}{$viteWs}; ".
             'frame-src https://accounts.google.com https://www.youtube-nocookie.com; '.
-            "frame-ancestors 'self' https://epycus.es https://app.epycus.es;"
+            "frame-ancestors 'none';"
         );
 
         return $response;

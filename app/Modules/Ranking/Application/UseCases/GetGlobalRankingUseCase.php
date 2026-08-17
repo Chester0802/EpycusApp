@@ -17,6 +17,7 @@ final class GetGlobalRankingUseCase
             ->select([
                 'users.id as user_id',
                 'users.name',
+                'users.alias',
                 'users.career',
                 'users.avatar_style',
                 'users.avatar_gender',
@@ -30,9 +31,12 @@ final class GetGlobalRankingUseCase
             ->get();
 
         $sorted = $rows->map(function ($row) {
+            $displayName = ! empty($row->alias) ? $row->alias : $row->name;
+
             return [
                 'user_id' => (int) $row->user_id,
-                'name' => $row->name,
+                'name' => $displayName,
+                'alias' => $displayName,
                 'career' => $row->career,
                 'avatar_style' => $row->avatar_style,
                 'avatar_gender' => $row->avatar_gender,
@@ -56,7 +60,8 @@ final class GetGlobalRankingUseCase
             $ranking[] = [
                 'rank' => $rank,
                 'user_id' => $row['user_id'],
-                'name' => $row['name'],
+                'name' => $row['alias'],
+                'alias' => $row['alias'],
                 'career' => $row['career'],
                 'level' => $row['level'],
                 'phase' => $row['phase'],

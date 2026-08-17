@@ -9,6 +9,7 @@ use App\Shared\Domain\Contracts\UserProgressReaderInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -125,15 +126,104 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
-
         $user = $request->user();
+
+        if (empty($user->google_id)) {
+            $request->validate([
+                'password' => ['required', 'current_password'],
+            ]);
+        }
 
         Auth::logout();
 
-        $user->delete();
+        DB::transaction(function () use ($user) {
+            $userId = $user->id;
+
+            // 1. Telemetría y participantes (restricciones de clave foránea)
+            DB::table('telemetry_events')->where('user_id', $userId)->delete();
+            DB::table('participants')->where('user_id', $userId)->delete();
+
+            // 2. Preferencias y personalización
+            DB::table('user_preferences')->where('user_id', $userId)->delete();
+            DB::table('user_unlocked_wallpapers')->where('user_id', $userId)->delete();
+
+            // 3. Progreso y gamificación
+            DB::table('xp_transactions')->where('user_id', $userId)->delete();
+            DB::table('user_progress')->where('user_id', $userId)->delete();
+
+            // 4. Hábitos y completitud
+            $habitIds = DB::table('habits')->where('user_id', $userId)->pluck('id');
+            if ($habitIds->isNotEmpty()) {
+                DB::table('habit_completions')->whereIn('habit_id', $habitIds)->delete();
+            }
+            DB::table('habit_completions')->where('user_id', $userId)->delete();
+            DB::table('habits')->where('user_id', $userId)->delete();
+
+            // 5. Misiones y subtareas
+            $missionIds = DB::table('missions')->where('user_id', $userId)->pluck('id');
+            if ($missionIds->isNotEmpty()) {
+                DB::table('pomodoro_session_subtask')->whereIn('subtask_id', function ($query) use ($missionIds) {
+                    $query->select('id')->from('subtasks')->whereIn('mission_id', $missionIds);
+                })->delete();
+                DB::table('subtasks')->whereIn('mission_id', $missionIds)->delete();
+            }
+            DB::table('missions')->where('user_id', $userId)->delete();
+
+            // 6. Pomodoro
+            $pomodoroIds = DB::table('pomodoro_sessions')->where('user_id', $userId)->pluck('id');
+            if ($pomodoroIds->isNotEmpty()) {
+                DB::table('pomodoro_session_subtask')->whereIn('pomodoro_session_id', $pomodoroIds)->delete();
+            }
+            DB::table('pomodoro_sessions')->where('user_id', $userId)->delete();
+
+            // 7. Villanos
+            DB::table('villain_instances')->where('user_id', $userId)->delete();
+
+            // 8. Grupos de estudio y chat
+            DB::table('chat_messages')->where('user_id', $userId)->delete();
+            DB::table('session_participants')->where('user_id', $userId)->delete();
+            $hostedSessions = DB::table('study_sessions')->where('host_id', $userId)->pluck('id');
+            if ($hostedSessions->isNotEmpty()) {
+                DB::table('chat_messages')->whereIn('session_id', $hostedSessions)->delete();
+                DB::table('session_participants')->whereIn('session_id', $hostedSessions)->delete();
+                DB::table('study_sessions')->whereIn('id', $hostedSessions)->delete();
+            }
+
+            // 9. Calendario, Cursos, Horarios y Notas
+            DB::table('class_schedules')->where('user_id', $userId)->delete();
+            $courseIds = DB::table('courses')->where('user_id', $userId)->pluck('id');
+            if ($courseIds->isNotEmpty()) {
+                $noteIds = DB::table('course_notes')->whereIn('course_id', $courseIds)->pluck('id');
+                if ($noteIds->isNotEmpty()) {
+                    DB::table('note_images')->whereIn('course_note_id', $noteIds)->delete();
+                }
+                DB::table('course_notes')->whereIn('course_id', $courseIds)->delete();
+                DB::table('course_sessions')->whereIn('course_id', $courseIds)->delete();
+                DB::table('courses')->where('user_id', $userId)->delete();
+            }
+
+            // 10. Diario y bienestar
+            DB::table('journal_entries')->where('user_id', $userId)->delete();
+
+            // 11. Asistente IA
+            $conversationIds = DB::table('ai_conversations')->where('user_id', $userId)->pluck('id');
+            if ($conversationIds->isNotEmpty()) {
+                DB::table('ai_messages')->whereIn('conversation_id', $conversationIds)->delete();
+            }
+            DB::table('ai_conversations')->where('user_id', $userId)->delete();
+            DB::table('ai_quotas')->where('user_id', $userId)->delete();
+
+            // 12. EPA
+            DB::table('epa_responses')->where('user_id', $userId)->delete();
+
+            // 13. Logros y motivación
+            DB::table('user_achievements')->where('user_id', $userId)->delete();
+            DB::table('user_tip_views')->where('user_id', $userId)->delete();
+            DB::table('user_quote_views')->where('user_id', $userId)->delete();
+
+            // 14. Finalmente eliminar el registro en users
+            DB::table('users')->where('id', $userId)->delete();
+        });
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

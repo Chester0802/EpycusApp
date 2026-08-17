@@ -12,14 +12,24 @@ final class VillainCode
         'anxiety',
         'disorder',
         'fatigue',
+        'impostor_syndrome',
+        'perfectionism',
+        'isolation',
+        'burnout',
+        'all_nighter',
     ];
 
     private const IMAGE_MAP = [
-        'procrastination' => 'Villano_postergación.png',
-        'distraction' => 'Villano_distracción.png',
-        'anxiety' => 'Villano_ansiedad.png',
-        'disorder' => 'Villano_desorden.png',
-        'fatigue' => 'Villano_cansancio.png',
+        'procrastination' => 'villano-postergacion.png',
+        'distraction' => 'villano-distraccion.png',
+        'anxiety' => 'villano-ansiedad.png',
+        'disorder' => 'villano-desorden.png',
+        'fatigue' => 'villano-cansancio.png',
+        'impostor_syndrome' => 'villano-sindromeImpostor.png',
+        'perfectionism' => 'villano-perfeccionismoParalizante.png',
+        'isolation' => 'villano-aislamientoAcademico.png',
+        'burnout' => 'villano-sobrecarga.png',
+        'all_nighter' => 'villano-ilusionUltimaNoche.png',
     ];
 
     private const WEAKNESS_MAP = [
@@ -28,6 +38,11 @@ final class VillainCode
         'anxiety' => ['habit', 'journal', 'study_group'],
         'disorder' => ['mission', 'study_group'],
         'fatigue' => ['habit'],
+        'impostor_syndrome' => ['journal', 'mission'],
+        'perfectionism' => ['pomodoro', 'mission'],
+        'isolation' => ['study_group', 'ai_assistant'],
+        'burnout' => ['habit', 'pomodoro'],
+        'all_nighter' => ['mission', 'habit'],
     ];
 
     private function __construct(

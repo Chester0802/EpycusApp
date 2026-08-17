@@ -102,4 +102,36 @@ final class AiAssistantTest extends TestCase
             'success' => false,
         ]);
     }
+
+    public function test_ai_context_builder_includes_active_missions_and_eisenhower_quadrants(): void
+    {
+        $user = UserModel::factory()->create();
+
+        // Create Q1 mission
+        \App\Modules\Missions\Infrastructure\Models\MissionModel::create([
+            'user_id' => $user->id,
+            'title' => 'Entrega de Proyecto Final',
+            'difficulty' => 'hard',
+            'priority' => 'alta',
+            'eisenhower_quadrant' => 'q1',
+        ]);
+
+        // Create Q2 mission
+        \App\Modules\Missions\Infrastructure\Models\MissionModel::create([
+            'user_id' => $user->id,
+            'title' => 'Lectura de Tesis',
+            'difficulty' => 'medium',
+            'priority' => 'normal',
+            'eisenhower_quadrant' => 'q2',
+        ]);
+
+        $contextBuilder = app(\App\Modules\AiAssistant\Application\Services\AiContextBuilderService::class);
+        $context = $contextBuilder->buildContext($user->id);
+
+        $this->assertStringContainsString('Misiones activas: 2', $context);
+        $this->assertStringContainsString('En Q1/Crisis: 1', $context);
+        $this->assertStringContainsString('En Q2/Estratégico: 1', $context);
+        $this->assertStringContainsString('Entrega de Proyecto Final', $context);
+    }
 }
+

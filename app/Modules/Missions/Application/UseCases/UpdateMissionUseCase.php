@@ -21,12 +21,18 @@ final class UpdateMissionUseCase
             return;
         }
 
-        $this->repository->update($mission, [
+        $data = [
             'title' => $dto->title,
             'description' => $dto->description,
             'difficulty' => $dto->difficulty,
             'priority' => $dto->priority,
             'due_date' => $dto->dueDate,
-        ]);
+        ];
+
+        if ($dto->eisenhowerQuadrant !== null) {
+            $data['eisenhower_quadrant'] = $dto->eisenhowerQuadrant;
+        }
+
+        $this->repository->update($mission, $data);
     }
 }

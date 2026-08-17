@@ -51,6 +51,15 @@ const submit = () => {
             <p class="text-sm font-medium text-content-secondary">Comienza tu progreso</p>
         </template>
 
+        <template #heroImage>
+            <img
+                src="/assets/images/login-hero.webp"
+                alt="Epycus Hero"
+                class="h-64 w-full object-cover object-top lg:h-auto lg:max-h-[640px] rounded-3xl"
+                onerror="this.style.display = 'none'"
+            />
+        </template>
+
         <!-- Alertas flash de error y advertencia -->
         <div
             v-if="$page.props.flash?.error"

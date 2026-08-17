@@ -28,16 +28,22 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Agrega el header Vary: X-Inertia en todas las respuestas.
-     * Esto instruye a los navegadores y proxies a tratar las respuestas
-     * XHR de Inertia (JSON) y las respuestas HTML completas como entradas
-     * de caché distintas, evitando que se sirva JSON en lugar de HTML
-     * cuando el bfcache se evita o expira.
+     * Agrega headers para evitar que los navegadores móviles guarden en caché
+     * las respuestas JSON de Inertia y las muestren como texto plano al restaurar
+     * pestañas en segundo plano.
      */
     public function handle(Request $request, \Closure $next): \Symfony\Component\HttpFoundation\Response
     {
         $response = parent::handle($request, $next);
         $response->headers->set('Vary', 'X-Inertia');
+
+        // Si es una solicitud interna de Inertia (XHR JSON), prohibir el almacenamiento en caché
+        if ($request->header('X-Inertia')) {
+            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
+        }
+
         return $response;
     }
 

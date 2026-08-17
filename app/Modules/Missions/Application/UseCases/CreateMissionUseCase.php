@@ -25,6 +25,7 @@ final class CreateMissionUseCase
             'description' => $dto->description,
             'difficulty' => $dto->difficulty,
             'priority' => $dto->priority,
+            'eisenhower_quadrant' => $dto->eisenhowerQuadrant ?? 'q2',
             'due_date' => $dto->dueDate,
         ]);
 

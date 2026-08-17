@@ -480,19 +480,24 @@ onBeforeUnmount(() => stopCamera());
 
                         <!-- Header -->
                         <div class="note-modal-header">
-                            <div class="note-header-left">
-                                <div class="note-course-dot" :class="`color-dot-${course.color}`"></div>
-                                <div>
-                                    <h2 class="note-course-title">
-                                        <NotebookText :size="17" class="mr-1.5 opacity-60" />
-                                        {{ course.name }}
-                                    </h2>
-                                    <p class="note-course-sessions">
-                                        <span v-for="s in course.sessions" :key="s.id" class="note-session-badge">
-                                            {{ DAY_NAMES[s.day_of_week] }} {{ formatTime12h(s.start_time) }} – {{ formatTime12h(s.end_time) }}
-                                        </span>
-                                    </p>
+                            <div class="note-header-top">
+                                <div class="note-header-left">
+                                    <div class="note-course-dot" :class="`color-dot-${course.color}`"></div>
+                                    <div class="min-w-0 flex-1">
+                                        <h2 class="note-course-title">
+                                            <NotebookText :size="17" class="mr-1.5 shrink-0 opacity-60" />
+                                            <span class="truncate">{{ course.name }}</span>
+                                        </h2>
+                                        <div class="note-course-sessions">
+                                            <span v-for="s in course.sessions" :key="s.id" class="note-session-badge">
+                                                {{ DAY_NAMES[s.day_of_week] }} {{ formatTime12h(s.start_time) }} – {{ formatTime12h(s.end_time) }}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
+                                <button type="button" class="note-close-btn" title="Cerrar" @click="close">
+                                    <X :size="18" />
+                                </button>
                             </div>
                             <div class="note-header-actions">
                                 <button
@@ -501,7 +506,8 @@ onBeforeUnmount(() => stopCamera());
                                     title="Exportar apunte en formato PDF / Imprimir"
                                     @click="exportPdf"
                                 >
-                                    <FileText :size="15" /> Exportar PDF
+                                    <FileText :size="14" />
+                                    <span>PDF</span>
                                 </button>
                                 <button
                                     type="button"
@@ -509,16 +515,14 @@ onBeforeUnmount(() => stopCamera());
                                     title="Descargar apunte en formato JSON para IA"
                                     @click="exportAndDownloadJson"
                                 >
-                                    <FileJson :size="15" /> Exportar JSON
+                                    <FileJson :size="14" />
+                                    <span>JSON</span>
                                 </button>
                                 <button type="button" class="note-btn note-btn-primary" :disabled="saving" @click="saveNote">
-                                    <Loader2 v-if="saving"      :size="15" class="animate-spin" />
-                                    <Check   v-else-if="saveSuccess" :size="15" />
-                                    <Save    v-else               :size="15" />
-                                    {{ saving ? 'Guardando…' : saveSuccess ? 'Guardado' : 'Guardar' }}
-                                </button>
-                                <button type="button" class="note-close-btn" @click="close">
-                                    <X :size="18" />
+                                    <Loader2 v-if="saving"      :size="14" class="animate-spin" />
+                                    <Check   v-else-if="saveSuccess" :size="14" />
+                                    <Save    v-else               :size="14" />
+                                    <span>{{ saving ? 'Guardando…' : saveSuccess ? 'Guardado' : 'Guardar' }}</span>
                                 </button>
                             </div>
                         </div>
@@ -677,41 +681,51 @@ onBeforeUnmount(() => stopCamera());
     box-shadow: -8px 0 40px rgba(0,0,0,0.4);
 }
 .note-modal-header {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    padding: 1.25rem 1.5rem;
+    display: flex; flex-direction: column;
+    padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.08));
-    gap: 1rem; flex-shrink: 0;
+    gap: 0.75rem; flex-shrink: 0;
 }
-.note-header-left  { display: flex; align-items: flex-start; gap: 0.75rem; min-width: 0; }
-.note-header-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
-.note-course-dot   { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 8px; }
+@media (min-width: 640px) {
+    .note-modal-header {
+        flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 1rem;
+        padding: 1.25rem 1.5rem;
+    }
+}
+.note-header-top   { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; width: 100%; min-width: 0; }
+@media (min-width: 640px) {
+    .note-header-top { width: auto; flex: 1; }
+}
+.note-header-left  { display: flex; align-items: flex-start; gap: 0.75rem; min-width: 0; flex: 1; }
+.note-header-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; flex-shrink: 0; justify-content: flex-end; }
+.note-course-dot   { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
 .color-dot-primary   { background: var(--color-primary,   #e879f9); }
 .color-dot-accent    { background: var(--color-accent,    #a855f7); }
 .color-dot-success   { background: var(--color-success,   #22c55e); }
 .color-dot-warning   { background: var(--color-warning,   #f59e0b); }
 .color-dot-secondary { background: var(--color-content-muted, #6b7280); }
 .note-course-title {
-    font-size: 1.1rem; font-weight: 700;
+    font-size: 1.05rem; font-weight: 700;
     color: var(--color-content-primary, #f1f5f9);
     margin: 0; display: flex; align-items: center;
 }
-.note-course-sessions { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-top: 0.375rem; }
+.note-course-sessions { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-top: 0.25rem; }
 .note-session-badge {
-    font-size: 0.7rem; background: rgba(255,255,255,0.06);
+    font-size: 0.68rem; background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
-    padding: 0.1rem 0.5rem; color: var(--color-content-secondary, #94a3b8);
+    padding: 0.1rem 0.45rem; color: var(--color-content-secondary, #94a3b8);
 }
 .note-close-btn {
     display: flex; align-items: center; justify-content: center;
-    width: 36px; height: 36px; border-radius: 8px; border: none;
+    width: 32px; height: 32px; border-radius: 8px; border: none;
     background: transparent; color: var(--color-content-muted, #6b7280);
-    cursor: pointer; transition: background 0.15s, color 0.15s;
+    cursor: pointer; transition: background 0.15s, color 0.15s; flex-shrink: 0;
 }
 .note-close-btn:hover { background: rgba(255,255,255,0.06); color: var(--color-content-primary); }
 .note-btn {
     display: inline-flex; align-items: center; gap: 0.35rem;
-    padding: 0.4rem 0.875rem; border-radius: 8px;
-    font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none;
+    padding: 0.4rem 0.75rem; border-radius: 8px;
+    font-size: 0.78rem; font-weight: 600; cursor: pointer; border: none;
     transition: opacity 0.15s, transform 0.1s;
 }
 .note-btn:disabled { opacity: 0.5; pointer-events: none; }
@@ -734,9 +748,10 @@ onBeforeUnmount(() => stopCamera());
 @keyframes spin { to { transform: rotate(360deg); } }
 .note-toolbar {
     display: flex; align-items: center; gap: 0.25rem;
-    padding: 0.55rem 1.25rem; flex-wrap: wrap; flex-shrink: 0;
+    padding: 0.5rem 1rem; flex-wrap: wrap; flex-shrink: 0;
     border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.08));
     background: var(--color-surface-sunken, rgba(0,0,0,0.2));
+    overflow-x: auto;
 }
 .toolbar-btn {
     display: inline-flex; align-items: center; justify-content: center;
@@ -782,6 +797,36 @@ onBeforeUnmount(() => stopCamera());
 .sidebar-entry-btn:hover  { background: rgba(255,255,255,0.06); }
 .sidebar-entry-btn.active { background: rgba(232,121,249,0.12); color: var(--color-primary, #e879f9); font-weight: 600; }
 .note-editor-area { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; }
+
+@media (max-width: 640px) {
+    .note-body {
+        flex-direction: column;
+    }
+    .note-entries-sidebar {
+        width: 100%;
+        max-height: 60px;
+        flex-direction: row;
+        overflow-x: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.08));
+        padding: 0.35rem 0.75rem;
+        align-items: center;
+    }
+    .sidebar-title {
+        display: none;
+    }
+    .sidebar-entry-btn {
+        width: auto;
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 0.3rem 0.6rem;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+    .note-editor-area {
+        padding: 1rem;
+    }
+}
 .note-empty {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     flex: 1; gap: 0.5rem; color: var(--color-content-muted, #6b7280); text-align: center; padding: 3rem 1rem;

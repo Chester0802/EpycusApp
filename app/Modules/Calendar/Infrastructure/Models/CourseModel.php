@@ -27,7 +27,17 @@ final class CourseModel extends Model
         'user_id',
         'name',
         'color',
+        'starts_at',
+        'ends_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'starts_at' => 'date',
+            'ends_at' => 'date',
+        ];
+    }
 
     public function sessions(): HasMany
     {

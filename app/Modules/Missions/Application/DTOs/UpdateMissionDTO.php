@@ -14,5 +14,6 @@ final readonly class UpdateMissionDTO
         public string $difficulty,
         public string $priority,
         public ?string $dueDate,
+        public ?string $eisenhowerQuadrant = null,
     ) {}
 }

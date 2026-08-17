@@ -107,9 +107,11 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
     public function createCourse(int $userId, array $data): CourseModel
     {
         $course = CourseModel::query()->create([
-            'user_id' => $userId,
-            'name'    => $data['name'],
-            'color'   => $data['color'] ?? 'primary',
+            'user_id'   => $userId,
+            'name'      => $data['name'],
+            'color'     => $data['color'] ?? 'primary',
+            'starts_at' => $data['starts_at'] ?? null,
+            'ends_at'   => $data['ends_at'] ?? null,
         ]);
 
         foreach ($data['sessions'] as $session) {
@@ -133,8 +135,10 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
             ->firstOrFail();
 
         $course->update([
-            'name'  => $data['name'],
-            'color' => $data['color'] ?? 'primary',
+            'name'      => $data['name'],
+            'color'     => $data['color'] ?? 'primary',
+            'starts_at' => $data['starts_at'] ?? null,
+            'ends_at'   => $data['ends_at'] ?? null,
         ]);
 
         $course->sessions()->delete();

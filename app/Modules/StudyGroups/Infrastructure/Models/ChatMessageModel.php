@@ -30,4 +30,9 @@ final class ChatMessageModel extends Model
     protected $casts = [
         'created_at' => 'datetime',
     ];
+
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Identity\Infrastructure\Models\UserModel::class, 'user_id');
+    }
 }

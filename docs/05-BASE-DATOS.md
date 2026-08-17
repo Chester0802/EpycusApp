@@ -468,6 +468,7 @@ erDiagram
     }
     users {
         bigint id PK
+        varchar_255 google_id
         varchar_255 name
         varchar_255 email UK
         timestamp email_verified_at
@@ -480,6 +481,40 @@ erDiagram
         tinyint cycle
         varchar_20 institution_type
         varchar_100 remember_token
+        timestamp created_at
+        timestamp updated_at
+    }
+    courses {
+        bigint id PK
+        bigint user_id FK
+        varchar_100 name
+        varchar_20 color
+        date starts_at
+        date ends_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    course_sessions {
+        bigint id PK
+        bigint course_id FK
+        tinyint day_of_week
+        time start_time
+        time end_time
+        varchar_50 classroom
+        timestamp created_at
+        timestamp updated_at
+    }
+    course_notes {
+        bigint id PK
+        bigint course_id UK, FK
+        longtext content
+        timestamp created_at
+        timestamp updated_at
+    }
+    note_images {
+        bigint id PK
+        bigint note_id FK
+        varchar_255 image_path
         timestamp created_at
         timestamp updated_at
     }

@@ -14,6 +14,8 @@ final readonly class CreateHabitDTO
         public string $title,
         public string $category,
         public array $frequency,
-        public ?string $icon = null
+        public ?string $icon = null,
+        public string $timeOfDay = 'anytime',
+        public ?string $cueTrigger = null,
     ) {}
 }

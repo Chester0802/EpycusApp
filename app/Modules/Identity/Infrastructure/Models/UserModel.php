@@ -30,6 +30,7 @@ final class UserModel extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'google_id',
         'password',
         'alias',
         'role',

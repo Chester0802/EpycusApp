@@ -36,6 +36,7 @@ final class StudyGroupMapper
         return [
             'id' => $message->id,
             'user_id' => $message->user_id,
+            'alias' => $message->user?->alias ?? 'Estudiante',
             'body' => $message->body,
             'created_at' => $message->created_at?->toIso8601String(),
         ];

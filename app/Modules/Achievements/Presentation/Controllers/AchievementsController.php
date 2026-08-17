@@ -28,6 +28,7 @@ final class AchievementsController extends Controller
                 'total' => $data['total_count'],
                 'unlocked' => $data['unlocked_count'],
                 'percent' => $data['progress_percent'],
+                'total_xp_earned' => $data['total_xp_earned'],
             ],
             'achievements' => $data['achievements'],
             'avatarStyle' => $user?->avatar_style ?? 'base',

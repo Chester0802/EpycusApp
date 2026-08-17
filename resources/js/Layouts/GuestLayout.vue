@@ -33,10 +33,13 @@ useTheme();
         <ThemeToggle class="fixed right-4 top-4 z-10" />
 
         <div
-            class="mx-auto flex w-full max-w-5xl flex-col gap-8"
-            :class="{ 'lg:flex-row lg:items-stretch lg:gap-10': $slots.heroImage }"
+            class="mx-auto flex w-full max-w-5xl flex-col gap-8 transition-all"
+            :class="{ 'lg:flex-row lg:items-center lg:gap-12 lg:max-w-6xl': $slots.heroImage }"
         >
-            <div v-if="$slots.heroImage" class="overflow-hidden rounded-2xl lg:w-1/2">
+            <div
+                v-if="$slots.heroImage"
+                class="overflow-hidden rounded-3xl lg:w-1/2 flex items-center justify-center shadow-xl border border-border/40"
+            >
                 <slot name="heroImage" />
             </div>
 

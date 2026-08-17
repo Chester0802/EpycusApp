@@ -15,6 +15,10 @@ class PasswordController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
+        if (! empty($request->user()->google_id)) {
+            return back()->with('error', 'Las cuentas vinculadas a Google gestionan su seguridad y contraseñas a través de Google.');
+        }
+
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', Password::defaults(), 'confirmed'],

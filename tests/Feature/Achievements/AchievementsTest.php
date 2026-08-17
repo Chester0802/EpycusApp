@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Achievements;
 
 use App\Modules\Achievements\Application\UseCases\EvaluateAchievementsUseCase;
+use App\Modules\Achievements\Application\UseCases\GetUserAchievementsUseCase;
 use App\Modules\Identity\Infrastructure\Models\UserModel;
 use Database\Seeders\AchievementsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,10 +55,51 @@ final class AchievementsTest extends TestCase
         $newlyUnlocked = $evaluator->execute($user->id);
 
         $this->assertNotEmpty($newlyUnlocked);
-        $this->assertEquals('pomodoro_10', $newlyUnlocked[0]['code']);
+        $unlockedCodes = array_column($newlyUnlocked, 'code');
+        $this->assertContains('pomodoro_1', $unlockedCodes);
+        $this->assertContains('pomodoro_10', $unlockedCodes);
 
         // Segunda llamada no vuelve a desbloquear (idempotencia)
         $secondRun = $evaluator->execute($user->id);
         $this->assertEmpty($secondRun);
+    }
+
+    public function test_evaluate_eisenhower_q2_and_missions_achievements(): void
+    {
+        $this->seed(AchievementsSeeder::class);
+
+        $user = UserModel::factory()->create();
+
+        // Crear 5 misiones completadas en cuadrante Q2
+        for ($i = 0; $i < 5; $i++) {
+            DB::table('missions')->insert([
+                'user_id' => $user->id,
+                'title' => "Misión Q2 #{$i}",
+                'difficulty' => 'medium',
+                'priority' => 'normal',
+                'eisenhower_quadrant' => 'q2',
+                'due_date' => now()->addDays(2),
+                'completed_at' => now(),
+                'days_early_or_late' => -2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $evaluator = app(EvaluateAchievementsUseCase::class);
+        $newlyUnlocked = $evaluator->execute($user->id);
+
+        $unlockedCodes = array_column($newlyUnlocked, 'code');
+        $this->assertContains('mission_1', $unlockedCodes);
+        $this->assertContains('mission_5', $unlockedCodes);
+        $this->assertContains('eisenhower_q2_5', $unlockedCodes);
+        $this->assertContains('punctual_5', $unlockedCodes);
+
+        // Validar caso de uso GetUserAchievementsUseCase
+        $getUserAchievements = app(GetUserAchievementsUseCase::class);
+        $data = $getUserAchievements->execute($user->id);
+
+        $this->assertGreaterThan(0, $data['unlocked_count']);
+        $this->assertGreaterThan(0, $data['total_xp_earned']);
     }
 }

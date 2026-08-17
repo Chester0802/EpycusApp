@@ -53,7 +53,7 @@ const submit = () => {
             <img
                 src="/assets/images/login-hero.webp"
                 alt="Epycus Hero"
-                class="h-64 w-full object-cover object-top lg:h-full"
+                class="h-64 w-full object-cover object-top lg:h-auto lg:max-h-[640px] rounded-3xl"
                 onerror="this.style.display = 'none'"
             />
         </template>

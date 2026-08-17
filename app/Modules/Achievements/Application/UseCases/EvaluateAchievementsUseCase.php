@@ -7,6 +7,7 @@ namespace App\Modules\Achievements\Application\UseCases;
 use App\Modules\Achievements\Infrastructure\Models\AchievementModel;
 use App\Modules\Achievements\Infrastructure\Models\UserAchievementModel;
 use App\Shared\Domain\Contracts\UserProgressReaderInterface;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -27,13 +28,36 @@ final class EvaluateAchievementsUseCase
             ->pluck('code')
             ->toArray();
 
-        // Recopilar métricas del usuario
+        // 1. Recopilar métricas del usuario
         $streak = $this->progressReader->getCurrentStreakFor($userId);
         $level = $this->progressReader->getLevelFor($userId);
         $phase = $this->progressReader->getPhaseFor($userId);
 
         $pomodoroCount = Schema::hasTable('pomodoro_sessions')
             ? DB::table('pomodoro_sessions')->where('user_id', $userId)->where('status', 'completed')->count()
+            : 0;
+
+        $missionsCount = Schema::hasTable('missions')
+            ? DB::table('missions')->where('user_id', $userId)->whereNotNull('completed_at')->whereNull('deleted_at')->count()
+            : 0;
+
+        $q2MissionsCount = Schema::hasTable('missions')
+            ? DB::table('missions')->where('user_id', $userId)->where('eisenhower_quadrant', 'q2')->whereNotNull('completed_at')->whereNull('deleted_at')->count()
+            : 0;
+
+        $punctualMissionsCount = Schema::hasTable('missions')
+            ? DB::table('missions')->where('user_id', $userId)->whereNotNull('completed_at')->where('days_early_or_late', '<=', 0)->whereNull('deleted_at')->count()
+            : 0;
+
+        $habitsCount = Schema::hasTable('habit_completions')
+            ? DB::table('habit_completions')
+                ->join('habits', 'habits.id', '=', 'habit_completions.habit_id')
+                ->where('habits.user_id', $userId)
+                ->count()
+            : 0;
+
+        $studyGroupsCount = Schema::hasTable('participants')
+            ? DB::table('participants')->where('user_id', $userId)->count()
             : 0;
 
         $defeatedVillainsCount = Schema::hasTable('user_villains')
@@ -44,10 +68,6 @@ final class EvaluateAchievementsUseCase
             ? DB::table('journal_entries')->where('user_id', $userId)->count()
             : 0;
 
-        $punctualMissionsCount = Schema::hasTable('missions')
-            ? DB::table('missions')->where('user_id', $userId)->whereNotNull('completed_at')->whereNull('deleted_at')->count()
-            : 0;
-
         $newlyUnlocked = [];
 
         foreach ($allAchievements as $ach) {
@@ -55,56 +75,62 @@ final class EvaluateAchievementsUseCase
                 continue;
             }
 
-            $isQualified = false;
+            $isQualified = match ($ach->code) {
+                // Constancia
+                'first_streak_3' => ($streak >= 3),
+                'first_streak_7' => ($streak >= 7),
+                'first_streak_14' => ($streak >= 14),
+                'first_streak_30' => ($streak >= 30),
 
-            switch ($ach->code) {
-                case 'first_streak_7':
-                    $isQualified = ($streak >= 7);
-                    break;
-                case 'first_streak_14':
-                    $isQualified = ($streak >= 14);
-                    break;
-                case 'first_streak_30':
-                    $isQualified = ($streak >= 30);
-                    break;
-                case 'pomodoro_10':
-                    $isQualified = ($pomodoroCount >= 10);
-                    break;
-                case 'pomodoro_50':
-                    $isQualified = ($pomodoroCount >= 50);
-                    break;
-                case 'pomodoro_100':
-                    $isQualified = ($pomodoroCount >= 100);
-                    break;
-                case 'avatar_phase_3':
-                    $isQualified = ($phase >= 3);
-                    break;
-                case 'avatar_phase_5':
-                    $isQualified = ($phase >= 5);
-                    break;
-                case 'defeat_villain_1':
-                    $isQualified = ($defeatedVillainsCount >= 1);
-                    break;
-                case 'defeat_villain_5':
-                    $isQualified = ($defeatedVillainsCount >= 5);
-                    break;
-                case 'journal_7':
-                    $isQualified = ($journalCount >= 7);
-                    break;
-                case 'journal_30':
-                    $isQualified = ($journalCount >= 30);
-                    break;
-                case 'punctual_5':
-                    $isQualified = ($punctualMissionsCount >= 5);
-                    break;
-            }
+                // Pomodoro
+                'pomodoro_1' => ($pomodoroCount >= 1),
+                'pomodoro_10' => ($pomodoroCount >= 10),
+                'pomodoro_50' => ($pomodoroCount >= 50),
+                'pomodoro_100' => ($pomodoroCount >= 100),
+
+                // Misiones
+                'mission_1' => ($missionsCount >= 1),
+                'mission_5' => ($missionsCount >= 5),
+                'mission_20' => ($missionsCount >= 20),
+                'eisenhower_q2_5' => ($q2MissionsCount >= 5),
+                'punctual_5' => ($punctualMissionsCount >= 5),
+
+                // Hábitos
+                'habit_1' => ($habitsCount >= 1),
+                'habit_20' => ($habitsCount >= 20),
+                'habit_50' => ($habitsCount >= 50),
+
+                // Estudio Grupal
+                'study_group_1' => ($studyGroupsCount >= 1),
+
+                // Villanos
+                'defeat_villain_1' => ($defeatedVillainsCount >= 1),
+                'defeat_villain_5' => ($defeatedVillainsCount >= 5),
+
+                // Bienestar
+                'journal_1' => ($journalCount >= 1),
+                'journal_7' => ($journalCount >= 7),
+                'journal_30' => ($journalCount >= 30),
+
+                // Progresión
+                'level_5' => ($level >= 5),
+                'level_10' => ($level >= 10),
+                'avatar_phase_3' => ($phase >= 3),
+                'avatar_phase_5' => ($phase >= 5),
+
+                default => false,
+            };
 
             if ($isQualified) {
-                // Registrar logro garantizando unicidad
-                UserAchievementModel::firstOrCreate([
-                    'user_id' => $userId,
-                    'achievement_id' => $ach->id,
-                ]);
+                UserAchievementModel::firstOrCreate(
+                    [
+                        'user_id' => $userId,
+                        'achievement_id' => $ach->id,
+                    ],
+                    [
+                        'unlocked_at' => Carbon::now(),
+                    ]
+                );
 
                 // Otorgar XP al usuario
                 DB::table('user_progress')

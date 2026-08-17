@@ -35,6 +35,8 @@ final class HabitModel extends Model
         'category',
         'frequency',
         'icon',
+        'time_of_day',
+        'cue_trigger',
         'is_active',
     ];
 

@@ -196,4 +196,45 @@ final class MissionsTest extends TestCase
         $response->assertRedirect();
         $this->assertSoftDeleted('missions', ['id' => $mission->id]);
     }
+
+    public function test_user_can_create_mission_with_eisenhower_quadrant(): void
+    {
+        $user = UserModel::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('missions.store'), [
+            'title' => 'Estudiar para examen parcial',
+            'difficulty' => 'hard',
+            'priority' => 'alta',
+            'eisenhower_quadrant' => 'q1',
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('missions', [
+            'user_id' => $user->id,
+            'title' => 'Estudiar para examen parcial',
+            'eisenhower_quadrant' => 'q1',
+        ]);
+    }
+
+    public function test_user_can_change_mission_quadrant(): void
+    {
+        $user = UserModel::factory()->create();
+
+        $this->actingAs($user)->post(route('missions.store'), [
+            'title' => 'Avance de Tesis',
+            'difficulty' => 'medium',
+            'priority' => 'normal',
+            'eisenhower_quadrant' => 'q2',
+        ]);
+
+        $mission = MissionModel::where('user_id', $user->id)->firstOrFail();
+
+        $response = $this->actingAs($user)->post(route('missions.quadrant', ['id' => $mission->id]), [
+            'quadrant' => 'q1',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertEquals('q1', $mission->fresh()->eisenhower_quadrant);
+    }
 }

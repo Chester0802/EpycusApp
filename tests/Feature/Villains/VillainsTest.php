@@ -187,4 +187,46 @@ final class VillainsTest extends TestCase
         $this->assertEquals('wrong_source_type', $result['reason']);
         $this->assertEquals(100, $instance->fresh()->remaining_hp);
     }
+
+    public function test_creating_journal_entry_applies_damage_to_vulnerable_villain(): void
+    {
+        $user = UserModel::factory()->create();
+        $anxietyVillain = VillainModel::where('code', 'anxiety')->firstOrFail();
+
+        $instance = VillainInstanceModel::create([
+            'user_id' => $user->id,
+            'villain_id' => $anxietyVillain->id,
+            'week_number' => 1,
+            'total_hp' => 100,
+            'remaining_hp' => 100,
+            'status' => 'active',
+            'assigned_at' => now()->startOfWeek()->format('Y-m-d H:i:s'),
+            'expires_at' => now()->endOfWeek()->format('Y-m-d H:i:s'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson(route('wellbeing.store'), [
+            'date' => now()->toDateString(),
+            'mood_score' => 4,
+            'energy' => 4,
+            'stress' => 2,
+            'content' => 'Entrada reflexiva para calmar la ansiedad.',
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertEquals(90, $instance->fresh()->remaining_hp);
+    }
+
+    public function test_all_10_villains_are_valid_and_bestiary_is_rendered(): void
+    {
+        $user = UserModel::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('villains.index'));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Villains/Index')
+            ->has('bestiary')
+            ->has('stats')
+        );
+    }
 }

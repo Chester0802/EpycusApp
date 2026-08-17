@@ -16,5 +16,7 @@ final readonly class UpdateHabitDTO
         public string $category,
         public array $frequency,
         public ?string $icon = null,
+        public string $timeOfDay = 'anytime',
+        public ?string $cueTrigger = null,
     ) {}
 }

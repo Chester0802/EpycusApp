@@ -9,6 +9,7 @@ use App\Modules\Identity\Infrastructure\Models\UserModel;
 use App\Modules\Missions\Application\DTOs\CreateMissionDTO;
 use App\Modules\Missions\Application\DTOs\UpdateMissionDTO;
 use App\Modules\Missions\Application\UseCases\AddSubtaskUseCase;
+use App\Modules\Missions\Application\UseCases\ChangeQuadrantUseCase;
 use App\Modules\Missions\Application\UseCases\CompleteMissionUseCase;
 use App\Modules\Missions\Application\UseCases\CreateMissionUseCase;
 use App\Modules\Missions\Application\UseCases\DeleteMissionUseCase;
@@ -47,6 +48,7 @@ final class MissionsController extends Controller
         private UpdateSubtaskUseCase $updateSubtask,
         private AddSubtaskUseCase $addSubtask,
         private ReorderSubtasksUseCase $reorderSubtasks,
+        private ChangeQuadrantUseCase $changeQuadrant,
         private UserProgressReaderInterface $progress,
         private PomodoroRepositoryInterface $pomodoroRepo,
     ) {}
@@ -109,6 +111,7 @@ final class MissionsController extends Controller
             'description' => 'nullable|string',
             'difficulty' => 'required|in:easy,medium,hard',
             'priority' => 'required|in:baja,normal,alta',
+            'eisenhower_quadrant' => 'nullable|in:q1,q2,q3,q4',
             'due_date' => 'nullable|date',
             'subtasks' => 'nullable|array',
             'subtasks.*' => 'string|max:160',
@@ -122,6 +125,7 @@ final class MissionsController extends Controller
             priority: $validated['priority'],
             dueDate: $validated['due_date'] ?? null,
             subtasks: $validated['subtasks'] ?? [],
+            eisenhowerQuadrant: $validated['eisenhower_quadrant'] ?? 'q2',
         );
 
         $this->createMission->execute($dto);
@@ -136,6 +140,7 @@ final class MissionsController extends Controller
             'description' => 'nullable|string',
             'difficulty' => 'required|in:easy,medium,hard',
             'priority' => 'required|in:baja,normal,alta',
+            'eisenhower_quadrant' => 'nullable|in:q1,q2,q3,q4',
             'due_date' => 'nullable|date',
         ]);
 
@@ -147,6 +152,7 @@ final class MissionsController extends Controller
             difficulty: $validated['difficulty'],
             priority: $validated['priority'],
             dueDate: $validated['due_date'] ?? null,
+            eisenhowerQuadrant: $validated['eisenhower_quadrant'] ?? null,
         );
 
         $this->updateMission->execute($dto);
@@ -216,17 +222,41 @@ final class MissionsController extends Controller
             'description' => $m->description,
             'difficulty' => $m->difficulty,
             'priority' => $m->priority,
+            'eisenhower_quadrant' => $m->eisenhower_quadrant ?? 'q2',
             'due_date' => $m->due_date?->toDateString(),
             'is_overdue' => $m->is_overdue,
             'is_completed' => (bool) $m->completed_at,
             'completed_at' => $m->completed_at?->toDateString(),
             'days_early_or_late' => $m->days_early_or_late,
             'xp_awarded' => $m->xp_awarded,
-            'state' => $m->completed_at ? 'completed' : ($m->is_overdue ? 'overdue' : ($allDone ? 'completed' : ($m->subtasks->where('is_completed', true)->count() > 0 ? 'in_progress' : 'pending'))),
+            'state' => $m->completed_at ? 'completed' : ($m->is_overdue ? 'overdue' : ($m->subtasks->where('is_completed', true)->count() > 0 ? 'in_progress' : 'pending')),
             'subtasks' => $subtasks,
             'subtask_count' => $m->subtasks->count(),
             'subtask_done' => $m->subtasks->where('is_completed', true)->count(),
         ];
+    }
+
+    public function changeQuadrant(Request $request, int $id): JsonResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'quadrant' => 'required|in:q1,q2,q3,q4',
+        ]);
+
+        try {
+            $this->changeQuadrant->execute($id, (int) Auth::id(), $validated['quadrant']);
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'quadrant' => $validated['quadrant']]);
+            }
+
+            return back()->with('success', 'Cuadrante actualizado.');
+        } catch (\RuntimeException $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $e->getMessage()], 400);
+            }
+
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function complete(int $id): RedirectResponse

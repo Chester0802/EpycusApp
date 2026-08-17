@@ -1,7 +1,8 @@
-\
 # Epycus — Sistema gamificado con IA para hábitos académicos
 
-> **Si eres una IA y vas a programar en este repositorio: lee este archivo completo antes de escribir una sola línea de código.**
+> **Estado del proyecto (2026-08-17): Todos los modulos implementados, verificados y desplegados. 131 tests, 419 assertions, 0 fallos. PHPStan nivel 6 limpio.**
+>
+> **Si eres una IA y vas a programar en este repositorio: lee este archivo completo antes de escribir una sola linea de codigo.**
 
 ---
 
@@ -158,27 +159,25 @@ Detalles completos en `docs/07-DEPLOY.md`.
 
 ### MVP — debe estar funcionando y validado antes del 07/09/2026
 
-| Módulo | Estado |
-|---|---|
-| Autenticación y perfil | Confirmado |
-| Hábitos | Confirmado |
-| Pomodoro | Confirmado |
-| Misiones (tareas y subtareas) | Confirmado |
-| Avatar personalizable (Open Peeps) + Progresión por marcos, credencial holográfica y rangos por carrera (50 niveles) | Confirmado |
-| **Telemetría** | Confirmado — crítico |
-| Asistente de IA (DeepSeek) | Confirmado |
-| Diario de bienestar | Confirmado |
-| Villanos semanales | Confirmado |
-| Sesiones de estudio grupal + chat | Confirmado (versión básica) |
-| Ranking | Confirmado (básico, **instrumentado como variable de control**) |
-| Fondos de pantalla seleccionables (`Fondo_1`..`Fondo_N`) | Confirmado |
-| Calendario peruano (feriados y período académico) | Confirmado |
-| Frases motivacionales al iniciar sesión (10 iniciales) | Confirmado |
-| Consejos de uso por módulo | Confirmado |
-| Tema claro (Kawaii) + tema oscuro (Solo Leveling) | Confirmado |
-| Modos de superficie: neumorfismo y vidrio | Confirmado |
-| Logros e insignias | Confirmado |
-| Panel de administración + exportación | Confirmado |
+| Módulo | Estado | Detalle |
+|---|---|---|
+| Autenticación, perfil y EPA | ✅ Completado | Google OAuth 2.0 (`google_id`), EPA pretest con +50 XP y celebración |
+| Habitos | ✅ Completado | Frecuencias, categorias, plantillas atomicas, Habit Stacking (`cue_trigger`), filtros por momento del dia, vista semanal 7 dias + heatmap mensual, confeti canvas y chime melodico |
+| Pomodoro | ✅ Completado | Sincronización multi-pestaña, reproductor universal YouTube |
+| Misiones (tareas y subtareas) | ✅ Completado | Tablero Kanban 4 columnas (Lista, En Proceso, En Revision, Terminado), Matriz de Eisenhower (Q1-Q4), subtareas interactivas en post-its, badges dinamicos, reapertura |
+| Avatar personalizable | ✅ Completado | Open Peeps (Pablo Stanley), marcos evolutivos, credencial holográfica |
+| **Telemetría** | ✅ Completado | Buffer por lotes, 0 pérdida de eventos, exportación asíncrona |
+| Asistente de IA (DeepSeek) | ✅ Completado | Guardarraíles éticos, cuotas diarias, procesamiento en cola |
+| Diario de bienestar | ✅ Completado | Cifrado en reposo, daño vinculado a villanos (Ansiedad) |
+| Villanos semanales | ✅ Completado | 10 bosses academicos, Bestiario / Sala de Trofeos, botones de Ataque Directo inter-modulo, Playbook Estrategico cientifico, Battle Log semanal |
+| Sesiones grupales + chat | ✅ Completado | Polling AJAX optimizado 5s, compatible con hosting compartido |
+| Ranking | ✅ Completado | Instrumentado como variable de control (`ranking.viewed`) |
+| Personalización y Fondos | ✅ Completado | Wallpapers dinámicos, tienda cosmética con monedas (`coins`) |
+| Calendario y Cursos | ✅ Completado | Cursos multi-sesión (`starts_at`/`ends_at`), notas, 16 feriados oficiales |
+| Frases y consejos de uso | ✅ Completado | Citas de científicos destacados, consejos prácticos contextuales |
+| Temas y modos de superficie | ✅ Completado | Claro (Kawaii) / Oscuro (Solo Leveling), Neumorfismo y Vidrio |
+| Logros e insignias | ✅ Completado | 13 logros con recompensas de XP y fondos desbloqueables |
+| Panel de administración | ✅ Completado | Métricas en vivo, telemetría, gestión de deserción y 5 exportaciones CSV |
 
 ### Fase 2 — después de la intervención, o si sobra tiempo
 
@@ -229,6 +228,6 @@ php artisan serve    # o usar el vhost de XAMPP
 | **Outfit** | El conjunto de ropa de una fase concreta, en 4 posiciones |
 | **Estilo Funko** | Proporción visual del avatar: cabeza grande, ojos negros redondos, cuerpo pequeño |
 | **Racha** | Días consecutivos cumpliendo el mínimo diario |
-| **Villano** | Obstáculo semanal temático que se debilita al cumplir hábitos |
+| **Villano** | Obstáculo semanal temático (10 bosses académicos) que se debilita al cumplir hábitos, pomodoros, misiones y diario |
 | **Participante** | Usuario que forma parte de la intervención de 66 días |
 | **Telemetría** | Registro de comportamiento real de uso, evidencia del estudio |

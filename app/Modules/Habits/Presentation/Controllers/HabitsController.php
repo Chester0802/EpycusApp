@@ -63,6 +63,8 @@ final class HabitsController extends Controller
                 'category' => $habit->category,
                 'frequency' => $habit->frequency,
                 'icon' => $habit->icon,
+                'time_of_day' => $habit->time_of_day ?? 'anytime',
+                'cue_trigger' => $habit->cue_trigger,
                 'is_completed_today' => $completedToday,
                 'completions_count' => $habit->completions->count(),
                 'streak' => $streak,
@@ -83,6 +85,8 @@ final class HabitsController extends Controller
             'category' => $h->category,
             'frequency' => $h->frequency,
             'icon' => $h->icon,
+            'time_of_day' => $h->time_of_day ?? 'anytime',
+            'cue_trigger' => $h->cue_trigger,
             'created_at' => $h->created_at?->toDateString(),
         ]);
 
@@ -141,6 +145,8 @@ final class HabitsController extends Controller
             'category' => 'required|in:estudio,sueno,ejercicio,alimentacion,otro',
             'frequency' => 'required|array',
             'icon' => 'nullable|string|max:40',
+            'time_of_day' => 'nullable|in:morning,afternoon,night,anytime',
+            'cue_trigger' => 'nullable|string|max:160',
         ]);
 
         $userId = (int) Auth::id();
@@ -150,7 +156,9 @@ final class HabitsController extends Controller
             title: $validated['title'],
             category: $validated['category'],
             frequency: $validated['frequency'],
-            icon: $validated['icon'] ?? null
+            icon: $validated['icon'] ?? null,
+            timeOfDay: $validated['time_of_day'] ?? 'anytime',
+            cueTrigger: $validated['cue_trigger'] ?? null,
         );
 
         $this->createHabit->execute($dto);
@@ -165,6 +173,8 @@ final class HabitsController extends Controller
             'category' => 'required|in:estudio,sueno,ejercicio,alimentacion,otro',
             'frequency' => 'required|array',
             'icon' => 'nullable|string|max:40',
+            'time_of_day' => 'nullable|in:morning,afternoon,night,anytime',
+            'cue_trigger' => 'nullable|string|max:160',
         ]);
 
         $userId = (int) Auth::id();
@@ -176,6 +186,8 @@ final class HabitsController extends Controller
             category: $validated['category'],
             frequency: $validated['frequency'],
             icon: $validated['icon'] ?? null,
+            timeOfDay: $validated['time_of_day'] ?? 'anytime',
+            cueTrigger: $validated['cue_trigger'] ?? null,
         );
 
         try {

@@ -92,28 +92,34 @@ final class GoogleAuthController extends Controller
             $googleData = $userResponse->json();
             $email = $googleData['email'] ?? null;
             $name = $googleData['name'] ?? 'Estudiante Google';
-            \Illuminate\Support\Facades\Log::info('Google Data Received', ['email' => $email, 'name' => $name]);
+            $googleId = (string) ($googleData['sub'] ?? $googleData['id'] ?? '');
+            \Illuminate\Support\Facades\Log::info('Google Data Received', ['email' => $email, 'name' => $name, 'google_id' => $googleId]);
 
             if (! $email) {
                 return redirect()->route('login')->with('error', 'Google no retornó un correo electrónico válido.');
             }
 
-            $user = UserModel::where('email', $email)->first();
+            $user = UserModel::where('email', $email)
+                ->when(! empty($googleId), fn ($q) => $q->orWhere('google_id', $googleId))
+                ->first();
 
             if (! $user) {
-                $user = DB::transaction(function () use ($name, $email) {
-                    // Generar alias inicial único para cumplir restricción NOT NULL en BD
+                $user = DB::transaction(function () use ($name, $email, $googleId) {
+                    // Generar alias inicial único para cumplir restricción NOT NULL y UNIQUE en BD
                     $firstWord = explode(' ', trim($name))[0] ?? 'Estudiante';
                     $baseAlias = Str::slug($firstWord);
                     if (strlen($baseAlias) < 2) {
                         $baseAlias = 'estudiante';
                     }
-                    $alias = $baseAlias.'-'.Str::lower(Str::random(4));
+                    do {
+                        $alias = $baseAlias.'-'.Str::lower(Str::random(4));
+                    } while (UserModel::where('alias', $alias)->exists());
 
                     // Crear usuario seudonimizado para la investigación
                     $user = UserModel::create([
                         'name' => $name,
                         'email' => $email,
+                        'google_id' => $googleId ?: null,
                         'alias' => $alias,
                         'password' => Hash::make(Str::random(24)),
                         'role' => 'student',
@@ -143,6 +149,10 @@ final class GoogleAuthController extends Controller
 
                     return $user;
                 });
+            } else {
+                if (! empty($googleId) && $user->google_id !== $googleId) {
+                    $user->update(['google_id' => $googleId]);
+                }
             }
 
             Auth::login($user, true);

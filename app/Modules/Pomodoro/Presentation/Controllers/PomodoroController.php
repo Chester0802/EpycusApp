@@ -68,6 +68,7 @@ final class PomodoroController extends Controller
                 'title' => $m->title,
                 'difficulty' => $m->difficulty,
                 'priority' => $m->priority,
+                'eisenhower_quadrant' => $m->eisenhower_quadrant ?? 'q2',
                 'due_date' => $m->due_date?->toDateString(),
                 'is_overdue' => $m->is_overdue,
                 'subtask_count' => $m->subtasks->count(),

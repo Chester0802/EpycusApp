@@ -495,44 +495,139 @@ function chooseAnotherGoal() {
  * próxima visita sin un clic nuevo, que es justo lo que se quiere evitar);
  * solo se recuerda qué playlist eligió, para no tener que pegarla de nuevo.
  */
-const DEFAULT_PLAYLIST_ID = 'PLfP6i5T0-DkIMLNRwmJpRBs4PJvxfgwBg'; // "Lofi Music (No Copyright)" — canal BreakingCopyright, verificado por oEmbed el 2026-07-29
+const DEFAULT_EMBED_URL = 'https://www.youtube-nocookie.com/embed/videoseries?list=PLfP6i5T0-DkIMLNRwmJpRBs4PJvxfgwBg'; // "Lofi Music (No Copyright)"
 const musicVisible = ref(false);
-const activePlaylistId = ref(DEFAULT_PLAYLIST_ID);
+const activeEmbedUrl = ref(DEFAULT_EMBED_URL);
 const customPlaylistInput = ref('');
 const musicError = ref('');
 const musicPlaylistStorageKey = computed(
     () => `epycus:pomodoro:music-playlist:${page.props.auth?.user?.id ?? 'anon'}`,
 );
-const playlistEmbedUrl = computed(
-    () => `https://www.youtube-nocookie.com/embed/videoseries?list=${activePlaylistId.value}`,
-);
-const isCustomPlaylist = computed(() => activePlaylistId.value !== DEFAULT_PLAYLIST_ID);
+const playlistEmbedUrl = computed(() => activeEmbedUrl.value);
+const isCustomPlaylist = computed(() => activeEmbedUrl.value !== DEFAULT_EMBED_URL);
 
-function extractPlaylistId(urlOrId) {
-    const trimmed = urlOrId.trim();
+function parseYouTubeUrl(input) {
+    if (!input) return null;
+    const trimmed = input.trim();
     if (!trimmed) return null;
-    const fromUrl = trimmed.match(/[?&]list=([a-zA-Z0-9_-]+)/);
-    if (fromUrl) return fromUrl[1];
-    if (/^[a-zA-Z0-9_-]{10,}$/.test(trimmed)) return trimmed; // ya es un ID de playlist, pegado directo
+
+    // Código <iframe> copiado directamente de YouTube
+    const iframeSrcMatch = trimmed.match(/src=["'](https?:\/\/(?:www\.)?youtube(?:-nocookie)?\.com\/embed\/[^"']+)["']/i);
+    if (iframeSrcMatch) {
+        return iframeSrcMatch[1];
+    }
+
+    // Análisis de URL estándar
+    try {
+        const urlStr = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+        const url = new URL(urlStr);
+        const hostname = url.hostname.toLowerCase().replace(/^www\./, '').replace(/^m\./, '').replace(/^music\./, '');
+
+        if (hostname === 'youtube.com' || hostname === 'youtube-nocookie.com' || hostname === 'youtu.be') {
+            const listId = url.searchParams.get('list');
+
+            // youtu.be/VIDEO_ID
+            if (hostname === 'youtu.be') {
+                const videoId = url.pathname.slice(1).split('/')[0].split('?')[0];
+                if (listId && videoId) {
+                    return `https://www.youtube-nocookie.com/embed/${videoId}?list=${listId}`;
+                }
+                if (videoId) {
+                    return `https://www.youtube-nocookie.com/embed/${videoId}`;
+                }
+                if (listId) {
+                    return `https://www.youtube-nocookie.com/embed/videoseries?list=${listId}`;
+                }
+            }
+
+            // youtube.com/watch?v=VIDEO_ID
+            const videoId = url.searchParams.get('v');
+            if (url.pathname.includes('/watch') && videoId) {
+                if (listId) {
+                    return `https://www.youtube-nocookie.com/embed/${videoId}?list=${listId}`;
+                }
+                return `https://www.youtube-nocookie.com/embed/${videoId}`;
+            }
+
+            // youtube.com/playlist?list=PLAYLIST_ID
+            if (url.pathname.includes('/playlist') && listId) {
+                return `https://www.youtube-nocookie.com/embed/videoseries?list=${listId}`;
+            }
+
+            // youtube.com/embed/VIDEO_ID
+            if (url.pathname.includes('/embed/')) {
+                const pathParts = url.pathname.split('/embed/')[1]?.split('?')[0];
+                if (pathParts) {
+                    if (listId) {
+                        return `https://www.youtube-nocookie.com/embed/${pathParts}?list=${listId}`;
+                    }
+                    return `https://www.youtube-nocookie.com/embed/${pathParts}`;
+                }
+            }
+
+            // youtube.com/shorts/VIDEO_ID
+            if (url.pathname.includes('/shorts/')) {
+                const shortId = url.pathname.split('/shorts/')[1]?.split('?')[0];
+                if (shortId) {
+                    return `https://www.youtube-nocookie.com/embed/${shortId}`;
+                }
+            }
+
+            // Enlace con parámetro list
+            if (listId) {
+                return `https://www.youtube-nocookie.com/embed/videoseries?list=${listId}`;
+            }
+
+            // Enlace con parámetro v
+            if (videoId) {
+                return `https://www.youtube-nocookie.com/embed/${videoId}`;
+            }
+        }
+    } catch {
+        // Formato no URL estándar, intentar regex directa
+    }
+
+    // ID directo de Playlist (PL..., OLAK..., RD..., UU..., etc.)
+    if (/^(PL|OLAK|RD|UU|FL|LL)[a-zA-Z0-9_-]+$/i.test(trimmed)) {
+        return `https://www.youtube-nocookie.com/embed/videoseries?list=${trimmed}`;
+    }
+
+    // ID directo de Video (11 caracteres)
+    if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+        return `https://www.youtube-nocookie.com/embed/${trimmed}`;
+    }
+
+    // Parámetro list suelto
+    const listMatch = trimmed.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+    if (listMatch) {
+        return `https://www.youtube-nocookie.com/embed/videoseries?list=${listMatch[1]}`;
+    }
+
+    // Parámetro v suelto
+    const vMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    if (vMatch) {
+        return `https://www.youtube-nocookie.com/embed/${vMatch[1]}`;
+    }
+
     return null;
 }
 
 function useCustomPlaylist() {
-    const id = extractPlaylistId(customPlaylistInput.value);
-    if (!id) {
+    const embedUrl = parseYouTubeUrl(customPlaylistInput.value);
+    if (!embedUrl) {
         musicError.value =
-            'Pegá el link completo de una playlist de YouTube (o su ID) — no se reconoció el formato.';
+            'Ingresa un enlace válido de YouTube (video individual, Shorts o playlist) o su ID.';
         return;
     }
     musicError.value = '';
-    activePlaylistId.value = id;
-    localStorage.setItem(musicPlaylistStorageKey.value, id);
+    activeEmbedUrl.value = embedUrl;
+    localStorage.setItem(musicPlaylistStorageKey.value, customPlaylistInput.value.trim());
 }
 
 function resetToDefaultPlaylist() {
     musicError.value = '';
     customPlaylistInput.value = '';
-    activePlaylistId.value = DEFAULT_PLAYLIST_ID;
+    activeEmbedUrl.value = DEFAULT_EMBED_URL;
     localStorage.removeItem(musicPlaylistStorageKey.value);
 }
 
@@ -563,14 +658,42 @@ onMounted(() => {
         goalMinutesInput.value = savedGoal;
     }
     const savedPlaylist = localStorage.getItem(musicPlaylistStorageKey.value);
-    if (savedPlaylist) activePlaylistId.value = savedPlaylist;
+    if (savedPlaylist) {
+        const parsed = parseYouTubeUrl(savedPlaylist);
+        if (parsed) {
+            activeEmbedUrl.value = parsed;
+            customPlaylistInput.value = savedPlaylist;
+        }
+    }
 
     if (session.value) {
         syncClock(session.value.server_now);
         recomputeRemaining();
-        startTicker();
+        if (session.value.status === 'running') {
+            startTicker();
+        }
     }
 });
+
+watch(
+    () => props.activeSession,
+    (newVal) => {
+        session.value = newVal;
+        if (newVal) {
+            syncClock(newVal.server_now);
+            recomputeRemaining();
+            if (newVal.status === 'running') {
+                startTicker();
+            } else {
+                stopTicker();
+            }
+        } else {
+            stopTicker();
+            recomputeRemaining();
+        }
+    },
+    { deep: true },
+);
 
 onUnmounted(() => {
     stopTicker();
@@ -787,7 +910,7 @@ onUnmounted(() => {
                                 Música para enfocarte
                             </h2>
                             <p class="text-xs text-content-secondary">
-                                Playlist de YouTube, gratis. Totalmente opcional.
+                                Video o playlist de YouTube. Totalmente opcional.
                             </p>
                         </div>
                         <BaseButton
@@ -804,10 +927,7 @@ onUnmounted(() => {
 
                     <div v-if="musicVisible" class="mt-4">
                         <p class="mb-2 text-xs text-content-muted">
-                            Esto carga un video de YouTube (Google) dentro de la página. Mientras
-                            esté activo, Google recibe tu IP como con cualquier video de YouTube que
-                            mires — es opcional y podés detenerlo cuando quieras con el botón de
-                            arriba.
+                            Esto carga el reproductor de YouTube dentro de la página. Puedes usar cualquier video individual, directo, Shorts o playlist personalizada.
                         </p>
                         <div class="aspect-video w-full overflow-hidden rounded-lg">
                             <iframe
@@ -817,6 +937,7 @@ onUnmounted(() => {
                                 allow="
                                     accelerometer;
                                     autoplay;
+                                    clipboard-write;
                                     encrypted-media;
                                     gyroscope;
                                     picture-in-picture;
@@ -827,24 +948,24 @@ onUnmounted(() => {
                         </div>
 
                         <div class="mt-3 flex flex-wrap items-end gap-2">
-                            <div class="min-w-[220px] flex-1">
+                            <div class="min-w-[240px] flex-1">
                                 <BaseInput
                                     id="custom_playlist"
                                     v-model="customPlaylistInput"
-                                    label="¿Preferís tu propia playlist de YouTube?"
-                                    placeholder="Pegá el link de una playlist de YouTube"
+                                    label="¿Deseas tu propio video o playlist de YouTube?"
+                                    placeholder="Pega el enlace de un video o playlist de YouTube"
                                     :error="musicError"
                                 />
                             </div>
                             <BaseButton variant="ghost" @click="useCustomPlaylist">
-                                Usar esta
+                                Usar este enlace
                             </BaseButton>
                             <BaseButton
                                 v-if="isCustomPlaylist"
                                 variant="ghost"
                                 @click="resetToDefaultPlaylist"
                             >
-                                Volver a la de por defecto
+                                Restaurar por defecto
                             </BaseButton>
                         </div>
                     </div>
@@ -961,6 +1082,21 @@ onUnmounted(() => {
                                                   : 'bg-content-muted'
                                         "
                                     ></span>
+                                    <span
+                                        v-if="m.eisenhower_quadrant"
+                                        class="rounded px-1 py-0.2 text-[10px] font-bold shrink-0"
+                                        :class="
+                                            m.eisenhower_quadrant === 'q1'
+                                                ? 'bg-danger/15 text-danger'
+                                                : m.eisenhower_quadrant === 'q2'
+                                                  ? 'bg-success/15 text-success'
+                                                  : m.eisenhower_quadrant === 'q3'
+                                                    ? 'bg-warning/15 text-warning'
+                                                    : 'bg-surface-raised text-content-muted'
+                                        "
+                                    >
+                                        {{ m.eisenhower_quadrant.toUpperCase() }}
+                                    </span>
                                     <span class="truncate">{{ m.title }}</span>
                                 </span>
                                 <span class="flex shrink-0 items-center gap-2">

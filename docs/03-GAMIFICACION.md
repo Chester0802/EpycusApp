@@ -49,6 +49,7 @@ Posiciones: `frontal`, `lateral-izq`, `lateral-der`, `espalda`.
 
 | Acción | XP | Tope diario | XP máx/día |
 |---|---|---|---|
+| Diagnóstico EPA inicial (Pretest) | 50 | 1 por intervención | 50 |
 | Hábito completado | 10 | 5 hábitos | 50 |
 | Pomodoro completado (≥25 min) | 15 | 8 pomodoros | 120 |
 | Misión completada — fácil | 20 | 3 misiones | 60–120 |

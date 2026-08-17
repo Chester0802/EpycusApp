@@ -58,22 +58,16 @@ final class CalendarController extends Controller
         }
 
         $examDates = [];
-        $current   = clone $start;
-        while ($current <= $end) {
-            $dateImmutable = CarbonImmutable::createFromDate($current->year, $current->month, $current->day);
-            if ($this->calendarReader->isExamWeek($dateImmutable)) {
-                $examDates[$current->toDateString()] = true;
-            }
-            $current->addDay();
-        }
 
         // Cargar cursos con sus sesiones (reemplaza class_schedules)
         $courses = $this->calendar->getCoursesForUser($userId)
             ->map(fn ($c) => [
-                'id'       => $c->id,
-                'name'     => $c->name,
-                'color'    => $c->color,
-                'sessions' => $c->sessions->map(fn ($s) => [
+                'id'        => $c->id,
+                'name'      => $c->name,
+                'color'     => $c->color,
+                'starts_at' => $c->starts_at?->toDateString(),
+                'ends_at'   => $c->ends_at?->toDateString(),
+                'sessions'  => $c->sessions->map(fn ($s) => [
                     'id'          => $s->id,
                     'day_of_week' => $s->day_of_week,
                     'start_time'  => substr((string) $s->start_time, 0, 5),
@@ -104,6 +98,8 @@ final class CalendarController extends Controller
         $validated = $request->validate([
             'name'                       => ['required', 'string', 'max:120'],
             'color'                      => ['nullable', 'string', 'in:primary,accent,success,warning,secondary'],
+            'starts_at'                  => ['nullable', 'date'],
+            'ends_at'                    => ['nullable', 'date', 'after_or_equal:starts_at'],
             'sessions'                   => ['required', 'array', 'min:1', 'max:7'],
             'sessions.*.day_of_week'     => ['required', 'integer', 'between:1,7'],
             'sessions.*.start_time'      => ['required', 'date_format:H:i'],
@@ -123,6 +119,8 @@ final class CalendarController extends Controller
         $validated = $request->validate([
             'name'                       => ['required', 'string', 'max:120'],
             'color'                      => ['nullable', 'string', 'in:primary,accent,success,warning,secondary'],
+            'starts_at'                  => ['nullable', 'date'],
+            'ends_at'                    => ['nullable', 'date', 'after_or_equal:starts_at'],
             'sessions'                   => ['required', 'array', 'min:1', 'max:7'],
             'sessions.*.day_of_week'     => ['required', 'integer', 'between:1,7'],
             'sessions.*.start_time'      => ['required', 'date_format:H:i'],

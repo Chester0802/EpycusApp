@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { useTelemetry } from '@/composables/useTelemetry'
+import { useTelemetry } from '@/Composables/useTelemetry'
 
 const props = defineProps({
     module: { type: String, required: true },
@@ -15,14 +15,14 @@ let showTimestamp = 0
 onMounted(async () => {
     try {
         const response = await axios.get(route('motivation.tip', props.module))
-        if (response.data.success && response.data.data) {
+        if (response?.data?.success && response?.data?.data) {
             tip.value = response.data.data
             isVisible.value = true
             showTimestamp = Date.now()
             track('tip.shown', 'motivation', { tip_id: tip.value.id, context: props.module })
         }
-    } catch (err) {
-        // Silencioso si no hay tip disponible
+    } catch {
+        // Silencioso si no hay tip disponible o conexión inestable
     }
 })
 
@@ -35,8 +35,8 @@ async function dismiss() {
         await axios.post(route('motivation.dismiss-tip'), {
             tip_id: tip.value.id,
         })
-    } catch (err) {
-        console.error('Error al descartar tip:', err)
+    } catch {
+        // Silencioso
     }
 }
 </script>

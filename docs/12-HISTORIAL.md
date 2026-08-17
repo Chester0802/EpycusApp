@@ -1,5 +1,160 @@
-\
 # 12 — Historial de sesiones de IA
+
+## 2026-08-17 — Antigravity [Sincronizacion de Documentacion: Arquitectura, README, Historias de Usuario y Roadmap]
+
+**Que se hizo:**
+
+1. **`docs/00-ARQUITECTURA.md` — Actualizacion completa:**
+   - Modulo Habits: reflejada la expansion con `time_of_day`, `cue_trigger`, plantillas atomicas y vista dual semanal/heatmap.
+   - Modulo Missions: agregado `ChangeQuadrantUseCase`, campo `eisenhower_quadrant` (q1-q4) en tabla `missions`, Tablero Kanban y Matriz de Eisenhower.
+   - Modulo Villains: catalogo actualizado de 5 a 10 bosses academicos con Bestiario, Botones de Ataque Directo, Playbook Estrategico y Battle Log.
+   - Diagrama de clases UML: agregados `timeOfDay`, `cueTrigger` a `Habit` y `eisenhowerQuadrant` a `Mission`.
+   - Esquema de base de datos: actualizadas descripciones de `habits`, `missions` y `villains`.
+   - Tests: actualizado de 122/376 a 131 tests / 419 assertions.
+   - PHP version: corregido a 8.3 en diagramas C4 (contenedores y despliegue).
+
+2. **`README.md` — Actualizacion de estado:**
+   - Agregado banner de estado del proyecto (131 tests, 419 assertions, PHPStan nivel 6 limpio).
+   - Tabla MVP: actualizada descripcion de Habitos (plantillas atomicas, habit stacking), Misiones (Kanban 4 columnas, Eisenhower Q1-Q4) y Villanos (10 bosses, bestiario, ataque directo).
+   - Glosario: actualizada definicion de Villano a 10 bosses con multiples fuentes de dano.
+
+3. **`docs/14-HISTORIAS-USUARIO.md` — Nuevas historias de usuario:**
+   - **HU-HAB-3:** Plantillas atomicas rapidas (1-clic fill).
+   - **HU-HAB-4:** Habit Stacking (`cue_trigger`) y filtros por momento del dia.
+   - **HU-HAB-5:** Vista semanal de 7 dias + heatmap mensual.
+   - **HU-MIS-6:** Tablero Kanban de 4 columnas con post-its interactivos.
+   - **HU-MIS-7:** Matriz de Eisenhower interactiva con `ChangeQuadrantUseCase`.
+   - **HU-VIL-1:** Catalogo expandido de 5 a 10 villanos.
+   - **HU-VIL-3:** Bestiario y Sala de Trofeos con victorias acumuladas.
+   - **HU-VIL-4:** Botones de Ataque Directo inter-modulo con telemetria.
+   - **HU-VIL-5:** Playbook Estrategico Cientifico (3 tecnicas por villano).
+   - **HU-VIL-6:** Battle Log en Vivo semanal.
+   - Tests: actualizado de 122/376 a 131/419.
+
+4. **`docs/13-ROADMAP.md` — Actualizacion de fases:**
+   - Fase 3 (Habits): fecha de expansion 2026-08-17, detalle de plantillas atomicas, habit stacking, vistas.
+   - Fase 7 (Missions): fecha de expansion 2026-08-17, detalle de Kanban, Eisenhower, post-its.
+   - Fase 9 (Villains): fecha de expansion 2026-08-17, detalle de 10 bosses, bestiario, acciones, playbook.
+   - Backlog: actualizado para reflejar que todos los modulos MVP estan implementados y desplegados.
+
+**Archivos modificados:**
+- `docs/00-ARQUITECTURA.md`
+- `README.md`
+- `docs/14-HISTORIAS-USUARIO.md`
+- `docs/13-ROADMAP.md`
+- `docs/12-HISTORIAL.md` (esta entrada)
+
+**Verificado como:** Revision manual de consistencia entre documentos. Ningun cambio de codigo fuente — solo documentacion.
+
+---
+
+## 2026-08-16 — Antigravity [Fix Google OAuth: Persistencia de google_id, Ocultación de Contraseña y Eliminación de Cuenta sin Password]
+
+**Qué se hizo:**
+
+1. **Persistencia de `google_id` en Registro y Login OAuth (`GoogleAuthController.php`):**
+   - Se corrigió la asignación de `google_id` (`sub` / `id` devuelto por el endpoint UserInfo de Google) en la creación de usuario dentro de `UserModel::create()`.
+   - Se añadió la vinculación automática de `google_id` para usuarios existentes que inicien sesión con su cuenta de Google.
+   - Con esto, `$page.props.auth.user.google_id` queda establecido de forma confiable, permitiendo a la vista `/profile` ocultar el formulario de "Cambiar contraseña" y mostrar la tarjeta de seguridad de Google.
+
+2. **Eliminación de Cuenta para Usuarios de Google (`ProfileController.php` & `DeleteUserForm.vue`):**
+   - En `ProfileController::destroy()`, se adaptó la regla de validación de contraseña para que solo sea requerida si el usuario no cuenta con `google_id` (`empty($user->google_id)`).
+   - En `DeleteUserForm.vue`, se adaptó la interfaz mediante `isGoogleUser`: los usuarios con cuenta Google visualizan un mensaje informativo y de advertencia irreversible sin solicitar campo de contraseña, permitiendo la eliminación directa con el botón de confirmación.
+
+3. **Bloqueo de Modificación de Contraseña en Backend (`PasswordController.php`):**
+   - Se añadió una verificación de seguridad que rechaza peticiones directas `PUT /password` para usuarios con `google_id` activo.
+
+4. **Desactivación de Pre-renderizado / Link Preview de Navegador (`AppServiceProvider.php` & `SecurityHeaders.php`):**
+   - Se removió `Vite::prefetch(concurrency: 3)` de `AppServiceProvider.php`, eliminando la inyección de `<script type="speculationrules">` que provocaba que Chromium/Chrome interceptara clics abriendo modales de "Link Preview / Previsualización de página".
+   - Se reforzó `SecurityHeaders.php` con `X-Frame-Options: DENY` y `frame-ancestors 'none'` para bloquear completamente cualquier incrustación en marcos/overlays de previsualización.
+
+5. **Pruebas Automatizadas (`ProfileTest.php`):**
+   - Se crearon pruebas unitarias/feature verificando la eliminación de cuenta sin contraseña para usuarios de Google, el rechazo de cambio de contraseña para cuentas Google y la exigencia estricta de contraseña para cuentas regulares (124/124 tests pasados OK).
+
+6. **Fix Asterisco Doble en Formularios (`BaseInput.vue` & `BaseSelect.vue`):**
+   - Se condicionó el renderizado del `<label>` a `v-if="label"` y se estableció `label: { type: String, default: '' }`. Esto previene que al usar un label personalizado externo con `required={true}`, el componente renderice un segundo `<label>` huérfano que mostraba un asterisco adicional (`*`) en una línea nueva.
+
+7. **Consistencia Visual en Registro (`Register.vue`):**
+   - Se integró el slot `#heroImage` con la ilustración de los dos personajes (`/assets/images/login-hero.webp`) en `Register.vue`, homogenizando el diseño a 2 columnas con `Login.vue`.
+
+8. **Ajuste de Proporciones y Ancho de Imagen Hero (`GuestLayout.vue`, `Register.vue`, `Login.vue`):**
+   - Se amplió el contenedor de dos columnas a `lg:max-w-6xl` (un poco más ancho), se cambió la alineación vertical a `lg:items-center` (evitando estiramiento vertical en formularios largos como Registro) y se delimitó la altura máxima a `max-h-[640px]` con `object-cover object-top` para preservar la relación de aspecto natural de la ilustración.
+
+9. **Eliminación Total y en Cascada de Cuenta (`ProfileController.php`):**
+   - Se implementó una transacción `DB::transaction()` que elimina explícitamente todos los registros asociados al usuario en tablas con restricciones foráneas (`telemetry_events`, `participants`, `user_progress`, `xp_transactions`, `habits`, `habit_completions`, `missions`, `subtasks`, `pomodoro_sessions`, `villain_instances`, `chat_messages`, `study_sessions`, `courses`, `course_notes`, `class_schedules`, `journal_entries`, `ai_conversations`, `epa_responses`, `user_achievements`, `user_preferences`, `user_unlocked_wallpapers`) antes de eliminar el registro en `users`. Esto evita el error 500 por `RESTRICT` de clave foránea y garantiza la eliminación definitiva e irreversible de la cuenta.
+
+10. **Privacidad de Identidad: Apodo (Alias) en Ranking y Grupos de Estudio (`GetGlobalRankingUseCase.php`, `Show.vue`, `StudyGroupMapper.php`):**
+   - **Ranking:** Se seleccionó y mapeó `users.alias` en `GetGlobalRankingUseCase.php` y en `Ranking/Index.vue` para que tanto el podio como la tabla de clasificación muestren siempre el alias público en lugar del nombre real.
+   - **Grupos de estudio:** Se actualizó la carga de mensajes y participantes en `StudyGroups/Show.vue`, `StudyGroupMapper.php` y `EloquentStudySessionRepository.php` para que el chat muestre el alias público de cada participante en lugar de `Usuario #ID` o nombres reales.
+   - **Unicidad de Alias:** Se validó la regla de unicidad en la base de datos (`unique:users,alias`) y en `CompleteProfileRequest.php`, además de asegurar en `GoogleAuthController.php` un bucle de generación único contra colisiones aleatorias.
+
+11. **Matriz de Eisenhower en Misiones y Conexión con Pomodoro (`Missions/Index.vue`, `Pomodoro/Index.vue`, `ChangeQuadrantUseCase.php`, `2026_08_17_000001_add_eisenhower_quadrant_to_missions_table.php`):**
+   - **Base de Datos & Backend:** Se añadió la columna `eisenhower_quadrant` (`enum('q1','q2','q3','q4')`, default `'q2'`) con índice en `missions`, retrocompatibilidad para tareas existentes y el caso de uso `ChangeQuadrantUseCase` con endpoint `POST /missions/{id}/quadrant`.
+   - **Frontend Interactivo (Misiones):** Se diseñó una vista toggleable (`Matriz de Eisenhower` ↔ `Cronograma`) con 4 cuadrantes estilizados temáticamente (Q1: Hacer YA / Crisis [Rojo], Q2: Planificar / Estratégico [Verde Esmeralda destacado como Zona Anti-Procrastinación], Q3: Minimizar / Operativo [Ámbar], Q4: Descartar [Slate]), selectores rápidos en tarjetas, selectores visuales en modales de creación/edición y banner pedagógico colapsable con tips psicológicos de estudio.
+   - **Conexión con Pomodoro:** En el panel lateral de "Misiones activas" de Pomodoro se integraron los badges de cuadrante (`Q1`, `Q2`, `Q3`, `Q4`) para guiar la priorización de estudio profundo durante las sesiones.
+
+12. **Tablero Kanban con 4 Columnas (Post-its), Subtareas Interactivas, Tips Dinámicos y Contexto de IA Edy (`Missions/Index.vue`, `UsageTipBanner.vue`, `AiContextBuilderService.php`, `MotivationSeeder.php`):**
+   - **Tablero Kanban de 4 Columnas (`Lista de Misiones`, `En Proceso`, `En Revisión`, `Terminado`):** Se estructuró el flujo completo con tarjetas tipo Post-it. Las tareas se mueven orgánicamente entre columnas a medida que marcas sus subtareas. Al completar el 100% de los pasos, la misión entra en *En Revisión* con botón directo para finalizar y reclamar XP.
+   - **Gestión Total de Subtareas en Post-its:** Cada nota adhesiva permite marcar/desmarcar pasos en tiempo real, visualizar la barra de progreso porcentual y añadir nuevos pasos con un solo Enter (`+ Añadir paso...`).
+   - **Tips de Uso y Manejo de Conexión:** Se añadieron nuevos consejos pedagógicos sobre la Matriz Q2, el flujo Kanban y la descomposición en subtareas en `MotivationSeeder.php`, optimizando `UsageTipBanner.vue` para garantizar silenciamiento ante microcortes de red.
+   - **Contexto Enriquecido en la IA Edy (`AiContextBuilderService.php`):** El asistente Edy recibe las misiones activas y cuadrantes Q1/Q2 para dar consejos de estudio personalizados.
+   - **Pruebas Automatizadas:** 128/128 tests aprobados (398 aserciones).
+
+14. **Hábitos Científicos, Plantillas Atómicas, Habit Stacking y Vista Semanal (`Habits/Index.vue`, `HabitsController.php`, `2026_08_17_000002_add_time_of_day_and_cue_to_habits_table.php`):**
+   - **Base de Datos & Backend:** Migración `2026_08_17_000002_add_time_of_day_and_cue_to_habits_table.php` ejecutada en Hostinger con soporte para `time_of_day` (`morning`, `afternoon`, `night`, `anytime`) y `cue_trigger` (disparador de hábito ancla) en DTOs, casos de uso y controlador.
+   - **Plantillas Atómicas Rápidas (1-Clic Fill):** En el modal de creación se añadieron plantillas científicas por categoría (repaso activo de 20 min, revisar notas del día, dejar pantallas antes de dormir, agua al despertar, pausa activa, diario de bienestar).
+   - **Habit Stacking & Momento del Día:** Se integraron filtros por momento del día (`⚡ Todos`, `🌅 Mañana`, `☀️ Tarde`, `🌙 Noche`) y badges de disparador ancla (`🔗 Después de...`) en cada tarjeta de hábito.
+   - **Selector de Vista Semanal vs Heatmap Mensual:** Nueva vista de tira semanal interactiva de 7 días (Lu a Do) que permite marcar cualquier día de la semana actual con 1 clic, complementada por el heatmap mensual histórico.
+   - **Conexión Directa con Pomodoro & Coaching Anti-Frustración:** Acceso directo para arrancar el Pomodoro desde hábitos de estudio y banner pedagógico sobre la regla de "Nunca fallar dos veces".
+15. **Expansión a 10 Villanos Semanales, Bestiario Académico, Botones de Ataque Directo y Battle Log (`Villains/Index.vue`, `VillainController.php`, `VillainCode.php`, `2026_08_17_000003_seed_expanded_villains.php`):**
+   - **Catálogo Extendido a 10 Bosses:** Se agregaron 5 nuevos villanos con sus respectivas ilustraciones e integraciones en `VillainCode.php` y base de datos: *El Síndrome del Impostor*, *El Perfeccionismo Paralizante*, *El Aislamiento Académico*, *La Sobrecarga (Burnout)* y *La Ilusión de la Última Noche*.
+   - **Bestiario & Sala de Trofeos:** Nueva pestaña en la vista de Villanos que lista los 10 jefes académicos, indicando el número de victorias acumuladas (`🏆 Vencido X veces`), fecha del último triunfo y siluetas para los aún no enfrentados.
+   - **Botones de Ataque Directo (Action-Oriented):** Accesos directos para infligir -10 HP navegando directamente al módulo correspondiente (`[⏱️ Iniciar Pomodoro]`, `[📋 Resolver Misión]`, `[🌱 Marcar Hábito]`, `[📔 Escribir en Diario]`).
+   - **Playbook Estratégico Científico:** Guía desplegable con 3 técnicas psicológicas probadas para derrotar en la vida real al villano que haya tocado en la semana.
+   - **Battle Log en Vivo:** Feed que muestra el historial cronológico de impactos y daño infligido durante la semana.
+   - **Pruebas Automatizadas:** 131/131 tests aprobados (419 aserciones).
+
+---
+
+## 2026-08-15 — Antigravity [Peruvian Holidays, Universal YouTube Pomodoro, Calendar Multi-Session Courses, EPA Celebration & Production Sync]
+
+**Qué se hizo:**
+
+1. **Módulo de Calendario y Horarios (`Calendar`):**
+   - **Gestión Multi-Sesión de Cursos**: Sustituida la antigua tabla simple `class_schedules` por el modelo relacional `courses` + `course_sessions` + `course_notes` + `note_images`.
+   - **Rango de Fechas por Curso**: Añadidos campos `starts_at` y `ends_at` a la tabla `courses`, permitiendo delimitar la vigencia de cada materia (ej. semestral o bimestral) y renderizar las clases únicamente en los días lectivos correspondientes.
+   - **Eliminación de la insignia `E` (Semana de Exámenes)**: Retirada la evaluación y renderizado de semanas de exámenes genéricas fijas en la cuadrícula mensual y leyenda, respetando la autonomía de los calendarios universitarios.
+   - **Feriados Peruanos Oficiales (2025–2028)**: Creado `HolidaySeeder.php` sembrando todos los 16 feriados oficiales según la legislación peruana (D. Leg. 713 y leyes 31530, 31701 y 31822) para los años 2025 al 2028.
+
+2. **Módulo Pomodoro (`Pomodoro`):**
+   - **Soporte Universal de Enlaces de YouTube**: Reescrito `parseYouTubeUrl` para interpretar de forma universal cualquier enlace: videos individuales (`watch?v=`), directos/en vivo, playlists públicas/no listadas/mixes (`playlist?list=`), YouTube Shorts, YouTube Music y códigos incrustados `<iframe>`.
+   - **Sincronización de Reloj**: Sincronización del temporizador activo entre pestañas y recargas mediante `activeSession` y `localStorage`.
+
+3. **Módulo de Identidad y Perfil (`Identity`):**
+   - **Google OAuth 2.0 y Seguridad**: Añadida columna `google_id` en `users`. En `/profile`, se oculta de forma condicional el formulario de cambio de contraseña para cuentas autenticadas mediante Google, mostrando en su lugar una tarjeta informativa de seguridad.
+   - **Celebración de Diagnóstico EPA**: Al completar el instrumento EPA (`/epa`), se otorgan **+50 XP** con animación de confeti a pantalla completa, chime melódico Web Audio API y notificación flotante (toast).
+
+4. **Módulo de Misiones (`Missions`):**
+   - Incorporado el subtítulo motivacional *"Empieza en pequeño para realizar cosas grandes"*.
+   - Badge dinámico de estado en la cabecera del drawer (`⚡ En Progreso` / `⏳ Pendiente`).
+   - Toggle optimista e instantáneo de subtareas con sincronización asíncrona hacia el backend.
+
+5. **Módulo de Hábitos (`Habits`):**
+   - Activada la retroalimentación audiovisual simultánea (confeti de partículas + timbre armónico Web Audio API) al marcar hábitos diarios.
+
+6. **Módulo de Villanos (`Villains`):**
+   - Vinculado el daño semanal al registrar entradas en el diario de bienestar (`JournalEntryCreated` -> `HandleJournalEntryCreated`), infligiendo -10 HP a villanos vulnerables al diario (Ansiedad).
+
+7. **Módulo de Motivación (`Motivation`):**
+   - Ampliado el catálogo de citas en `MotivationSeeder.php` con frases de científicos reconocidos (Einstein, Curie, Feynman, Tesla, Sagan, Lovelace, Pasteur, Newton, Hawking).
+
+8. **Despliegue a Producción (`app.epycus.es`):**
+   - Migraciones ejecutadas en Hostinger.
+   - Seeders ejecutados (`MotivationSeeder`, `HolidaySeeder`).
+   - Monedas actualizadas para pruebas en producción.
+   - Assets compilados con Vite (`npm run build`) y sincronizados por SSH.
+
+---
 
 ## 2026-08-13 — Antigravity [Panel Admin Completo, Fix Login Admin, Fix CSV Exports, Fix bfcache Móvil]
 
@@ -21,10 +176,10 @@
    - **Primera causa:** Hostinger PHP-FPM con output buffering activo incompatible con `response()->stream()`. Reemplazado por construcción en memoria con `php://temp` y `response()` normal.
    - **Segunda causa:** `chunk()` de Laravel requiere `orderBy()` obligatorio. Error: `"You must specify an orderBy clause when using this function"`. Añadido `orderBy` en las 5 queries del use case.
 
-4. **Fix: JSON crudo de Inertia visible en móvil al retomar el navegador (bfcache)**
-   - **Causa raíz:** El Back-Forward Cache (bfcache) de Chrome/Safari móvil restaura páginas congeladas. Vue ya no está montado, por lo que cualquier navegación Inertia posterior devuelve JSON que se muestra como texto plano.
-   - **Fix 1 — `app.js`:** Añadido listener `window.addEventListener('pageshow', ...)` que detecta `event.persisted === true` y fuerza `window.location.reload()`.
-   - **Fix 2 — `HandleInertiaRequests.php`:** Sobreescrito `handle()` para añadir header `Vary: X-Inertia` en todas las respuestas, instruyendo a navegadores y proxies a tratar las respuestas XHR y HTML como entradas de caché distintas.
+4. **Fix: JSON crudo de Inertia visible en móvil al retomar el navegador (bfcache & Tab Restoring)**
+   - **Causa raíz:** Cuando el usuario sale del navegador móvil durante varios minutos, Android/iOS suspende o descarta la pestaña para ahorrar memoria RAM. Si la última petición fue una navegación XHR de Inertia y no tenía directivas estrictas de `Cache-Control`, Chrome/Safari almacena el JSON en su disk cache para la URL `/dashboard`. Al volver al navegador, este restaura el documento directamente desde el caché de disco sirviendo el JSON crudo en pantalla en lugar de solicitar el HTML.
+   - **Fix 1 — `app.js`:** Añadido listener `window.addEventListener('pageshow', ...)` que detecta `event.persisted === true` (bfcache) y fuerza `window.location.reload()`.
+   - **Fix 2 — `HandleInertiaRequests.php`:** Sobreescrito `handle()` para añadir header `Vary: X-Inertia` y forzar `Cache-Control: no-store, no-cache, must-revalidate, max-age=0` junto con `Pragma: no-cache` y `Expires: 0` en todas las respuestas con cabecera `X-Inertia`. Esto prohíbe taxativamente a los navegadores móviles guardar el JSON en caché de disco para la ruta, obligando a Chrome/Safari a realizar una petición limpia de HTML cuando se restaura la pestaña.
 
 **Archivos modificados:**
 - `app/Http/Controllers/DashboardController.php`

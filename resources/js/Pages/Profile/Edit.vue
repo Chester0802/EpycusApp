@@ -9,6 +9,7 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import AvatarCustomizer from '@/Components/AvatarCustomizer.vue';
 import StudentIdCard from '@/Components/ui/StudentIdCard.vue';
 import { Head } from '@inertiajs/vue3';
+import { ShieldCheck } from '@lucide/vue';
 
 defineProps({
     mustVerifyEmail: {
@@ -126,9 +127,22 @@ defineProps({
                 />
             </BaseCard>
 
-            <!-- Seguridad / Contraseña -->
-            <BaseCard class="p-6">
+            <!-- Seguridad / Contraseña (Solo para usuarios con registro manual, no Google) -->
+            <BaseCard v-if="!$page.props.auth.user?.google_id" class="p-6">
                 <UpdatePasswordForm class="max-w-xl" />
+            </BaseCard>
+            <BaseCard v-else class="p-6">
+                <div class="flex items-center gap-3 text-sm text-content-secondary">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <ShieldCheck :size="20" />
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-content-primary">Seguridad de la Cuenta</h3>
+                        <p class="text-xs text-content-muted mt-0.5">
+                            Tu cuenta utiliza la autenticación de <strong>Google</strong>. Las credenciales y contraseñas son administradas de forma segura directamente por Google.
+                        </p>
+                    </div>
+                </div>
             </BaseCard>
 
             <BaseCard class="p-6">

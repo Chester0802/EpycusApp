@@ -103,7 +103,7 @@ const topThree = computed(() => props.ranking.slice(0, 3));
                         <AppIcon name="medal" :size="22" class="text-slate-400" />
                     </div>
                     <p class="font-bold text-sm text-content-primary truncate">
-                        {{ topThree[1].name }}
+                        {{ topThree[1].alias || topThree[1].name }}
                     </p>
                     <p class="text-xs text-content-muted">Nivel {{ topThree[1].level }}</p>
                     <p class="font-display font-bold text-primary-strong text-base">
@@ -121,7 +121,7 @@ const topThree = computed(() => props.ranking.slice(0, 3));
                         <AppIcon name="trophy" :size="26" class="text-warning" />
                     </div>
                     <p class="font-bold text-base text-content-primary truncate">
-                        {{ topThree[0].name }}
+                        {{ topThree[0].alias || topThree[0].name }}
                     </p>
                     <p class="text-xs text-content-muted">
                         Nivel {{ topThree[0].level }} · Fase {{ topThree[0].phase }}
@@ -139,7 +139,7 @@ const topThree = computed(() => props.ranking.slice(0, 3));
                         <AppIcon name="award" :size="22" class="text-amber-600" />
                     </div>
                     <p class="font-bold text-sm text-content-primary truncate">
-                        {{ topThree[2].name }}
+                        {{ topThree[2].alias || topThree[2].name }}
                     </p>
                     <p class="text-xs text-content-muted">Nivel {{ topThree[2].level }}</p>
                     <p class="font-display font-bold text-primary-strong text-base">
@@ -214,7 +214,7 @@ const topThree = computed(() => props.ranking.slice(0, 3));
                                         </AvatarFrame>
                                         <div>
                                             <div class="flex items-center gap-2">
-                                                <span class="font-bold text-content-primary">{{ user.name }}</span>
+                                                <span class="font-bold text-content-primary">{{ user.alias || user.name }}</span>
                                                 <BaseBadge
                                                     v-if="user.user_id === ownPosition.user_id"
                                                     variant="primary"

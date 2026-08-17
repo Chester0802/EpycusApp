@@ -1,7 +1,7 @@
 <script setup>
 defineProps({
     id: { type: String, required: true },
-    label: { type: String, required: true },
+    label: { type: String, default: '' },
     modelValue: { type: [String, Number], default: '' },
     options: {
         type: Array,
@@ -25,6 +25,7 @@ defineEmits(['update:modelValue']);
 <template>
     <div>
         <label
+            v-if="label"
             :for="id"
             class="mb-1.5 block font-semibold text-content-secondary"
             :class="compact ? 'text-xs' : 'text-sm'"

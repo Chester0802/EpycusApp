@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $description
  * @property string $difficulty
  * @property string $priority
+ * @property string $eisenhower_quadrant
  * @property \Carbon\Carbon|null $due_date
  * @property \Carbon\Carbon|null $completed_at
  * @property int|null $days_early_or_late
@@ -33,7 +34,7 @@ final class MissionModel extends Model
     protected $table = 'missions';
 
     protected $fillable = [
-        'user_id', 'title', 'description', 'difficulty', 'priority',
+        'user_id', 'title', 'description', 'difficulty', 'priority', 'eisenhower_quadrant',
         'due_date', 'completed_at', 'days_early_or_late', 'is_overdue', 'xp_awarded',
     ];
 

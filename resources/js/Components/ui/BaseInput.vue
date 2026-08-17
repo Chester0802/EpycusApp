@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 
 const props = defineProps({
     id: { type: String, required: true },
-    label: { type: String, required: true },
+    label: { type: String, default: '' },
     modelValue: { type: [String, Number], default: '' },
     type: { type: String, default: 'text' },
     error: { type: String, default: '' },
@@ -20,7 +20,7 @@ const inputType = computed(() => (isPassword.value && showPassword.value ? 'text
 
 <template>
     <div>
-        <label :for="id" class="mb-1.5 block text-sm font-semibold text-content-secondary">
+        <label v-if="label" :for="id" class="mb-1.5 block text-sm font-semibold text-content-secondary">
             {{ label }}
             <span v-if="required" class="text-danger-text" aria-hidden="true">*</span>
         </label>
