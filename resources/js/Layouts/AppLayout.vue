@@ -1,12 +1,69 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import NavIcon from '@/Components/NavIcon.vue';
 import BaseBadge from '@/Components/ui/BaseBadge.vue';
 import EpaPretestModal from '@/Components/EpaPretestModal.vue';
 import { useTheme } from '@/composables/useTheme';
+
+import { triggerHapticVibration } from '@/utils/celebration';
+
+const toastMessage = ref(null);
+const toastType = ref('success');
+let toastTimeout = null;
+
+function showToast(message, type = 'success', duration = 4500) {
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastMessage.value = message;
+    toastType.value = type;
+
+    // Vibración háptica en móvil cuando se recibe una notificación positiva o recompensa
+    if (type === 'success') {
+        triggerHapticVibration([50, 40, 60]);
+    }
+
+    toastTimeout = setTimeout(() => {
+        toastMessage.value = null;
+    }, duration);
+}
+
+const page = usePage();
+
+function navigate(routeName) {
+    mobileMenuOpen.value = false;
+    if (route().current(routeName)) return;
+    router.visit(route(routeName));
+}
+
+watch(
+    () => page.props.flash,
+    (flash) => {
+        if (flash?.success) {
+            showToast(flash.success, 'success');
+        } else if (flash?.error) {
+            showToast(flash.error, 'error');
+        } else if (flash?.warning) {
+            showToast(flash.warning, 'warning');
+        }
+    },
+    { deep: true, immediate: true },
+);
+
+function handleCustomToast(event) {
+    if (event?.detail?.message) {
+        showToast(event.detail.message, event.detail.type || 'success', event.detail.duration || 4500);
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('epycus-toast', handleCustomToast);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('epycus-toast', handleCustomToast);
+});
 
 /*
  * Estructura de docs/04-DISENO-VISUAL.md §9 y §14: barra lateral fija en
@@ -64,7 +121,6 @@ const navItems = [
     { label: 'Perfil', routeName: 'profile.edit', icon: 'user' },
 ];
 
-const page = usePage();
 const mobileMenuOpen = ref(false);
 const { surface } = useTheme();
 
@@ -91,11 +147,49 @@ const showEpaModal = computed(() => {
 
 <template>
     <div class="min-h-screen bg-bg lg:flex">
+        <!-- Toast / Notificaciones Flotantes Globales -->
+        <Transition
+            enter-active-class="transform ease-out duration-300 transition"
+            enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+            enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+            leave-active-class="transition ease-in duration-200"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="toastMessage"
+                class="fixed bottom-20 right-4 z-50 max-w-sm rounded-2xl border p-4 shadow-xl backdrop-blur-md transition-all sm:bottom-6 sm:right-6"
+                :class="[
+                    toastType === 'error'
+                        ? 'border-danger/30 bg-danger/15 text-danger-text'
+                        : toastType === 'warning'
+                          ? 'border-warning/40 bg-warning/20 text-content-primary'
+                          : 'border-primary-strong/40 bg-surface-raised/95 text-content-primary shadow-primary-strong/10',
+                ]"
+                role="alert"
+            >
+                <div class="flex items-center gap-3">
+                    <span class="text-xl shrink-0">{{
+                        toastType === 'error' ? '⚠️' : toastType === 'warning' ? '⚡' : '🎉'
+                    }}</span>
+                    <div class="text-sm font-semibold leading-snug">
+                        {{ toastMessage }}
+                    </div>
+                    <button
+                        type="button"
+                        class="ml-auto shrink-0 rounded-lg p-1 text-content-muted hover:text-content-primary transition"
+                        @click="toastMessage = null"
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
+        </Transition>
+
         <!-- Modal de Diagnóstico Inicial EPA -->
         <EpaPretestModal :show="showEpaModal" />
 
         <!-- Fondo de pantalla — solo modo Vidrio (skill epycus-ui §2, §6) -->
-
         <div v-if="surface === 'glass'" class="app-background" aria-hidden="true" />
         <!-- Barra lateral — solo escritorio -->
         <aside class="panel-nav relative z-10 hidden w-[260px] shrink-0 lg:flex lg:flex-col">
@@ -115,19 +209,20 @@ const showEpaModal = computed(() => {
 
             <nav class="flex-1 space-y-1 px-4" aria-label="Navegación principal">
                 <template v-for="item in navItems" :key="item.label">
-                    <Link
+                    <button
                         v-if="item.routeName"
-                        :href="route(item.routeName)"
-                        class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150"
+                        type="button"
+                        class="flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 text-left cursor-pointer"
                         :class="
                             route().current(item.routeName)
-                                ? 'bg-primary text-on-primary'
+                                ? 'bg-primary text-on-primary shadow-sm'
                                 : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
                         "
+                        @click="navigate(item.routeName)"
                     >
                         <NavIcon :name="item.icon" />
-                        {{ item.label }}
-                    </Link>
+                        <span>{{ item.label }}</span>
+                    </button>
                     <span
                         v-else
                         class="flex min-h-[44px] cursor-not-allowed items-center justify-between gap-3 rounded-xl px-3 text-sm font-semibold text-content-muted opacity-50"
@@ -140,27 +235,29 @@ const showEpaModal = computed(() => {
                         <BaseBadge variant="neutral">Pronto</BaseBadge>
                     </span>
                 </template>
-                <Link
-                    :href="route('settings.edit')"
-                    class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150"
+                <button
+                    type="button"
+                    class="flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 text-left cursor-pointer"
                     :class="
                         route().current('settings.edit')
-                            ? 'bg-primary text-on-primary'
+                            ? 'bg-primary text-on-primary shadow-sm'
                             : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
                     "
+                    @click="navigate('settings.edit')"
                 >
                     <NavIcon name="settings" />
-                    Ajustes
-                </Link>
-                <Link
+                    <span>Ajustes</span>
+                </button>
+                <button
                     v-if="page.props.auth.user.role === 'admin'"
-                    :href="route('admin.index')"
-                    class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 border border-primary-strong/30 bg-primary-strong/10 text-primary-strong hover:bg-primary-strong hover:text-white"
+                    type="button"
+                    class="flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 border border-primary-strong/30 bg-primary-strong/10 text-primary-strong hover:bg-primary-strong hover:text-white text-left cursor-pointer"
                     :class="{ '!bg-primary-strong !text-white': route().current('admin.index') }"
+                    @click="navigate('admin.index')"
                 >
                     <NavIcon name="ranking" />
-                    Panel Investigación
-                </Link>
+                    <span>Panel Investigación</span>
+                </button>
             </nav>
 
             <div class="border-t border-border p-4">
@@ -218,35 +315,35 @@ const showEpaModal = computed(() => {
 
                 <div class="space-y-1">
                     <template v-for="item in secondaryNavItems" :key="item.label">
-                        <Link
+                        <button
                             v-if="item.routeName"
-                            :href="route(item.routeName)"
-                            class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150"
+                            type="button"
+                            class="flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 text-left cursor-pointer"
                             :class="
                                 route().current(item.routeName)
-                                    ? 'bg-primary text-on-primary'
+                                    ? 'bg-primary text-on-primary shadow-sm'
                                     : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
                             "
-                            @click="mobileMenuOpen = false"
+                            @click="navigate(item.routeName)"
                         >
                             <NavIcon :name="item.icon" />
-                            {{ item.label }}
-                        </Link>
+                            <span>{{ item.label }}</span>
+                        </button>
                     </template>
 
-                    <Link
-                        :href="route('settings.edit')"
-                        class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150"
+                    <button
+                        type="button"
+                        class="flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 text-left cursor-pointer"
                         :class="
                             route().current('settings.edit')
-                                ? 'bg-primary text-on-primary'
+                                ? 'bg-primary text-on-primary shadow-sm'
                                 : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
                         "
-                        @click="mobileMenuOpen = false"
+                        @click="navigate('settings.edit')"
                     >
                         <NavIcon name="settings" />
-                        Ajustes
-                    </Link>
+                        <span>Ajustes</span>
+                    </button>
 
                     <Link
                         :href="route('logout')"
@@ -270,19 +367,20 @@ const showEpaModal = computed(() => {
             aria-label="Navegación principal"
         >
             <template v-for="item in mainNavItems" :key="item.label">
-                <Link
+                <button
                     v-if="item.routeName"
-                    :href="route(item.routeName)"
-                    class="flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-xl px-3 text-xs font-semibold"
+                    type="button"
+                    class="flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-xl px-3 text-xs font-semibold cursor-pointer"
                     :class="
                         route().current(item.routeName)
-                            ? 'bg-primary text-on-primary'
+                            ? 'bg-primary text-on-primary shadow-sm'
                             : 'text-content-secondary'
                     "
+                    @click="navigate(item.routeName)"
                 >
                     <NavIcon :name="item.icon" />
-                    {{ item.label }}
-                </Link>
+                    <span>{{ item.label }}</span>
+                </button>
             </template>
         </nav>
     </div>
