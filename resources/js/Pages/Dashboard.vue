@@ -80,16 +80,12 @@ function habitsBarHeight(count) {
             >
                 <template #actions>
                     <div class="flex flex-wrap gap-3 sm:flex-col sm:items-end">
-                        <Link :href="route('pomodoro.index')">
-                            <BaseButton variant="primary" size="sm">
-                                <AppIcon name="timer" :size="14" class="mr-1" /> Iniciar Pomodoro
-                            </BaseButton>
-                        </Link>
-                        <Link :href="route('habits.index')">
-                            <BaseButton variant="secondary" size="sm">
-                                <AppIcon name="check-circle" :size="14" class="mr-1" /> Mis Hábitos
-                            </BaseButton>
-                        </Link>
+                        <BaseButton variant="primary" size="sm" @click="router.visit(route('pomodoro.index'))">
+                            <AppIcon name="timer" :size="14" class="mr-1" /> Iniciar Pomodoro
+                        </BaseButton>
+                        <BaseButton variant="secondary" size="sm" @click="router.visit(route('habits.index'))">
+                            <AppIcon name="check-circle" :size="14" class="mr-1" /> Mis Hábitos
+                        </BaseButton>
                     </div>
                 </template>
             </StudentIdCard>
@@ -303,17 +299,16 @@ function habitsBarHeight(count) {
                         <p>No has registrado tu diario en los últimos 7 días.</p>
                     </div>
 
-                    <Link :href="route('wellbeing.index')" class="w-full">
-                        <BaseButton
-                            class="w-full flex items-center justify-center gap-1.5"
-                            variant="ghost"
-                            size="sm"
-                        >
-                            <AppIcon name="heart" :size="14" class="text-danger" />
-                            Ir al módulo Bienestar
-                            <AppIcon name="arrow-right" :size="14" />
-                        </BaseButton>
-                    </Link>
+                    <BaseButton
+                        class="w-full flex items-center justify-center gap-1.5"
+                        variant="ghost"
+                        size="sm"
+                        @click="router.visit(route('wellbeing.index'))"
+                    >
+                        <AppIcon name="heart" :size="14" class="text-danger" />
+                        Ir al módulo Bienestar
+                        <AppIcon name="arrow-right" :size="14" />
+                    </BaseButton>
                 </BaseCard>
             </div>
 
@@ -486,21 +481,24 @@ function habitsBarHeight(count) {
                         </div>
                     </div>
 
-                    <Link :href="route('villains.index')" class="w-full">
-                        <BaseButton
-                            class="w-full flex items-center justify-center gap-1"
-                            variant="ghost"
-                            size="sm"
-                        >
-                            Ver Villano Completo <AppIcon name="arrow-right" :size="14" />
-                        </BaseButton>
-                    </Link>
+                    <BaseButton
+                        class="w-full flex items-center justify-center gap-1"
+                        variant="ghost"
+                        size="sm"
+                        @click="router.visit(route('villains.index'))"
+                    >
+                        Ver Villano Completo <AppIcon name="arrow-right" :size="14" />
+                    </BaseButton>
                 </BaseCard>
             </div>
 
             <!-- Accesos Rápidos a Módulos Clave -->
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <Link :href="route('ranking.index')">
+                <button
+                    type="button"
+                    class="text-left w-full cursor-pointer"
+                    @click="router.visit(route('ranking.index'))"
+                >
                     <BaseCard
                         class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]"
                     >
@@ -510,9 +508,13 @@ function habitsBarHeight(count) {
                             <p class="text-xs text-content-muted">Tabla de posiciones</p>
                         </div>
                     </BaseCard>
-                </Link>
+                </button>
 
-                <Link :href="route('calendar.index')">
+                <button
+                    type="button"
+                    class="text-left w-full cursor-pointer"
+                    @click="router.visit(route('calendar.index'))"
+                >
                     <BaseCard
                         class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]"
                     >
@@ -522,9 +524,13 @@ function habitsBarHeight(count) {
                             <p class="text-xs text-content-muted">Feriados y exámenes</p>
                         </div>
                     </BaseCard>
-                </Link>
+                </button>
 
-                <Link :href="route('wellbeing.index')">
+                <button
+                    type="button"
+                    class="text-left w-full cursor-pointer"
+                    @click="router.visit(route('wellbeing.index'))"
+                >
                     <BaseCard
                         class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]"
                     >
@@ -534,9 +540,13 @@ function habitsBarHeight(count) {
                             <p class="text-xs text-content-muted">Diario y ánimo</p>
                         </div>
                     </BaseCard>
-                </Link>
+                </button>
 
-                <Link :href="route('study-groups.index')">
+                <button
+                    type="button"
+                    class="text-left w-full cursor-pointer"
+                    @click="router.visit(route('study-groups.index'))"
+                >
                     <BaseCard
                         class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]"
                     >
@@ -546,7 +556,7 @@ function habitsBarHeight(count) {
                             <p class="text-xs text-content-muted">Salas de estudio</p>
                         </div>
                     </BaseCard>
-                </Link>
+                </button>
             </div>
         </div>
     </AppLayout>
