@@ -86,9 +86,11 @@ final readonly class RecordEpaPretestUseCase
         try {
             $this->awardXp->execute(
                 userId: $dto->userId,
+                sourceType: 'epa_pretest',
+                sourceId: (int) $response->id,
                 baseXp: 50,
-                source: 'epa_pretest',
-                dailyCapKey: 'bonus'
+                dailyCap: 1000,
+                countsTowardStreak: false,
             );
         } catch (\Throwable) {
             // No bloquear la respuesta de la evaluación si la experiencia falla

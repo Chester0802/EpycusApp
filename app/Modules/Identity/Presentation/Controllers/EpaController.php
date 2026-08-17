@@ -35,7 +35,7 @@ final class EpaController extends Controller
         try {
             $response = $this->recordEpaPretest->execute($dto);
         } catch (\InvalidArgumentException $e) {
-            if ($request->wantsJson()) {
+            if ($request->wantsJson() && ! $request->header('X-Inertia')) {
                 return response()->json([
                     'success' => true,
                     'message' => $e->getMessage(),
@@ -45,7 +45,7 @@ final class EpaController extends Controller
             return redirect()->back()->with('success', 'El diagnóstico inicial EPA ya ha sido completado.');
         }
 
-        if ($request->wantsJson()) {
+        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
             return response()->json([
                 'success' => true,
                 'message' => '¡Test inicial EPA registrado exitosamente! Has ganado +50 XP.',

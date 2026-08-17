@@ -129,14 +129,19 @@ const isModalVisible = computed(() => {
 function markAsCompleted() {
     isCompletedLocal.value = true;
     const userId = page.props.auth?.user?.id;
-    if (userId && typeof window !== 'undefined' && window.localStorage) {
+    if (typeof window !== 'undefined' && window.localStorage) {
         try {
-            localStorage.setItem(`epycus_epa_completed_${userId}`, '1');
+            if (userId) {
+                localStorage.setItem(`epycus_epa_completed_${userId}`, '1');
+            }
+            localStorage.setItem('epycus_epa_completed_latest', '1');
         } catch (e) {
             // Silencioso
         }
     }
 }
+
+import { triggerConfetti, playSuccessChime } from '@/utils/celebration';
 
 function submitSurvey() {
     if (!isAllAnswered.value || isSubmitting.value) return;
@@ -149,15 +154,35 @@ function submitSurvey() {
         onSuccess: () => {
             isSubmitting.value = false;
             markAsCompleted();
-            router.reload({ only: ['auth'] });
+            triggerConfetti();
+            playSuccessChime();
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(
+                    new CustomEvent('epycus-toast', {
+                        detail: {
+                            message: '¡Diagnóstico inicial completado! Has ganado +50 XP 🎉',
+                            type: 'success',
+                        },
+                    }),
+                );
+            }
+            router.reload({ only: ['auth', 'progress'] });
         },
         onError: (errors) => {
             isSubmitting.value = false;
-            if (errors.message && errors.message.includes('completado')) {
+            if (errors && typeof errors === 'object') {
+                const firstVal = Object.values(errors)[0];
+                const msg = typeof firstVal === 'string' ? firstVal : '';
+                if (msg.toLowerCase().includes('completado') || msg.toLowerCase().includes('ya has')) {
+                    markAsCompleted();
+                    return;
+                }
+                errorMessage.value = msg || 'Error guardando el cuestionario. Por favor intenta de nuevo.';
+            } else if (typeof errors === 'string' && (errors.includes('completado') || errors.includes('ya has'))) {
                 markAsCompleted();
             } else {
                 errorMessage.value =
-                    errors.message ||
+                    errors?.message ||
                     'Error guardando el cuestionario. Por favor intenta de nuevo.';
             }
         },
