@@ -61,23 +61,11 @@ final class ToggleSubtaskUseCase
         $missionCompleted = false;
 
         if ($newCompleted) {
-            $allDone = $mission->subtasks()
-                ->where('is_completed', true)
-                ->count() === $mission->subtasks()->count();
-
-            if ($allDone) {
-                (new CompleteMissionUseCase($this->repository, $this->events))->execute(
-                    $subtask->mission_id,
-                    $userId,
-                );
-                $missionCompleted = true;
-            } else {
-                $this->events->dispatch(new MissionStarted(
-                    missionId: $subtask->mission_id,
-                    userId: $userId,
-                    occurredAt: new \DateTimeImmutable,
-                ));
-            }
+            $this->events->dispatch(new MissionStarted(
+                missionId: $subtask->mission_id,
+                userId: $userId,
+                occurredAt: new \DateTimeImmutable,
+            ));
         }
 
         return ['completed' => $newCompleted, 'mission_completed' => $missionCompleted];
