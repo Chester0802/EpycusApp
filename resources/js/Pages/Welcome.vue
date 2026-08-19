@@ -68,12 +68,13 @@ const feedbackCategories = [
     { id: 'gratitude', label: 'Agradecimiento', icon: 'heart' },
 ];
 
-function onImageChange(e) {
-    const file = e.target.files?.[0];
+const isDraggingFeedback = ref(false);
+
+function processFeedbackImageFile(file) {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-        feedbackError.value = 'Por favor selecciona un archivo de imagen válido (PNG, JPG, WEBP).';
+        feedbackError.value = 'Por favor selecciona o pega un archivo de imagen válido (PNG, JPG, WEBP).';
         return;
     }
 
@@ -83,17 +84,65 @@ function onImageChange(e) {
     }
 
     feedbackError.value = '';
-    feedbackImage.value = file;
+    const fileName = file.name && file.name !== 'image.png' ? file.name : `captura_${new Date().toISOString().slice(0, 10)}.png`;
+    const namedFile = new File([file], fileName, { type: file.type || 'image/png' });
+    feedbackImage.value = namedFile;
+
     const reader = new FileReader();
     reader.onload = (event) => {
         feedbackImagePreview.value = event.target?.result;
     };
     reader.readAsDataURL(file);
+    triggerHapticVibration([30, 40]);
+}
+
+function onImageChange(e) {
+    const file = e.target.files?.[0];
+    if (file) {
+        processFeedbackImageFile(file);
+    }
+}
+
+function handleFeedbackPaste(e) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.indexOf('image') !== -1) {
+            const file = item.getAsFile();
+            if (file) {
+                e.preventDefault();
+                processFeedbackImageFile(file);
+                break;
+            }
+        }
+    }
+}
+
+function onFeedbackDragOver(e) {
+    e.preventDefault();
+    isDraggingFeedback.value = true;
+}
+
+function onFeedbackDragLeave(e) {
+    e.preventDefault();
+    isDraggingFeedback.value = false;
+}
+
+function onFeedbackDrop(e) {
+    e.preventDefault();
+    isDraggingFeedback.value = false;
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+        processFeedbackImageFile(file);
+    }
 }
 
 function removeImage() {
     feedbackImage.value = null;
     feedbackImagePreview.value = null;
+    isDraggingFeedback.value = false;
     if (feedbackImageInput.value) {
         feedbackImageInput.value.value = '';
     }
@@ -1241,7 +1290,7 @@ const faqs = [
                         </div>
 
                         <!-- Formulario de Envío -->
-                        <form @submit.prevent="sendFeedback" class="space-y-4">
+                        <form @submit.prevent="sendFeedback" @paste="handleFeedbackPaste" class="space-y-4">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-semibold mb-1.5" :class="isDark ? 'text-slate-300' : 'text-slate-700'">
@@ -1282,7 +1331,7 @@ const faqs = [
                                 <div class="text-xs leading-relaxed">
                                     <div class="font-bold text-amber-300 text-sm">¿Encontraste un fallo o error en pantalla?</div>
                                     <p class="mt-0.5" :class="isDark ? 'text-slate-300' : 'text-slate-700'">
-                                        Por favor, <strong>adjunta una captura de pantalla</strong> abajo indicándonos en qué parte ocurrió. Nos ayuda enormemente a reproducirlo y resolverlo en minutos.
+                                        Por favor, <strong>adjunta una captura de pantalla</strong> abajo (o pégala directo con <kbd class="px-1.5 py-0.5 rounded bg-white/10 font-mono text-[11px]">Ctrl + V</kbd>). Nos ayuda enormemente a reproducirlo y resolverlo en minutos.
                                     </p>
                                 </div>
                             </div>
@@ -1296,9 +1345,13 @@ const faqs = [
                                     required
                                     rows="4"
                                     maxlength="2000"
-                                    :placeholder="feedbackType === 'bug' ? 'Describe qué estabas haciendo, en qué dispositivo/navegador y qué error o comportamiento inesperado ocurrió...' : 'Escribe aquí tu aporte con todos los detalles que consideres necesarios...'"
+                                    :placeholder="feedbackType === 'bug' ? 'Describe qué estabas haciendo, en qué dispositivo/navegador y qué error o comportamiento inesperado ocurrió... (puedes pegar capturas con Ctrl + V)' : 'Escribe aquí tu aporte con todos los detalles que consideres necesarios...'"
                                     class="w-full px-4 py-3 rounded-xl text-xs sm:text-sm border transition focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
                                     :class="isDark ? 'bg-[#070A12] border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'"
+                                    @paste="handleFeedbackPaste"
+                                    @dragover.prevent="onFeedbackDragOver"
+                                    @dragleave.prevent="onFeedbackDragLeave"
+                                    @drop.prevent="onFeedbackDrop"
                                 ></textarea>
                                 <div class="flex items-center justify-between mt-1 text-[11px]" :class="isDark ? 'text-slate-400' : 'text-slate-500'">
                                     <span>Llega directo al equipo técnico y pedagógico de Epycus</span>
@@ -1308,16 +1361,28 @@ const faqs = [
 
                             <!-- Subida de Captura de Pantalla / Imagen Opcional -->
                             <div>
-                                <label class="block text-xs font-semibold mb-1.5" :class="isDark ? 'text-slate-300' : 'text-slate-700'">
-                                    Captura de Pantalla o Imagen <span class="text-slate-400 font-normal">(Opcional • PNG, JPG, WEBP • Máx 5MB)</span>
+                                <label class="block text-xs font-semibold mb-1.5 flex items-center justify-between" :class="isDark ? 'text-slate-300' : 'text-slate-700'">
+                                    <span>Captura de Pantalla o Imagen <span class="text-slate-400 font-normal">(Opcional)</span></span>
+                                    <span class="text-[11px] font-mono text-cyan-400 flex items-center gap-1">
+                                        <AppIcon name="clipboard" :size="12" />
+                                        <span>Pega con Ctrl + V</span>
+                                    </span>
                                 </label>
 
                                 <!-- Si no hay imagen seleccionada -->
                                 <div
                                     v-if="!feedbackImagePreview"
-                                    class="border-2 border-dashed rounded-2xl p-4 sm:p-5 text-center transition cursor-pointer hover:border-indigo-500/50"
-                                    :class="isDark ? 'border-white/15 bg-white/[0.02] hover:bg-white/[0.04]' : 'border-slate-300 bg-slate-50 hover:bg-indigo-50/30'"
+                                    class="border-2 border-dashed rounded-2xl p-4 sm:p-5 text-center transition-all cursor-pointer relative"
+                                    :class="[
+                                        isDraggingFeedback
+                                            ? 'border-cyan-400 bg-cyan-500/15 scale-[1.01] ring-2 ring-cyan-400/50'
+                                            : (isDark ? 'border-white/15 bg-white/[0.02] hover:border-indigo-500/50 hover:bg-white/[0.04]' : 'border-slate-300 bg-slate-50 hover:border-indigo-400 hover:bg-indigo-50/30')
+                                    ]"
                                     @click="feedbackImageInput?.click()"
+                                    @dragover.prevent="onFeedbackDragOver"
+                                    @dragenter.prevent="onFeedbackDragOver"
+                                    @dragleave.prevent="onFeedbackDragLeave"
+                                    @drop.prevent="onFeedbackDrop"
                                 >
                                     <input
                                         ref="feedbackImageInput"
@@ -1326,12 +1391,12 @@ const faqs = [
                                         class="hidden"
                                         @change="onImageChange"
                                     />
-                                    <div class="flex flex-col items-center justify-center gap-2">
+                                    <div class="flex flex-col items-center justify-center gap-2 pointer-events-none">
                                         <div class="p-2.5 rounded-xl" :class="isDark ? 'bg-indigo-500/15 text-indigo-400' : 'bg-indigo-100 text-indigo-600'">
                                             <AppIcon name="camera" :size="20" />
                                         </div>
                                         <div class="text-xs font-semibold" :class="isDark ? 'text-slate-200' : 'text-slate-700'">
-                                            <span>Haz clic para adjuntar una captura o arrastra tu archivo aquí</span>
+                                            <span>Haz clic para adjuntar, arrastra una imagen o pega con <kbd class="px-1.5 py-0.5 rounded bg-white/10 font-mono text-[10px]">Ctrl + V</kbd></span>
                                         </div>
                                         <div class="text-[11px]" :class="isDark ? 'text-slate-400' : 'text-slate-500'">
                                             Formatos soportados: PNG, JPG, JPEG o WEBP (hasta 5 MB)
@@ -1349,7 +1414,7 @@ const faqs = [
                                         <img
                                             :src="feedbackImagePreview"
                                             alt="Preview Captura"
-                                            class="w-14 h-14 object-cover rounded-xl border border-white/10 shrink-0"
+                                            class="w-14 h-14 object-cover rounded-xl border border-white/10 shrink-0 shadow-md"
                                         />
                                         <div class="min-w-0">
                                             <div class="text-xs font-bold truncate" :class="isDark ? 'text-white' : 'text-slate-900'">
