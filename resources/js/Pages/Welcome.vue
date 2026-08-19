@@ -54,6 +54,9 @@ const feedbackType = ref('suggestion');
 const feedbackName = ref('');
 const feedbackEmail = ref('');
 const feedbackMessage = ref('');
+const feedbackImage = ref(null);
+const feedbackImagePreview = ref(null);
+const feedbackImageInput = ref(null);
 const feedbackSubmitting = ref(false);
 const feedbackSuccess = ref(false);
 const feedbackError = ref('');
@@ -65,6 +68,37 @@ const feedbackCategories = [
     { id: 'gratitude', label: 'Agradecimiento', icon: 'heart' },
 ];
 
+function onImageChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        feedbackError.value = 'Por favor selecciona un archivo de imagen válido (PNG, JPG, WEBP).';
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        feedbackError.value = 'La imagen no debe superar los 5MB de tamaño.';
+        return;
+    }
+
+    feedbackError.value = '';
+    feedbackImage.value = file;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        feedbackImagePreview.value = event.target?.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeImage() {
+    feedbackImage.value = null;
+    feedbackImagePreview.value = null;
+    if (feedbackImageInput.value) {
+        feedbackImageInput.value.value = '';
+    }
+}
+
 async function sendFeedback() {
     if (!feedbackMessage.value.trim() || feedbackSubmitting.value) return;
     feedbackSubmitting.value = true;
@@ -72,16 +106,25 @@ async function sendFeedback() {
     feedbackSuccess.value = false;
 
     try {
-        await axios.post('/feedback', {
-            type: feedbackType.value,
-            name: feedbackName.value,
-            email: feedbackEmail.value,
-            message: feedbackMessage.value,
+        const formData = new FormData();
+        formData.append('type', feedbackType.value);
+        formData.append('name', feedbackName.value);
+        formData.append('email', feedbackEmail.value);
+        formData.append('message', feedbackMessage.value);
+        if (feedbackImage.value) {
+            formData.append('image', feedbackImage.value);
+        }
+
+        await axios.post('/feedback', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
         });
         feedbackSuccess.value = true;
         feedbackMessage.value = '';
         feedbackName.value = '';
         feedbackEmail.value = '';
+        removeImage();
         triggerHapticVibration([40, 60, 40]);
         setTimeout(() => {
             feedbackSuccess.value = false;
@@ -1228,6 +1271,22 @@ const faqs = [
                                 </div>
                             </div>
 
+                            <!-- Callout Dinámico para Reporte de Error -->
+                            <div
+                                v-if="feedbackType === 'bug'"
+                                class="p-4 rounded-2xl border flex items-start gap-3 bg-amber-500/10 border-amber-500/30 text-amber-300 animate-fade-in"
+                            >
+                                <div class="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+                                    <AppIcon name="shield" :size="18" />
+                                </div>
+                                <div class="text-xs leading-relaxed">
+                                    <div class="font-bold text-amber-300 text-sm">¿Encontraste un fallo o error en pantalla?</div>
+                                    <p class="mt-0.5" :class="isDark ? 'text-slate-300' : 'text-slate-700'">
+                                        Por favor, <strong>adjunta una captura de pantalla</strong> abajo indicándonos en qué parte ocurrió. Nos ayuda enormemente a reproducirlo y resolverlo en minutos.
+                                    </p>
+                                </div>
+                            </div>
+
                             <div>
                                 <label class="block text-xs font-semibold mb-1.5" :class="isDark ? 'text-slate-300' : 'text-slate-700'">
                                     Tu Mensaje, Idea o Reporte <span class="text-rose-500">*</span>
@@ -1237,13 +1296,80 @@ const faqs = [
                                     required
                                     rows="4"
                                     maxlength="2000"
-                                    placeholder="Escribe aquí tu aporte con todos los detalles que consideres necesarios..."
+                                    :placeholder="feedbackType === 'bug' ? 'Describe qué estabas haciendo, en qué dispositivo/navegador y qué error o comportamiento inesperado ocurrió...' : 'Escribe aquí tu aporte con todos los detalles que consideres necesarios...'"
                                     class="w-full px-4 py-3 rounded-xl text-xs sm:text-sm border transition focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
                                     :class="isDark ? 'bg-[#070A12] border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'"
                                 ></textarea>
                                 <div class="flex items-center justify-between mt-1 text-[11px]" :class="isDark ? 'text-slate-400' : 'text-slate-500'">
                                     <span>Llega directo al equipo técnico y pedagógico de Epycus</span>
                                     <span>{{ feedbackMessage.length }} / 2000 caracteres</span>
+                                </div>
+                            </div>
+
+                            <!-- Subida de Captura de Pantalla / Imagen Opcional -->
+                            <div>
+                                <label class="block text-xs font-semibold mb-1.5" :class="isDark ? 'text-slate-300' : 'text-slate-700'">
+                                    Captura de Pantalla o Imagen <span class="text-slate-400 font-normal">(Opcional • PNG, JPG, WEBP • Máx 5MB)</span>
+                                </label>
+
+                                <!-- Si no hay imagen seleccionada -->
+                                <div
+                                    v-if="!feedbackImagePreview"
+                                    class="border-2 border-dashed rounded-2xl p-4 sm:p-5 text-center transition cursor-pointer hover:border-indigo-500/50"
+                                    :class="isDark ? 'border-white/15 bg-white/[0.02] hover:bg-white/[0.04]' : 'border-slate-300 bg-slate-50 hover:bg-indigo-50/30'"
+                                    @click="feedbackImageInput?.click()"
+                                >
+                                    <input
+                                        ref="feedbackImageInput"
+                                        type="file"
+                                        accept="image/png, image/jpeg, image/jpg, image/webp"
+                                        class="hidden"
+                                        @change="onImageChange"
+                                    />
+                                    <div class="flex flex-col items-center justify-center gap-2">
+                                        <div class="p-2.5 rounded-xl" :class="isDark ? 'bg-indigo-500/15 text-indigo-400' : 'bg-indigo-100 text-indigo-600'">
+                                            <AppIcon name="camera" :size="20" />
+                                        </div>
+                                        <div class="text-xs font-semibold" :class="isDark ? 'text-slate-200' : 'text-slate-700'">
+                                            <span>Haz clic para adjuntar una captura o arrastra tu archivo aquí</span>
+                                        </div>
+                                        <div class="text-[11px]" :class="isDark ? 'text-slate-400' : 'text-slate-500'">
+                                            Formatos soportados: PNG, JPG, JPEG o WEBP (hasta 5 MB)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Previsualización de Imagen Cargada -->
+                                <div
+                                    v-else
+                                    class="p-3.5 rounded-2xl border flex items-center justify-between gap-4"
+                                    :class="isDark ? 'bg-[#070A12] border-indigo-500/40' : 'bg-indigo-50/50 border-indigo-200'"
+                                >
+                                    <div class="flex items-center gap-3.5 min-w-0">
+                                        <img
+                                            :src="feedbackImagePreview"
+                                            alt="Preview Captura"
+                                            class="w-14 h-14 object-cover rounded-xl border border-white/10 shrink-0"
+                                        />
+                                        <div class="min-w-0">
+                                            <div class="text-xs font-bold truncate" :class="isDark ? 'text-white' : 'text-slate-900'">
+                                                {{ feedbackImage?.name }}
+                                            </div>
+                                            <div class="text-[11px] text-emerald-400 font-mono mt-0.5 flex items-center gap-1">
+                                                <AppIcon name="check" :size="12" />
+                                                <span>Captura lista para enviar ({{ (feedbackImage?.size / 1024 / 1024).toFixed(2) }} MB)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="p-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/15 border border-rose-500/30 transition-colors shrink-0 cursor-pointer"
+                                        title="Eliminar captura"
+                                        @click="removeImage"
+                                    >
+                                        <AppIcon name="trash-2" :size="16" />
+                                    </button>
                                 </div>
                             </div>
 

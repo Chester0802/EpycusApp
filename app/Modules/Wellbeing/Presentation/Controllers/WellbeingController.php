@@ -70,6 +70,13 @@ final class WellbeingController extends Controller
         $tips = config('wellbeing.health_tips', []);
         $dailyTip = ! empty($tips) ? $tips[array_rand($tips)] : null;
 
+        $epaRecord = \Illuminate\Support\Facades\DB::table('epa_responses')
+            ->where('user_id', $userId)
+            ->where('phase', 'pretest')
+            ->first();
+
+        $epaDiagnostic = \App\Modules\Identity\Application\Services\EpaDiagnosticPresenter::present($epaRecord);
+
         return Inertia::render('Wellbeing/Index', [
             'month' => $month,
             'year' => $year,
@@ -81,6 +88,7 @@ final class WellbeingController extends Controller
             'entryTags' => config('wellbeing.tags', []),
             'healthTip' => $dailyTip,
             'physicalActivityTypes' => config('wellbeing.physical_activity_types', []),
+            'epaDiagnostic' => $epaDiagnostic,
         ]);
     }
 

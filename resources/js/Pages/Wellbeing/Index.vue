@@ -16,6 +16,7 @@ const props = defineProps({
     entryTags: { type: Array, default: () => [] },
     healthTip: { type: String, default: null },
     physicalActivityTypes: { type: Array, default: () => [] },
+    epaDiagnostic: { type: Object, default: null },
 });
 
 const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -168,6 +169,93 @@ const yearOptions = Array.from({ length: 5 }, (_, i) => 2026 + i);
                 <AppIcon name="message-square" :size="32" class="mb-2 text-content-muted" />
                 <h2 class="text-sm font-semibold text-content-primary">¿Cómo te sentís hoy?</h2>
                 <p class="mt-1 text-sm text-content-secondary">Hacé clic en el día de hoy para registrar tu ánimo.</p>
+            </BaseCard>
+
+            <!-- ── Diagnóstico Inicial EPA (Día 1) ── -->
+            <BaseCard v-if="epaDiagnostic" class="mt-6 overflow-hidden border border-primary/25 bg-surface-raised shadow-sm">
+                <div class="border-b border-border/70 bg-primary/5 px-5 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/20 text-primary text-base">📊</span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-display text-base font-bold text-content-primary">
+                                    Diagnóstico Científico · Escala EPA
+                                </h3>
+                                <span class="rounded-full bg-primary/15 border border-primary/30 px-2.5 py-0.5 text-[11px] font-extrabold text-primary">
+                                    {{ epaDiagnostic.day_label }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-content-secondary">
+                                {{ epaDiagnostic.milestone_title }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 text-xs text-content-muted self-start sm:self-auto">
+                        <span>🗓️</span>
+                        <span>Evaluado el {{ epaDiagnostic.completed_at_formatted }}</span>
+                    </div>
+                </div>
+
+                <div class="p-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-center">
+                        <!-- Score & Gauge -->
+                        <div class="rounded-xl bg-surface-sunken p-4 border border-border/60">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-content-muted">Puntaje Obtenido</span>
+                            <div class="flex items-baseline gap-1.5 mt-1">
+                                <span class="font-display text-3xl font-black text-content-primary">{{ epaDiagnostic.total_score }}</span>
+                                <span class="text-xs font-semibold text-content-secondary">/ {{ epaDiagnostic.max_score }} pts</span>
+                                <span class="ml-auto text-xs font-bold text-primary">{{ epaDiagnostic.percentage }}%</span>
+                            </div>
+
+                            <div class="mt-2.5 h-2.5 w-full rounded-full bg-surface overflow-hidden border border-border/40">
+                                <div
+                                    class="h-full rounded-full bg-gradient-to-r transition-all duration-700 ease-out"
+                                    :class="[
+                                        epaDiagnostic.level === 'high' ? 'from-emerald-500 to-teal-400' :
+                                        epaDiagnostic.level === 'moderate' ? 'from-amber-500 to-orange-400' :
+                                        'from-rose-500 to-pink-500'
+                                    ]"
+                                    :style="{ width: `${epaDiagnostic.percentage}%` }"
+                                />
+                            </div>
+
+                            <div class="mt-2.5 flex items-center justify-between text-[11px]">
+                                <span class="text-content-muted">Nivel:</span>
+                                <span
+                                    class="font-bold"
+                                    :class="[
+                                        epaDiagnostic.level === 'high' ? 'text-emerald-400' :
+                                        epaDiagnostic.level === 'moderate' ? 'text-amber-400' :
+                                        'text-rose-400'
+                                    ]"
+                                >
+                                    {{ epaDiagnostic.level_label }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Interpretative explanation -->
+                        <div class="md:col-span-2 space-y-3">
+                            <div>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-primary">Interpretación de tus hábitos</h4>
+                                <p class="mt-1 text-sm text-content-primary leading-relaxed font-medium">
+                                    {{ epaDiagnostic.description }}
+                                </p>
+                            </div>
+
+                            <div v-if="epaDiagnostic.recommendations?.length" class="space-y-1.5 pt-1">
+                                <span class="text-xs font-semibold text-content-muted">Recomendaciones para potenciar tu aventura:</span>
+                                <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-content-secondary">
+                                    <li v-for="(rec, idx) in epaDiagnostic.recommendations" :key="idx" class="flex items-start gap-1.5 rounded-lg bg-surface-sunken p-2 border border-border/40">
+                                        <span class="text-primary font-bold shrink-0">✦</span>
+                                        <span>{{ rec }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </BaseCard>
         </div>
     </AppLayout>

@@ -22,7 +22,7 @@ final readonly class RecordEpaPretestUseCase
 
     public function execute(RecordEpaPretestDTO $dto): EpaResponseModel
     {
-        // 1. Validar rangos de los ítems (1 a 5)
+        // 1. Validar rangos de los ítems (1 a 4 según Escala Likert EPA)
         $items = [
             'item_2' => $dto->item2,
             'item_5' => $dto->item5,
@@ -35,8 +35,8 @@ final readonly class RecordEpaPretestUseCase
         ];
 
         foreach ($items as $name => $val) {
-            if ($val < 1 || $val > 5) {
-                throw new InvalidArgumentException("El valor de {$name} debe estar entre 1 y 5.");
+            if ($val < 1 || $val > 4) {
+                throw new InvalidArgumentException("El valor de {$name} debe estar entre 1 y 4.");
             }
         }
 

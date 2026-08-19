@@ -28,12 +28,12 @@ final class EpaPretestTest extends TestCase
 
         $payload = [
             'item_2' => 4,
-            'item_5' => 3,
-            'item_7' => 5,
+            'item_5' => 4,
+            'item_7' => 4,
             'item_10' => 4,
-            'item_11' => 3,
+            'item_11' => 4,
             'item_12' => 4,
-            'item_13' => 5,
+            'item_13' => 4,
             'item_14' => 4,
         ];
 
@@ -94,7 +94,7 @@ final class EpaPretestTest extends TestCase
         $user = UserModel::factory()->create();
 
         $invalidPayload = [
-            'item_2' => 6, // inválido (máx 5)
+            'item_2' => 5, // inválido en escala 1 a 4
             'item_5' => 0, // inválido (mín 1)
             'item_7' => 3,
             'item_10' => 3,

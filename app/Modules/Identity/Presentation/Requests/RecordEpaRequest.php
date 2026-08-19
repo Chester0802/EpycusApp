@@ -19,14 +19,14 @@ final class RecordEpaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'item_2' => ['required', 'integer', 'between:1,5'],
-            'item_5' => ['required', 'integer', 'between:1,5'],
-            'item_7' => ['required', 'integer', 'between:1,5'],
-            'item_10' => ['required', 'integer', 'between:1,5'],
-            'item_11' => ['required', 'integer', 'between:1,5'],
-            'item_12' => ['required', 'integer', 'between:1,5'],
-            'item_13' => ['required', 'integer', 'between:1,5'],
-            'item_14' => ['required', 'integer', 'between:1,5'],
+            'item_2' => ['required', 'integer', 'between:1,4'],
+            'item_5' => ['required', 'integer', 'between:1,4'],
+            'item_7' => ['required', 'integer', 'between:1,4'],
+            'item_10' => ['required', 'integer', 'between:1,4'],
+            'item_11' => ['required', 'integer', 'between:1,4'],
+            'item_12' => ['required', 'integer', 'between:1,4'],
+            'item_13' => ['required', 'integer', 'between:1,4'],
+            'item_14' => ['required', 'integer', 'between:1,4'],
         ];
     }
 }

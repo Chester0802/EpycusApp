@@ -50,7 +50,7 @@ watch(
                         role="dialog"
                         aria-modal="true"
                         :aria-label="title"
-                        class="panel-raised max-h-[90vh] w-full overflow-y-auto rounded-t-xl p-6 lg:max-w-lg lg:rounded-xl"
+                        class="panel-raised bg-surface-raised text-content-primary border border-border/80 shadow-2xl max-h-[90vh] w-full overflow-y-auto rounded-t-xl p-6 lg:max-w-lg lg:rounded-xl"
                         tabindex="-1"
                     >
                         <div

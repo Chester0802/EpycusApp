@@ -25,3 +25,13 @@ Homestead.yaml
 Thumbs.db
 *.zip
 docs/14-CREDENCIAIS-PRODUCCION.md
+
+# Playwright & E2E Testing
+/e2e/
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/blob-report/
+playwright.config.ts
+pnpm-lock.yaml
+pnpm-workspace.yaml

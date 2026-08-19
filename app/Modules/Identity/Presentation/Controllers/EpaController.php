@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Identity\Application\DTOs\RecordEpaPretestDTO;
 use App\Modules\Identity\Application\UseCases\RecordEpaPretestUseCase;
 use App\Modules\Identity\Presentation\Requests\RecordEpaRequest;
+use App\Modules\Identity\Application\Services\EpaDiagnosticPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -45,15 +46,19 @@ final class EpaController extends Controller
             return redirect()->back()->with('success', 'El diagnóstico inicial EPA ya ha sido completado.');
         }
 
+        $diagnostic = EpaDiagnosticPresenter::present($response);
+
         if ($request->wantsJson() && ! $request->header('X-Inertia')) {
             return response()->json([
                 'success' => true,
                 'message' => '¡Test inicial EPA registrado exitosamente! Has ganado +50 XP.',
                 'total_score' => $response->total_score,
+                'diagnostic' => $diagnostic,
             ]);
         }
 
-        return redirect()->back()->with('success', '¡Test inicial EPA registrado exitosamente! (+50 XP)');
-
+        return redirect()->back()
+            ->with('success', '¡Test inicial EPA registrado exitosamente! (+50 XP)')
+            ->with('epa_diagnostic', $diagnostic);
     }
 }
