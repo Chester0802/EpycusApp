@@ -568,79 +568,83 @@ const triggerXpToast = (msg) => {
             </div>
 
             <!-- Controles: Filtro por Momento del Día + Selector de Vista (Semanal / Heatmap) -->
-            <div v-if="habits.length > 0" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
-                <!-- Filtros por Momento del Día -->
-                <div class="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-                    <button
-                        type="button"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-xl transition cursor-pointer border shrink-0"
-                        :class="
-                            activeTimeOfDay === 'all'
-                                ? 'bg-primary-strong text-white border-primary-strong shadow-xs'
-                                : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'
-                        "
-                        @click="setTimeOfDayFilter('all')"
-                    >
-                        ⚡ Todos ({{ props.habits.length }})
-                    </button>
-                    <button
-                        type="button"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-xl transition cursor-pointer border shrink-0 flex items-center gap-1"
-                        :class="
-                            activeTimeOfDay === 'morning'
-                                ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
-                                : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'
-                        "
-                        @click="setTimeOfDayFilter('morning')"
-                    >
-                        <span>🌅 Mañana</span>
-                    </button>
-                    <button
-                        type="button"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-xl transition cursor-pointer border shrink-0 flex items-center gap-1"
-                        :class="
-                            activeTimeOfDay === 'afternoon'
-                                ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
-                                : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'
-                        "
-                        @click="setTimeOfDayFilter('afternoon')"
-                    >
-                        <span>☀️ Tarde</span>
-                    </button>
-                    <button
-                        type="button"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-xl transition cursor-pointer border shrink-0 flex items-center gap-1"
-                        :class="
-                            activeTimeOfDay === 'night'
-                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                                : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'
-                        "
-                        @click="setTimeOfDayFilter('night')"
-                    >
-                        <span>🌙 Noche</span>
-                    </button>
-                </div>
+            <BaseCard v-if="habits.length > 0" class="p-3 sm:p-3.5">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <!-- Filtros por Momento del Día -->
+                    <div class="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+                        <button
+                            type="button"
+                            class="px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border shrink-0"
+                            :class="
+                                activeTimeOfDay === 'all'
+                                    ? 'bg-primary-strong text-white border-primary-strong shadow-xs'
+                                    : 'bg-surface-raised/60 border-border-interactive text-content-secondary hover:bg-surface-raised hover:text-content-primary'
+                            "
+                            @click="setTimeOfDayFilter('all')"
+                        >
+                            ⚡ Todos ({{ props.habits.length }})
+                        </button>
+                        <button
+                            type="button"
+                            class="px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border shrink-0 flex items-center gap-1"
+                            :class="
+                                activeTimeOfDay === 'morning'
+                                    ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+                                    : 'bg-surface-raised/60 border-border-interactive text-content-secondary hover:bg-surface-raised hover:text-content-primary'
+                            "
+                            @click="setTimeOfDayFilter('morning')"
+                        >
+                            <span>🌅 Mañana</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border shrink-0 flex items-center gap-1"
+                            :class="
+                                activeTimeOfDay === 'afternoon'
+                                    ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
+                                    : 'bg-surface-raised/60 border-border-interactive text-content-secondary hover:bg-surface-raised hover:text-content-primary'
+                            "
+                            @click="setTimeOfDayFilter('afternoon')"
+                        >
+                            <span>☀️ Tarde</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border shrink-0 flex items-center gap-1"
+                            :class="
+                                activeTimeOfDay === 'night'
+                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                                    : 'bg-surface-raised/60 border-border-interactive text-content-secondary hover:bg-surface-raised hover:text-content-primary'
+                            "
+                            @click="setTimeOfDayFilter('night')"
+                        >
+                            <span>🌙 Noche</span>
+                        </button>
+                    </div>
 
-                <!-- Selector de Vista (Semanal vs Heatmap Mensual) -->
-                <div class="inline-flex rounded-xl bg-surface-raised p-1 border border-border-interactive shadow-xs shrink-0 self-start sm:self-auto">
-                    <button
-                        type="button"
-                        class="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg transition cursor-pointer"
-                        :class="viewMode === 'weekly' ? 'bg-primary-strong text-white shadow-xs' : 'text-content-secondary hover:text-content-primary'"
-                        @click="setViewMode('weekly')"
-                    >
-                        <AppIcon name="calendar-days" :size="13" /> Vista Semanal
-                    </button>
-                    <button
-                        type="button"
-                        class="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg transition cursor-pointer"
-                        :class="viewMode === 'monthly' ? 'bg-primary-strong text-white shadow-xs' : 'text-content-secondary hover:text-content-primary'"
-                        @click="setViewMode('monthly')"
-                    >
-                        <AppIcon name="layout-grid" :size="13" /> Heatmap Mensual
-                    </button>
+                    <!-- Selector de Vista (Semanal vs Heatmap Mensual) -->
+                    <div class="inline-flex rounded-xl bg-surface-raised/80 p-1 border border-border-interactive shadow-xs shrink-0 self-start sm:self-auto">
+                        <button
+                            type="button"
+                            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer"
+                            :class="viewMode === 'weekly' ? 'bg-primary-strong text-white shadow-xs' : 'text-content-secondary hover:text-content-primary'"
+                            @click="setViewMode('weekly')"
+                        >
+                            <AppIcon name="calendar-days" :size="14" />
+                            <span>Vista Semanal</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer"
+                            :class="viewMode === 'monthly' ? 'bg-primary-strong text-white shadow-xs' : 'text-content-secondary hover:text-content-primary'"
+                            @click="setViewMode('monthly')"
+                        >
+                            <AppIcon name="layout-grid" :size="14" />
+                            <span>Vista Mensual</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </BaseCard>
 
             <!-- Lista de Hábitos -->
             <template v-if="filteredHabits.length > 0">
@@ -842,8 +846,7 @@ const triggerXpToast = (msg) => {
                                             @click="cell && !isFutureDate(cell.date) && toggleHabitForDate(habit, cell.date)"
                                         >
                                             <span v-if="cell && isCompleted(habit, cell.date)" class="text-sm font-bold">✓</span>
-                                            <span v-else-if="cell && isBeforeCreation(habit, cell.date)" class="opacity-40">·</span>
-                                            <span v-else-if="cell">{{ cell.day }}</span>
+                                            <span v-else-if="cell" :class="{ 'opacity-35 text-content-muted': isBeforeCreation(habit, cell.date) }">{{ cell.day }}</span>
                                         </div>
                                     </template>
                                 </div>
