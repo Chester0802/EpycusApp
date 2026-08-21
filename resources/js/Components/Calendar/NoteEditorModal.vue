@@ -9,6 +9,7 @@ import {
     Bold,
     Heading1,
     Heading2,
+    Heading3,
     Loader2,
     NotebookText,
     ImagePlus,
@@ -373,6 +374,7 @@ function exportPdf() {
                 .pdf-entry-body { font-size: 14px; color: #334155; }
                 .pdf-entry-body h1 { font-size: 20px; font-weight: 700; color: #0f172a; margin: 16px 0 8px; }
                 .pdf-entry-body h2 { font-size: 16px; font-weight: 600; color: #1e293b; margin: 12px 0 6px; }
+                .pdf-entry-body h3 { font-size: 14px; font-weight: 600; color: #334155; margin: 10px 0 4px; }
                 .pdf-entry-body strong { font-weight: 700; }
                 .pdf-entry-body img { max-width: 100%; height: auto; border-radius: 6px; margin: 10px 0; display: block; border: 1px solid #e2e8f0; }
                 .pdf-footer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 12px; text-align: center; font-size: 11px; color: #94a3b8; }
@@ -391,7 +393,7 @@ function exportPdf() {
                 window.onload = function() {
                     window.print();
                 };
-            <\/script>
+            ${'<' + '/script>'}
         </body>
         </html>
     `;
@@ -469,7 +471,7 @@ onBeforeUnmount(() => stopCamera());
             leave-active-class="transition-opacity duration-200 ease-out"
             leave-to-class="opacity-0"
         >
-            <div v-if="show && course" class="note-modal-backdrop" @click.self="close">
+            <div v-if="show && course" class="note-modal-backdrop">
                 <Transition
                     enter-active-class="transition-all duration-300 ease-out"
                     enter-from-class="opacity-0 translate-x-full"
@@ -540,6 +542,9 @@ onBeforeUnmount(() => stopCamera());
                                 </button>
                                 <button type="button" class="toolbar-btn" title="Subtítulo H2" @click="formatHeading(2)">
                                     <Heading2 :size="16" />
+                                </button>
+                                <button type="button" class="toolbar-btn" title="Encabezado H3" @click="formatHeading(3)">
+                                    <Heading3 :size="16" />
                                 </button>
                                 <div class="toolbar-sep"></div>
                                 <button type="button" class="toolbar-btn" title="Negrita" @click="formatBold">
@@ -862,6 +867,7 @@ onBeforeUnmount(() => stopCamera());
 }
 .note-editor :deep(h1)     { font-size:1.5rem; font-weight:700; margin:1rem 0 0.5rem; }
 .note-editor :deep(h2)     { font-size:1.15rem; font-weight:600; margin:0.875rem 0 0.375rem; }
+.note-editor :deep(h3)     { font-size:1.02rem; font-weight:600; margin:0.75rem 0 0.25rem; }
 .note-editor :deep(strong) { font-weight:700; }
 .note-editor :deep(p)      { margin:0.2rem 0; }
 .note-editor :deep(img)    { max-width:100%; border-radius:8px; margin:0.75rem 0; display:block; border:1px solid rgba(255,255,255,0.1); }
