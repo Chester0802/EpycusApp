@@ -56,19 +56,20 @@ final class VillainController extends Controller
         $battleLog = [];
         if ($currentVillain && isset($currentVillain['assigned_at'])) {
             $assignedAt = $currentVillain['assigned_at'];
+            $villainCode = VillainCode::from($currentVillain['code']);
 
             // Pomodoros completados
             $recentPomodoros = DB::table('pomodoro_sessions')
                 ->where('user_id', $userId)
                 ->where('status', 'completed')
                 ->where('created_at', '>=', $assignedAt)
-                ->orderByDesc('created_at')
-                ->limit(5)
                 ->get()
                 ->map(fn ($p) => [
                     'source' => 'pomodoro',
                     'action' => "Sesión Pomodoro ({$p->planned_minutes} min)",
-                    'damage' => 10,
+                    'damage' => $villainCode->isWeakTo('pomodoro') ? 15 : 10,
+                    'is_critical' => $villainCode->isWeakTo('pomodoro'),
+                    'raw_date' => $p->created_at,
                     'created_at' => Carbon::parse($p->created_at)->diffForHumans(),
                 ]);
 
@@ -77,13 +78,13 @@ final class VillainController extends Controller
                 ->where('user_id', $userId)
                 ->whereNotNull('completed_at')
                 ->where('updated_at', '>=', $assignedAt)
-                ->orderByDesc('updated_at')
-                ->limit(5)
                 ->get()
                 ->map(fn ($m) => [
                     'source' => 'mission',
                     'action' => "Misión finalizada: \"{$m->title}\"",
-                    'damage' => 10,
+                    'damage' => $villainCode->isWeakTo('mission') ? 15 : 10,
+                    'is_critical' => $villainCode->isWeakTo('mission'),
+                    'raw_date' => $m->updated_at,
                     'created_at' => Carbon::parse($m->updated_at)->diffForHumans(),
                 ]);
 
@@ -92,13 +93,13 @@ final class VillainController extends Controller
                 ->join('habits', 'habits.id', '=', 'habit_completions.habit_id')
                 ->where('habits.user_id', $userId)
                 ->where('habit_completions.created_at', '>=', $assignedAt)
-                ->orderByDesc('habit_completions.created_at')
-                ->limit(5)
                 ->get(['habits.title', 'habit_completions.created_at'])
                 ->map(fn ($h) => [
                     'source' => 'habit',
                     'action' => "Hábito cumplido: \"{$h->title}\"",
-                    'damage' => 10,
+                    'damage' => $villainCode->isWeakTo('habit') ? 15 : 10,
+                    'is_critical' => $villainCode->isWeakTo('habit'),
+                    'raw_date' => $h->created_at,
                     'created_at' => Carbon::parse($h->created_at)->diffForHumans(),
                 ]);
 
@@ -106,18 +107,19 @@ final class VillainController extends Controller
             $recentJournals = DB::table('journal_entries')
                 ->where('user_id', $userId)
                 ->where('created_at', '>=', $assignedAt)
-                ->orderByDesc('created_at')
-                ->limit(5)
                 ->get()
                 ->map(fn ($j) => [
                     'source' => 'journal',
                     'action' => 'Entrada en el Diario de Bienestar',
-                    'damage' => 10,
+                    'damage' => $villainCode->isWeakTo('journal') ? 15 : 10,
+                    'is_critical' => $villainCode->isWeakTo('journal'),
+                    'raw_date' => $j->created_at,
                     'created_at' => Carbon::parse($j->created_at)->diffForHumans(),
                 ]);
 
             $battleLog = collect([...$recentPomodoros, ...$recentMissions, ...$recentHabits, ...$recentJournals])
-                ->take(8)
+                ->sortByDesc('raw_date')
+                ->take(10)
                 ->values()
                 ->toArray();
         }

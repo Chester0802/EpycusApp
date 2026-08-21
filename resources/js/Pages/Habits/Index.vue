@@ -312,17 +312,27 @@ function isCompleted(habit, dateStr) {
     return habit.completed_dates?.includes(dateStr);
 }
 
-function isBeforeCreation(habit, dateStr) {
-    return !habit.created_at || dateStr < habit.created_at;
+function isFutureDate(dateStr) {
+    return dateStr > props.todayDate;
 }
 
 function heatmapColor(habit, dateStr) {
-    if (isCompleted(habit, dateStr)) return 'bg-primary text-on-primary font-bold';
-    if (isBeforeCreation(habit, dateStr)) return 'bg-surface opacity-30 text-content-muted';
+    const isTargetToday = dateStr === props.todayDate;
+    if (isCompleted(habit, dateStr)) {
+        return 'bg-emerald-500 text-white font-bold shadow-xs ring-1 ring-emerald-400/50 hover:brightness-110';
+    }
+    if (isBeforeCreation(habit, dateStr)) {
+        return 'bg-surface-sunken/40 text-content-muted/40 border border-border-interactive/20 cursor-default';
+    }
     const d = new Date(dateStr);
     const today = new Date(props.todayDate);
-    if (d > today) return 'bg-surface text-content-muted';
-    return 'bg-surface-sunken text-content-secondary';
+    if (d > today) {
+        return 'bg-surface-raised/40 text-content-muted/60 border border-dashed border-border-interactive/30 cursor-default';
+    }
+    if (isTargetToday) {
+        return 'bg-primary-strong/20 text-primary-strong border-2 border-primary-strong font-bold hover:bg-primary-strong/30';
+    }
+    return 'bg-surface-raised/80 text-content-secondary border border-border-interactive/50 hover:border-primary-strong hover:bg-surface-raised';
 }
 
 function completionRate(habit) {
@@ -787,34 +797,51 @@ const triggerXpToast = (msg) => {
 
                         <!-- VISTA 2: Heatmap Mensual Completo -->
                         <div v-else class="mt-3.5 pt-3 border-t border-border-interactive/40">
-                            <p class="mb-1 text-[11px] font-semibold text-content-secondary">
-                                {{ currentMonthLabel }}
-                            </p>
-                            <div class="grid grid-cols-7 gap-[3px]">
-                                <div
-                                    v-for="(name, idx) in dayNames"
-                                    :key="'h' + idx"
-                                    class="text-center text-[9px] font-semibold text-content-muted"
-                                >
-                                    {{ name.charAt(0) }}
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-xs font-bold text-content-primary flex items-center gap-1.5">
+                                    <AppIcon name="calendar-days" :size="13" class="text-primary-strong" />
+                                    <span>{{ currentMonthLabel }}</span>
+                                </p>
+                                <div class="flex items-center gap-3 text-[11px] text-content-secondary font-medium">
+                                    <span class="flex items-center gap-1">
+                                        <span class="inline-block w-2.5 h-2.5 rounded-xs bg-emerald-500 shadow-2xs"></span>
+                                        Cumplido
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <span class="inline-block w-2.5 h-2.5 rounded-xs bg-surface-raised border border-border-interactive/60"></span>
+                                        Pendiente
+                                    </span>
                                 </div>
-                                <template v-for="(week, wi) in monthGrid" :key="'w' + wi">
+                            </div>
+
+                            <div class="rounded-2xl bg-surface-sunken/80 border border-border-interactive/60 p-3 sm:p-4 backdrop-blur-md">
+                                <div class="grid grid-cols-7 gap-1 sm:gap-1.5">
                                     <div
-                                        v-for="(cell, ci) in week"
-                                        :key="'d' + wi + '-' + ci"
-                                        class="flex h-5 items-center justify-center rounded-[3px] text-[10px] font-medium leading-none transition-colors"
-                                        :class="cell ? heatmapColor(habit, cell.date) : 'opacity-0'"
-                                        :title="
-                                            cell
-                                                ? `${cell.date}: ${isCompleted(habit, cell.date) ? '✅ Completado' : isBeforeCreation(habit, cell.date) ? '— No existía' : '❌ Pendiente'}`
-                                                : ''
-                                        "
+                                        v-for="(name, idx) in dayNames"
+                                        :key="'h' + idx"
+                                        class="text-center text-[10px] font-bold text-content-primary py-1 uppercase tracking-wider"
                                     >
-                                        <span v-if="cell && isCompleted(habit, cell.date)">✓</span>
-                                        <span v-else-if="cell && isBeforeCreation(habit, cell.date)">·</span>
-                                        <span v-else-if="cell">{{ cell.day }}</span>
+                                        {{ name }}
                                     </div>
-                                </template>
+                                    <template v-for="(week, wi) in monthGrid" :key="'w' + wi">
+                                        <div
+                                            v-for="(cell, ci) in week"
+                                            :key="'d' + wi + '-' + ci"
+                                            class="flex h-7 sm:h-8 items-center justify-center rounded-lg text-xs font-semibold leading-none transition-all select-none cursor-pointer shadow-2xs"
+                                            :class="cell ? heatmapColor(habit, cell.date) : 'opacity-0 pointer-events-none'"
+                                            :title="
+                                                cell
+                                                    ? `${cell.date}: ${isCompleted(habit, cell.date) ? '✅ Completado' : isBeforeCreation(habit, cell.date) ? '— No existía' : '❌ Pendiente'}`
+                                                    : ''
+                                            "
+                                            @click="cell && !isFutureDate(cell.date) && toggleHabitForDate(habit, cell.date)"
+                                        >
+                                            <span v-if="cell && isCompleted(habit, cell.date)" class="text-sm font-bold">✓</span>
+                                            <span v-else-if="cell && isBeforeCreation(habit, cell.date)" class="opacity-40">·</span>
+                                            <span v-else-if="cell">{{ cell.day }}</span>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
                         </div>
                     </BaseCard>

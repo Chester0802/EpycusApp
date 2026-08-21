@@ -683,14 +683,18 @@
      * pasarse ese límite con tarjetas secundarias.
      */
     [data-surface='glass'] .panel-raised {
-        background-color: color-mix(in oklch, var(--color-surface) 20%, transparent);
-        backdrop-filter: blur(2px) saturate(1.05);
-        -webkit-backdrop-filter: blur(2px) saturate(1.05);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 10%, transparent);
+        background-color: color-mix(in oklch, var(--color-surface) 78%, transparent);
+        backdrop-filter: blur(16px) saturate(1.2);
+        -webkit-backdrop-filter: blur(16px) saturate(1.2);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 40%, transparent);
         box-shadow: var(--shadow-md);
     }
 
     [data-theme='dark'][data-surface='glass'] .panel-raised {
+        background-color: color-mix(in oklch, var(--color-surface) 82%, transparent);
+        backdrop-filter: blur(18px) saturate(1.25);
+        -webkit-backdrop-filter: blur(18px) saturate(1.25);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 50%, transparent);
         box-shadow:
             var(--shadow-md),
             0 0 0 1px color-mix(in oklch, var(--color-primary) 30%, transparent);
@@ -698,21 +702,6 @@
 
     /*
      * .panel-nav: barra lateral y barra inferior de navegación.
-     *
-     * En neumorfismo necesita la misma solidez que cualquier panel — sin
-     * eso la barra lateral (que nunca tuvo superficie propia) se volvía
-     * invisible (reporte del usuario, primera vuelta de esta corrección).
-     *
-     * En vidrio la historia es otra: desde que ese modo quedó fijo en
-     * oscuro (ver useTheme.js, `applySurface` — vidrio ya no ofrece
-     * claro/oscuro), ya no hace falta compensar el caso "tema claro sobre
-     * foto oscura" que motivó subir la opacidad a 94% en la primera
-     * vuelta. El usuario mandó una referencia visual donde la barra va
-     * casi transparente sobre el fondo, con el ítem activo destacado por
-     * su propio `bg-primary` (ya existe en AppLayout.vue) y no por un
-     * panel sólido detrás. 35% mantiene un mínimo de separación (el texto
-     * inactivo, en `text-content-secondary`, todavía necesita algo de
-     * apoyo) sin tapar la foto como antes.
      */
     .panel-nav {
         background-color: var(--color-surface);
@@ -726,10 +715,10 @@
     }
 
     [data-surface='glass'] .panel-nav {
-        background-color: color-mix(in oklch, var(--color-surface) 20%, transparent);
-        backdrop-filter: blur(5px) saturate(1.05);
-        -webkit-backdrop-filter: blur(5px) saturate(1.05);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 20%, transparent);
+        background-color: color-mix(in oklch, var(--color-surface) 80%, transparent);
+        backdrop-filter: blur(18px) saturate(1.2);
+        -webkit-backdrop-filter: blur(18px) saturate(1.2);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 40%, transparent);
     }
 
     /*
