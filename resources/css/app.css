@@ -683,21 +683,21 @@
      * pasarse ese límite con tarjetas secundarias.
      */
     [data-surface='glass'] .panel-raised {
-        background-color: color-mix(in oklch, var(--color-surface) 78%, transparent);
-        backdrop-filter: blur(16px) saturate(1.2);
-        -webkit-backdrop-filter: blur(16px) saturate(1.2);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 40%, transparent);
+        background-color: color-mix(in oklch, var(--color-surface) 28%, transparent);
+        backdrop-filter: blur(12px) saturate(1.2);
+        -webkit-backdrop-filter: blur(12px) saturate(1.2);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 25%, transparent);
         box-shadow: var(--shadow-md);
     }
 
     [data-theme='dark'][data-surface='glass'] .panel-raised {
-        background-color: color-mix(in oklch, var(--color-surface) 82%, transparent);
-        backdrop-filter: blur(18px) saturate(1.25);
-        -webkit-backdrop-filter: blur(18px) saturate(1.25);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 50%, transparent);
+        background-color: color-mix(in oklch, var(--color-surface) 35%, transparent);
+        backdrop-filter: blur(14px) saturate(1.25);
+        -webkit-backdrop-filter: blur(14px) saturate(1.25);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 30%, transparent);
         box-shadow:
             var(--shadow-md),
-            0 0 0 1px color-mix(in oklch, var(--color-primary) 30%, transparent);
+            0 0 0 1px color-mix(in oklch, var(--color-primary) 20%, transparent);
     }
 
     /*
@@ -715,10 +715,10 @@
     }
 
     [data-surface='glass'] .panel-nav {
-        background-color: color-mix(in oklch, var(--color-surface) 80%, transparent);
-        backdrop-filter: blur(18px) saturate(1.2);
-        -webkit-backdrop-filter: blur(18px) saturate(1.2);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 40%, transparent);
+        background-color: color-mix(in oklch, var(--color-surface) 30%, transparent);
+        backdrop-filter: blur(14px) saturate(1.2);
+        -webkit-backdrop-filter: blur(14px) saturate(1.2);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 25%, transparent);
     }
 
     /*
@@ -774,18 +774,15 @@
     }
 
     /*
-     * Vidrio + tema claro: en imágenes claras o con zonas blancas, los paneles
-     * translúcidos mantenían apenas un 12% de opacidad, lo que hacía que las letras y
-     * botones se perdieran con el fondo. Se eleva la opacidad a 88% con blur de 16px
-     * y un velo de contraste sobre el fondo para garantizar lectura nítida.
+     * Vidrio + tema claro: paneles translúcidos de vidrio elegante.
      */
     [data-theme='light'][data-surface='glass'] .panel-raised,
     [data-theme='light'][data-surface='glass'] .panel-nav {
-        background-color: color-mix(in oklch, var(--color-surface) 88%, transparent);
-        backdrop-filter: blur(16px) saturate(1.15);
-        -webkit-backdrop-filter: blur(16px) saturate(1.15);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 35%, transparent);
-        box-shadow: 0 6px 24px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        background-color: color-mix(in oklch, var(--color-surface) 35%, transparent);
+        backdrop-filter: blur(14px) saturate(1.2);
+        -webkit-backdrop-filter: blur(14px) saturate(1.2);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 25%, transparent);
+        box-shadow: 0 8px 32px color-mix(in oklch, var(--color-content-primary) 12%, transparent);
         color: var(--color-content-primary);
     }
 

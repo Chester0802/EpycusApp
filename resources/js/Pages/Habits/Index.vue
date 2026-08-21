@@ -312,6 +312,11 @@ function isCompleted(habit, dateStr) {
     return habit.completed_dates?.includes(dateStr);
 }
 
+function isBeforeCreation(habit, dateStr) {
+    if (!habit || !habit.created_at) return false;
+    return dateStr < habit.created_at.slice(0, 10);
+}
+
 function isFutureDate(dateStr) {
     return dateStr > props.todayDate;
 }
@@ -644,7 +649,7 @@ const triggerXpToast = (msg) => {
                         v-for="habit in filteredHabits"
                         :key="habit.id"
                         class="p-4 transition-all duration-200 hover:border-primary-strong/30"
-                        :class="habit.is_completed_today ? 'bg-surface-raised/70' : 'bg-surface'"
+                        :class="{ 'opacity-90 ring-1 ring-success/30': habit.is_completed_today }"
                     >
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex items-start gap-3.5 min-w-0 flex-1">
