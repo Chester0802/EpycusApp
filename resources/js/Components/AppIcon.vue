@@ -82,6 +82,7 @@ import {
     Send,
     RefreshCw,
     AlertTriangle,
+    Bot,
 } from '@lucide/vue';
 
 defineProps({
@@ -164,6 +165,10 @@ const iconMap = {
     'refresh-cw': RefreshCw,
     'alert-triangle': AlertTriangle,
     mail: MessageSquare,
+    bot: Bot,
+    robot: Bot,
+    ai: Bot,
+    'edy-ai': Bot,
 };
 </script>
 

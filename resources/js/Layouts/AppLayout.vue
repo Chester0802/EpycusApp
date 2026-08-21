@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { Link, router, usePage } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import NavIcon from '@/Components/NavIcon.vue';
@@ -97,7 +97,7 @@ const mainNavItems = [
 ];
 
 const secondaryNavItems = [
-    { label: 'Asistente IA', routeName: 'ai-assistant.index', icon: 'ai' },
+    { label: 'Edy AI', routeName: 'ai-assistant.index', icon: 'ai' },
     { label: 'Ranking', routeName: 'ranking.index', icon: 'ranking' },
     { label: 'Logros', routeName: 'achievements.index', icon: 'achievements' },
     { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
@@ -113,7 +113,7 @@ const navItems = [
     { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
     { label: 'Ranking', routeName: 'ranking.index', icon: 'ranking' },
     { label: 'Logros', routeName: 'achievements.index', icon: 'achievements' },
-    { label: 'Asistente IA', routeName: 'ai-assistant.index', icon: 'ai' },
+    { label: 'Edy AI', routeName: 'ai-assistant.index', icon: 'ai' },
     { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
     { label: 'Bienestar', routeName: 'wellbeing.index', icon: 'wellbeing' },
     { label: 'Villanos', routeName: 'villains.index', icon: 'villains' },
@@ -194,7 +194,7 @@ const showEpaModal = computed(() => {
         <!-- Barra lateral — solo escritorio -->
         <aside class="panel-nav relative z-10 hidden w-[260px] shrink-0 lg:flex lg:flex-col">
             <div class="flex h-16 items-center justify-between gap-2 px-6">
-                <button type="button" @click="navigate('dashboard')" class="flex items-center gap-2 cursor-pointer">
+                <button type="button" class="flex items-center gap-2 cursor-pointer" @click="navigate('dashboard')">
                     <span
                         class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-strong p-1"
                     >
@@ -279,7 +279,7 @@ const showEpaModal = computed(() => {
             <header
                 class="panel-nav relative z-10 flex h-16 items-center justify-between px-4 lg:hidden"
             >
-                <button type="button" @click="navigate('dashboard')" class="flex items-center gap-2 cursor-pointer">
+                <button type="button" class="flex items-center gap-2 cursor-pointer" @click="navigate('dashboard')">
                     <span
                         class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-strong p-1"
                     >

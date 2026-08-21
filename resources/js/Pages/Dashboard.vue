@@ -7,7 +7,6 @@ import BaseButton from '@/Components/ui/BaseButton.vue';
 import ProgressBar from '@/Components/ui/ProgressBar.vue';
 import UsageTipBanner from '@/Components/ui/UsageTipBanner.vue';
 import AppIcon from '@/Components/AppIcon.vue';
-import ProceduralAvatar from '@/Components/ProceduralAvatar.vue';
 import StudentIdCard from '@/Components/ui/StudentIdCard.vue';
 
 import DonutChart from '@/Components/ui/DonutChart.vue';
@@ -80,10 +79,10 @@ function habitsBarHeight(count) {
             >
                 <template #actions>
                     <div class="flex flex-wrap gap-3 sm:flex-col sm:items-end">
-                        <BaseButton variant="primary" size="sm" @click="router.visit(route('pomodoro.index'))">
+                        <BaseButton :href="route('pomodoro.index')" variant="primary" size="sm">
                             <AppIcon name="timer" :size="14" class="mr-1" /> Iniciar Pomodoro
                         </BaseButton>
-                        <BaseButton variant="secondary" size="sm" @click="router.visit(route('habits.index'))">
+                        <BaseButton :href="route('habits.index')" variant="secondary" size="sm">
                             <AppIcon name="check-circle" :size="14" class="mr-1" /> Mis Hábitos
                         </BaseButton>
                     </div>
@@ -300,10 +299,10 @@ function habitsBarHeight(count) {
                     </div>
 
                     <BaseButton
+                        :href="route('wellbeing.index')"
                         class="w-full flex items-center justify-center gap-1.5"
                         variant="ghost"
                         size="sm"
-                        @click="router.visit(route('wellbeing.index'))"
                     >
                         <AppIcon name="heart" :size="14" class="text-danger" />
                         Ir al módulo Bienestar
@@ -482,10 +481,10 @@ function habitsBarHeight(count) {
                     </div>
 
                     <BaseButton
+                        :href="route('villains.index')"
                         class="w-full flex items-center justify-center gap-1"
                         variant="ghost"
                         size="sm"
-                        @click="router.visit(route('villains.index'))"
                     >
                         Ver Villano Completo <AppIcon name="arrow-right" :size="14" />
                     </BaseButton>
@@ -494,13 +493,12 @@ function habitsBarHeight(count) {
 
             <!-- Accesos Rápidos a Módulos Clave -->
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <button
-                    type="button"
-                    class="text-left w-full cursor-pointer"
-                    @click="router.visit(route('ranking.index'))"
+                <Link
+                    :href="route('ranking.index')"
+                    class="block text-left w-full cursor-pointer transition-transform hover:scale-[1.02] focus:outline-none"
                 >
                     <BaseCard
-                        class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]"
+                        class="p-4 flex items-center gap-3 h-full"
                     >
                         <AppIcon name="trophy" :size="24" class="text-warning shrink-0" />
                         <div>
@@ -508,15 +506,14 @@ function habitsBarHeight(count) {
                             <p class="text-xs text-content-muted">Tabla de posiciones</p>
                         </div>
                     </BaseCard>
-                </button>
+                </Link>
 
-                <button
-                    type="button"
-                    class="text-left w-full cursor-pointer"
-                    @click="router.visit(route('calendar.index'))"
+                <Link
+                    :href="route('calendar.index')"
+                    class="block text-left w-full cursor-pointer transition-transform hover:scale-[1.02] focus:outline-none"
                 >
                     <BaseCard
-                        class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]"
+                        class="p-4 flex items-center gap-3 h-full"
                     >
                         <AppIcon name="calendar" :size="24" class="text-primary-strong shrink-0" />
                         <div>
@@ -524,15 +521,14 @@ function habitsBarHeight(count) {
                             <p class="text-xs text-content-muted">Feriados y exámenes</p>
                         </div>
                     </BaseCard>
-                </button>
+                </Link>
 
-                <button
-                    type="button"
-                    class="text-left w-full cursor-pointer"
-                    @click="router.visit(route('wellbeing.index'))"
+                <Link
+                    :href="route('wellbeing.index')"
+                    class="block text-left w-full cursor-pointer transition-transform hover:scale-[1.02] focus:outline-none"
                 >
                     <BaseCard
-                        class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]"
+                        class="p-4 flex items-center gap-3 h-full"
                     >
                         <AppIcon name="heart" :size="24" class="text-danger shrink-0" />
                         <div>
@@ -540,15 +536,14 @@ function habitsBarHeight(count) {
                             <p class="text-xs text-content-muted">Diario y ánimo</p>
                         </div>
                     </BaseCard>
-                </button>
+                </Link>
 
-                <button
-                    type="button"
-                    class="text-left w-full cursor-pointer"
-                    @click="router.visit(route('study-groups.index'))"
+                <Link
+                    :href="route('study-groups.index')"
+                    class="block text-left w-full cursor-pointer transition-transform hover:scale-[1.02] focus:outline-none"
                 >
                     <BaseCard
-                        class="p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]"
+                        class="p-4 flex items-center gap-3 h-full"
                     >
                         <AppIcon name="users" :size="24" class="text-secondary shrink-0" />
                         <div>
@@ -556,7 +551,7 @@ function habitsBarHeight(count) {
                             <p class="text-xs text-content-muted">Salas de estudio</p>
                         </div>
                     </BaseCard>
-                </button>
+                </Link>
             </div>
         </div>
     </AppLayout>

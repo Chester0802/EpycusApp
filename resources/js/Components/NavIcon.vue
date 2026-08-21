@@ -64,9 +64,13 @@ defineProps({
             <path d="M2.5 19c.8-1.8 2.5-3 4.8-3" />
             <path d="M21.5 19c-.8-1.8-2.5-3-4.8-3" />
         </template>
-        <template v-else-if="name === 'ai'">
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-            <circle cx="12" cy="12" r="4" />
+        <template v-else-if="name === 'ai' || name === 'bot' || name === 'robot' || name === 'edy-ai'">
+            <rect width="18" height="12" x="3" y="6" rx="2" />
+            <path d="M12 2v4" />
+            <path d="M2 14h2" />
+            <path d="M20 14h2" />
+            <path d="M15 13v2" />
+            <path d="M9 13v2" />
         </template>
         <template v-else-if="name === 'ranking'">
             <path d="M6 9v11M12 4v16M18 13v7" />
