@@ -35,3 +35,7 @@ docs/14-CREDENCIAIS-PRODUCCION.md
 playwright.config.ts
 pnpm-lock.yaml
 pnpm-workspace.yaml
+/pc_*.png
+/build.zip
+/screenshots.zip
+

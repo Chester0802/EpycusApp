@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
 import AppIcon from '@/Components/AppIcon.vue';
@@ -27,7 +27,9 @@ function toggleTheme() {
         }
         try {
             localStorage.setItem('epycus.theme', theme);
-        } catch {}
+        } catch {
+            // Ignorar errores de almacenamiento local
+        }
     }
 }
 
@@ -46,6 +48,13 @@ onMounted(() => {
         } else {
             document.documentElement.classList.remove('dark');
         }
+        window.addEventListener('keydown', handleKeyDown);
+    }
+});
+
+onUnmounted(() => {
+    if (typeof window !== 'undefined') {
+        window.removeEventListener('keydown', handleKeyDown);
     }
 });
 
@@ -178,7 +187,7 @@ async function sendFeedback() {
         setTimeout(() => {
             feedbackSuccess.value = false;
         }, 10000);
-    } catch (err) {
+    } catch {
         feedbackError.value = 'No se pudo enviar el mensaje en este momento. Puedes escribirnos directamente a contacto@soltectos.com';
     } finally {
         feedbackSubmitting.value = false;
@@ -359,6 +368,293 @@ const faqs = [
         a: 'No. El acceso a todas las herramientas de productividad de Epycus es 100% gratuito para los estudiantes universitarios y de institutos.',
     },
 ];
+
+// ── Catálogo de Módulos del Sistema y Capturas de Pantalla ──────────────────
+const activeModuleFilter = ref('all');
+
+const moduleCategories = [
+    { id: 'all', label: 'Todos los Módulos', count: 16, icon: 'layout-grid' },
+    { id: 'productivity', label: 'Productividad', count: 5, icon: 'zap' },
+    { id: 'organization', label: 'Organización', count: 2, icon: 'calendar' },
+    { id: 'gamification', label: 'Gamificación', count: 5, icon: 'trophy' },
+    { id: 'wellbeing', label: 'Bienestar', count: 2, icon: 'heart' },
+    { id: 'social', label: 'Social & Ajustes', count: 2, icon: 'users' },
+];
+
+const systemModules = [
+    {
+        id: 'dashboard',
+        name: 'Dashboard & Panel Principal',
+        category: 'productivity',
+        categoryLabel: 'Productividad',
+        badgeColor: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
+        image: '/assets/screenshots/pc_dashboard.png',
+        icon: 'bar-chart',
+        screenReaderTitle: 'Captura de pantalla del módulo Dashboard Principal de Epycus',
+        screenReaderDesc: 'Panel central que muestra el nivel del estudiante, racha de estudio diaria, monedas acumuladas, barra de experiencia XP, atajos a módulos y resumen de misiones del ciclo.',
+        tagline: 'Centro de Mando del Estudiante',
+        description: 'Visualiza tus métricas clave de un vistazo: experiencia (XP), nivel actual, racha de días de estudio, misiones del día y accesos directos a todas tus herramientas de productividad universitaria.',
+        features: ['Resumen de XP y Nivel', 'Contador de Racha Activa', 'Accesos Rápidos Personalizables'],
+    },
+    {
+        id: 'pomodoro',
+        name: 'Temporizador Pomodoro & YouTube',
+        category: 'productivity',
+        categoryLabel: 'Productividad',
+        badgeColor: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+        image: '/assets/screenshots/pc_pomodoro.png',
+        icon: 'timer',
+        screenReaderTitle: 'Captura de pantalla del módulo Temporizador Pomodoro de Epycus',
+        screenReaderDesc: 'Interfaz del temporizador de estudio con tiempos de trabajo y descanso, reproductor embebido de música Lo-Fi de YouTube y ganancia de 15 XP por sesión completada.',
+        tagline: 'Sesiones de Foco Ininterrumpido',
+        description: 'Combina intervalos de concentración de 25 minutos con tus pistas de música Lo-Fi favoritas de YouTube. Validación de minutos en servidor para que cada minuto de estudio cuente.',
+        features: ['Música Lo-Fi de YouTube', 'Validación de Tiempo Real', '+15 XP por Bloque'],
+    },
+    {
+        id: 'misiones_kanban',
+        name: 'Misiones en Tablero Kanban',
+        category: 'productivity',
+        categoryLabel: 'Productividad',
+        badgeColor: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
+        image: '/assets/screenshots/pc_misiones_kanban.png',
+        icon: 'clipboard',
+        screenReaderTitle: 'Captura de pantalla del Tablero Kanban de Misiones de Epycus',
+        screenReaderDesc: 'Vista visual de gestión de tareas dividida en tres columnas: Pendiente, En Progreso y Completada, con tarjetas de tareas y progreso de subtareas.',
+        tagline: 'Flujo Visual de Tareas y Entregas',
+        description: 'Organiza tus proyectos y trabajos académicos con columnas de estado dinámicas. Descompón tareas grandes en micro-pasos de 20 minutos con avance automático de estado.',
+        features: ['Columnas Pendiente / Progreso / Hecho', 'Subtareas de 20 minutos', 'Recompensas de XP al completar'],
+    },
+    {
+        id: 'misiones_eisenhower',
+        name: 'Matriz Eisenhower de Prioridades',
+        category: 'productivity',
+        categoryLabel: 'Productividad',
+        badgeColor: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+        image: '/assets/screenshots/pc_misiones_eisenhower.png',
+        icon: 'target',
+        screenReaderTitle: 'Captura de pantalla de la Matriz Eisenhower de Priorización de Epycus',
+        screenReaderDesc: 'Cuadrante de cuatro zonas para clasificar tareas: Hacer Primero (Urgente e Importante), Programar (Importante pero no Urgente), Delegar y Eliminar.',
+        tagline: 'Priorización Estratégica en 4 Cuadrantes',
+        description: 'Distingue de inmediato lo urgente de lo verdaderamente importante en tu ciclo. Evita el estrés de última hora clasificando tus exámenes, proyectos y lecturas con criterio.',
+        features: ['4 Cuadrantes de Impacto', 'Filtro por Curso', 'Visión Antiestrés'],
+    },
+    {
+        id: 'edy_ai',
+        name: 'Tutor IA Edy — Asistente de Estudio',
+        category: 'productivity',
+        categoryLabel: 'Productividad',
+        badgeColor: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+        image: '/assets/screenshots/pc_edyAi.png',
+        icon: 'brain',
+        screenReaderTitle: 'Captura de pantalla del Asistente Virtual Inteligente Edy IA de Epycus',
+        screenReaderDesc: 'Ventana de conversación con el tutor inteligente Edy, ofreciendo recomendaciones académicas personalizadas, técnicas de estudio y apoyo contra la procrastinación.',
+        tagline: 'Inteligencia Artificial Adaptada al Universitario',
+        description: 'Tu compañero de estudio 24/7. Pídele ideas para iniciar una monografía, técnicas de memorización para exámenes difíciles o pautas para organizar tu semana de entregas.',
+        features: ['5 Consultas Diarias Sin Costo', 'Guía Pedagógica', 'Especializado en Universitarios'],
+    },
+    {
+        id: 'calendario',
+        name: 'Calendario Académico & Horarios',
+        category: 'organization',
+        categoryLabel: 'Organización',
+        badgeColor: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+        image: '/assets/screenshots/pc_calendario.png',
+        icon: 'calendar',
+        screenReaderTitle: 'Captura de pantalla del Calendario Académico y Horario Semanal de Epycus',
+        screenReaderDesc: 'Agenda de horarios de clase semanales de lunes a domingo con código de colores por asignatura, aulas asignadas y feriados oficiales peruanos.',
+        tagline: 'Planificación Semanal de Asignaturas',
+        description: 'Controla tu horario semanal de clases de Lunes a Domingo con aulas y docentes asignados, además de los 16 feriados oficiales por ley de Perú (2025–2028).',
+        features: ['Horarios Lunes a Domingo', 'Feriados Oficiales Perú', 'Aulas y Bloques de Clase'],
+    },
+    {
+        id: 'apuntes',
+        name: 'Cursos & Bloc de Apuntes',
+        category: 'organization',
+        categoryLabel: 'Organización',
+        badgeColor: 'bg-teal-500/15 text-teal-400 border-teal-500/30',
+        image: '/assets/screenshots/pc_apuntes.png',
+        icon: 'book-open',
+        screenReaderTitle: 'Captura de pantalla del Bloc de Apuntes y Cursos de Epycus',
+        screenReaderDesc: 'Editor de notas de clase con listado de cursos, apuntes organizados por fecha y soporte para adjuntar imágenes de pizarras y diapositivas.',
+        tagline: 'Notas Rápidas y Fotos de Pizarras',
+        description: 'Lleva tus apuntes de clase organizados por asignatura. Adjunta capturas de diapositivas o pizarras para repasar antes de tus exámenes parciales y finales.',
+        features: ['Organización por Asignatura', 'Adjuntos de Imágenes y Fotos', 'Búsqueda Rápida de Temas'],
+    },
+    {
+        id: 'habitos',
+        name: 'Hábitos Diarios & Rachas',
+        category: 'gamification',
+        categoryLabel: 'Gamificación',
+        badgeColor: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+        image: '/assets/screenshots/pc_habitos.png',
+        icon: 'flame',
+        screenReaderTitle: 'Captura de pantalla del Módulo de Hábitos Diarios y Rachas de Epycus',
+        screenReaderDesc: 'Lista de hábitos de estudio y autocuidado con casillas interactivas, contador de racha de días consecutivos y activación de confeti sonoro.',
+        tagline: 'Consistencia y Días de Gracia',
+        description: 'Construye rutinas de estudio duraderas con el reto científico de los 66 días. Incluye días de gracia automáticos para proteger tu racha y multiplicador de hasta +50% XP.',
+        features: ['Feedback Sonoro y Confeti', 'Días de Gracia de Racha', 'Multiplicador de Experiencia'],
+    },
+    {
+        id: 'villanos',
+        name: 'Batallas Semanales vs Villanos',
+        category: 'gamification',
+        categoryLabel: 'Gamificación',
+        badgeColor: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+        image: '/assets/screenshots/pc_villanos.png',
+        icon: 'swords',
+        screenReaderTitle: 'Captura de pantalla de la Batalla contra Villanos de la Procrastinación en Epycus',
+        screenReaderDesc: 'Arena de combate semanal mostrando al villano activo (como La Postergación o La Distracción), barra de vida restante e historial de daño infligido.',
+        tagline: 'Gamificación Cognitiva contra la Procrastinación',
+        description: 'Enfrenta a 5 jefes temáticos semanales. Cada pomodoro, hábito y reflexión de tu diario le inflige daño directo hasta derrotarlo antes del domingo.',
+        features: ['5 Jefes Semanales', 'Daño por Acciones Reales', 'Recompensas de Monedas y XP'],
+    },
+    {
+        id: 'ranking',
+        name: 'Ranking & Clasificación',
+        category: 'gamification',
+        categoryLabel: 'Gamificación',
+        badgeColor: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+        image: '/assets/screenshots/pc_ranking.png',
+        icon: 'trophy',
+        screenReaderTitle: 'Captura de pantalla del Ranking y Tabla de Posiciones Académicas de Epycus',
+        screenReaderDesc: 'Tabla de clasificación académica que muestra a los estudiantes universitarios con mayor puntuación de experiencia, nivel y constancia del ciclo.',
+        tagline: 'Motivación Competitiva y Reconocimiento',
+        description: 'Compite sanamente en la tabla de clasificación semanal y general. Destaca tu constancia de estudio y posiciónate entre los mejores de tu universidad.',
+        features: ['Top Semanal y Global', 'Medallas de Posición', 'Filtrado por Rango'],
+    },
+    {
+        id: 'logros',
+        name: 'Logros & Medallas Desbloqueables',
+        category: 'gamification',
+        categoryLabel: 'Gamificación',
+        badgeColor: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
+        image: '/assets/screenshots/pc_logros.png',
+        icon: 'award',
+        screenReaderTitle: 'Captura de pantalla de la Galería de Logros y Medallas de Epycus',
+        screenReaderDesc: 'Muro de trofeos e insignias desbloqueables por metas cumplidas como racha de 30 días, 50 pomodoros o villanos vencidos.',
+        tagline: 'Hitos y Trofeos de Aprendizaje',
+        description: 'Desbloquea medallas por tus logros académicos: acumular horas de foco, mantener rachas consecutivas, derrotar jefes o explorar todas las herramientas.',
+        features: ['Insignias Progresivas', 'Recompensas de Monedas', 'Registro de Hitos Históricos'],
+    },
+    {
+        id: 'editaravatar',
+        name: 'Avatar & Credencial Estudiantil',
+        category: 'gamification',
+        categoryLabel: 'Gamificación',
+        badgeColor: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+        image: '/assets/screenshots/pc_editaravatar.png',
+        icon: 'palette',
+        screenReaderTitle: 'Captura de pantalla del Editor de Avatar y Credencial Digital en Epycus',
+        screenReaderDesc: 'Personalizador de personaje estilo Open Peeps con selección de atuendos, peinados, accesorios, marcos holográficos y credencial estudiantil.',
+        tagline: 'Identidad Académica Personalizada',
+        description: 'Crea tu avatar estilo Open Peeps, desbloquea 10 marcos evolutivos según tu constancia y exhibe tu credencial de estudiante con título según tu carrera universitaria.',
+        features: ['Estilo Open Peeps Ilustrado', '10 Marcos Evolutivos', 'Títulos Académicos por Carrera'],
+    },
+    {
+        id: 'diario',
+        name: 'Diario Emocional & Bienestar',
+        category: 'wellbeing',
+        categoryLabel: 'Bienestar',
+        badgeColor: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+        image: '/assets/screenshots/pc_diarioEmocional.png',
+        icon: 'heart',
+        screenReaderTitle: 'Captura de pantalla del Diario Emocional y de Bienestar en Epycus',
+        screenReaderDesc: 'Historial de notas reflexivas privadas del estudiante, registro de autoconocimiento y seguimiento de salud mental durante el semestre universitario.',
+        tagline: 'Bitácora Privada de Autorregulación',
+        description: 'Espacio íntimo y cifrado para desahogarte, reflexionar sobre la carga académica del ciclo y mantener un balance saludable entre estudio y bienestar personal.',
+        features: ['100% Privado y Seguro', 'Reduce el Estrés del Semestre', 'Daña al Villano de la Ansiedad'],
+    },
+    {
+        id: 'emocion',
+        name: 'Registro de Estado de Ánimo',
+        category: 'wellbeing',
+        categoryLabel: 'Bienestar',
+        badgeColor: 'bg-pink-500/15 text-pink-400 border-pink-500/30',
+        image: '/assets/screenshots/pc_registrar_emocion.png',
+        icon: 'smile',
+        screenReaderTitle: 'Captura de pantalla del Registro Diario de Estado de Ánimo en Epycus',
+        screenReaderDesc: 'Modal interactivo con escala visual de emociones para seleccionar cómo se siente el estudiante (motivado, tranquilo, cansado, ansioso) antes de estudiar.',
+        tagline: 'Check-in Emocional en 10 Segundos',
+        description: 'Monitorea cómo fluctúa tu motivación y energía a lo largo de las semanas de clases para detectar a tiempo momentos de sobrecarga o fatiga mental.',
+        features: ['Check-in Rápido con 1 Clic', 'Seguimiento de Tendencias', 'Consejos Pedagógicos'],
+    },
+    {
+        id: 'grupos',
+        name: 'Salas de Estudio Grupal',
+        category: 'social',
+        categoryLabel: 'Social & Ajustes',
+        badgeColor: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
+        image: '/assets/screenshots/pc_grupoestudio.png',
+        icon: 'users',
+        screenReaderTitle: 'Captura de pantalla de las Salas de Estudio Grupal en Epycus',
+        screenReaderDesc: 'Espacio colaborativo donde varios compañeros universitarios se unen a una sala virtual con temporizador Pomodoro compartido y chat en directo.',
+        tagline: 'Estudia Acompañado en Tiempo Real',
+        description: 'Crea salas de estudio con tus compañeros de clase. Compartan un temporizador Pomodoro sincronizado para motivarse mutuamente y evitar distracciones.',
+        features: ['Pomodoro Grupal Sincronizado', 'Chat de Sala en Vivo', 'Estudio Colaborativo'],
+    },
+    {
+        id: 'ajustes',
+        name: 'Configuración & Preferencias',
+        category: 'social',
+        categoryLabel: 'Social & Ajustes',
+        badgeColor: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+        image: '/assets/screenshots/pc_ajustes.png',
+        icon: 'settings',
+        screenReaderTitle: 'Captura de pantalla del Panel de Ajustes y Configuración de Epycus',
+        screenReaderDesc: 'Pantalla de configuración del sistema donde se administran opciones de notificaciones, sonidos de recompensa, carrera universitaria y privacidad.',
+        tagline: 'Personalización Completa de tu Entorno',
+        description: 'Configura tus preferencias de sonido, alertas, carrera universitaria, políticas de privacidad y gestiona tu cuenta de manera sencilla.',
+        features: ['Control de Audio y Efectos', 'Cambio de Especialidad', 'Privacidad y Seguridad Ley 29733'],
+    },
+];
+
+const filteredModules = computed(() => {
+    if (activeModuleFilter.value === 'all') {
+        return systemModules;
+    }
+    return systemModules.filter((m) => m.category === activeModuleFilter.value);
+});
+
+// Modal / Lightbox de Capturas en Pantalla Completa
+const selectedScreenshot = ref(null);
+
+function openScreenshotModal(mod) {
+    selectedScreenshot.value = mod;
+    triggerHapticVibration([20, 30]);
+}
+
+function closeScreenshotModal() {
+    selectedScreenshot.value = null;
+}
+
+function nextScreenshot() {
+    if (!selectedScreenshot.value) return;
+    const currentList = filteredModules.value;
+    const currentIndex = currentList.findIndex((m) => m.id === selectedScreenshot.value.id);
+    if (currentIndex === -1) return;
+    const nextIndex = (currentIndex + 1) % currentList.length;
+    selectedScreenshot.value = currentList[nextIndex];
+}
+
+function prevScreenshot() {
+    if (!selectedScreenshot.value) return;
+    const currentList = filteredModules.value;
+    const currentIndex = currentList.findIndex((m) => m.id === selectedScreenshot.value.id);
+    if (currentIndex === -1) return;
+    const prevIndex = (currentIndex - 1 + currentList.length) % currentList.length;
+    selectedScreenshot.value = currentList[prevIndex];
+}
+
+function handleKeyDown(e) {
+    if (!selectedScreenshot.value) return;
+    if (e.key === 'Escape') {
+        closeScreenshotModal();
+    } else if (e.key === 'ArrowRight') {
+        nextScreenshot();
+    } else if (e.key === 'ArrowLeft') {
+        prevScreenshot();
+    }
+}
 </script>
 
 <template>
@@ -415,7 +711,7 @@ const faqs = [
                     class="hidden md:flex items-center gap-6 text-sm font-medium"
                     :class="isDark ? 'text-slate-300' : 'text-slate-600'"
                 >
-                    <a href="#herramientas" class="hover:text-indigo-500 transition-colors">Herramientas</a>
+                    <a href="#modulos" class="hover:text-indigo-500 transition-colors">Módulos</a>
                     <a href="#comparativa" class="hover:text-indigo-500 transition-colors">Comparativa</a>
                     <a href="#buzon" class="hover:text-indigo-500 transition-colors flex items-center gap-1 text-cyan-400 font-semibold">
                         <AppIcon name="mail" :size="14" />
@@ -950,87 +1246,280 @@ const faqs = [
                 </div>
             </section>
 
-            <!-- ── Sección: Herramientas del Estudiante ─────────────────── -->
+            <!-- ── Sección: Módulos y Herramientas del Sistema ────────────── -->
             <section
-                id="herramientas"
-                class="py-20 border-t px-4 sm:px-6 lg:px-8 transition-colors"
+                id="modulos"
+                class="py-20 lg:py-28 border-t px-4 sm:px-6 lg:px-8 transition-colors scroll-mt-20"
                 :class="isDark ? 'bg-[#0A0E17] border-white/[0.08]' : 'bg-slate-100/70 border-slate-200'"
+                aria-labelledby="modules-main-heading"
             >
                 <div class="max-w-7xl mx-auto">
-                    <div class="text-center max-w-2xl mx-auto mb-16">
-                        <h2 class="text-3xl sm:text-4xl font-black" :class="isDark ? 'text-white' : 'text-slate-900'">
-                            Todo lo que necesitas para tu <span class="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">Vida Universitaria</span>
+                    <!-- Encabezado de la Sección -->
+                    <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-4 backdrop-blur-md">
+                            <AppIcon name="layout-grid" :size="14" />
+                            <span>Módulos del Sistema Epycus</span>
+                        </div>
+
+                        <!-- Título visual principal y Título accesible para personas ciegas / lectores de pantalla -->
+                        <h2
+                            id="modules-main-heading"
+                            class="text-3xl sm:text-5xl font-black tracking-tight"
+                            :class="isDark ? 'text-white' : 'text-slate-900'"
+                        >
+                            Explora cada <span class="bg-gradient-to-r from-indigo-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent">Módulo y Espacio</span>
                         </h2>
-                        <p class="mt-4 text-sm sm:text-base" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-                            Un ecosistema diseñado para adaptarse a tus exigencias de ciclo, exámenes y proyectos.
+
+                        <!-- Título explícito y descripción accesible para personas con discapacidad visual y lectores de pantalla (NVDA, JAWS, VoiceOver) -->
+                        <div class="sr-only">
+                            <h2>Título para ciegos y lectores de pantalla: Catálogo de las 16 herramientas y capturas del sistema Epycus</h2>
+                            <p>
+                                A continuación se detallan los 16 módulos de la plataforma académica Epycus. Cada módulo cuenta con su título descriptivo, captura de pantalla ilustrativa con texto alternativo detallado, lista de funcionalidades y la opción de abrir una vista previa ampliada accesible mediante teclado.
+                            </p>
+                        </div>
+
+                        <p class="mt-4 text-sm sm:text-base leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
+                            Descubre cómo funciona cada rincón de Epycus: desde la gestión de cursos y pomodoros hasta las batallas contra villanos y el diario emocional.
                         </p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Card 1 -->
-                        <div class="rounded-3xl border p-6 sm:p-8 hover:border-indigo-500/40 transition-all" :class="isDark ? 'bg-[#0E1322] border-white/[0.08]' : 'bg-white border-slate-200 shadow-sm'">
-                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6">
-                                <AppIcon name="timer" :size="24" />
+                    <!-- Filtros por Categoría de Módulos (Scrollable en móviles) -->
+                    <div
+                        role="tablist"
+                        aria-label="Filtrar módulos del sistema por categoría"
+                        class="flex items-center justify-start sm:justify-center gap-2 mb-10 overflow-x-auto pb-3 custom-scrollbar px-1"
+                    >
+                        <button
+                            v-for="cat in moduleCategories"
+                            :key="cat.id"
+                            type="button"
+                            role="tab"
+                            :aria-selected="activeModuleFilter === cat.id"
+                            :aria-label="`Filtrar por ${cat.label} (${cat.count} módulos)`"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 border cursor-pointer select-none"
+                            :class="activeModuleFilter === cat.id
+                                ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white border-transparent shadow-lg shadow-indigo-600/25 scale-[1.02]'
+                                : (isDark ? 'bg-[#0E1322] border-white/10 text-slate-300 hover:text-white hover:bg-white/[0.06]' : 'bg-white border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 shadow-sm')"
+                            @click="activeModuleFilter = cat.id; triggerHapticVibration([15]);"
+                        >
+                            <AppIcon :name="cat.icon" :size="14" />
+                            <span>{{ cat.label }}</span>
+                            <span
+                                class="px-1.5 py-0.5 rounded-full text-[10px] font-mono"
+                                :class="activeModuleFilter === cat.id ? 'bg-white/20 text-white' : (isDark ? 'bg-white/[0.08] text-slate-400' : 'bg-slate-100 text-slate-600')"
+                            >
+                                {{ cat.count }}
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Mensaje accesible para lectores de pantalla sobre el filtro activo -->
+                    <div class="sr-only" aria-live="polite">
+                        Mostrando {{ filteredModules.length }} módulos en la categoría seleccionada.
+                    </div>
+
+                    <!-- Grid Responsivo de Módulos (1 Col en móvil, 2 en tablet, 3 en laptop, 4 en pantallas grandes) -->
+                    <div
+                        id="modules-grid"
+                        role="region"
+                        aria-label="Listado de módulos de Epycus"
+                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    >
+                        <article
+                            v-for="mod in filteredModules"
+                            :key="mod.id"
+                            class="rounded-3xl border flex flex-col justify-between overflow-hidden transition-all duration-300 hover:-translate-y-1.5 group shadow-xl"
+                            :class="isDark ? 'bg-[#0E1322] border-white/[0.08] hover:border-indigo-500/50 hover:shadow-indigo-950/50' : 'bg-white border-slate-200 hover:border-indigo-400 hover:shadow-indigo-100 shadow-sm'"
+                        >
+                            <!-- Contenedor de Captura de Pantalla con Overlay Interactivo -->
+                            <div class="relative overflow-hidden bg-slate-950 border-b aspect-[16/10]" :class="isDark ? 'border-white/[0.08]' : 'border-slate-100'">
+                                <img
+                                    :src="mod.image"
+                                    :alt="mod.screenReaderTitle"
+                                    :title="`Captura del módulo: ${mod.name}`"
+                                    loading="lazy"
+                                    class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105 cursor-pointer"
+                                    @click="openScreenshotModal(mod)"
+                                />
+
+                                <!-- Badge de Categoría sobre la imagen -->
+                                <div class="absolute top-3 left-3 z-10">
+                                    <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border backdrop-blur-md flex items-center gap-1.5 shadow-md" :class="mod.badgeColor">
+                                        <AppIcon :name="mod.icon" :size="12" />
+                                        <span>{{ mod.categoryLabel }}</span>
+                                    </span>
+                                </div>
+
+                                <!-- Overlay Hover para abrir modal -->
+                                <button
+                                    type="button"
+                                    class="absolute inset-0 bg-gradient-to-t from-[#070A12]/90 via-[#070A12]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-end p-4 text-white text-xs font-bold cursor-pointer"
+                                    :aria-label="`Abrir visor ampliado de captura para ${mod.name}`"
+                                    :title="`Clic para ver la captura de ${mod.name} en tamaño completo`"
+                                    @click="openScreenshotModal(mod)"
+                                >
+                                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 shadow-lg">
+                                        <AppIcon name="maximize" :size="13" />
+                                        <span>Ampliar Captura</span>
+                                    </div>
+                                </button>
                             </div>
-                            <h3 class="text-xl font-bold mb-2" :class="isDark ? 'text-white' : 'text-slate-900'">Pomodoro Universal</h3>
-                            <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-                                Temporizador sincronizado con validación al 95%. Escucha playlists de YouTube, directos o mezclas Lo-Fi sin distracciones ni pausas indeseadas.
-                            </p>
+
+                            <!-- Información y Detalles del Módulo -->
+                            <div class="p-5 sm:p-6 flex flex-col flex-grow justify-between">
+                                <div>
+                                    <!-- Encabezado del Módulo -->
+                                    <div class="flex items-start justify-between gap-2 mb-1.5">
+                                        <h3
+                                            class="font-black text-base sm:text-lg leading-tight group-hover:text-indigo-400 transition-colors"
+                                            :class="isDark ? 'text-white' : 'text-slate-900'"
+                                            :title="mod.name"
+                                        >
+                                            {{ mod.name }}
+                                        </h3>
+                                    </div>
+
+                                    <!-- Título y descripción específica para lectores de pantalla y ciegos -->
+                                    <div class="sr-only">
+                                        <h4>Detalle accesible para personas ciegas: {{ mod.name }}</h4>
+                                        <p>{{ mod.screenReaderDesc }}</p>
+                                    </div>
+
+                                    <p class="text-xs font-semibold mb-3 flex items-center gap-1.5" :class="isDark ? 'text-cyan-400' : 'text-indigo-600'">
+                                        <span>{{ mod.tagline }}</span>
+                                    </p>
+
+                                    <p class="text-xs leading-relaxed mb-4 line-clamp-3" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
+                                        {{ mod.description }}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <!-- Lista de Puntos Clave / Características -->
+                                    <ul class="space-y-1.5 pt-3 border-t text-[11px] mb-4" :class="isDark ? 'border-white/[0.06] text-slate-300' : 'border-slate-100 text-slate-600'">
+                                        <li v-for="(feat, fIdx) in mod.features" :key="fIdx" class="flex items-center gap-2">
+                                            <AppIcon name="check-circle" :size="13" class="text-emerald-400 shrink-0" />
+                                            <span class="truncate">{{ feat }}</span>
+                                        </li>
+                                    </ul>
+
+                                    <!-- Botón de Acción para Ver Captura -->
+                                    <button
+                                        type="button"
+                                        class="w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer"
+                                        :class="isDark
+                                            ? 'bg-white/[0.04] hover:bg-indigo-600 hover:text-white hover:border-indigo-500 border-white/10 text-slate-200 shadow-sm'
+                                            : 'bg-slate-50 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 border-slate-200 text-slate-700 shadow-sm'"
+                                        :title="`Ver captura de pantalla completa de ${mod.name}`"
+                                        :aria-label="`Ver captura de pantalla completa de ${mod.name}. ${mod.screenReaderTitle}`"
+                                        @click="openScreenshotModal(mod)"
+                                    >
+                                        <AppIcon name="eye" :size="14" />
+                                        <span>Ver Captura de Pantalla</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <!-- ── Modal / Lightbox Accesible de Captura en Pantalla Completa ── -->
+                <div
+                    v-if="selectedScreenshot"
+                    role="dialog"
+                    aria-modal="true"
+                    :aria-labelledby="'screenshot-modal-title-' + selectedScreenshot.id"
+                    :aria-describedby="'screenshot-modal-desc-' + selectedScreenshot.id"
+                    class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-2xl animate-fade-in"
+                    @click.self="closeScreenshotModal"
+                >
+                    <div
+                        class="relative w-full max-w-5xl max-h-[92vh] rounded-3xl border overflow-hidden flex flex-col shadow-2xl transition-all"
+                        :class="isDark ? 'bg-[#0E1322] border-white/15 text-white' : 'bg-white border-slate-300 text-slate-900'"
+                    >
+                        <!-- Cabecera del Modal -->
+                        <div
+                            class="px-5 py-4 border-b flex items-center justify-between gap-4 shrink-0"
+                            :class="isDark ? 'bg-[#070A12] border-white/10' : 'bg-slate-50 border-slate-200'"
+                        >
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border flex items-center gap-1.5 shrink-0" :class="selectedScreenshot.badgeColor">
+                                    <AppIcon :name="selectedScreenshot.icon" :size="13" />
+                                    <span>{{ selectedScreenshot.categoryLabel }}</span>
+                                </span>
+                                <div class="min-w-0">
+                                    <h3
+                                        :id="'screenshot-modal-title-' + selectedScreenshot.id"
+                                        class="font-black text-sm sm:text-lg truncate"
+                                    >
+                                        {{ selectedScreenshot.name }}
+                                    </h3>
+                                    <p class="text-xs text-cyan-400 font-medium truncate hidden sm:block">
+                                        {{ selectedScreenshot.tagline }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Botones de Navegación y Cerrar -->
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button
+                                    type="button"
+                                    class="p-2 rounded-xl border transition-colors cursor-pointer"
+                                    :class="isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/15' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'"
+                                    aria-label="Módulo anterior (o tecla flecha izquierda)"
+                                    title="Módulo anterior (←)"
+                                    @click="prevScreenshot"
+                                >
+                                    <AppIcon name="arrow-left" :size="16" />
+                                </button>
+                                <button
+                                    type="button"
+                                    class="p-2 rounded-xl border transition-colors cursor-pointer"
+                                    :class="isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/15' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'"
+                                    aria-label="Módulo siguiente (o tecla flecha derecha)"
+                                    title="Módulo siguiente (→)"
+                                    @click="nextScreenshot"
+                                >
+                                    <AppIcon name="arrow-right" :size="16" />
+                                </button>
+                                <button
+                                    type="button"
+                                    class="p-2 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 hover:bg-rose-500/25 transition-colors cursor-pointer ml-1"
+                                    aria-label="Cerrar visor de captura (o tecla Escape)"
+                                    title="Cerrar visor (Esc)"
+                                    @click="closeScreenshotModal"
+                                >
+                                    <AppIcon name="x" :size="18" />
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Card 2 -->
-                        <div class="rounded-3xl border p-6 sm:p-8 hover:border-emerald-500/40 transition-all" :class="isDark ? 'bg-[#0E1322] border-white/[0.08]' : 'bg-white border-slate-200 shadow-sm'">
-                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 mb-6">
-                                <AppIcon name="target" :size="24" />
+                        <!-- Contenedor Principal de la Imagen con Scroll si excede -->
+                        <div class="p-3 sm:p-5 overflow-y-auto flex-grow flex flex-col items-center justify-center bg-slate-950/60">
+                            <div class="w-full relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black flex items-center justify-center">
+                                <img
+                                    :src="selectedScreenshot.image"
+                                    :alt="selectedScreenshot.screenReaderTitle"
+                                    :title="selectedScreenshot.name"
+                                    class="w-full h-auto max-h-[60vh] object-contain rounded-2xl"
+                                />
                             </div>
-                            <h3 class="text-xl font-bold mb-2" :class="isDark ? 'text-white' : 'text-slate-900'">Hábitos con Recompensa Sonora</h3>
-                            <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-                                Establece rutinas académicas con frecuencias personalizadas. Cada hábito completado activa confeti de partículas y un timbre armónico para reforzar el hábito.
-                            </p>
                         </div>
 
-                        <!-- Card 3 -->
-                        <div class="rounded-3xl border p-6 sm:p-8 hover:border-cyan-500/40 transition-all" :class="isDark ? 'bg-[#0E1322] border-white/[0.08]' : 'bg-white border-slate-200 shadow-sm'">
-                            <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-500 mb-6">
-                                <AppIcon name="calendar" :size="24" />
+                        <!-- Pie del Modal con Accesibilidad y Descripción -->
+                        <div
+                            class="px-5 py-4 border-t shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs"
+                            :class="isDark ? 'bg-[#070A12] border-white/10 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'"
+                        >
+                            <div :id="'screenshot-modal-desc-' + selectedScreenshot.id" class="max-w-3xl leading-relaxed">
+                                <span class="font-bold text-indigo-400 block sm:inline mr-1">Descripción Accesible:</span>
+                                <span>{{ selectedScreenshot.screenReaderDesc }}</span>
                             </div>
-                            <h3 class="text-xl font-bold mb-2" :class="isDark ? 'text-white' : 'text-slate-900'">Cursos & Feriados Nacionales</h3>
-                            <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-                                Gestiona tus asignaturas multi-horario, delimita su período de clases y visualiza los 16 feriados oficiales por ley de Perú (2025–2028).
-                            </p>
-                        </div>
 
-                        <!-- Card 4 -->
-                        <div class="rounded-3xl border p-6 sm:p-8 hover:border-amber-500/40 transition-all" :class="isDark ? 'bg-[#0E1322] border-white/[0.08]' : 'bg-white border-slate-200 shadow-sm'">
-                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mb-6">
-                                <AppIcon name="clipboard" :size="24" />
+                            <div class="flex items-center gap-2 text-[11px] font-mono text-slate-400 shrink-0 self-end sm:self-center">
+                                <span class="px-2 py-1 rounded bg-white/10 font-bold">Esc</span>
+                                <span>para cerrar</span>
                             </div>
-                            <h3 class="text-xl font-bold mb-2" :class="isDark ? 'text-white' : 'text-slate-900'">Misiones con Subtareas</h3>
-                            <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-                                Descompón trabajos extensos en pasos de 20 minutos. El estado cambia automáticamente a En Progreso al avanzar en la primera subtarea.
-                            </p>
-                        </div>
-
-                        <!-- Card 5 -->
-                        <div class="rounded-3xl border p-6 sm:p-8 hover:border-rose-500/40 transition-all" :class="isDark ? 'bg-[#0E1322] border-white/[0.08]' : 'bg-white border-slate-200 shadow-sm'">
-                            <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 mb-6">
-                                <AppIcon name="leaf" :size="24" />
-                            </div>
-                            <h3 class="text-xl font-bold mb-2" :class="isDark ? 'text-white' : 'text-slate-900'">Diario de Bienestar Emocional</h3>
-                            <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-                                Registra cómo te sientes cada día de forma privada y cifrada. Tus reflexiones aplican daño directo al villano de la Ansiedad (-10 HP).
-                            </p>
-                        </div>
-
-                        <!-- Card 6 -->
-                        <div class="rounded-3xl border p-6 sm:p-8 hover:border-purple-500/40 transition-all" :class="isDark ? 'bg-[#0E1322] border-white/[0.08]' : 'bg-white border-slate-200 shadow-sm'">
-                            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500 mb-6">
-                                <AppIcon name="users" :size="24" />
-                            </div>
-                            <h3 class="text-xl font-bold mb-2" :class="isDark ? 'text-white' : 'text-slate-900'">Salas de Estudio Grupal</h3>
-                            <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-                                Conéctate con compañeros de estudio, compartan un temporizador Pomodoro conjunto y chateen en tiempo real sin salir de la plataforma.
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -1290,7 +1779,7 @@ const faqs = [
                         </div>
 
                         <!-- Formulario de Envío -->
-                        <form @submit.prevent="sendFeedback" @paste="handleFeedbackPaste" class="space-y-4">
+                        <form class="space-y-4" @submit.prevent="sendFeedback" @paste="handleFeedbackPaste">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-semibold mb-1.5" :class="isDark ? 'text-slate-300' : 'text-slate-700'">

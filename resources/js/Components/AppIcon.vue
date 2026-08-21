@@ -72,6 +72,16 @@ import {
     Frown,
     Laugh,
     Annoyed,
+    Settings,
+    Maximize2,
+    Eye,
+    LayoutGrid,
+    SlidersHorizontal,
+    Camera,
+    Check,
+    Send,
+    RefreshCw,
+    AlertTriangle,
 } from '@lucide/vue';
 
 defineProps({
@@ -142,6 +152,18 @@ const iconMap = {
     frown: Frown,
     laugh: Laugh,
     annoyed: Annoyed,
+    // Extra
+    settings: Settings,
+    maximize: Maximize2,
+    eye: Eye,
+    'layout-grid': LayoutGrid,
+    sliders: SlidersHorizontal,
+    camera: Camera,
+    check: Check,
+    send: Send,
+    'refresh-cw': RefreshCw,
+    'alert-triangle': AlertTriangle,
+    mail: MessageSquare,
 };
 </script>
 
