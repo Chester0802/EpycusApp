@@ -260,7 +260,7 @@ Sistema de gestión de tareas con descomposición en subtareas.
 
 **Entidades:** `Mission`, `Subtask`
 
-**Objetos de valor:** `Difficulty` (`easy`|`medium`|`hard`), `DueDate`, `MissionState`, `Priority`
+**Objetos de valor:** `Difficulty` (`easy`|`medium`|`hard`), `DueDate`, `MissionState`, `Priority`, `EisenhowerQuadrant` (`q1`|`q2`|`q3`|`q4`), `CourseId` (nullable)
 
 ### Estados
 
@@ -302,28 +302,20 @@ Al crear una misión difícil sin subtareas, el sistema **sugiere** dividirla, s
 
 Esta sugerencia responde al hallazgo del diagnóstico: el 14,3% de la muestra señaló "no sé por dónde empezar" como su mayor obstáculo. La descomposición es la respuesta directa a esa barrera, y por eso el módulo se llama Misiones y no Tareas.
 
-### Prioridad y ordenamiento
+### Prioridad, Cuadrantes y Vinculación a Cursos
 
-Prioridad: `baja`, `normal`, `alta`. Por defecto `normal`.
-
-Orden por defecto de la lista:
-
-1. Vencidas (primero, más antigua arriba)
-2. Vence hoy
-3. Vence esta semana, por prioridad
-4. Resto, por fecha
-5. Completadas (al final, colapsadas)
-
-El usuario puede reordenar por: fecha, prioridad, dificultad o creación.
+* **Prioridad:** `baja`, `normal`, `alta`.
+* **Matriz de Eisenhower:** `q1` (Hacer YA - Urgente e Importante), `q2` (Planificar - Importante no urgente / Zona Anti-procrastinación), `q3` (Minimizar / Delegar), `q4` (Descartar).
+* **Vinculación a Cursos (`course_id`):** Permite ligar cada misión a una materia universitaria del Calendario. Las sesiones Pomodoro sobre la misión computan automáticamente al balance de estudio del curso en el Dashboard.
 
 ### Vistas del módulo
 
 | Vista | Contenido |
 |---|---|
-| **Lista** (principal) | Todas las misiones agrupadas por estado |
-| **Detalle** | Misión con subtareas, botón de Pomodoro vinculado |
-| **Calendario** | Misiones ubicadas por fecha de vencimiento |
-| **Completadas** | Historial, con `days_early_or_late` visible |
+| **Matriz de Eisenhower** | 4 cuadrantes interactivos con colores temáticos y banner pedagógico |
+| **Tablero Kanban** | 4 columnas (`Lista`, `En Proceso`, `En Revisión`, `Terminado`) con post-its interactivos |
+| **Cronograma / Lista** | Misiones agrupadas por proximidad de vencimiento y prioridad |
+| **Detalle** | Misión completa, curso asociado, subtareas interactivas y sesiones Pomodoro vinculadas |
 
 ### La métrica que importa
 
@@ -337,7 +329,7 @@ El usuario puede reordenar por: fecha, prioridad, dificultad o creación.
 - Eliminar conserva el historial (borrado lógico)
 - Completar una subtarea de una misión ya completada no da XP
 
-**Casos de uso:** `CreateMission`, `UpdateMission`, `DeleteMission`, `AddSubtask`, `UpdateSubtask`, `ReorderSubtasks`, `CompleteSubtask`, `CompleteMission`, `ListUserMissions`, `GetMissionDetail`, `GetMissionsCalendar`
+**Casos de uso:** `CreateMission`, `UpdateMission`, `DeleteMission`, `AddSubtask`, `UpdateSubtask`, `ReorderSubtasks`, `CompleteSubtask`, `CompleteMission`, `ChangeQuadrant`, `ListUserMissions`, `GetMissionDetail`, `GetMissionsCalendar`
 
 **Eventos:** `MissionCreated`, `MissionStarted`, `MissionCompleted`, `SubtaskCompleted`, `MissionOverdue`
 

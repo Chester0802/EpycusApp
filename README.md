@@ -1,6 +1,6 @@
 # Epycus — Sistema gamificado con IA para hábitos académicos
 
-> **Estado del proyecto (2026-08-17): Todos los modulos implementados, verificados y desplegados. 131 tests, 419 assertions, 0 fallos. PHPStan nivel 6 limpio.**
+> **Estado del proyecto (2026-08-26): Todos los módulos implementados, verificados y desplegados. 152 tests, 573 assertions, 0 fallos. PHPStan nivel 6 limpio.**
 >
 > **Si eres una IA y vas a programar en este repositorio: lee este archivo completo antes de escribir una sola linea de codigo.**
 
@@ -161,10 +161,11 @@ Detalles completos en `docs/07-DEPLOY.md`.
 
 | Módulo | Estado | Detalle |
 |---|---|---|
-| Autenticación, perfil y EPA | ✅ Completado | Google OAuth 2.0 (`google_id`), EPA pretest con +50 XP y celebración |
+| Autenticación, perfil y EPA | ✅ Completado | Google OAuth 2.0 (`google_id`), EPA pretest con +50 XP y celebración, **Camino del Héroe** (5 fases RPG, perks y títulos de carrera) |
+| Dashboard Principal | ✅ Completado | **Ficha de Personaje RPG** (Pentágono radar de 5 atributos), **5 Gráficos de Analítica Avanzada** (Heatmap 60d, Balance por Asignatura, Horas Pico, Curva de Bienestar, Historial de Incursiones) |
 | Habitos | ✅ Completado | Frecuencias, categorias, plantillas atomicas, Habit Stacking (`cue_trigger`), filtros por momento del dia, vista semanal 7 dias + heatmap mensual, confeti canvas y chime melodico |
-| Pomodoro | ✅ Completado | Sincronización multi-pestaña, reproductor universal YouTube |
-| Misiones (tareas y subtareas) | ✅ Completado | Tablero Kanban 4 columnas (Lista, En Proceso, En Revision, Terminado), Matriz de Eisenhower (Q1-Q4), subtareas interactivas en post-its, badges dinamicos, reapertura |
+| Pomodoro | ✅ Completado | Sincronización multi-pestaña, reproductor universal YouTube, integración de tiempo de estudio por asignatura |
+| Misiones (tareas y subtareas) | ✅ Completado | Tablero Kanban 4 columnas, Matriz de Eisenhower (Q1-Q4), **Vinculación con Cursos/Asignaturas**, subtareas interactivas en post-its, badges dinámicos con color |
 | Avatar personalizable | ✅ Completado | Open Peeps (Pablo Stanley), marcos evolutivos, credencial holográfica |
 | **Telemetría** | ✅ Completado | Buffer por lotes, 0 pérdida de eventos, exportación asíncrona |
 | Asistente de IA (DeepSeek) | ✅ Completado | Guardarraíles éticos, cuotas diarias, procesamiento en cola |
@@ -173,7 +174,7 @@ Detalles completos en `docs/07-DEPLOY.md`.
 | Sesiones grupales + chat | ✅ Completado | Polling AJAX optimizado 5s, compatible con hosting compartido |
 | Ranking | ✅ Completado | Instrumentado como variable de control (`ranking.viewed`) |
 | Personalización y Fondos | ✅ Completado | Wallpapers dinámicos, tienda cosmética con monedas (`coins`) |
-| Calendario y Cursos | ✅ Completado | Cursos multi-sesión (`starts_at`/`ends_at`), notas, 16 feriados oficiales |
+| Calendario y Cursos | ✅ Completado | Cursos multi-sesión (`starts_at`/`ends_at`), notas, 16 feriados oficiales, vinculación bidireccional con misiones |
 | Frases y consejos de uso | ✅ Completado | Citas de científicos destacados, consejos prácticos contextuales |
 | Temas y modos de superficie | ✅ Completado | Claro (Kawaii) / Oscuro (Solo Leveling), Neumorfismo y Vidrio |
 | Logros e insignias | ✅ Completado | 13 logros con recompensas de XP y fondos desbloqueables |

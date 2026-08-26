@@ -1,6 +1,44 @@
 # 12 — Historial de sesiones de IA
 
-## 2026-08-17 — Antigravity [Sincronizacion de Documentacion: Arquitectura, README, Historias de Usuario y Roadmap]
+## 2026-08-25 / 2026-08-26 — Antigravity [Camino del Héroe en Perfil, Ficha RPG en Dashboard, 5 Gráficos de Analítica Avanzada y Vinculación Cursos ↔ Misiones ↔ Pomodoro]
+
+**Qué se hizo:**
+
+1. **Camino del Héroe en Módulo Perfil (`Profile/Edit.vue`, `HerosPathMap.vue`):**
+   - Se diseñó el mapa visual e interactivo de progresión RPG del héroe universitario con 5 fases evolutivas (*Iniciado, Aprendiz, Ejecutor, Estratega, Maestro*).
+   - Títulos académicos dinámicos según la carrera del estudiante (ej. *Practicante de Ingeniería* → *Arquitecto de Sistemas*, *Interno de Medicina* → *Especialista Clínico*).
+   - Tarjetas de misiones de maestría por fase, perks y bonificaciones permanentes desbloqueables (Multiplicador de XP, Días de gracia, Acceso a Salas VIP, Título Honorífico dorado).
+
+2. **Ficha de Personaje RPG en el Dashboard (`Dashboard.vue`, `CharacterSheetCard.vue`, `CharacterRadarChart.vue`, `CharacterStatsCalculator.php`):**
+   - **Pentágono Radar de 5 Atributos Científicos:** *Disciplina* (cumplimiento de hábitos), *Enfoque* (horas Pomodoro), *Constancia* (racha activa de días), *Equilibrio* (diario de bienestar y descanso), y *Sabiduría* (misiones completadas y apuntes).
+   - Cálculo determinista y ponderado en `CharacterStatsCalculator.php` con normalización 0–100.
+   - Gráfico SVG vectorial con rejilla concéntrica, polígono con degradado interactivo, puntos de vértice y tooltip de valores.
+   - Barra de nivel y progreso de XP compacta y calibrada para modos Claro y Oscuro.
+
+3. **5 Gráficos de Analítica Avanzada en el Dashboard (`DashboardAnalyticsService.php`, `DashboardController.php`):**
+   - **Mapa de Calor de Actividad Anual (`ActivityHeatmap.vue`):** Visualización de los últimos 60 días en cuadrícula de 4 niveles de intensidad estilo GitHub, calculando sesiones Pomodoro, hábitos y misiones.
+   - **Distribución por Asignatura (`CourseDistributionChart.vue`):** Barras de progreso con código de color de cada curso universitario calculando el tiempo de estudio exacto (minutos, sesiones y porcentaje de balance académico).
+   - **Curva de Horas Pico de Enfoque (`PeakHoursChart.vue`):** Histograma de 24 horas que identifica la ventana horaria de mayor productividad cognitiva del estudiante.
+   - **Curva de Bienestar Emocional (`WellbeingTrendChart.vue`):** Gráfico de doble línea de los últimos 14 días comparando el nivel de Energía vs. Estrés a partir del diario.
+   - **Historial de Incursiones vs Villanos (`VillainDamageHistoryChart.vue`):** Gráfico de barras de las últimas 4 semanas mostrando el daño total infligido a los bosses semanales.
+
+4. **Vinculación Integral de Cursos con Misiones y Pomodoro (`MissionsController.php`, `MissionModel.php`, `Missions/Index.vue`, `Missions/Detail.vue`, `2026_08_25_000001_add_course_id_to_missions_table.php`):**
+   - **Base de Datos & Backend:** Creada migración agregando columna `course_id` (nullable, `onDelete('set null')`) con relación `BelongsTo` a `CourseModel`. DTOs y UseCases actualizados.
+   - **Frontend (Misiones):** Selector desplegable *"📚 Asignatura / Curso"* en los modales de creación y edición, badges estilizados con el color del curso en todas las vistas (Matriz, Kanban, Cronograma y Detalle), y filtro por materia en la barra superior.
+   - **Conexión con Pomodoro y Analíticas:** Las sesiones de Pomodoro ejecutadas sobre misiones con curso asignado se agregan automáticamente a la analítica de la asignatura correspondiente en el Dashboard.
+
+5. **Ajustes de UX, Compatibilidad y Modos Visuales:**
+   - **Protección contra Google Translate:** Añadido `translate="no"` y `class="notranslate"` a los tokens y selectores de cuadrantes (`Q1`, `Q2`, `Q3`, `Q4`) para evitar que el traductor automático los traduzca como trimestres financieros (T1, T2).
+   - **Reparación del Tablero Kanban:** Corregido error de inicialización de reactividad que bloqueaba el cambio a vista Kanban.
+   - **Ajuste de SVG & Bounding Boxes:** Re-centrado el pentágono del radar y ajustado el tamaño de la barra de nivel para balance perfecto en móvil y desktop en temas Claro y Oscuro.
+
+6. **Pruebas y Verificación:**
+   - Creados tests de feature: `DashboardAnalyticsTest.php` y `CharacterStatsTest.php`.
+   - 152 pruebas automatizadas pasando con 573 aserciones (0 fallos).
+   - `npm run build` empaquetado para producción en 15.14s sin errores.
+   - Linter ESLint limpio.
+
+---
 
 **Que se hizo:**
 

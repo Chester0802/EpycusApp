@@ -314,10 +314,12 @@ erDiagram
     missions {
         bigint id PK
         bigint user_id FK
+        bigint course_id FK
         varchar_160 title
         text description
         enum difficulty "easy,medium,hard"
         enum priority "baja,normal,alta"
+        enum eisenhower_quadrant "q1,q2,q3,q4"
         date due_date
         datetime completed_at
         smallint days_early_or_late

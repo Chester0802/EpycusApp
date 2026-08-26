@@ -36,12 +36,22 @@ Para mantener una identidad visual enfocada, los módulos de estudio funcionales
 * 🎯 **Misiones:** `missions.gif`
 * 🏅 **Logros e Insignias:** `achievements.gif`
 * 🤖 **Asistente IA:** `benny-typing-v2.gif`
-public/assets/avatars/systems/m/fase-10/lateral-izq.png
-```
 
-Posiciones: `frontal`, `lateral-izq`, `lateral-der`, `espalda`.
+### 2.4 El Camino del Héroe (`HerosPathMap.vue` en `/profile`)
+Mapa de progreso narrativo RPG que guía al estudiante a lo largo de 5 etapas evolutivas:
+1. **Fase 1: El Despertar del Iniciado** (Nivel 1–3) — Diagnóstico EPA, primer hábito y configuración de avatar. Perk: *Primer Impulso (+10% XP en primera semana)*.
+2. **Fase 2: El Forjado del Aprendiz** (Nivel 4–9) — 5 Pomodoros y racha de 3 días. Perk: *Protección de Racha (1 día de gracia mensual)*.
+3. **Fase 3: La Marcha del Ejecutor** (Nivel 10–19) — Matriz Q1/Q2, 10 misiones y primer villano semanal derrotado. Perk: *Bono de Eficiencia (+15% XP en misiones)*.
+4. **Fase 4: El Ascenso del Estratega** (Nivel 20–34) — Dominio de cursos, racha de 14 días y 3 villanos. Perk: *Salas de Estudio VIP*.
+5. **Fase 5: La Maestría del Titán** (Nivel 35+) — Hábito de 66 días, 50 Pomodoros y 5 villanos vencidos. Perk: *Título Honorífico Dorado & Multiplicador Permanente*.
 
-**Convención estricta.** El frontend construye la ruta por concatenación; si un archivo no sigue el patrón, la imagen no carga. Optimiza cada PNG a ≤80 KB (TinyPNG o similar) — 400 assets a 80 KB son ~32 MB, aceptable para el hosting.
+### 2.5 Ficha de Personaje RPG & Pentágono Radar (`CharacterSheetCard.vue` & `CharacterRadarChart.vue`)
+Evaluación multidimensional determinista del estudiante en 5 atributos científicos calculados por `CharacterStatsCalculator.php` (normalizados de 0 a 100):
+* **Disciplina (DIS):** Adherencia y cumplimiento de hábitos diarios.
+* **Enfoque (ENF):** Minutos acumulados de estudio profundo con Pomodoro.
+* **Constancia (CON):** Días de racha activa y regularidad semanal.
+* **Equilibrio (EQU):** Reflexión y balance emocional registrado en el diario de bienestar.
+* **Sabiduría (SAB):** Misiones académicas resueltas, subtareas y toma de apuntes.
 
 ---
 
