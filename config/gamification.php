@@ -39,7 +39,7 @@ return [
     ],
     'villains' => [
         'base_hp' => 100,
-        'damage_per_action' => 10,
+        'damage_per_action' => 5,
         'difficulty_by_week' => [
             1 => 0.8,
             2 => 0.8,

@@ -39,8 +39,8 @@ final class ApplyDamageUseCase
         $villainCode = VillainCode::from($instance->villain->code);
         $isWeak = $villainCode->isWeakTo($dto->sourceType);
 
-        // Daño base para cualquier acción académica: 10 HP. Si es debilidad específica: 15 HP (Daño Crítico)
-        $baseDamage = (int) config('gamification.villains.damage_per_action', 10);
+        // Daño base para cualquier acción académica: 5 HP. Si es debilidad específica: 10 HP (Daño Crítico)
+        $baseDamage = (int) config('gamification.villains.damage_per_action', 5);
         $damagePerAction = $isWeak ? $baseDamage + 5 : $baseDamage;
         $newHp = max(0, $instance->remaining_hp - $damagePerAction);
 

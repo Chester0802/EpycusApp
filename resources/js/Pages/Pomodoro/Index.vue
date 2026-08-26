@@ -6,7 +6,6 @@ import BaseCard from '@/Components/ui/BaseCard.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseSelect from '@/Components/ui/BaseSelect.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
-import ProceduralAvatar from '@/Components/ProceduralAvatar.vue';
 
 const props = defineProps({
     activeSession: { type: Object, default: null },

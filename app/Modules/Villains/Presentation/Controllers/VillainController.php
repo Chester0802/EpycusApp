@@ -67,7 +67,7 @@ final class VillainController extends Controller
                 ->map(fn ($p) => [
                     'source' => 'pomodoro',
                     'action' => "Sesión Pomodoro ({$p->planned_minutes} min)",
-                    'damage' => $villainCode->isWeakTo('pomodoro') ? 15 : 10,
+                    'damage' => $villainCode->isWeakTo('pomodoro') ? 10 : 5,
                     'is_critical' => $villainCode->isWeakTo('pomodoro'),
                     'raw_date' => $p->created_at,
                     'created_at' => Carbon::parse($p->created_at)->diffForHumans(),
@@ -82,7 +82,7 @@ final class VillainController extends Controller
                 ->map(fn ($m) => [
                     'source' => 'mission',
                     'action' => "Misión finalizada: \"{$m->title}\"",
-                    'damage' => $villainCode->isWeakTo('mission') ? 15 : 10,
+                    'damage' => $villainCode->isWeakTo('mission') ? 10 : 5,
                     'is_critical' => $villainCode->isWeakTo('mission'),
                     'raw_date' => $m->updated_at,
                     'created_at' => Carbon::parse($m->updated_at)->diffForHumans(),
@@ -97,7 +97,7 @@ final class VillainController extends Controller
                 ->map(fn ($h) => [
                     'source' => 'habit',
                     'action' => "Hábito cumplido: \"{$h->title}\"",
-                    'damage' => $villainCode->isWeakTo('habit') ? 15 : 10,
+                    'damage' => $villainCode->isWeakTo('habit') ? 10 : 5,
                     'is_critical' => $villainCode->isWeakTo('habit'),
                     'raw_date' => $h->created_at,
                     'created_at' => Carbon::parse($h->created_at)->diffForHumans(),
@@ -111,7 +111,7 @@ final class VillainController extends Controller
                 ->map(fn ($j) => [
                     'source' => 'journal',
                     'action' => 'Entrada en el Diario de Bienestar',
-                    'damage' => $villainCode->isWeakTo('journal') ? 15 : 10,
+                    'damage' => $villainCode->isWeakTo('journal') ? 10 : 5,
                     'is_critical' => $villainCode->isWeakTo('journal'),
                     'raw_date' => $j->created_at,
                     'created_at' => Carbon::parse($j->created_at)->diffForHumans(),

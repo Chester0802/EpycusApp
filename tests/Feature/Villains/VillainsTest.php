@@ -159,7 +159,7 @@ final class VillainsTest extends TestCase
         Event::assertDispatched(VillainDefeated::class);
     }
 
-    public function test_invulnerable_sources_do_not_apply_damage(): void
+    public function test_non_vulnerable_sources_apply_base_damage(): void
     {
         $user = UserModel::factory()->create();
         $distractionVillain = VillainModel::where('code', 'distraction')->firstOrFail();
@@ -183,9 +183,10 @@ final class VillainsTest extends TestCase
             occurredAt: new \DateTimeImmutable,
         ));
 
-        $this->assertFalse($result['damage_applied']);
-        $this->assertEquals('wrong_source_type', $result['reason']);
-        $this->assertEquals(100, $instance->fresh()->remaining_hp);
+        $this->assertTrue($result['damage_applied']);
+        $this->assertEquals(5, $result['damage']);
+        $this->assertEquals(95, $result['remaining_hp']);
+        $this->assertEquals(95, $instance->fresh()->remaining_hp);
     }
 
     public function test_creating_journal_entry_applies_damage_to_vulnerable_villain(): void

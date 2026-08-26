@@ -167,4 +167,64 @@ final class PomodoroSessionTest extends TestCase
         // 8 sesiones válidas x 15 XP = 120; la 9na queda capada en 0.
         $this->assertDatabaseHas('user_progress', ['user_id' => $user->id, 'total_xp' => 120]);
     }
+
+    public function test_user_can_view_pomodoro_index_page(): void
+    {
+        $user = UserModel::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('pomodoro.index'));
+
+        $response->assertStatus(200);
+    }
+
+    public function test_pomodoro_http_lifecycle(): void
+    {
+        $user = UserModel::factory()->create();
+        $now = Carbon::parse('2026-09-07 10:00:00');
+        Carbon::setTestNow($now);
+
+        // Start
+        $response = $this->actingAs($user)->postJson(route('pomodoro.start'), [
+            'planned_minutes' => 25,
+        ]);
+        $response->assertStatus(200);
+        $sessionId = $response->json('id');
+        $this->assertNotNull($sessionId);
+
+        // Pause
+        $response = $this->actingAs($user)->postJson(route('pomodoro.pause', ['id' => $sessionId]));
+        $response->assertStatus(200)->assertJson(['status' => 'paused']);
+
+        // Resume
+        $response = $this->actingAs($user)->postJson(route('pomodoro.resume', ['id' => $sessionId]));
+        $response->assertStatus(200)->assertJson(['status' => 'running']);
+
+        // Abandon
+        $response = $this->actingAs($user)->postJson(route('pomodoro.abandon', ['id' => $sessionId]));
+        $response->assertStatus(200)->assertJson(['status' => 'abandoned']);
+    }
+
+    public function test_pomodoro_session_associates_with_mission(): void
+    {
+        $user = UserModel::factory()->create();
+        $this->actingAs($user)->post(route('missions.store'), [
+            'title' => 'Misión con Pomodoro',
+            'difficulty' => 'easy',
+            'priority' => 'normal',
+        ]);
+        $mission = \App\Modules\Missions\Infrastructure\Models\MissionModel::where('user_id', $user->id)->firstOrFail();
+
+        $response = $this->actingAs($user)->postJson(route('pomodoro.start'), [
+            'planned_minutes' => 25,
+            'mission_id' => $mission->id,
+        ]);
+
+        $response->assertStatus(200);
+        $sessionId = $response->json('id');
+        $this->assertDatabaseHas('pomodoro_sessions', [
+            'id' => $sessionId,
+            'user_id' => $user->id,
+            'mission_id' => $mission->id,
+        ]);
+    }
 }

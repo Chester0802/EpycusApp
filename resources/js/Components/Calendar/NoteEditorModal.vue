@@ -7,9 +7,15 @@ import {
     CalendarPlus,
     X,
     Bold,
+    Italic,
+    Underline,
+    List,
+    ListOrdered,
+    Highlighter,
     Heading1,
     Heading2,
     Heading3,
+    Pilcrow,
     Loader2,
     NotebookText,
     ImagePlus,
@@ -18,6 +24,7 @@ import {
     Check,
     Type,
     RotateCcw,
+    Trash2,
 } from '@lucide/vue';
 
 const props = defineProps({
@@ -42,6 +49,11 @@ const canvasEl       = ref(null);
 const uploadingImage = ref(false);
 const cameraError    = ref('');
 
+// Menú contextual (click derecho)
+const showContextMenu = ref(false);
+const contextMenuPos  = ref({ x: 0, y: 0 });
+let savedRange = null;
+
 // Referencia directa al div del editor
 const editorEl       = ref(null);
 
@@ -58,16 +70,20 @@ function formatTime12h(timeStr) {
     return `${String(h12).padStart(2, '0')}:${m} ${period}`;
 }
 
-// ── Cargar apunte al abrir ─────────────────────────────────────────────────
-watch(() => props.show, async (val) => {
-    if (val && props.course) {
-        await loadNote();
-    }
-    if (!val) {
-        stopCamera();
-        cameraError.value = '';
-    }
-});
+// ── Cargar apunte al abrir o cambiar curso ───────────────────────────────────
+watch(
+    [() => props.show, () => props.course?.id],
+    async ([show, courseId]) => {
+        if (show && courseId) {
+            await loadNote();
+        }
+        if (!show) {
+            stopCamera();
+            cameraError.value = '';
+        }
+    },
+    { immediate: true },
+);
 
 // Cuando cambia la entrada activa, cargar su HTML en el editor
 watch(activeEntryId, async () => {
@@ -76,14 +92,15 @@ watch(activeEntryId, async () => {
 });
 
 async function loadNote() {
+    if (!props.course?.id) return;
     loading.value = true;
     try {
         const res = await axios.get(route('calendar.notes.show', { courseId: props.course.id }));
         const data = res.data;
         if (data.note) {
             noteId.value  = data.note.id;
-            entries.value = data.note.content?.entries ?? [];
-            images.value  = data.note.images ?? [];
+            entries.value = Array.isArray(data.note.content?.entries) ? data.note.content.entries : [];
+            images.value  = Array.isArray(data.note.images) ? data.note.images : [];
         } else {
             noteId.value  = null;
             entries.value = [];
@@ -121,12 +138,40 @@ async function addEntry() {
     syncBlocks();
     const id  = crypto.randomUUID();
     const now = new Date().toISOString();
-    entries.value.push({ id, recorded_at: now, blocks: [] });
+    entries.value.push({
+        id,
+        recorded_at: now,
+        blocks: [{ type: 'html', html: '' }],
+    });
     activeEntryId.value = id;
     await nextTick();
     if (editorEl.value) {
         editorEl.value.innerHTML = '';
         editorEl.value.focus();
+    }
+}
+
+// ── Cambiar de entrada de forma segura ──────────────────────────────────────
+function selectEntry(id) {
+    if (activeEntryId.value === id) return;
+    syncBlocks();
+    activeEntryId.value = id;
+}
+
+// ── Eliminar entrada ────────────────────────────────────────────────────────
+async function deleteEntry(entryId) {
+    if (!confirm('¿Deseas eliminar este registro de apunte?')) return;
+    syncBlocks();
+    const idx = entries.value.findIndex(e => e.id === entryId);
+    if (idx !== -1) {
+        entries.value.splice(idx, 1);
+        if (entries.value.length > 0) {
+            const newIdx = Math.max(0, idx - 1);
+            activeEntryId.value = entries.value[newIdx].id;
+        } else {
+            activeEntryId.value = null;
+        }
+        await saveNote();
     }
 }
 
@@ -149,6 +194,9 @@ async function saveNote() {
         const data = res.data;
         if (data.note) {
             noteId.value      = data.note.id;
+            if (Array.isArray(data.note.images)) {
+                images.value = data.note.images;
+            }
             saveSuccess.value = true;
             setTimeout(() => (saveSuccess.value = false), 2000);
         } else {
@@ -212,7 +260,11 @@ async function uploadImage(event) {
 function insertImageInEditor(url, alt) {
     if (!editorEl.value) return;
     editorEl.value.focus();
-    document.execCommand('insertHTML', false, `<img src="${url}" alt="${alt}" style="max-width:100%;border-radius:8px;margin:8px 0;display:block;" />`);
+    const imgHtml = `<img src="${url}" alt="${alt}" style="max-width:100%;border-radius:8px;margin:8px 0;display:block;" />`;
+    const success = document.execCommand('insertHTML', false, imgHtml);
+    if (!success) {
+        editorEl.value.innerHTML += imgHtml;
+    }
     syncBlocks();
 }
 
@@ -236,7 +288,6 @@ async function openCamera() {
     }
 
     try {
-        // Solicitud de cámara flexible compatible con móviles y PC webcams
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 width: { ideal: 1280 },
@@ -253,7 +304,7 @@ async function openCamera() {
         }
     } catch (err) {
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-            cameraError.value = 'Permiso de cámara denegado. Haz clic en el ícono de candado o configuración en la barra de direcciones del navegador y permite la cámara.';
+            cameraError.value = 'Permiso de cámara denegado. Permite el acceso a la cámara en tu navegador.';
         } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
             cameraError.value = 'No se encontró ninguna cámara conectada en este dispositivo.';
         } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
@@ -302,7 +353,7 @@ async function capturePhoto() {
     }
 }
 
-// ── Exportar JSON directo (Descarga inmediata sin previsualización) ────────
+// ── Exportar JSON directo (Descarga inmediata para IA / Respaldo) ─────────
 function exportAndDownloadJson() {
     syncBlocks();
     const cleanCourseName = props.course?.name
@@ -376,6 +427,8 @@ function exportPdf() {
                 .pdf-entry-body h2 { font-size: 16px; font-weight: 600; color: #1e293b; margin: 12px 0 6px; }
                 .pdf-entry-body h3 { font-size: 14px; font-weight: 600; color: #334155; margin: 10px 0 4px; }
                 .pdf-entry-body strong { font-weight: 700; }
+                .pdf-entry-body ul { padding-left: 20px; margin: 8px 0; }
+                .pdf-entry-body ol { padding-left: 20px; margin: 8px 0; }
                 .pdf-entry-body img { max-width: 100%; height: auto; border-radius: 6px; margin: 10px 0; display: block; border: 1px solid #e2e8f0; }
                 .pdf-footer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 12px; text-align: center; font-size: 11px; color: #94a3b8; }
             </style>
@@ -391,7 +444,26 @@ function exportPdf() {
             </div>
             <script>
                 window.onload = function() {
-                    window.print();
+                    const imgs = document.images;
+                    let loaded = 0;
+                    const total = imgs.length;
+                    if (total === 0) {
+                        window.print();
+                    } else {
+                        const done = () => {
+                            loaded++;
+                            if (loaded >= total) window.print();
+                        };
+                        for (let i = 0; i < total; i++) {
+                            if (imgs[i].complete) {
+                                done();
+                            } else {
+                                imgs[i].onload = done;
+                                imgs[i].onerror = done;
+                            }
+                        }
+                        setTimeout(() => window.print(), 1500);
+                    }
                 };
             ${'<' + '/script>'}
         </body>
@@ -413,9 +485,34 @@ function formatHeading(level) {
     document.execCommand('formatBlock', false, `h${level}`);
     syncBlocks();
 }
+function formatParagraph() {
+    editorEl.value?.focus();
+    document.execCommand('formatBlock', false, 'p');
+    syncBlocks();
+}
 function formatBold() {
     editorEl.value?.focus();
     document.execCommand('bold', false, null);
+    syncBlocks();
+}
+function formatItalic() {
+    editorEl.value?.focus();
+    document.execCommand('italic', false, null);
+    syncBlocks();
+}
+function formatUnderline() {
+    editorEl.value?.focus();
+    document.execCommand('underline', false, null);
+    syncBlocks();
+}
+function formatList(ordered = false) {
+    editorEl.value?.focus();
+    document.execCommand(ordered ? 'insertOrderedList' : 'insertUnorderedList', false, null);
+    syncBlocks();
+}
+function formatHighlight(color = '#fef08a') {
+    editorEl.value?.focus();
+    document.execCommand('hiliteColor', false, color);
     syncBlocks();
 }
 function formatColor(color) {
@@ -426,7 +523,7 @@ function formatColor(color) {
 function resetFormat() {
     editorEl.value?.focus();
     document.execCommand('removeFormat', false, null);
-    // Limpiar color residual en la selección para que herede el color del tema actual (claro/oscuro)
+    // Limpiar color residual en la selección
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
         const node = selection.anchorNode;
@@ -438,9 +535,61 @@ function resetFormat() {
             if (parent.style && parent.style.color) {
                 parent.style.color = '';
             }
+            if (parent.style && parent.style.backgroundColor) {
+                parent.style.backgroundColor = '';
+            }
         }
     }
     syncBlocks();
+}
+
+// ── Menú Contextual (Click Derecho) ────────────────────────────────────────
+function saveSelection() {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+        savedRange = sel.getRangeAt(0).cloneRange();
+    } else {
+        savedRange = null;
+    }
+}
+
+function restoreSelection() {
+    if (savedRange) {
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(savedRange);
+    }
+}
+
+function openContextMenu(event) {
+    event.preventDefault();
+    saveSelection();
+
+    const menuWidth = 230;
+    const menuHeight = 360;
+    let x = event.clientX;
+    let y = event.clientY;
+
+    if (x + menuWidth > window.innerWidth) {
+        x = Math.max(10, window.innerWidth - menuWidth - 15);
+    }
+    if (y + menuHeight > window.innerHeight) {
+        y = Math.max(10, window.innerHeight - menuHeight - 15);
+    }
+
+    contextMenuPos.value = { x, y };
+    showContextMenu.value = true;
+}
+
+function closeContextMenu() {
+    showContextMenu.value = false;
+}
+
+function applyMenuAction(actionFn, ...args) {
+    editorEl.value?.focus();
+    restoreSelection();
+    actionFn(...args);
+    closeContextMenu();
 }
 
 function formatDate(isoString) {
@@ -448,6 +597,20 @@ function formatDate(isoString) {
         return new Date(isoString).toLocaleDateString('es', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
             hour: '2-digit', minute: '2-digit',
+        });
+    } catch {
+        return isoString;
+    }
+}
+
+function formatShortDate(isoString) {
+    try {
+        const d = new Date(isoString);
+        return d.toLocaleDateString('es', {
+            day: 'numeric',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
         });
     } catch {
         return isoString;
@@ -537,27 +700,153 @@ onBeforeUnmount(() => stopCamera());
                         <template v-else>
                             <!-- Toolbar -->
                             <div class="note-toolbar">
-                                <button type="button" class="toolbar-btn" title="Título H1" @click="formatHeading(1)">
+                                <button
+                                    type="button"
+                                    class="toolbar-btn"
+                                    title="Título H1"
+                                    @mousedown.prevent
+                                    @click="formatHeading(1)"
+                                >
                                     <Heading1 :size="16" />
                                 </button>
-                                <button type="button" class="toolbar-btn" title="Subtítulo H2" @click="formatHeading(2)">
+                                <button
+                                    type="button"
+                                    class="toolbar-btn"
+                                    title="Subtítulo H2"
+                                    @mousedown.prevent
+                                    @click="formatHeading(2)"
+                                >
                                     <Heading2 :size="16" />
                                 </button>
-                                <button type="button" class="toolbar-btn" title="Encabezado H3" @click="formatHeading(3)">
+                                <button
+                                    type="button"
+                                    class="toolbar-btn"
+                                    title="Encabezado H3"
+                                    @mousedown.prevent
+                                    @click="formatHeading(3)"
+                                >
                                     <Heading3 :size="16" />
                                 </button>
+                                <button
+                                    type="button"
+                                    class="toolbar-btn text-xs font-semibold px-2"
+                                    title="Texto normal (Párrafo)"
+                                    @mousedown.prevent
+                                    @click="formatParagraph"
+                                >
+                                    <Pilcrow :size="15" />
+                                    <span class="ml-1 text-[11px] font-normal">Texto</span>
+                                </button>
                                 <div class="toolbar-sep"></div>
-                                <button type="button" class="toolbar-btn" title="Negrita" @click="formatBold">
+                                <button
+                                    type="button"
+                                    class="toolbar-btn"
+                                    title="Negrita (Ctrl+B)"
+                                    @mousedown.prevent
+                                    @click="formatBold"
+                                >
                                     <Bold :size="16" />
                                 </button>
+                                <button
+                                    type="button"
+                                    class="toolbar-btn"
+                                    title="Cursiva (Ctrl+I)"
+                                    @mousedown.prevent
+                                    @click="formatItalic"
+                                >
+                                    <Italic :size="16" />
+                                </button>
+                                <button
+                                    type="button"
+                                    class="toolbar-btn"
+                                    title="Subrayado (Ctrl+U)"
+                                    @mousedown.prevent
+                                    @click="formatUnderline"
+                                >
+                                    <Underline :size="16" />
+                                </button>
                                 <div class="toolbar-sep"></div>
-                                <button type="button" class="toolbar-btn color-red" title="Texto rojo" @click="formatColor('#ef4444')">
+                                <button
+                                    type="button"
+                                    class="toolbar-btn"
+                                    title="Lista con viñetas"
+                                    @mousedown.prevent
+                                    @click="formatList(false)"
+                                >
+                                    <List :size="16" />
+                                </button>
+                                <button
+                                    type="button"
+                                    class="toolbar-btn"
+                                    title="Lista numerada"
+                                    @mousedown.prevent
+                                    @click="formatList(true)"
+                                >
+                                    <ListOrdered :size="16" />
+                                </button>
+                                <div class="toolbar-sep"></div>
+                                <button
+                                    type="button"
+                                    class="toolbar-btn color-red"
+                                    title="Texto rojo"
+                                    @mousedown.prevent
+                                    @click="formatColor('#ef4444')"
+                                >
                                     <Type :size="16" />
                                 </button>
-                                <button type="button" class="toolbar-btn color-blue" title="Texto azul" @click="formatColor('#3b82f6')">
+                                <button
+                                    type="button"
+                                    class="toolbar-btn color-blue"
+                                    title="Texto azul"
+                                    @mousedown.prevent
+                                    @click="formatColor('#3b82f6')"
+                                >
                                     <Type :size="16" />
                                 </button>
-                                <button type="button" class="toolbar-btn" title="Restablecer color normal y formato" @click="resetFormat">
+                                <button
+                                    type="button"
+                                    class="toolbar-btn color-green"
+                                    title="Texto verde"
+                                    @mousedown.prevent
+                                    @click="formatColor('#22c55e')"
+                                >
+                                    <Type :size="16" />
+                                </button>
+                                <button
+                                    type="button"
+                                    class="toolbar-btn color-yellow"
+                                    title="Texto amarillo"
+                                    @mousedown.prevent
+                                    @click="formatColor('#eab308')"
+                                >
+                                    <Type :size="16" />
+                                </button>
+                                <div class="toolbar-sep"></div>
+                                <button
+                                    type="button"
+                                    class="toolbar-btn color-highlight-yellow"
+                                    title="Resaltar amarillo"
+                                    @mousedown.prevent
+                                    @click="formatHighlight('#fef08a')"
+                                >
+                                    <Highlighter :size="16" />
+                                </button>
+                                <button
+                                    type="button"
+                                    class="toolbar-btn color-highlight-green"
+                                    title="Resaltar verde"
+                                    @mousedown.prevent
+                                    @click="formatHighlight('#bbf7d0')"
+                                >
+                                    <Highlighter :size="16" />
+                                </button>
+                                <button
+                                    type="button"
+                                    class="toolbar-btn"
+                                    title="Restablecer color y formato"
+                                    @mousedown.prevent
+                                    @click="resetFormat"
+                                >
                                     <RotateCcw :size="15" />
                                 </button>
                                 <div class="toolbar-sep"></div>
@@ -604,16 +893,16 @@ onBeforeUnmount(() => stopCamera());
                             <div class="note-body">
                                 <!-- Sidebar -->
                                 <div v-if="entries.length > 1" class="note-entries-sidebar">
-                                    <p class="sidebar-title">Registros</p>
+                                    <p class="sidebar-title">Registros ({{ entries.length }})</p>
                                     <button
                                         v-for="entry in [...entries].reverse()"
                                         :key="entry.id"
                                         type="button"
                                         class="sidebar-entry-btn"
                                         :class="{ active: activeEntryId === entry.id }"
-                                        @click="activeEntryId = entry.id"
+                                        @click="selectEntry(entry.id)"
                                     >
-                                        {{ formatDate(entry.recorded_at) }}
+                                        {{ formatShortDate(entry.recorded_at) }}
                                     </button>
                                 </div>
 
@@ -622,7 +911,7 @@ onBeforeUnmount(() => stopCamera());
                                     <!-- Vacío -->
                                     <div v-if="entries.length === 0" class="note-empty">
                                         <NotebookText :size="48" class="note-empty-icon" />
-                                        <p>No hay apuntes aún.</p>
+                                        <p>No hay apuntes aún para este curso.</p>
                                         <button type="button" class="note-btn note-btn-primary mt-4" @click="addEntry">
                                             <CalendarPlus :size="15" /> Agregar primer registro
                                         </button>
@@ -631,8 +920,19 @@ onBeforeUnmount(() => stopCamera());
                                     <!-- Entrada activa -->
                                     <div v-if="currentEntry" class="note-entry-container">
                                         <div class="note-entry-date">
-                                            <CalendarPlus :size="13" class="mr-1 opacity-60 shrink-0" />
-                                            {{ formatDate(currentEntry.recorded_at) }}
+                                            <div class="flex items-center gap-1.5 min-w-0">
+                                                <CalendarPlus :size="14" class="opacity-60 shrink-0" />
+                                                <span class="truncate">{{ formatDate(currentEntry.recorded_at) }}</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                class="note-delete-entry-btn"
+                                                title="Eliminar este registro"
+                                                @click="deleteEntry(currentEntry.id)"
+                                            >
+                                                <Trash2 :size="13" />
+                                                <span>Eliminar registro</span>
+                                            </button>
                                         </div>
                                         <div
                                             ref="editorEl"
@@ -641,6 +941,7 @@ onBeforeUnmount(() => stopCamera());
                                             dir="ltr"
                                             spellcheck="true"
                                             @input="syncBlocks"
+                                            @contextmenu="openContextMenu($event)"
                                             @keydown.ctrl.s.prevent="saveNote"
                                         ></div>
                                     </div>
@@ -662,6 +963,112 @@ onBeforeUnmount(() => stopCamera());
                                         <X :size="15" /> Cancelar
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Menú Contextual (Click Derecho al seleccionar texto) -->
+                        <div
+                            v-if="showContextMenu"
+                            class="note-context-overlay"
+                            @click="closeContextMenu"
+                            @contextmenu.prevent="closeContextMenu"
+                        >
+                            <div
+                                class="note-context-menu"
+                                :style="{ top: `${contextMenuPos.y}px`, left: `${contextMenuPos.x}px` }"
+                                @click.stop
+                            >
+                                <div class="note-context-header">
+                                    Formato Rápido
+                                </div>
+                                <button
+                                    type="button"
+                                    class="note-context-item"
+                                    @click="applyMenuAction(formatUnderline)"
+                                >
+                                    <Underline :size="14" class="text-primary" />
+                                    <span class="underline font-semibold">Subrayar</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="note-context-item"
+                                    @click="applyMenuAction(formatHighlight, '#fef08a')"
+                                >
+                                    <Highlighter :size="14" class="text-amber-400" />
+                                    <span>Resaltador Amarillo</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="note-context-item"
+                                    @click="applyMenuAction(formatHighlight, '#bbf7d0')"
+                                >
+                                    <Highlighter :size="14" class="text-emerald-400" />
+                                    <span>Resaltador Verde</span>
+                                </button>
+                                <div class="note-context-divider"></div>
+                                <button
+                                    type="button"
+                                    class="note-context-item"
+                                    @click="applyMenuAction(formatBold)"
+                                >
+                                    <Bold :size="14" />
+                                    <span class="font-bold">Negrita</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="note-context-item"
+                                    @click="applyMenuAction(formatItalic)"
+                                >
+                                    <Italic :size="14" />
+                                    <span class="italic">Cursiva</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="note-context-item"
+                                    @click="applyMenuAction(formatParagraph)"
+                                >
+                                    <Pilcrow :size="14" />
+                                    <span>Texto normal</span>
+                                </button>
+                                <div class="note-context-divider"></div>
+                                <div class="note-context-colors">
+                                    <span class="note-context-label">Color texto:</span>
+                                    <div class="note-color-dots">
+                                        <button
+                                            type="button"
+                                            class="note-color-swatch bg-red"
+                                            title="Rojo"
+                                            @click="applyMenuAction(formatColor, '#ef4444')"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="note-color-swatch bg-blue"
+                                            title="Azul"
+                                            @click="applyMenuAction(formatColor, '#3b82f6')"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="note-color-swatch bg-green"
+                                            title="Verde"
+                                            @click="applyMenuAction(formatColor, '#22c55e')"
+                                        ></button>
+                                        <button
+                                            type="button"
+                                            class="note-color-swatch bg-yellow"
+                                            title="Amarillo"
+                                            @click="applyMenuAction(formatColor, '#eab308')"
+                                        ></button>
+                                    </div>
+                                </div>
+                                <div class="note-context-divider"></div>
+                                <button
+                                    type="button"
+                                    class="note-context-item note-context-item-muted"
+                                    @click="applyMenuAction(resetFormat)"
+                                >
+                                    <RotateCcw :size="13" />
+                                    <span>Quitar formato</span>
+                                </button>
                             </div>
                         </div>
 
@@ -765,8 +1172,12 @@ onBeforeUnmount(() => stopCamera());
     cursor: pointer; transition: background 0.12s, color 0.12s;
 }
 .toolbar-btn:hover { background: rgba(255,255,255,0.08); color: var(--color-content-primary, #f1f5f9); }
-.color-red  { color: #ef4444 !important; }
-.color-blue { color: #3b82f6 !important; }
+.color-red              { color: #ef4444 !important; }
+.color-blue             { color: #3b82f6 !important; }
+.color-green            { color: #22c55e !important; }
+.color-yellow           { color: #eab308 !important; }
+.color-highlight-yellow { color: #facc15 !important; }
+.color-highlight-green  { color: #4ade80 !important; }
 .toolbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 0.25rem; flex-shrink: 0; }
 .toolbar-btn-entry {
     display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem;
@@ -840,9 +1251,20 @@ onBeforeUnmount(() => stopCamera());
 .note-empty p    { font-size: 0.9rem; }
 .note-entry-container { display: flex; flex-direction: column; flex: 1; }
 .note-entry-date {
-    display: flex; align-items: center; font-size: 0.75rem;
-    color: var(--color-content-muted, #6b7280); margin-bottom: 1rem;
-    padding-bottom: 0.5rem; border-bottom: 1px dashed rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+    font-size: 0.75rem; color: var(--color-content-muted, #6b7280);
+    margin-bottom: 1rem; padding-bottom: 0.5rem;
+    border-bottom: 1px dashed rgba(255,255,255,0.08);
+}
+.note-delete-entry-btn {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    padding: 0.2rem 0.5rem; border-radius: 4px; border: none;
+    background: transparent; color: var(--color-danger, #ef4444);
+    font-size: 0.7rem; cursor: pointer; opacity: 0.75;
+    transition: opacity 0.15s, background 0.15s;
+}
+.note-delete-entry-btn:hover {
+    opacity: 1; background: rgba(239,68,68,0.12);
 }
 
 .note-editor {
@@ -861,16 +1283,21 @@ onBeforeUnmount(() => stopCamera());
     white-space: pre-wrap;
 }
 .note-editor:empty::before {
-    content: 'Escribe tu apunte aquí… (Ctrl+S para guardar)';
+    content: 'Escribe tu apunte aquí… (Click derecho para formato rápido, Ctrl+S para guardar)';
     color: var(--color-content-muted, #6b7280);
     pointer-events: none;
 }
-.note-editor :deep(h1)     { font-size:1.5rem; font-weight:700; margin:1rem 0 0.5rem; }
-.note-editor :deep(h2)     { font-size:1.15rem; font-weight:600; margin:0.875rem 0 0.375rem; }
-.note-editor :deep(h3)     { font-size:1.02rem; font-weight:600; margin:0.75rem 0 0.25rem; }
-.note-editor :deep(strong) { font-weight:700; }
-.note-editor :deep(p)      { margin:0.2rem 0; }
-.note-editor :deep(img)    { max-width:100%; border-radius:8px; margin:0.75rem 0; display:block; border:1px solid rgba(255,255,255,0.1); }
+.note-editor :deep(h1)     { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem; }
+.note-editor :deep(h2)     { font-size: 1.15rem; font-weight: 600; margin: 0.875rem 0 0.375rem; }
+.note-editor :deep(h3)     { font-size: 1.02rem; font-weight: 600; margin: 0.75rem 0 0.25rem; }
+.note-editor :deep(strong) { font-weight: 700; }
+.note-editor :deep(em), .note-editor :deep(i) { font-style: italic; }
+.note-editor :deep(u)      { text-decoration: underline; }
+.note-editor :deep(ul)     { list-style-type: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
+.note-editor :deep(ol)     { list-style-type: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
+.note-editor :deep(li)     { margin: 0.15rem 0; }
+.note-editor :deep(p)      { margin: 0.2rem 0; }
+.note-editor :deep(img)    { max-width: 100%; border-radius: 8px; margin: 0.75rem 0; display: block; border: 1px solid rgba(255,255,255,0.1); }
 
 .note-camera-overlay {
     position:absolute; inset:0; background:rgba(0,0,0,0.88);
@@ -884,4 +1311,67 @@ onBeforeUnmount(() => stopCamera());
 .camera-title { font-size:0.95rem; font-weight:600; color:var(--color-content-primary,#f1f5f9); margin:0; display:flex; align-items:center; }
 .camera-video { width:100%; border-radius:10px; background:#000; max-height:340px; object-fit:cover; }
 .camera-actions { display:flex; gap:0.75rem; }
+
+/* ── Menú Contextual (Click Derecho) ── */
+.note-context-overlay {
+    position: fixed; inset: 0; z-index: 100;
+}
+.note-context-menu {
+    position: absolute;
+    min-width: 210px;
+    background: var(--color-surface-raised, #1e1e38);
+    border: 1px solid var(--color-border, rgba(255,255,255,0.16));
+    border-radius: 12px;
+    padding: 0.35rem;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column; gap: 0.12rem;
+    backdrop-filter: blur(10px);
+}
+.note-context-header {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--color-content-muted, #6b7280);
+    padding: 0.3rem 0.6rem 0.2rem;
+}
+.note-context-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.4rem 0.6rem; border-radius: 6px;
+    border: none; background: transparent;
+    color: var(--color-content-secondary, #cbd5e1);
+    font-size: 0.78rem; text-align: left; cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+}
+.note-context-item:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--color-content-primary, #ffffff);
+}
+.note-context-item-muted {
+    font-size: 0.72rem;
+    color: var(--color-content-muted, #94a3b8);
+}
+.note-context-divider {
+    height: 1px; background: var(--color-border, rgba(255,255,255,0.08));
+    margin: 0.25rem 0.4rem;
+}
+.note-context-colors {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.25rem 0.6rem;
+}
+.note-context-label {
+    font-size: 0.7rem; color: var(--color-content-muted, #6b7280);
+}
+.note-color-dots {
+    display: flex; align-items: center; gap: 0.375rem;
+}
+.note-color-swatch {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer; transition: transform 0.12s;
+}
+.note-color-swatch:hover {
+    transform: scale(1.2);
+}
+.bg-red    { background: #ef4444; }
+.bg-blue   { background: #3b82f6; }
+.bg-green  { background: #22c55e; }
+.bg-yellow { background: #eab308; }
 </style>

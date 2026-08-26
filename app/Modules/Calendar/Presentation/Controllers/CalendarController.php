@@ -174,10 +174,10 @@ final class CalendarController extends Controller
         $validated = $request->validate([
             'content'                        => ['required', 'array'],
             'content.version'                => ['required', 'string'],
-            'content.entries'                => ['required', 'array'],
+            'content.entries'                => ['present', 'array'],
             'content.entries.*.id'           => ['required', 'string'],
             'content.entries.*.recorded_at'  => ['required', 'string'],
-            'content.entries.*.blocks'       => ['required', 'array'],
+            'content.entries.*.blocks'       => ['present', 'array'],
         ]);
 
         // Verificar que el curso pertenece al usuario antes de guardar
@@ -195,6 +195,13 @@ final class CalendarController extends Controller
                 'id'         => $note->id,
                 'content'    => $note->content,
                 'updated_at' => $note->updated_at?->toIso8601String(),
+                'images'     => $note->images->map(fn ($img) => [
+                    'id'            => $img->id,
+                    'original_name' => $img->original_name,
+                    'url'           => route('note-images.show', ['id' => $img->id]),
+                    'mime_type'     => $img->mime_type,
+                    'size'          => $img->size,
+                ])->values()->toArray(),
             ],
         ]);
     }

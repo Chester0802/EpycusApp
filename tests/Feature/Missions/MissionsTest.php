@@ -237,4 +237,77 @@ final class MissionsTest extends TestCase
         $response->assertRedirect();
         $this->assertEquals('q1', $mission->fresh()->eisenhower_quadrant);
     }
+
+    public function test_user_can_view_mission_detail_page(): void
+    {
+        $user = UserModel::factory()->create();
+
+        $this->actingAs($user)->post(route('missions.store'), [
+            'title' => 'Misión Detallada',
+            'description' => 'Detalle de prueba',
+            'difficulty' => 'medium',
+            'priority' => 'alta',
+            'subtasks' => ['Paso 1', 'Paso 2'],
+        ]);
+
+        $mission = MissionModel::where('user_id', $user->id)->firstOrFail();
+
+        $response = $this->actingAs($user)->get(route('missions.show', ['id' => $mission->id]));
+
+        $response->assertStatus(200);
+    }
+
+    public function test_user_can_add_subtask_from_detail_page(): void
+    {
+        $user = UserModel::factory()->create();
+
+        $this->actingAs($user)->post(route('missions.store'), [
+            'title' => 'Misión para añadir subtarea',
+            'difficulty' => 'easy',
+            'priority' => 'normal',
+        ]);
+
+        $mission = MissionModel::where('user_id', $user->id)->firstOrFail();
+
+        $response = $this->actingAs($user)->post(route('missions.subtasks.store', ['id' => $mission->id]), [
+            'title' => 'Nueva Subtarea Añadida',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('subtasks', [
+            'mission_id' => $mission->id,
+            'title' => 'Nueva Subtarea Añadida',
+        ]);
+    }
+
+    public function test_user_can_update_mission_details(): void
+    {
+        $user = UserModel::factory()->create();
+
+        $this->actingAs($user)->post(route('missions.store'), [
+            'title' => 'Título original',
+            'description' => 'Descripción original',
+            'difficulty' => 'easy',
+            'priority' => 'baja',
+        ]);
+
+        $mission = MissionModel::where('user_id', $user->id)->firstOrFail();
+
+        $response = $this->actingAs($user)->patch(route('missions.update', ['id' => $mission->id]), [
+            'title' => 'Título Actualizado',
+            'description' => 'Nueva Descripción',
+            'difficulty' => 'hard',
+            'priority' => 'alta',
+            'eisenhower_quadrant' => 'q1',
+            'due_date' => now()->addDays(5)->toDateString(),
+        ]);
+
+        $response->assertRedirect();
+        $mission->refresh();
+        $this->assertEquals('Título Actualizado', $mission->title);
+        $this->assertEquals('Nueva Descripción', $mission->description);
+        $this->assertEquals('hard', $mission->difficulty);
+        $this->assertEquals('alta', $mission->priority);
+        $this->assertEquals('q1', $mission->eisenhower_quadrant);
+    }
 }

@@ -1,6 +1,6 @@
 <script setup>
-import { computed, ref, reactive, onMounted } from 'vue';
-import { Head, useForm, router, Link } from '@inertiajs/vue3';
+import { computed, ref, onMounted } from 'vue';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
@@ -29,10 +29,6 @@ const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const showCompleted = ref(false);
 const editingMission = ref(null);
-const editingSubtaskId = ref(null);
-const editingSubtaskTitle = ref('');
-const addSubtaskTitles = reactive({});
-const dragSubtaskId = ref(null);
 
 onMounted(() => {
     const saved = localStorage.getItem('epycus_missions_view');
@@ -326,69 +322,6 @@ function toggleSubtask(missionId, subtaskId) {
     router.post(
         route('missions.subtasks.toggle', { id: missionId, subtaskId }),
         {},
-        { preserveScroll: true, preserveState: true },
-    );
-}
-
-function startEditSubtask(subtask) {
-    editingSubtaskId.value = subtask.id;
-    editingSubtaskTitle.value = subtask.title;
-}
-
-function saveEditSubtask(missionId, subtaskId) {
-    const title = editingSubtaskTitle.value.trim();
-    if (!title) {
-        editingSubtaskId.value = null;
-        return;
-    }
-    router.patch(
-        route('missions.subtasks.update', { id: missionId, subtaskId }),
-        { title },
-        { preserveScroll: true, preserveState: true },
-    );
-    editingSubtaskId.value = null;
-}
-
-function cancelEditSubtask() {
-    editingSubtaskId.value = null;
-}
-
-function addSubtask(missionId) {
-    const title = (addSubtaskTitles[missionId] || '').trim();
-    if (!title) return;
-    router.post(
-        route('missions.subtasks.store', { id: missionId }),
-        { title },
-        { preserveScroll: true, preserveState: true },
-    );
-    addSubtaskTitles[missionId] = '';
-}
-
-function onDragStart(subtaskId) {
-    dragSubtaskId.value = subtaskId;
-}
-
-function onDragOver(e) {
-    e.preventDefault();
-}
-
-function onDrop(missionId, targetSubtaskId) {
-    if (dragSubtaskId.value === null || dragSubtaskId.value === targetSubtaskId) {
-        dragSubtaskId.value = null;
-        return;
-    }
-    const mission = props.missions.find((m) => m.id === missionId);
-    if (!mission) return;
-    const ids = mission.subtasks.map((s) => s.id);
-    const fromIdx = ids.indexOf(dragSubtaskId.value);
-    const toIdx = ids.indexOf(targetSubtaskId);
-    if (fromIdx === -1 || toIdx === -1) return;
-    ids.splice(fromIdx, 1);
-    ids.splice(toIdx, 0, dragSubtaskId.value);
-    dragSubtaskId.value = null;
-    router.post(
-        route('missions.subtasks.reorder', { id: missionId }),
-        { ordered_ids: ids },
         { preserveScroll: true, preserveState: true },
     );
 }

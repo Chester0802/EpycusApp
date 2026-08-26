@@ -174,7 +174,7 @@ const currentStrategies = computed(() => {
                         class="px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2"
                         :class="
                             activeTab === 'battle'
-                                ? 'bg-primary-strong text-white shadow-sm'
+                                ? 'bg-primary-strong text-on-accent shadow-sm'
                                 : 'bg-surface-raised/60 text-content-secondary hover:bg-surface-raised hover:text-content-primary'
                         "
                         @click="setTab('battle')"
@@ -187,7 +187,7 @@ const currentStrategies = computed(() => {
                         class="px-4 py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2"
                         :class="
                             activeTab === 'bestiary'
-                                ? 'bg-primary-strong text-white shadow-sm'
+                                ? 'bg-primary-strong text-on-accent shadow-sm'
                                 : 'bg-surface-raised/60 text-content-secondary hover:bg-surface-raised hover:text-content-primary'
                         "
                         @click="setTab('bestiary')"
@@ -258,10 +258,10 @@ const currentStrategies = computed(() => {
 
                                     <!-- Debilidad Destacada -->
                                     <div class="pt-2">
-                                        <div class="inline-flex items-start gap-2 rounded-xl bg-accent/10 p-3 border border-accent/20 text-xs text-content-primary text-left">
-                                            <span class="text-accent text-base shrink-0">🎯</span>
+                                        <div class="inline-flex items-start gap-2 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 p-3 border border-amber-500/30 text-xs text-content-primary text-left">
+                                            <span class="text-base shrink-0">🎯</span>
                                             <div>
-                                                <span class="font-bold text-accent">Debilidad Crítica:</span>
+                                                <span class="font-bold text-amber-800 dark:text-amber-300">Debilidad Crítica:</span>
                                                 <p class="text-content-secondary mt-0.5">{{ villain.weakness_description }}</p>
                                             </div>
                                         </div>
@@ -304,7 +304,7 @@ const currentStrategies = computed(() => {
                                 <span>⚔️</span> Acciones de Ataque Directo
                             </h3>
                             <p class="text-xs text-content-secondary mt-1">
-                                Cada acción enfocada inflige <strong class="text-danger">-10 HP</strong> al villano:
+                                Cada acción enfocada inflige <strong class="text-danger">-5 HP</strong> al villano (o <strong class="text-danger">-10 HP</strong> con debilidad crítica):
                             </p>
 
                             <div class="mt-4 space-y-2.5">
@@ -323,7 +323,7 @@ const currentStrategies = computed(() => {
                                         </div>
                                     </div>
                                     <span class="rounded-full bg-danger/15 px-2 py-0.5 text-[10px] font-bold text-danger shrink-0">
-                                        -10 HP
+                                        -5 HP
                                     </span>
                                 </button>
 
@@ -342,7 +342,7 @@ const currentStrategies = computed(() => {
                                         </div>
                                     </div>
                                     <span class="rounded-full bg-danger/15 px-2 py-0.5 text-[10px] font-bold text-danger shrink-0">
-                                        -10 HP
+                                        -5 HP
                                     </span>
                                 </button>
 
@@ -352,7 +352,7 @@ const currentStrategies = computed(() => {
                                     @click="handleAttack('habits.index', 'habit')"
                                 >
                                     <div class="flex items-center gap-2.5">
-                                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/15 text-accent">
+                                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
                                             <AppIcon name="leaf" :size="16" />
                                         </div>
                                         <div>
@@ -361,7 +361,7 @@ const currentStrategies = computed(() => {
                                         </div>
                                     </div>
                                     <span class="rounded-full bg-danger/15 px-2 py-0.5 text-[10px] font-bold text-danger shrink-0">
-                                        -10 HP
+                                        -5 HP
                                     </span>
                                 </button>
 
@@ -380,7 +380,7 @@ const currentStrategies = computed(() => {
                                         </div>
                                     </div>
                                     <span class="rounded-full bg-danger/15 px-2 py-0.5 text-[10px] font-bold text-danger shrink-0">
-                                        -10 HP
+                                        -5 HP
                                     </span>
                                 </button>
                             </div>
@@ -440,7 +440,7 @@ const currentStrategies = computed(() => {
                     </div>
 
                     <div v-if="battleLog.length === 0" class="py-6 text-center text-xs text-content-muted">
-                        Aún no has registrado ataques esta semana. ¡Completa un Pomodoro o Misión para infligir tus primeros 10 HP!
+                        Aún no has registrado ataques esta semana. ¡Completa un Pomodoro o Misión para infligir tus primeros 5 HP!
                     </div>
 
                     <div v-else class="space-y-2">
@@ -523,7 +523,7 @@ const currentStrategies = computed(() => {
                             </div>
 
                             <div class="mt-3 p-2 rounded-lg bg-surface/80 border border-border-interactive/40 text-[11px] text-content-secondary">
-                                <span class="font-bold text-accent">Debilidad:</span> {{ b.weakness_description }}
+                                <span class="font-bold text-amber-800 dark:text-amber-300">Debilidad:</span> {{ b.weakness_description }}
                             </div>
                         </div>
 
