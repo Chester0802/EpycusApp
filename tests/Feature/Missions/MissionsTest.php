@@ -310,4 +310,49 @@ final class MissionsTest extends TestCase
         $this->assertEquals('alta', $mission->priority);
         $this->assertEquals('q1', $mission->eisenhower_quadrant);
     }
+
+    public function test_user_can_create_and_update_mission_with_course(): void
+    {
+        $user = UserModel::factory()->create();
+
+        $courseId = \Illuminate\Support\Facades\DB::table('courses')->insertGetId([
+            'user_id' => $user->id,
+            'name' => 'Cálculo Avanzado',
+            'color' => '#6366f1',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)->post(route('missions.store'), [
+            'title' => 'Resolver guía de integrales',
+            'difficulty' => 'hard',
+            'priority' => 'alta',
+            'course_id' => $courseId,
+            'eisenhower_quadrant' => 'q2',
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('missions', [
+            'user_id' => $user->id,
+            'title' => 'Resolver guía de integrales',
+            'course_id' => $courseId,
+        ]);
+
+        $mission = MissionModel::where('user_id', $user->id)->firstOrFail();
+        $this->assertEquals($courseId, $mission->course_id);
+        $this->assertNotNull($mission->course);
+        $this->assertEquals('Cálculo Avanzado', $mission->course->name);
+
+        // Actualizar curso
+        $this->actingAs($user)->patch(route('missions.update', ['id' => $mission->id]), [
+            'title' => 'Resolver guía de integrales (modificado)',
+            'difficulty' => 'medium',
+            'priority' => 'normal',
+            'course_id' => null,
+        ]);
+
+        $mission->refresh();
+        $this->assertNull($mission->course_id);
+    }
 }

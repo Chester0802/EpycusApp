@@ -14,6 +14,7 @@ import { useTelemetry } from '@/Composables/useTelemetry';
 const props = defineProps({
     missions: { type: Array, default: () => [] },
     completedMissions: { type: Array, default: () => [] },
+    courses: { type: Array, default: () => [] },
     todayDate: { type: String, required: true },
     sortBy: { type: String, default: 'default' },
     avatarStyle: { type: String, default: 'base' },
@@ -24,11 +25,13 @@ const props = defineProps({
 const { track } = useTelemetry();
 
 const viewMode = ref('matrix'); // 'matrix' | 'kanban' | 'list'
+const selectedCourseFilter = ref('all');
 const showGuide = ref(false);
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const showCompleted = ref(false);
 const editingMission = ref(null);
+const addSubtaskTitles = ref({});
 
 onMounted(() => {
     const saved = localStorage.getItem('epycus_missions_view');
@@ -57,93 +60,80 @@ const priorityOptions = [
 ];
 
 const difficultyConfig = {
-    easy: { label: 'Fácil', class: 'bg-success/20 text-success' },
-    medium: { label: 'Media', class: 'bg-accent/20 text-accent' },
-    hard: { label: 'Difícil', class: 'bg-danger/20 text-danger' },
+    easy: { label: 'Fácil', class: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 font-bold' },
+    medium: { label: 'Media', class: 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 font-bold' },
+    hard: { label: 'Difícil', class: 'bg-rose-500/15 text-rose-800 dark:text-rose-300 border border-rose-500/30 font-bold' },
 };
 
 const priorityConfig = {
-    baja: { label: '↓ Baja', class: 'text-content-muted' },
-    normal: { label: '— Normal', class: 'text-content-secondary' },
-    alta: { label: '↑ Alta', class: 'text-danger-text' },
+    baja: { label: 'Baja', class: 'text-content-muted' },
+    normal: { label: 'Normal', class: 'text-content-secondary' },
+    alta: { label: 'Alta', class: 'text-danger font-medium' },
 };
 
 const eisenhowerConfig = {
     q1: {
-        id: 'q1',
-        title: 'Q1: Hacer YA',
-        subtitle: 'Urgente e Importante (Crisis)',
-        badge: 'Hacer YA',
-        icon: 'flame',
-        color: 'text-danger',
-        bgBadge: 'bg-danger/15 text-danger border border-danger/30',
-        bgHeader: 'bg-danger/10 border-danger/30 text-danger',
-        borderCard: 'border-l-4 border-l-danger',
-        postitClass: 'bg-[#FEF9C3] dark:bg-[#3B2506]/95 border-[#FDE047] dark:border-[#854D0E] text-[#713F12] dark:text-[#FEF08A] shadow-md',
-        postitTape: 'bg-[#FEF08A]/90 dark:bg-[#CA8A04]/40 border-[#FACC15]/60',
-        description: 'Exámenes próximos, tareas que vencen hoy y entregas críticas.',
-        tip: 'Apaga estos incendios primero para liberar tu mente.',
+        badge: 'Q1 (Hacer YA)',
+        bgBadge: 'bg-danger/15 text-danger border border-danger/30 font-bold',
+        cardBorder: 'border-danger/40',
+        postitClass: 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-950 dark:text-rose-100 shadow-rose-500/10',
+        postitTape: 'bg-rose-300/60 dark:bg-rose-500/40 border-rose-400/40',
+        title: 'Hacer YA (Crisis y Fechas Clave)',
+        description: 'Urgente e Importante. Consecuencias inmediatas.',
+        tip: 'Concéntrate en estas tareas primero para evitar emergencias.',
     },
     q2: {
-        id: 'q2',
-        title: 'Q2: Planificar',
-        subtitle: 'No Urgente pero Importante (Estratégico)',
-        badge: 'Estratégico',
-        icon: 'target',
-        color: 'text-success',
-        bgBadge: 'bg-success/20 text-success font-black border border-success/40',
-        bgHeader: 'bg-success/15 border-success/40 text-success',
-        borderCard: 'border-l-4 border-l-success ring-1 ring-success/30',
-        postitClass: 'bg-[#FEF9C3] dark:bg-[#3B2506]/95 border-[#FDE047] dark:border-[#854D0E] text-[#713F12] dark:text-[#FEF08A] shadow-md ring-1 ring-emerald-500/30',
-        postitTape: 'bg-[#FEF08A]/90 dark:bg-[#CA8A04]/40 border-[#FACC15]/60',
-        description: 'Estudio espaciado, lecturas, repasos y tesis. ¡El núcleo anti-procrastinación!',
-        tip: 'Dedica el 70% de tu tiempo aquí para evitar que las tareas se vuelvan crisis en Q1.',
+        badge: 'Q2 (Planificar)',
+        bgBadge: 'bg-success/15 text-success border border-success/30 font-bold',
+        cardBorder: 'border-success/40',
+        postitClass: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100 shadow-emerald-500/10',
+        postitTape: 'bg-emerald-300/60 dark:bg-emerald-500/40 border-emerald-400/40',
+        title: 'Planificar (Estratégico / Alto Valor)',
+        description: 'Importante pero No Urgente. Donde ocurre el crecimiento.',
+        tip: 'Dedica la mayor parte de tu energía aquí para no tener crisis después.',
     },
     q3: {
-        id: 'q3',
-        title: 'Q3: Minimizar',
-        subtitle: 'Urgente pero No Importante (Operativo)',
-        badge: 'Minimizar',
-        icon: 'clock',
-        color: 'text-warning',
-        bgBadge: 'bg-warning/20 text-warning font-black border border-warning/40',
-        bgHeader: 'bg-warning/15 border-warning/40 text-warning',
-        borderCard: 'border-l-4 border-l-warning',
-        postitClass: 'bg-[#FEF9C3] dark:bg-[#3B2506]/95 border-[#FDE047] dark:border-[#854D0E] text-[#713F12] dark:text-[#FEF08A] shadow-md',
-        postitTape: 'bg-[#FEF08A]/90 dark:bg-[#CA8A04]/40 border-[#FACC15]/60',
-        description: 'Trámites, consultas rápidas, correos y tareas secundarias.',
-        tip: 'Agrúpalas y resuélvelas en bloques cortos de 15 minutos.',
+        badge: 'Q3 (Minimizar)',
+        bgBadge: 'bg-warning/15 text-warning border border-warning/30 font-bold',
+        cardBorder: 'border-warning/40',
+        postitClass: 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-950 dark:text-amber-100 shadow-amber-500/10',
+        postitTape: 'bg-amber-300/60 dark:bg-amber-500/40 border-amber-400/40',
+        title: 'Minimizar (Interrupciones)',
+        description: 'Urgente pero No Importante. Tareas reactivas o rutinarias.',
+        tip: 'Automatiza, despacha rápido o delega si es posible.',
     },
     q4: {
-        id: 'q4',
-        title: 'Q4: Descartar',
-        subtitle: 'Ni Urgente ni Importante (Distracción)',
-        badge: 'Descartar',
-        icon: 'archive',
-        color: 'text-content-muted',
-        bgBadge: 'bg-surface-raised text-content-muted border border-border-interactive',
-        bgHeader: 'bg-surface-raised border-border-interactive text-content-secondary',
-        borderCard: 'border-l-4 border-l-border-interactive opacity-85',
-        postitClass: 'bg-[#FEF9C3] dark:bg-[#3B2506]/95 border-[#FDE047] dark:border-[#854D0E] text-[#713F12] dark:text-[#FEF08A] shadow-md',
-        postitTape: 'bg-[#FEF08A]/90 dark:bg-[#CA8A04]/40 border-[#FACC15]/60',
+        badge: 'Q4 (Descartar)',
+        bgBadge: 'bg-surface-raised text-content-secondary border border-border-interactive font-bold',
+        cardBorder: 'border-border-interactive',
+        postitClass: 'bg-slate-50 dark:bg-slate-900/60 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200 shadow-slate-500/10',
+        postitTape: 'bg-slate-300/60 dark:bg-slate-600/40 border-slate-400/40',
+        title: 'Descartar (Baja Prioridad)',
         description: 'Actividades de bajo valor o pendientes prescindibles.',
         tip: 'Si no aporta a tu aprendizaje o bienestar, considera eliminarla.',
     },
 };
 
-const overdueCount = computed(() => props.missions.filter((m) => m.is_overdue).length);
-const activeCount = computed(() => props.missions.length);
+// Filtro Reactivo de Cursos
+const filteredMissions = computed(() => {
+    if (selectedCourseFilter.value === 'all') return props.missions;
+    if (selectedCourseFilter.value === 'none') return props.missions.filter((m) => !m.course_id);
+    return props.missions.filter((m) => String(m.course_id) === String(selectedCourseFilter.value));
+});
+
+const overdueCount = computed(() => filteredMissions.value.filter((m) => m.is_overdue).length);
+const activeCount = computed(() => filteredMissions.value.length);
 
 // Cronograma / Lista Computeds
 const todayMissions = computed(() =>
-    props.missions.filter((m) => m.due_date === props.todayDate && !m.is_overdue),
+    filteredMissions.value.filter((m) => m.due_date === props.todayDate && !m.is_overdue),
 );
 
 const dueSoon = computed(() => {
     const today = new Date(props.todayDate);
     const weekEnd = new Date(today);
     weekEnd.setDate(weekEnd.getDate() + 7);
-    return props.missions.filter(
+    return filteredMissions.value.filter(
         (m) =>
             m.due_date &&
             !m.is_overdue &&
@@ -156,32 +146,32 @@ const restMissions = computed(() => {
     const today = new Date(props.todayDate);
     const weekEnd = new Date(today);
     weekEnd.setDate(weekEnd.getDate() + 7);
-    return props.missions
+    return filteredMissions.value
         .filter((m) => !m.due_date || new Date(m.due_date) > weekEnd)
         .filter((m) => !m.is_overdue);
 });
 
-const overdueMissions = computed(() => props.missions.filter((m) => m.is_overdue));
+const overdueMissions = computed(() => filteredMissions.value.filter((m) => m.is_overdue));
 
 // Eisenhower Quadrants Computeds
-const q1Missions = computed(() => props.missions.filter((m) => m.eisenhower_quadrant === 'q1'));
+const q1Missions = computed(() => filteredMissions.value.filter((m) => m.eisenhower_quadrant === 'q1'));
 const q2Missions = computed(() =>
-    props.missions.filter((m) => m.eisenhower_quadrant === 'q2' || !m.eisenhower_quadrant),
+    filteredMissions.value.filter((m) => m.eisenhower_quadrant === 'q2' || !m.eisenhower_quadrant),
 );
-const q3Missions = computed(() => props.missions.filter((m) => m.eisenhower_quadrant === 'q3'));
-const q4Missions = computed(() => props.missions.filter((m) => m.eisenhower_quadrant === 'q4'));
+const q3Missions = computed(() => filteredMissions.value.filter((m) => m.eisenhower_quadrant === 'q3'));
+const q4Missions = computed(() => filteredMissions.value.filter((m) => m.eisenhower_quadrant === 'q4'));
 
 // Kanban 4 Columns Computeds:
 // 1. Por Hacer: sin subtareas iniciadas y no en revisión
 const kanbanBacklog = computed(() =>
-    props.missions.filter(
+    filteredMissions.value.filter(
         (m) => m.subtask_done === 0 && (m.subtask_count === 0 || m.state === 'pending'),
     ),
 );
 
 // 2. En Proceso: al menos 1 subtarea hecha, pero no todas
 const kanbanInProgress = computed(() =>
-    props.missions.filter(
+    filteredMissions.value.filter(
         (m) =>
             (m.subtask_done > 0 && m.subtask_done < m.subtask_count) ||
             (m.subtask_count === 0 && (m.state === 'in_progress' || m.is_overdue)),
@@ -190,7 +180,7 @@ const kanbanInProgress = computed(() =>
 
 // 3. En Revisión: todas las subtareas hechas (listo para reclamar XP)
 const kanbanInReview = computed(() =>
-    props.missions.filter((m) => m.subtask_count > 0 && m.subtask_done === m.subtask_count),
+    filteredMissions.value.filter((m) => m.subtask_count > 0 && m.subtask_done === m.subtask_count),
 );
 
 const createForm = useForm({
@@ -198,6 +188,7 @@ const createForm = useForm({
     description: '',
     difficulty: 'medium',
     priority: 'normal',
+    course_id: '',
     eisenhower_quadrant: 'q2',
     due_date: '',
     subtasks: [''],
@@ -208,6 +199,7 @@ const editForm = useForm({
     description: '',
     difficulty: 'medium',
     priority: 'normal',
+    course_id: '',
     eisenhower_quadrant: 'q2',
     due_date: '',
 });
@@ -227,6 +219,7 @@ function removeSubtaskField(index) {
 function openCreateModal(initialQuadrant = 'q2') {
     createForm.reset();
     createForm.eisenhower_quadrant = initialQuadrant;
+    createForm.course_id = selectedCourseFilter.value !== 'all' && selectedCourseFilter.value !== 'none' ? selectedCourseFilter.value : '';
     createForm.subtasks = [''];
     showCreateModal.value = true;
 }
@@ -245,6 +238,7 @@ function submitCreate() {
                 difficulty: createForm.difficulty,
                 priority: createForm.priority,
                 quadrant: createForm.eisenhower_quadrant,
+                course_id: createForm.course_id || null,
                 has_due_date: Boolean(createForm.due_date),
                 subtasks_count: subtasks.length,
             });
@@ -259,6 +253,7 @@ function openEditModal(mission) {
     editForm.description = mission.description || '';
     editForm.difficulty = mission.difficulty;
     editForm.priority = mission.priority;
+    editForm.course_id = mission.course_id ? String(mission.course_id) : '';
     editForm.eisenhower_quadrant = mission.eisenhower_quadrant || 'q2';
     editForm.due_date = mission.due_date || '';
     showEditModal.value = true;
@@ -323,6 +318,21 @@ function toggleSubtask(missionId, subtaskId) {
         route('missions.subtasks.toggle', { id: missionId, subtaskId }),
         {},
         { preserveScroll: true, preserveState: true },
+    );
+}
+
+function addSubtask(missionId) {
+    const title = (addSubtaskTitles.value[missionId] || '').trim();
+    if (!title) return;
+    router.post(
+        route('missions.subtasks.store', { id: missionId }),
+        { title },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                addSubtaskTitles.value[missionId] = '';
+            },
+        },
     );
 }
 
@@ -437,6 +447,20 @@ function goToMission(id) {
                             </button>
                         </div>
 
+                        <!-- Filtro por Curso/Materia -->
+                        <select
+                            v-if="courses && courses.length > 0"
+                            v-model="selectedCourseFilter"
+                            class="rounded-xl border border-border-interactive bg-surface px-3 py-1.5 text-xs font-semibold text-content-primary outline-none shadow-xs cursor-pointer focus:border-primary-strong"
+                            title="Filtrar misiones por asignatura"
+                        >
+                            <option value="all">📚 Todas las Materias</option>
+                            <option v-for="c in courses" :key="c.id" :value="c.id">
+                                {{ c.name }} {{ c.code ? `(${c.code})` : '' }}
+                            </option>
+                            <option value="none">Sin materia (General)</option>
+                        </select>
+
                         <select
                             v-if="viewMode === 'list'"
                             class="rounded-xl border border-border-interactive bg-surface px-3 py-1.5 text-xs font-medium text-content-secondary outline-none shadow-xs"
@@ -530,7 +554,7 @@ function goToMission(id) {
                         <div>
                             <div class="flex items-center justify-between pb-3 border-b border-border-interactive">
                                 <div class="flex items-center gap-2">
-                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-danger/10 text-danger font-bold text-sm">
+                                    <div translate="no" class="notranslate flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-danger/10 text-danger font-bold text-sm">
                                         Q1
                                     </div>
                                     <div>
@@ -589,15 +613,16 @@ function goToMission(id) {
 
                                             <div class="flex items-center gap-1 shrink-0">
                                                 <select
-                                                    class="rounded-lg border border-border-interactive bg-surface px-1.5 py-1 text-[11px] font-medium text-content-secondary outline-none cursor-pointer"
+                                                    translate="no"
+                                                    class="notranslate rounded-lg border border-border-interactive bg-surface px-1.5 py-1 text-[11px] font-medium text-content-secondary outline-none cursor-pointer"
                                                     :value="m.eisenhower_quadrant || 'q1'"
                                                     title="Mover de cuadrante"
                                                     @change="quickChangeQuadrant(m.id, $event.target.value)"
                                                 >
-                                                    <option value="q1">Q1 (YA)</option>
-                                                    <option value="q2">Q2 (Plan)</option>
-                                                    <option value="q3">Q3 (Min)</option>
-                                                    <option value="q4">Q4 (Desc)</option>
+                                                    <option translate="no" value="q1">Q1 (YA)</option>
+                                                    <option translate="no" value="q2">Q2 (Plan)</option>
+                                                    <option translate="no" value="q3">Q3 (Min)</option>
+                                                    <option translate="no" value="q4">Q4 (Desc)</option>
                                                 </select>
                                                 <button
                                                     type="button"
@@ -629,7 +654,7 @@ function goToMission(id) {
                                 class="font-semibold text-danger hover:underline flex items-center gap-1 cursor-pointer"
                                 @click="openCreateModal('q1')"
                             >
-                                + Agregar a Q1
+                                <span translate="no" class="notranslate">+ Agregar a Q1</span>
                             </button>
                         </div>
                     </BaseCard>
@@ -639,7 +664,7 @@ function goToMission(id) {
                         <div>
                             <div class="flex items-center justify-between pb-3 border-b border-border-interactive">
                                 <div class="flex items-center gap-2">
-                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success font-bold text-sm">
+                                    <div translate="no" class="notranslate flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success/10 text-success font-bold text-sm">
                                         Q2
                                     </div>
                                     <div>
@@ -701,15 +726,16 @@ function goToMission(id) {
 
                                             <div class="flex items-center gap-1 shrink-0">
                                                 <select
-                                                    class="rounded-lg border border-border-interactive bg-surface px-1.5 py-1 text-[11px] font-medium text-content-secondary outline-none cursor-pointer"
+                                                    translate="no"
+                                                    class="notranslate rounded-lg border border-border-interactive bg-surface px-1.5 py-1 text-[11px] font-medium text-content-secondary outline-none cursor-pointer"
                                                     :value="m.eisenhower_quadrant || 'q2'"
                                                     title="Mover de cuadrante"
                                                     @change="quickChangeQuadrant(m.id, $event.target.value)"
                                                 >
-                                                    <option value="q1">Q1 (YA)</option>
-                                                    <option value="q2">Q2 (Plan)</option>
-                                                    <option value="q3">Q3 (Min)</option>
-                                                    <option value="q4">Q4 (Desc)</option>
+                                                    <option translate="no" value="q1">Q1 (YA)</option>
+                                                    <option translate="no" value="q2">Q2 (Plan)</option>
+                                                    <option translate="no" value="q3">Q3 (Min)</option>
+                                                    <option translate="no" value="q4">Q4 (Desc)</option>
                                                 </select>
                                                 <button
                                                     type="button"
@@ -741,7 +767,7 @@ function goToMission(id) {
                                 class="font-semibold text-success hover:underline flex items-center gap-1 cursor-pointer"
                                 @click="openCreateModal('q2')"
                             >
-                                + Agregar a Q2
+                                <span translate="no" class="notranslate">+ Agregar a Q2</span>
                             </button>
                         </div>
                     </BaseCard>
@@ -751,7 +777,7 @@ function goToMission(id) {
                         <div>
                             <div class="flex items-center justify-between pb-3 border-b border-border-interactive">
                                 <div class="flex items-center gap-2">
-                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning font-bold text-sm">
+                                    <div translate="no" class="notranslate flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning/10 text-warning font-bold text-sm">
                                         Q3
                                     </div>
                                     <div>
@@ -798,15 +824,16 @@ function goToMission(id) {
 
                                             <div class="flex items-center gap-1 shrink-0">
                                                 <select
-                                                    class="rounded-lg border border-border-interactive bg-surface px-1.5 py-1 text-[11px] font-medium text-content-secondary outline-none cursor-pointer"
+                                                    translate="no"
+                                                    class="notranslate rounded-lg border border-border-interactive bg-surface px-1.5 py-1 text-[11px] font-medium text-content-secondary outline-none cursor-pointer"
                                                     :value="m.eisenhower_quadrant || 'q3'"
                                                     title="Mover de cuadrante"
                                                     @change="quickChangeQuadrant(m.id, $event.target.value)"
                                                 >
-                                                    <option value="q1">Q1 (YA)</option>
-                                                    <option value="q2">Q2 (Plan)</option>
-                                                    <option value="q3">Q3 (Min)</option>
-                                                    <option value="q4">Q4 (Desc)</option>
+                                                    <option translate="no" value="q1">Q1 (YA)</option>
+                                                    <option translate="no" value="q2">Q2 (Plan)</option>
+                                                    <option translate="no" value="q3">Q3 (Min)</option>
+                                                    <option translate="no" value="q4">Q4 (Desc)</option>
                                                 </select>
                                                 <button
                                                     type="button"
@@ -830,7 +857,7 @@ function goToMission(id) {
                                 class="font-semibold text-warning hover:underline flex items-center gap-1 cursor-pointer"
                                 @click="openCreateModal('q3')"
                             >
-                                + Agregar a Q3
+                                <span translate="no" class="notranslate">+ Agregar a Q3</span>
                             </button>
                         </div>
                     </BaseCard>
@@ -840,7 +867,7 @@ function goToMission(id) {
                         <div>
                             <div class="flex items-center justify-between pb-3 border-b border-border-interactive">
                                 <div class="flex items-center gap-2">
-                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-raised text-content-muted font-bold text-sm">
+                                    <div translate="no" class="notranslate flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-raised text-content-muted font-bold text-sm">
                                         Q4
                                     </div>
                                     <div>
@@ -882,15 +909,16 @@ function goToMission(id) {
 
                                             <div class="flex items-center gap-1 shrink-0">
                                                 <select
-                                                    class="rounded-lg border border-border-interactive bg-surface px-1.5 py-1 text-[11px] font-medium text-content-secondary outline-none cursor-pointer"
+                                                    translate="no"
+                                                    class="notranslate rounded-lg border border-border-interactive bg-surface px-1.5 py-1 text-[11px] font-medium text-content-secondary outline-none cursor-pointer"
                                                     :value="m.eisenhower_quadrant || 'q4'"
                                                     title="Mover de cuadrante"
                                                     @change="quickChangeQuadrant(m.id, $event.target.value)"
                                                 >
-                                                    <option value="q1">Q1 (YA)</option>
-                                                    <option value="q2">Q2 (Plan)</option>
-                                                    <option value="q3">Q3 (Min)</option>
-                                                    <option value="q4">Q4 (Desc)</option>
+                                                    <option translate="no" value="q1">Q1 (YA)</option>
+                                                    <option translate="no" value="q2">Q2 (Plan)</option>
+                                                    <option translate="no" value="q3">Q3 (Min)</option>
+                                                    <option translate="no" value="q4">Q4 (Desc)</option>
                                                 </select>
                                                 <button
                                                     type="button"
@@ -914,7 +942,7 @@ function goToMission(id) {
                                 class="font-semibold text-content-secondary hover:underline flex items-center gap-1 cursor-pointer"
                                 @click="openCreateModal('q4')"
                             >
-                                + Agregar a Q4
+                                <span translate="no" class="notranslate">+ Agregar a Q4</span>
                             </button>
                         </div>
                     </BaseCard>
@@ -1571,6 +1599,22 @@ function goToMission(id) {
                     placeholder="Detalles clave para resolverla..."
                 />
 
+                <!-- Selector de Asignatura / Curso -->
+                <div>
+                    <label class="block text-xs font-semibold text-content-secondary mb-1">
+                        📚 Asignatura / Curso (opcional)
+                    </label>
+                    <select
+                        v-model="createForm.course_id"
+                        class="w-full rounded-xl border border-border-interactive bg-surface px-3 py-2 text-xs font-semibold text-content-primary outline-none shadow-xs focus:border-primary-strong cursor-pointer"
+                    >
+                        <option value="">(Sin asignar / General o Personal)</option>
+                        <option v-for="c in courses" :key="c.id" :value="c.id">
+                            {{ c.name }} {{ c.code ? `(${c.code})` : '' }}
+                        </option>
+                    </select>
+                </div>
+
                 <!-- Selector Visual de Cuadrante Eisenhower -->
                 <div>
                     <label class="block text-xs font-semibold text-content-secondary mb-2">
@@ -1717,6 +1761,22 @@ function goToMission(id) {
                     required
                 />
                 <BaseInput id="edit-desc" v-model="editForm.description" label="Descripción" />
+
+                <!-- Selector de Asignatura en Edición -->
+                <div>
+                    <label class="block text-xs font-semibold text-content-secondary mb-1">
+                        📚 Asignatura / Curso (opcional)
+                    </label>
+                    <select
+                        v-model="editForm.course_id"
+                        class="w-full rounded-xl border border-border-interactive bg-surface px-3 py-2 text-xs font-semibold text-content-primary outline-none shadow-xs focus:border-primary-strong cursor-pointer"
+                    >
+                        <option value="">(Sin asignar / General o Personal)</option>
+                        <option v-for="c in courses" :key="c.id" :value="c.id">
+                            {{ c.name }} {{ c.code ? `(${c.code})` : '' }}
+                        </option>
+                    </select>
+                </div>
 
                 <!-- Selector de Cuadrante en Edición -->
                 <div>

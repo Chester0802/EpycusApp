@@ -26,10 +26,12 @@ import {
     AlertTriangle,
     Edit3,
     CheckCircle,
+    BookOpen,
 } from '@lucide/vue';
 
 const props = defineProps({
     mission: { type: Object, required: true },
+    courses: { type: Array, default: () => [] },
     pomodoroSessions: { type: Array, default: () => [] },
 });
 
@@ -50,6 +52,7 @@ const editForm = useForm({
     description: props.mission.description || '',
     difficulty: props.mission.difficulty,
     priority: props.mission.priority,
+    course_id: props.mission.course_id ? String(props.mission.course_id) : '',
     eisenhower_quadrant: props.mission.eisenhower_quadrant || 'q2',
     due_date: props.mission.due_date || '',
 });
@@ -59,6 +62,7 @@ function openEditModal() {
     editForm.description = props.mission.description || '';
     editForm.difficulty = props.mission.difficulty;
     editForm.priority = props.mission.priority;
+    editForm.course_id = props.mission.course_id ? String(props.mission.course_id) : '';
     editForm.eisenhower_quadrant = props.mission.eisenhower_quadrant || 'q2';
     editForm.due_date = props.mission.due_date || '';
     showEditModal.value = true;
@@ -87,7 +91,7 @@ const eisenhowerConfig = {
         title: 'Q1: Hacer YA',
         subtitle: 'Urgente e Importante (Crisis)',
         icon: Flame,
-        badgeClass: 'bg-danger/15 text-red-700 dark:text-danger border border-danger/30 font-bold',
+        badgeClass: 'bg-rose-500/15 text-rose-800 dark:text-rose-300 border border-rose-500/30 font-bold',
         description: 'Exámenes próximos, entregas que vencen pronto y tareas críticas.',
     },
     q2: {
@@ -130,7 +134,7 @@ const difficultyConfig = {
     hard: {
         label: 'Difícil',
         xp: 50,
-        badgeClass: 'bg-danger/15 text-red-700 dark:text-danger border border-danger/30 font-semibold',
+        badgeClass: 'bg-rose-500/15 text-rose-800 dark:text-rose-300 border border-rose-500/30 font-semibold',
     },
 };
 
@@ -448,7 +452,29 @@ function formatRelativeDue(dateStr, isOverdue, isCompleted, daysEarlyOrLate) {
                     <div class="border-t border-border-interactive/60 pt-4"></div>
 
                     <!-- Fila de Atributos y Recompensas (Chips informativos) -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+
+                        <!-- Asignatura / Curso -->
+                        <div class="rounded-xl border border-border-interactive/60 bg-surface-raised/40 p-3 space-y-1">
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-content-muted">Asignatura</span>
+                            <div class="pt-0.5">
+                                <span
+                                    v-if="mission.course"
+                                    class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-bold border truncate"
+                                    :style="{
+                                        backgroundColor: `${mission.course.color || '#6366f1'}15`,
+                                        borderColor: `${mission.course.color || '#6366f1'}40`,
+                                        color: mission.course.color || '#6366f1',
+                                    }"
+                                >
+                                    <BookOpen :size="12" class="shrink-0" />
+                                    <span class="truncate">{{ mission.course.name }}</span>
+                                </span>
+                                <span v-else class="text-xs text-content-muted font-medium italic">
+                                    General / Sin asignar
+                                </span>
+                            </div>
+                        </div>
 
                         <!-- Dificultad -->
                         <div class="rounded-xl border border-border-interactive/60 bg-surface-raised/40 p-3 space-y-1">
@@ -535,14 +561,15 @@ function formatRelativeDue(dateStr, isOverdue, isCompleted, daysEarlyOrLate) {
                         <div class="flex items-center gap-2 shrink-0">
                             <label class="text-[11px] font-medium text-content-muted">Mover a:</label>
                             <select
-                                class="rounded-lg border border-border-interactive bg-surface px-2.5 py-1 text-xs font-semibold text-content-primary outline-none cursor-pointer shadow-xs"
+                                translate="no"
+                                class="notranslate rounded-lg border border-border-interactive bg-surface px-2.5 py-1 text-xs font-semibold text-content-primary outline-none cursor-pointer shadow-xs"
                                 :value="mission.eisenhower_quadrant || 'q2'"
                                 @change="quickChangeQuadrant($event.target.value)"
                             >
-                                <option value="q1">Q1: Hacer YA</option>
-                                <option value="q2">Q2: Planificar</option>
-                                <option value="q3">Q3: Minimizar</option>
-                                <option value="q4">Q4: Descartar</option>
+                                <option translate="no" value="q1">Q1: Hacer YA</option>
+                                <option translate="no" value="q2">Q2: Planificar</option>
+                                <option translate="no" value="q3">Q3: Minimizar</option>
+                                <option translate="no" value="q4">Q4: Descartar</option>
                             </select>
                         </div>
                     </div>
@@ -791,6 +818,22 @@ function formatRelativeDue(dateStr, isOverdue, isCompleted, daysEarlyOrLate) {
                         placeholder="Detalla de qué trata esta misión, notas o instrucciones…"
                         class="w-full rounded-xl border border-border-interactive bg-surface px-3.5 py-2 text-sm text-content-primary placeholder:text-content-muted outline-none focus:ring-2 focus:ring-primary-strong/40"
                     ></textarea>
+                </div>
+
+                <!-- Selector de Asignatura -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-content-secondary mb-1">
+                        📚 Asignatura / Curso (opcional)
+                    </label>
+                    <select
+                        v-model="editForm.course_id"
+                        class="w-full rounded-xl border border-border-interactive bg-surface px-3.5 py-2 text-xs font-semibold text-content-primary outline-none focus:ring-2 focus:ring-primary-strong/40 cursor-pointer shadow-xs"
+                    >
+                        <option value="">(Sin asignar / General o Personal)</option>
+                        <option v-for="c in courses" :key="c.id" :value="c.id">
+                            {{ c.name }} {{ c.code ? `(${c.code})` : '' }}
+                        </option>
+                    </select>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Modules\Missions\Infrastructure\Models;
 
+use App\Modules\Calendar\Infrastructure\Models\CourseModel;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
  * @property int $user_id
+ * @property int|null $course_id
  * @property string $title
  * @property string|null $description
  * @property string $difficulty
@@ -26,6 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Carbon\Carbon|null $updated_at
  * @property \Carbon\Carbon|null $deleted_at
  * @property-read Collection<int, SubtaskModel> $subtasks
+ * @property-read CourseModel|null $course
  */
 final class MissionModel extends Model
 {
@@ -34,7 +38,7 @@ final class MissionModel extends Model
     protected $table = 'missions';
 
     protected $fillable = [
-        'user_id', 'title', 'description', 'difficulty', 'priority', 'eisenhower_quadrant',
+        'user_id', 'course_id', 'title', 'description', 'difficulty', 'priority', 'eisenhower_quadrant',
         'due_date', 'completed_at', 'days_early_or_late', 'is_overdue', 'xp_awarded',
     ];
 
@@ -45,6 +49,14 @@ final class MissionModel extends Model
             'completed_at' => 'datetime',
             'is_overdue' => 'boolean',
         ];
+    }
+
+    /**
+     * @return BelongsTo<CourseModel, $this>
+     */
+    public function course(): BelongsTo
+    {
+        return $this->belongsTo(CourseModel::class, 'course_id');
     }
 
     /**

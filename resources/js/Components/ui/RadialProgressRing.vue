@@ -31,13 +31,13 @@ const dashOffset = computed(() => {
                     </linearGradient>
                 </defs>
 
-                <!-- Anillo Base Fondo -->
+                <!-- Anillo Base Fondo con alto contraste -->
                 <circle
                     cx="50"
                     cy="50"
                     r="40"
                     fill="none"
-                    class="stroke-surface-raised"
+                    class="stroke-slate-200 dark:stroke-slate-700/60 transition-colors"
                     :stroke-width="strokeWidth"
                 />
 

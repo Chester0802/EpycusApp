@@ -70,9 +70,16 @@ final class MissionsController extends Controller
         $missionsData = $this->mapMissions($missions, $today);
         $completedData = $this->mapMissions($completed, $today);
 
+        $courses = \Illuminate\Support\Facades\DB::table('courses')
+            ->where('user_id', $userId)
+            ->select('id', 'name', 'color')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render('Missions/Index', [
             'missions' => $missionsData,
             'completedMissions' => $completedData,
+            'courses' => $courses,
             'todayDate' => $today,
             'sortBy' => $sortBy,
             'avatarStyle' => $user ? $user->avatar_style : 'base',
@@ -111,6 +118,7 @@ final class MissionsController extends Controller
             'description' => 'nullable|string',
             'difficulty' => 'required|in:easy,medium,hard',
             'priority' => 'required|in:baja,normal,alta',
+            'course_id' => 'nullable|integer|exists:courses,id',
             'eisenhower_quadrant' => 'nullable|in:q1,q2,q3,q4',
             'due_date' => 'nullable|date',
             'subtasks' => 'nullable|array',
@@ -126,6 +134,7 @@ final class MissionsController extends Controller
             dueDate: $validated['due_date'] ?? null,
             subtasks: $validated['subtasks'] ?? [],
             eisenhowerQuadrant: $validated['eisenhower_quadrant'] ?? 'q2',
+            courseId: !empty($validated['course_id']) ? (int) $validated['course_id'] : null,
         );
 
         $this->createMission->execute($dto);
@@ -140,6 +149,7 @@ final class MissionsController extends Controller
             'description' => 'nullable|string',
             'difficulty' => 'required|in:easy,medium,hard',
             'priority' => 'required|in:baja,normal,alta',
+            'course_id' => 'nullable|integer|exists:courses,id',
             'eisenhower_quadrant' => 'nullable|in:q1,q2,q3,q4',
             'due_date' => 'nullable|date',
         ]);
@@ -153,6 +163,7 @@ final class MissionsController extends Controller
             priority: $validated['priority'],
             dueDate: $validated['due_date'] ?? null,
             eisenhowerQuadrant: $validated['eisenhower_quadrant'] ?? null,
+            courseId: !empty($validated['course_id']) ? (int) $validated['course_id'] : null,
         );
 
         $this->updateMission->execute($dto);
@@ -196,8 +207,15 @@ final class MissionsController extends Controller
             ];
         })->values()->toArray();
 
+        $courses = \Illuminate\Support\Facades\DB::table('courses')
+            ->where('user_id', $userId)
+            ->select('id', 'name', 'color')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render('Missions/Detail', [
             'mission' => $data,
+            'courses' => $courses,
             'pomodoroSessions' => $pomodoroSessions,
         ]);
     }
@@ -218,6 +236,12 @@ final class MissionsController extends Controller
 
         return [
             'id' => $m->id,
+            'course_id' => $m->course_id,
+            'course' => $m->course ? [
+                'id' => $m->course->id,
+                'name' => $m->course->name,
+                'color' => $m->course->color,
+            ] : null,
             'title' => $m->title,
             'description' => $m->description,
             'difficulty' => $m->difficulty,

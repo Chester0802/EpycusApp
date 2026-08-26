@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="google" content="notranslate">
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
         <meta name="description" content="Epycus es la plataforma líder en autorregulación y gamificación académica para estudiantes universitarios del Perú. Domina tu tiempo con Pomodoro, horarios de cursos, misiones, hábitos diarios y tutoría con IA.">
         <meta name="keywords" content="Epycus, productividad universitaria, pomodoro peru, horario de clases universidad, tecnicas de estudio, superar la procrastinacion, habitos de estudio peru, app para universitarios peru, estudiantes universitarios">

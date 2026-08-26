@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Modules\Gamification\Domain\Services\CharacterStatsCalculator;
 use App\Modules\Gamification\Domain\Services\LevelCalculator;
 use App\Modules\Identity\Infrastructure\Models\ParticipantModel;
 use App\Shared\Domain\Contracts\UserProgressReaderInterface;
@@ -18,6 +19,7 @@ class ProfileController extends Controller
 {
     public function __construct(
         private UserProgressReaderInterface $progressReader,
+        private CharacterStatsCalculator $statsCalculator,
     ) {}
 
     public function edit(Request $request): Response
@@ -55,6 +57,10 @@ class ProfileController extends Controller
             'levelProgressPercent' => $levelProgressPercent,
         ];
 
+        // Estadísticas RPG y Camino del Héroe (Fases 1 a 10)
+        $characterStats = $this->statsCalculator->calculate($userId, $level, $streak);
+        $herosJourneyPhases = $this->statsCalculator->getHerosJourneyPhases();
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => false,
             'status' => session('status'),
@@ -62,6 +68,8 @@ class ProfileController extends Controller
             'avatarGender' => $user->avatar_gender ?? 'm',
             'avatarOptions' => $user->avatar_options,
             'progress' => $progressData,
+            'characterStats' => $characterStats,
+            'herosJourneyPhases' => array_values($herosJourneyPhases),
             'participantCode' => $participant?->participant_code,
             'careers' => config('careers.styles'),
             'cycles' => config('careers.cycles'),

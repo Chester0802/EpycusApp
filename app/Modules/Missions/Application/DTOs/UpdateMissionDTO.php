@@ -15,5 +15,6 @@ final readonly class UpdateMissionDTO
         public string $priority,
         public ?string $dueDate,
         public ?string $eisenhowerQuadrant = null,
+        public ?int $courseId = null,
     ) {}
 }

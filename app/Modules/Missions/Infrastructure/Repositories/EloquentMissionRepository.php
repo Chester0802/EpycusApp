@@ -16,7 +16,7 @@ final class EloquentMissionRepository implements MissionRepositoryInterface
         return MissionModel::query()
             ->where('id', $missionId)
             ->where('user_id', $userId)
-            ->with('subtasks')
+            ->with(['subtasks', 'course'])
             ->first();
     }
 
@@ -25,7 +25,7 @@ final class EloquentMissionRepository implements MissionRepositoryInterface
         $query = MissionModel::query()
             ->where('user_id', $userId)
             ->whereNull('completed_at')
-            ->with('subtasks');
+            ->with(['subtasks', 'course']);
 
         return match ($sortBy) {
             'priority' => $query->orderByRaw("CASE priority WHEN 'alta' THEN 1 WHEN 'normal' THEN 2 WHEN 'baja' THEN 3 ELSE 4 END")->orderBy('due_date')->get(),
@@ -49,7 +49,7 @@ final class EloquentMissionRepository implements MissionRepositoryInterface
         return MissionModel::query()
             ->where('user_id', $userId)
             ->whereNotNull('completed_at')
-            ->with('subtasks')
+            ->with(['subtasks', 'course'])
             ->orderBy('completed_at', 'desc')
             ->get();
     }

@@ -22,6 +22,7 @@ final class UpdateMissionUseCase
         }
 
         $data = [
+            'course_id' => $dto->courseId,
             'title' => $dto->title,
             'description' => $dto->description,
             'difficulty' => $dto->difficulty,

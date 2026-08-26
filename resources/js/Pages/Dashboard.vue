@@ -8,6 +8,12 @@ import ProgressBar from '@/Components/ui/ProgressBar.vue';
 import UsageTipBanner from '@/Components/ui/UsageTipBanner.vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import StudentIdCard from '@/Components/ui/StudentIdCard.vue';
+import CharacterSheetCard from '@/Components/ui/CharacterSheetCard.vue';
+import ActivityHeatmap from '@/Components/ui/ActivityHeatmap.vue';
+import CourseDistributionChart from '@/Components/ui/CourseDistributionChart.vue';
+import PeakHoursChart from '@/Components/ui/PeakHoursChart.vue';
+import WellbeingTrendChart from '@/Components/ui/WellbeingTrendChart.vue';
+import VillainDamageHistoryChart from '@/Components/ui/VillainDamageHistoryChart.vue';
 
 import DonutChart from '@/Components/ui/DonutChart.vue';
 import RadialProgressRing from '@/Components/ui/RadialProgressRing.vue';
@@ -18,6 +24,8 @@ const props = defineProps({
     avatarStyle: { type: String, default: null },
     avatarGender: { type: String, default: null },
     avatarOptions: { type: Object, default: () => ({}) },
+    characterStats: { type: Object, default: () => ({}) },
+    analytics: { type: Object, default: () => ({}) },
     progress: { type: Object, required: true },
     activity: { type: Array, default: () => [] },
     stats: { type: Object, default: () => ({}) },
@@ -68,46 +76,26 @@ function habitsBarHeight(count) {
 
     <AppLayout>
         <div class="space-y-6">
-            <!-- Credencial de Estudiante Digital Holográfica -->
-            <StudentIdCard
+            <!-- Ficha de Personaje RPG y Pentágono de Atributos -->
+            <CharacterSheetCard
+                v-if="characterStats && characterStats.attributes"
                 :user-name="userName"
                 :user-career="userCareer"
                 :avatar-style="avatarStyle"
                 :avatar-gender="avatarGender ?? 'm'"
                 :avatar-options="avatarOptions"
                 :progress="progress"
-            >
-                <template #actions>
-                    <div class="flex flex-wrap gap-3 sm:flex-col sm:items-end">
-                        <BaseButton :href="route('pomodoro.index')" variant="primary" size="sm">
-                            <AppIcon name="timer" :size="14" class="mr-1" /> Iniciar Pomodoro
-                        </BaseButton>
-                        <BaseButton :href="route('habits.index')" variant="secondary" size="sm">
-                            <AppIcon name="check-circle" :size="14" class="mr-1" /> Mis Hábitos
-                        </BaseButton>
-                    </div>
-                </template>
-            </StudentIdCard>
-
-            <!-- Barra de Progreso de Nivel (XP) -->
-            <BaseCard class="p-6">
-                <div
-                    class="flex items-center justify-between text-xs font-semibold text-content-secondary mb-1.5"
-                >
-                    <span>Progreso hacia Nivel {{ progress.level + 1 }}</span>
-                    <span
-                        >{{ progress.currentLevelXp }} / {{ progress.nextLevelXpNeeded }} XP ({{
-                            progress.levelProgressPercent
-                        }}%)</span
-                    >
-                </div>
-                <ProgressBar
-                    :value="progress.currentLevelXp"
-                    :max="progress.nextLevelXpNeeded"
-                    color="bg-primary-strong"
-                    size="h-3"
-                />
-            </BaseCard>
+                :character-stats="characterStats"
+            />
+            <StudentIdCard
+                v-else
+                :user-name="userName"
+                :user-career="userCareer"
+                :avatar-style="avatarStyle"
+                :avatar-gender="avatarGender ?? 'm'"
+                :avatar-options="avatarOptions"
+                :progress="progress"
+            />
 
             <!-- Usage Tip Banner descartable -->
             <UsageTipBanner module="dashboard" />
@@ -172,6 +160,12 @@ function habitsBarHeight(count) {
                 </BaseCard>
             </div>
 
+            <!-- Gráfico 1: Mapa de Calor de Consistencia Diaria (60 Días) -->
+            <ActivityHeatmap
+                v-if="analytics && analytics.heatmap"
+                :data="analytics.heatmap"
+            />
+
             <!-- Sección de Gráficos Circulares de Datos y Bienestar -->
             <div class="grid gap-6 md:grid-cols-3">
                 <!-- Card 1: Gráfico de Donut de Misiones -->
@@ -190,6 +184,7 @@ function habitsBarHeight(count) {
                         :segments="missionDonutSegments"
                         :center-title="stats.totalMissions || 0"
                         center-subtitle="Total"
+                        :size="130"
                     />
                 </BaseCard>
 
@@ -489,6 +484,46 @@ function habitsBarHeight(count) {
                         Ver Villano Completo <AppIcon name="arrow-right" :size="14" />
                     </BaseButton>
                 </BaseCard>
+            </div>
+
+            <!-- Centro de Comando y Analíticas del Héroe (4 Gráficos Adicionales) -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-display text-lg font-bold text-content-primary flex items-center gap-2">
+                            <span>📊</span> Analíticas y Rendimiento del Héroe
+                        </h2>
+                        <p class="text-xs text-content-secondary">
+                            Métricas avanzadas de tiempo, concentración circadiana y combate.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Gráfico 2: Distribución por Asignatura -->
+                    <CourseDistributionChart
+                        v-if="analytics && analytics.courseDistribution"
+                        :courses="analytics.courseDistribution"
+                    />
+
+                    <!-- Gráfico 3: Horas Pico de Rendimiento -->
+                    <PeakHoursChart
+                        v-if="analytics && analytics.peakHours"
+                        :peak-data="analytics.peakHours"
+                    />
+
+                    <!-- Gráfico 4: Curva de Bienestar: Energía vs. Estrés -->
+                    <WellbeingTrendChart
+                        v-if="analytics && analytics.wellbeingTrend"
+                        :trend-data="analytics.wellbeingTrend"
+                    />
+
+                    <!-- Gráfico 5: Historial de Asalto a Villanos -->
+                    <VillainDamageHistoryChart
+                        v-if="analytics && analytics.villainHistory"
+                        :history="analytics.villainHistory"
+                    />
+                </div>
             </div>
 
             <!-- Accesos Rápidos a Módulos Clave -->

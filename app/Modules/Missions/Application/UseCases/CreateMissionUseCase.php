@@ -21,6 +21,7 @@ final class CreateMissionUseCase
     {
         $mission = $this->repository->create([
             'user_id' => $dto->userId,
+            'course_id' => $dto->courseId,
             'title' => $dto->title,
             'description' => $dto->description,
             'difficulty' => $dto->difficulty,

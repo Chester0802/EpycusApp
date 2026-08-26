@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Modules\Gamification\Domain\Services\CharacterStatsCalculator;
+use App\Modules\Gamification\Domain\Services\DashboardAnalyticsService;
 use App\Modules\Gamification\Domain\Services\LevelCalculator;
 use App\Modules\Motivation\Application\UseCases\GetQuoteForLoginUseCase;
 use App\Modules\Villains\Application\UseCases\GetCurrentVillainUseCase;
@@ -19,6 +21,8 @@ class DashboardController extends Controller
         private UserProgressReaderInterface $progress,
         private GetCurrentVillainUseCase $getCurrentVillain,
         private GetQuoteForLoginUseCase $getQuote,
+        private CharacterStatsCalculator $statsCalculator,
+        private DashboardAnalyticsService $analyticsService,
     ) {}
 
     public function index(Request $request): Response|RedirectResponse
@@ -148,12 +152,20 @@ class DashboardController extends Controller
         // 6. Villano activo
         $villain = $this->getCurrentVillain->execute($userId);
 
+        // 7. Ficha de Personaje RPG & Atributos
+        $characterStats = $this->statsCalculator->calculate($userId, $level, $streak);
+
+        // 8. Gráficos Analíticos Avanzados (Heatmap, Cursos, Horas Pico, Bienestar, Villanos)
+        $analytics = $this->analyticsService->getAnalytics($userId);
+
         return Inertia::render('Dashboard', [
             'userName' => $user?->name ?? 'Estudiante',
             'userCareer' => $user?->career,
             'avatarStyle' => $user?->avatar_style,
             'avatarGender' => $user?->avatar_gender,
             'avatarOptions' => $user?->avatar_options,
+            'characterStats' => $characterStats,
+            'analytics' => $analytics,
             'progress' => [
                 'level' => $level,
                 'phase' => $phase,
