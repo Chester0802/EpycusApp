@@ -776,27 +776,56 @@ La última es especialmente importante: si un administrador puede editar los dat
 
 ---
 
-## 17. Estado de implementación (COMPLETADO)
+---
 
-Todos los 16 módulos del proyecto han sido **implementados y completados**. El siguiente fue el orden de construcción que se siguió:
+## 17. Nuevos Módulos de Autorregulación Integral
+
+### 17.1 Shop (Tienda de Recompensas de la Vida Real)
+Canje de monedas virtuales (`coins`) ganadas por disciplina académica por premios tangibles de autocuidado (café especial, tarde de cine, descanso sin culpa, etc.).
+- **Entidades:** `UserRewardModel`, `RewardRedemptionModel`.
+- **Rutas:** `/shop`, `/shop/rewards`, `/shop/redeem`.
+- **Recompensas:** Validación de saldo de monedas, deducción inmediata y registro en historial.
+
+### 17.2 Finance (Finanzas Personales Estudiantiles)
+Control presupuestario universitario para reducir el estrés económico del estudiante.
+- **Entidades:** `FinancialTransactionModel`, `FinancialBudgetModel`, `SavingsGoalModel`.
+- **Funcionalidades:** Registro de ingresos/gastos con categorías, balance neto mensual con semáforo, límites presupuestarios con alertas y metas de ahorro con asignación de XP por depósito.
+- **Rutas:** `/finance`, `/finance/transactions`, `/finance/budgets`, `/finance/savings`.
+
+### 17.3 Fitness (Fitness, Calistenia & Hidratación)
+Salud física anti-sedentarismo de escritorio y marcador de hidratación cerebral.
+- **Entidades:** `DailyHydrationModel`, `WorkoutLogModel`, `ExerciseCatalogModel`.
+- **Funcionalidades:** Marcador interactivo de 8 vasos de agua (2.0L, +20 XP) y registro de rutinas de calistenia/estiramientos (+25 XP).
+- **Rutas:** `/fitness`, `/fitness/hydration`, `/fitness/workouts`.
+
+### 17.4 Calendar & Time-Blocking 24h Unificado
+Planificación temporal diaria y semanal centralizada.
+- **Entidades:** `DailyPlanItemModel`, `DailyRoutineModel`, `CourseModel`, `CourseSessionModel`.
+- **Funcionalidades:** Vista Time-Blocking de 24 horas con clases y actividades, checklist de 3 bloques diarios con estados (Hecho, Postergado, Saltado), plantillas de rutinas y bloc de notas adjunto.
+- **Rutas:** `/calendar`, `/calendar/plan/items`, `/calendar/plan/routines`.
+
+---
+
+## 18. Estado de implementación (ACTUALIZADO 2026-08-26)
+
+Todos los módulos del proyecto y sus extensiones están **100% implementados y verificados**:
 
 | Orden | Módulo | Estado actual |
 |---|---|---|
 | 1 | `Shared` + `Identity` | **Completado** |
-| 2 | **`Telemetry`** | **Completado** |
-| 3 | `Calendar` | **Completado** |
-| 4 | `Habits` | **Completado** |
-| 5 | `Gamification` | **Completado** |
+| 2 | `Telemetry` | **Completado** |
+| 3 | `Calendar` (Time-Blocking 24h & Apuntes) | **Completado** |
+| 4 | `Habits` & `Wellbeing` (Hub de Salud) | **Completado** |
+| 5 | `Gamification` & `Achievements` (Fusión en Perfil) | **Completado** |
 | 6 | `Pomodoro` | **Completado** |
-| 7 | `Missions` | **Completado** |
+| 7 | `Missions` (Matriz & Kanban) | **Completado** |
 | 8 | `Personalization` | **Completado** |
 | 9 | `Motivation` | **Completado** |
 | 10 | `Villains` | **Completado** |
-| 11 | `Wellbeing` | **Completado** |
-| 12 | `AiAssistant` | **Completado** |
-| 13 | `Ranking` | **Completado** |
-| 14 | `Achievements` | **Completado** |
-| 15 | `StudyGroups` | **Completado** |
-| 16 | `Admin` | **Completado** |
-
-**Telemetry va en segundo lugar a propósito.** Es el error más común y más caro: construir toda la aplicación y agregar telemetría al final. Cuando se hace así, quedan huecos, se registran eventos inconsistentes y se descubre tarde. Si se construye primero, cada módulo posterior se conecta a algo que ya funciona y está probado.
+| 11 | `Shop` (Recompensas de Vida Real) | **Completado** |
+| 12 | `Finance` (Presupuesto & Ahorro Estudiantil) | **Completado** |
+| 13 | `Fitness` (Calistenia & 8 Vasos de Agua) | **Completado** |
+| 14 | `AiAssistant` (Contexto 360°) | **Completado** |
+| 15 | `Ranking` | **Completado** |
+| 16 | `StudyGroups` | **Completado** |
+| 17 | `Admin` | **Completado** |

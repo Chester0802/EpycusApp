@@ -1,153 +1,134 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { usePage, router, Link } from '@inertiajs/vue3';
+import { useTheme } from '@/Composables/useTheme';
+import { useTelemetry } from '@/Composables/useTelemetry';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import NavIcon from '@/Components/NavIcon.vue';
 import BaseBadge from '@/Components/ui/BaseBadge.vue';
 import EpaPretestModal from '@/Components/EpaPretestModal.vue';
-import { useTheme } from '@/composables/useTheme';
-
-import { triggerHapticVibration } from '@/utils/celebration';
-
-const toastMessage = ref(null);
-const toastType = ref('success');
-let toastTimeout = null;
-
-function showToast(message, type = 'success', duration = 4500) {
-    if (toastTimeout) clearTimeout(toastTimeout);
-    toastMessage.value = message;
-    toastType.value = type;
-
-    // Vibración háptica en móvil cuando se recibe una notificación positiva o recompensa
-    if (type === 'success') {
-        triggerHapticVibration([50, 40, 60]);
-    }
-
-    toastTimeout = setTimeout(() => {
-        toastMessage.value = null;
-    }, duration);
-}
+import { MoreHorizontal, X, LogOut } from '@lucide/vue';
 
 const page = usePage();
+const { track } = useTelemetry();
 
-function navigate(routeName) {
-    mobileMenuOpen.value = false;
-    if (route().current(routeName)) return;
-    router.visit(route(routeName));
-}
+const showMobileMore = ref(false);
 
-watch(
-    () => page.props.flash,
-    (flash) => {
-        if (flash?.success) {
-            showToast(flash.success, 'success');
-        } else if (flash?.error) {
-            showToast(flash.error, 'error');
-        } else if (flash?.warning) {
-            showToast(flash.warning, 'warning');
-        }
+const navSections = [
+    {
+        title: 'Estudio',
+        items: [
+            { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
+            { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
+            { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
+            { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro' },
+        ],
     },
-    { deep: true, immediate: true },
-);
+    {
+        title: 'Vida & Salud',
+        items: [
+            { label: 'Bienestar & Hábitos', routeName: 'habits.index', icon: 'habits', matchRoutes: ['habits.index', 'wellbeing.index', 'wellbeing.day', 'fitness.index'] },
+            { label: 'Finanzas', routeName: 'finance.index', icon: 'finance' },
+            { label: 'Tienda', routeName: 'shop.index', icon: 'shop' },
+        ],
+    },
+    {
+        title: 'Aventura & Comunidad',
+        items: [
+            { label: 'Edy AI', routeName: 'ai-assistant.index', icon: 'ai' },
+            { label: 'Villanos', routeName: 'villains.index', icon: 'villains' },
+            { label: 'Ranking', routeName: 'ranking.index', icon: 'ranking' },
+            { label: 'Grupos', routeName: 'study-groups.index', icon: 'groups' },
+        ],
+    },
+    {
+        title: 'Cuenta',
+        items: [
+            { label: 'Perfil & Logros', routeName: 'profile.edit', icon: 'user' },
+            { label: 'Ajustes', routeName: 'settings.edit', icon: 'settings' },
+        ],
+    },
+];
 
-function handleCustomToast(event) {
-    if (event?.detail?.message) {
-        showToast(event.detail.message, event.detail.type || 'success', event.detail.duration || 4500);
-    }
-}
-
-onMounted(() => {
-    window.addEventListener('epycus-toast', handleCustomToast);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('epycus-toast', handleCustomToast);
-});
-
-/*
- * Estructura de docs/04-DISENO-VISUAL.md §9 y §14: barra lateral fija en
- * escritorio, barra inferior en móvil. Hábitos (Fase 3) y Pomodoro (Fase 5)
- * ya tienen ruta real; Misiones se muestra como "Pronto" (sin `routeName`,
- * deshabilitado) hasta que exista su ruta — no apuntar un nav item a una
- * ruta que no existe: Ziggy revienta en tiempo de ejecución si `route()`
- * no la conoce.
- *
- * Sin "Avatar" a propósito: no es un destino de navegación propio, es
- * contenido embebido en Perfil (docs/08-PROMPTS-MOCKUPS.md línea 104: el
- * avatar grande va "en perfil", no en su propia pantalla) — corrección del
- * usuario tras ver un módulo entero reservado para algo que ya tenía dueño.
- * Si Gamificación (docs/03-GAMIFICACION.md §2) termina necesitando su
- * propia pantalla de personalización, que viva dentro de Perfil o Ajustes,
- * no acá.
- *
- * Ajustes no está en este arreglo — es un `<Link>` fijo agregado después
- * del `v-for`, no un item más de la lista (ver más abajo).
- *
- * Los controles de tema/superficie/paleta viven en /settings (Ajustes),
- * no acá — corrección del usuario tras ver la Fase 0: la barra de
- * navegación no es el lugar para eso.
- */
-const mainNavItems = [
+// 5 botones exactos para la barra inferior en móvil (Opción B)
+const mobileBottomNavItems = [
     { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
-    { label: 'Hábitos', routeName: 'habits.index', icon: 'habits' },
-    { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro' },
-    { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
-    { label: 'Perfil', routeName: 'profile.edit', icon: 'user' },
-];
-
-const secondaryNavItems = [
-    { label: 'Edy AI', routeName: 'ai-assistant.index', icon: 'ai' },
-    { label: 'Ranking', routeName: 'ranking.index', icon: 'ranking' },
-    { label: 'Logros', routeName: 'achievements.index', icon: 'achievements' },
     { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
-    { label: 'Bienestar', routeName: 'wellbeing.index', icon: 'wellbeing' },
-    { label: 'Villanos', routeName: 'villains.index', icon: 'villains' },
-    { label: 'Grupos', routeName: 'study-groups.index', icon: 'groups' },
-];
-
-const navItems = [
-    { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
-    { label: 'Hábitos', routeName: 'habits.index', icon: 'habits' },
-    { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro' },
     { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
-    { label: 'Ranking', routeName: 'ranking.index', icon: 'ranking' },
-    { label: 'Logros', routeName: 'achievements.index', icon: 'achievements' },
-    { label: 'Edy AI', routeName: 'ai-assistant.index', icon: 'ai' },
-    { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
-    { label: 'Bienestar', routeName: 'wellbeing.index', icon: 'wellbeing' },
-    { label: 'Villanos', routeName: 'villains.index', icon: 'villains' },
-    { label: 'Grupos', routeName: 'study-groups.index', icon: 'groups' },
-    { label: 'Perfil', routeName: 'profile.edit', icon: 'user' },
+    { label: 'Bienestar', routeName: 'habits.index', icon: 'habits', matchRoutes: ['habits.index', 'wellbeing.index', 'wellbeing.day', 'fitness.index'] },
+    { label: 'Más', action: 'more', icon: 'settings' },
 ];
 
-const mobileMenuOpen = ref(false);
+const mobileDrawerItems = [
+    { label: 'Mi Perfil & Logros', routeName: 'profile.edit', icon: 'user', desc: 'Avatar, XP y Medallas' },
+    { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro', desc: 'Temporizador de estudio' },
+    { label: 'Finanzas', routeName: 'finance.index', icon: 'finance', desc: 'Presupuesto y ahorro' },
+    { label: 'Tienda', routeName: 'shop.index', icon: 'shop', desc: 'Canje de recompensas' },
+    { label: 'Edy AI', routeName: 'ai-assistant.index', icon: 'ai', desc: 'Tutor y consejero' },
+    { label: 'Villanos', routeName: 'villains.index', icon: 'villains', desc: 'Jefe semanal' },
+    { label: 'Ranking', routeName: 'ranking.index', icon: 'ranking', desc: 'Tabla de posiciones' },
+    { label: 'Grupos', routeName: 'study-groups.index', icon: 'groups', desc: 'Salas de estudio' },
+    { label: 'Ajustes', routeName: 'settings.edit', icon: 'settings', desc: 'Tema y personalización' },
+];
+
 const { surface } = useTheme();
 
 const showEpaModal = computed(() => {
     const user = page.props.auth?.user;
     if (!user) return false;
-
-    // No mostrar el cuestionario EPA en la vista de completar perfil (/profile/complete)
     if (page.url.includes('/profile/complete')) return false;
-
-    // No mostrar el cuestionario si el usuario no ha completado su perfil académico inicial
-    if (!user.career || !user.institution_type) return false;
-
-    if (page.props.auth?.hasCompletedEpaPretest === true) return false;
-
-    if (typeof window !== 'undefined' && window.localStorage) {
-        if (localStorage.getItem(`epycus_epa_completed_${user.id}`) === '1') {
-            return false;
-        }
-    }
-    return true;
+    if (!user.career || !user.cycle) return false;
+    const answeredEpa = page.props.auth?.answered_epa;
+    return answeredEpa === false;
 });
+
+function isItemActive(item) {
+    if (item.matchRoutes) {
+        return item.matchRoutes.some((r) => route().current(r));
+    }
+    return item.routeName ? route().current(item.routeName) : false;
+}
+
+function navigate(routeName) {
+    showMobileMore.value = false;
+    track('navigation.clicked', 'layout', { target_route: routeName });
+    router.visit(route(routeName));
+}
+
+const flashMessage = computed(() => page.props.flash?.success ?? null);
+const flashError = computed(() => page.props.flash?.error ?? null);
+const flashWarning = computed(() => page.props.flash?.warning ?? null);
+const toastMessage = ref(null);
+const toastType = ref('success');
+
+import { watch } from 'vue';
+watch(
+    [flashMessage, flashError, flashWarning],
+    ([newSuccess, newError, newWarning]) => {
+        if (newError) {
+            toastMessage.value = newError;
+            toastType.value = 'error';
+        } else if (newWarning) {
+            toastMessage.value = newWarning;
+            toastType.value = 'warning';
+        } else if (newSuccess) {
+            toastMessage.value = newSuccess;
+            toastType.value = 'success';
+        }
+        if (toastMessage.value) {
+            setTimeout(() => {
+                toastMessage.value = null;
+            }, 4500);
+        }
+    },
+    { immediate: true },
+);
 </script>
 
 <template>
-    <div class="min-h-screen bg-bg lg:flex">
-        <!-- Toast / Notificaciones Flotantes Globales -->
+    <div class="relative min-h-screen lg:flex">
+        <!-- Toast de Notificaciones Globales -->
         <Transition
             enter-active-class="transform ease-out duration-300 transition"
             enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
@@ -189,197 +170,201 @@ const showEpaModal = computed(() => {
         <!-- Modal de Diagnóstico Inicial EPA -->
         <EpaPretestModal :show="showEpaModal" />
 
-        <!-- Fondo de pantalla — solo modo Vidrio (skill epycus-ui §2, §6) -->
+        <!-- Fondo de pantalla — solo modo Vidrio -->
         <div v-if="surface === 'glass'" class="app-background" aria-hidden="true" />
-        <!-- Barra lateral — solo escritorio -->
-        <aside class="panel-nav relative z-10 hidden w-[260px] shrink-0 lg:flex lg:flex-col">
-            <div class="flex h-16 items-center justify-between gap-2 px-6">
-                <button type="button" class="flex items-center gap-2 cursor-pointer" @click="navigate('dashboard')">
-                    <span
-                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-strong p-1"
-                    >
+
+        <!-- Barra lateral — solo escritorio (Organizada por Secciones Semánticas) -->
+        <aside class="panel-nav relative z-10 hidden w-[250px] shrink-0 lg:flex lg:flex-col border-r border-border h-screen sticky top-0">
+            <div class="flex h-16 items-center justify-between gap-2 px-5 border-b border-border/50">
+                <button type="button" class="flex items-center gap-2.5 cursor-pointer" @click="navigate('dashboard')">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-strong p-1 shadow-sm">
                         <ApplicationLogo class="h-full w-full rounded" />
                     </span>
-                    <span class="font-display text-lg font-semibold text-content-primary"
-                        >Epycus</span
-                    >
+                    <span class="font-display text-lg font-bold text-content-primary">Epycus</span>
                 </button>
                 <ThemeToggle />
             </div>
 
-            <nav class="flex-1 space-y-1 px-4" aria-label="Navegación principal">
-                <template v-for="item in navItems" :key="item.label">
-                    <button
-                        v-if="item.routeName"
-                        type="button"
-                        class="flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 text-left cursor-pointer"
-                        :class="
-                            route().current(item.routeName)
-                                ? 'bg-primary text-on-primary shadow-sm'
-                                : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
-                        "
-                        @click="navigate(item.routeName)"
-                    >
-                        <NavIcon :name="item.icon" />
-                        <span>{{ item.label }}</span>
-                    </button>
-                    <span
-                        v-else
-                        class="flex min-h-[44px] cursor-not-allowed items-center justify-between gap-3 rounded-xl px-3 text-sm font-semibold text-content-muted opacity-50"
-                        aria-disabled="true"
-                    >
-                        <span class="flex items-center gap-3">
-                            <NavIcon :name="item.icon" />
-                            {{ item.label }}
-                        </span>
-                        <BaseBadge variant="neutral">Pronto</BaseBadge>
-                    </span>
-                </template>
-                <button
-                    type="button"
-                    class="flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 text-left cursor-pointer"
-                    :class="
-                        route().current('settings.edit')
-                            ? 'bg-primary text-on-primary shadow-sm'
-                            : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
-                    "
-                    @click="navigate('settings.edit')"
-                >
-                    <NavIcon name="settings" />
-                    <span>Ajustes</span>
-                </button>
+            <nav class="flex-1 overflow-y-auto space-y-4 px-3 py-3" aria-label="Navegación principal">
+                <div v-for="section in navSections" :key="section.title" class="space-y-1">
+                    <div class="px-3 text-[10px] font-bold uppercase tracking-wider text-content-muted">
+                        {{ section.title }}
+                    </div>
+                    <template v-for="item in section.items" :key="item.label">
+                        <button
+                            type="button"
+                            class="flex w-full min-h-[38px] items-center gap-2.5 rounded-xl px-3 text-xs font-bold transition-all duration-150 text-left cursor-pointer"
+                            :class="
+                                isItemActive(item)
+                                    ? 'bg-primary-strong text-on-primary-strong shadow-sm'
+                                    : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
+                            "
+                            @click="navigate(item.routeName)"
+                        >
+                            <NavIcon :name="item.icon" class="h-4 w-4 shrink-0" />
+                            <span class="truncate">{{ item.label }}</span>
+                        </button>
+                    </template>
+                </div>
+
                 <button
                     v-if="page.props.auth.user.role === 'admin'"
                     type="button"
-                    class="flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 border border-primary-strong/30 bg-primary-strong/10 text-primary-strong hover:bg-primary-strong hover:text-white text-left cursor-pointer"
+                    class="flex w-full min-h-[38px] items-center gap-2.5 rounded-xl px-3 text-xs font-bold transition-colors duration-150 border border-primary-strong/30 bg-primary-strong/10 text-primary-strong hover:bg-primary-strong hover:text-white text-left cursor-pointer"
                     :class="{ '!bg-primary-strong !text-white': route().current('admin.index') }"
                     @click="navigate('admin.index')"
                 >
-                    <NavIcon name="ranking" />
+                    <NavIcon name="ranking" class="h-4 w-4 shrink-0" />
                     <span>Panel Investigación</span>
                 </button>
             </nav>
 
-            <div class="border-t border-border p-4">
-                <div class="mb-2 truncate text-sm font-semibold text-content-primary">
-                    {{ page.props.auth.user.name }}
+            <div class="border-t border-border p-3.5 bg-surface/40">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="truncate text-xs font-bold text-content-primary">
+                        {{ page.props.auth.user.name }}
+                    </div>
+                    <span class="text-[10px] text-content-muted font-bold">Lvl {{ page.props.auth.user.level || 1 }}</span>
                 </div>
                 <button
                     type="button"
-                    class="flex min-h-[44px] w-full items-center justify-center rounded-xl border border-danger-text px-3 text-sm font-semibold text-danger-text transition-colors duration-150 hover:bg-surface-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong cursor-pointer"
+                    class="flex min-h-[36px] w-full items-center justify-center gap-1.5 rounded-xl border border-danger-text/40 px-3 text-xs font-bold text-danger-text transition-colors duration-150 hover:bg-danger-text/10 cursor-pointer"
                     @click="router.post(route('logout'))"
                 >
-                    Salir
+                    <LogOut class="w-3.5 h-3.5" />
+                    <span>Cerrar Sesión</span>
                 </button>
             </div>
         </aside>
 
-        <div class="flex min-h-screen flex-1 flex-col">
-            <!-- Cabecera — solo móvil -->
-            <header
-                class="panel-nav relative z-10 flex h-16 items-center justify-between px-4 lg:hidden"
-            >
+        <!-- Contenedor Principal -->
+        <div class="relative z-10 flex min-h-screen flex-1 flex-col">
+            <!-- Cabecera Móvil -->
+            <header class="panel-nav relative z-10 flex h-14 items-center justify-between px-4 lg:hidden border-b border-border">
                 <button type="button" class="flex items-center gap-2 cursor-pointer" @click="navigate('dashboard')">
-                    <span
-                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-strong p-1"
-                    >
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-strong p-1 shadow-sm">
                         <ApplicationLogo class="h-full w-full rounded" />
                     </span>
+                    <span class="font-display text-base font-bold text-content-primary">Epycus</span>
                 </button>
                 <div class="flex items-center gap-2">
                     <ThemeToggle />
                     <button
                         type="button"
-                        class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded text-content-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
-                        aria-label="Menú de cuenta"
-                        @click="mobileMenuOpen = !mobileMenuOpen"
+                        class="flex min-h-[38px] min-w-[38px] items-center justify-center rounded-xl bg-surface-raised border border-border text-content-secondary"
+                        aria-label="Abrir menú"
+                        @click="showMobileMore = !showMobileMore"
                     >
-                        ⋮
+                        <MoreHorizontal class="h-5 w-5" />
                     </button>
                 </div>
             </header>
 
-            <div
-                v-if="mobileMenuOpen"
-                class="panel-nav relative z-10 px-4 py-3 lg:hidden space-y-2"
-            >
-                <div class="border-b border-border pb-2">
-                    <div class="text-sm font-semibold text-content-primary">
-                        {{ page.props.auth.user.name }}
-                    </div>
-                    <div class="text-xs text-content-secondary">
-                        {{ page.props.auth.user.email }}
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <template v-for="item in secondaryNavItems" :key="item.label">
-                        <button
-                            v-if="item.routeName"
-                            type="button"
-                            class="flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 text-left cursor-pointer"
-                            :class="
-                                route().current(item.routeName)
-                                    ? 'bg-primary text-on-primary shadow-sm'
-                                    : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
-                            "
-                            @click="navigate(item.routeName)"
-                        >
-                            <NavIcon :name="item.icon" />
-                            <span>{{ item.label }}</span>
-                        </button>
-                    </template>
-
-                    <button
-                        type="button"
-                        class="flex w-full min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150 text-left cursor-pointer"
-                        :class="
-                            route().current('settings.edit')
-                                ? 'bg-primary text-on-primary shadow-sm'
-                                : 'text-content-secondary hover:bg-surface-raised hover:text-content-primary'
-                        "
-                        @click="navigate('settings.edit')"
-                    >
-                        <NavIcon name="settings" />
-                        <span>Ajustes</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        class="flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold text-danger-text hover:bg-surface-raised transition-colors duration-150 cursor-pointer text-left"
-                        @click="router.post(route('logout'))"
-                    >
-                        Salir
-                    </button>
-                </div>
-            </div>
-
-            <main class="mx-auto w-full max-w-[1200px] flex-1 px-4 pb-24 pt-6 lg:px-8 lg:pb-8">
+            <!-- Main Content Slot -->
+            <main class="mx-auto w-full max-w-[1200px] flex-1 px-3.5 pb-24 pt-5 lg:px-8 lg:pb-8">
                 <slot />
             </main>
         </div>
 
-        <!-- Barra inferior — solo móvil (máximo 5 ítems) -->
+        <!-- Barra Inferior Móvil (EXACTAMENTE 5 BOTONES) -->
         <nav
-            class="panel-nav fixed inset-x-0 bottom-0 z-40 flex justify-around py-2 lg:hidden"
-            aria-label="Navegación principal"
+            class="panel-nav fixed inset-x-0 bottom-0 z-40 flex items-center justify-around py-1.5 px-2 lg:hidden border-t border-border bg-surface/95 backdrop-blur-md shadow-lg"
+            aria-label="Navegación principal móvil"
         >
-            <template v-for="item in mainNavItems" :key="item.label">
+            <template v-for="item in mobileBottomNavItems" :key="item.label">
                 <button
-                    v-if="item.routeName"
+                    v-if="item.action === 'more'"
                     type="button"
-                    class="flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-xl px-3 text-xs font-semibold cursor-pointer"
+                    class="flex min-h-[46px] min-w-[46px] flex-col items-center justify-center gap-0.5 rounded-xl px-2.5 text-[11px] font-bold cursor-pointer transition-all"
                     :class="
-                        route().current(item.routeName)
-                            ? 'bg-primary text-on-primary shadow-sm'
-                            : 'text-content-secondary'
+                        showMobileMore
+                            ? 'bg-primary-strong text-on-primary-strong shadow-sm'
+                            : 'text-content-secondary hover:text-content-primary'
+                    "
+                    @click="showMobileMore = !showMobileMore"
+                >
+                    <MoreHorizontal class="h-5 w-5 shrink-0" />
+                    <span>Más</span>
+                </button>
+                <button
+                    v-else-if="item.routeName"
+                    type="button"
+                    class="flex min-h-[46px] min-w-[46px] flex-col items-center justify-center gap-0.5 rounded-xl px-2.5 text-[11px] font-bold cursor-pointer transition-all"
+                    :class="
+                        isItemActive(item)
+                            ? 'bg-primary-strong text-on-primary-strong shadow-sm'
+                            : 'text-content-secondary hover:text-content-primary'
                     "
                     @click="navigate(item.routeName)"
                 >
-                    <NavIcon :name="item.icon" />
+                    <NavIcon :name="item.icon" class="h-5 w-5 shrink-0" />
                     <span>{{ item.label }}</span>
                 </button>
             </template>
         </nav>
+
+        <!-- Drawer / Modal Móvil "Más" -->
+        <div
+            v-if="showMobileMore"
+            class="fixed inset-0 z-50 lg:hidden flex flex-col justify-end bg-black/60 backdrop-blur-sm transition-opacity"
+            @click.self="showMobileMore = false"
+        >
+            <div class="panel-nav rounded-t-3xl border-t border-border p-5 max-h-[85vh] overflow-y-auto space-y-4 shadow-2xl bg-surface animate-in slide-in-from-bottom duration-200">
+                <div class="flex items-center justify-between border-b border-border pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center text-lg font-bold text-primary-strong">
+                            👤
+                        </div>
+                        <div>
+                            <div class="font-display text-sm font-bold text-content-primary">
+                                {{ page.props.auth.user.name }}
+                            </div>
+                            <div class="text-xs text-content-muted">
+                                {{ page.props.auth.user.email }}
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        class="p-2 rounded-xl bg-surface-raised border border-border text-content-muted hover:text-content-primary cursor-pointer"
+                        @click="showMobileMore = false"
+                    >
+                        <X class="h-5 w-5" />
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                    <button
+                        v-for="item in mobileDrawerItems"
+                        :key="item.label"
+                        type="button"
+                        class="flex flex-col items-start gap-1 p-3 rounded-2xl border transition-all text-left cursor-pointer"
+                        :class="
+                            route().current(item.routeName)
+                                ? 'bg-primary-strong text-on-primary-strong border-primary-strong shadow-sm'
+                                : 'bg-surface-raised border-border text-content-primary hover:border-primary/40'
+                        "
+                        @click="navigate(item.routeName)"
+                    >
+                        <div class="flex items-center gap-2">
+                            <NavIcon :name="item.icon" class="h-4 w-4 shrink-0" />
+                            <span class="font-bold text-xs">{{ item.label }}</span>
+                        </div>
+                        <span class="text-[10px] opacity-75 leading-tight">{{ item.desc }}</span>
+                    </button>
+                </div>
+
+                <div class="pt-2 border-t border-border">
+                    <button
+                        type="button"
+                        class="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl border border-danger-text/40 bg-danger-text/10 px-4 text-xs font-bold text-danger-text hover:bg-danger-text/20 transition cursor-pointer"
+                        @click="router.post(route('logout'))"
+                    >
+                        <LogOut class="w-4 h-4" />
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>

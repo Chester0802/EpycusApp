@@ -124,6 +124,27 @@ function habitsBarHeight(count) {
                 </div>
             </BaseCard>
 
+            <!-- Banner Calendario & Time-Blocking -->
+            <div class="p-4 rounded-2xl bg-surface-raised border border-primary/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl p-2 rounded-xl bg-primary/15 text-primary-strong">⏱️</span>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-display font-bold text-sm text-content-primary">Calendario & Time-Blocking</h3>
+                        </div>
+                        <p class="text-xs text-content-secondary mt-0.5">
+                            Visualiza tus 24h, clases, misiones y checklist diario con 3 estados (Hecho, No Hecho, Postergar).
+                        </p>
+                    </div>
+                </div>
+                <Link
+                    :href="route('calendar.index', { view: 'timeblocking' })"
+                    class="px-4 py-2 rounded-xl bg-primary-strong hover:opacity-90 text-on-primary-strong font-bold text-xs shadow-md shadow-primary-strong/20 transition-all text-center self-start sm:self-center shrink-0"
+                >
+                    Ver Time-Blocking del Día 🚀
+                </Link>
+            </div>
+
             <!-- Cuadrícula de Métricas Rápidas de Hoy -->
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <BaseCard class="p-4 text-center space-y-1">

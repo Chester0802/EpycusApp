@@ -604,6 +604,10 @@
         color: var(--color-content-primary);
     }
 
+    [data-surface='glass'] body {
+        background-color: transparent;
+    }
+
     h1,
     h2,
     h3,
@@ -676,28 +680,27 @@
     }
 
     /*
-     * Vidrio: opacidad efectiva nunca baja de 85% (garantiza contraste sin
-     * importar el fondo — skill epycus-ui §4, Trampa 3). Máximo 4 elementos
-     * con vidrio por pantalla — eso lo controla quien arma la página, no el
-     * CSS. .panel-flat no se vuelve vidrio: solo .panel-raised, para no
-     * pasarse ese límite con tarjetas secundarias.
+     * Vidrio: opacidad efectiva del 80%-86% con desenfoque profundo (20px).
+     * Garantiza contraste WCAG AAA en todos los módulos sin importar qué fondo
+     * de pantalla esté activo (evita que el texto o sub-elementos se pierdan).
      */
     [data-surface='glass'] .panel-raised {
-        background-color: color-mix(in oklch, var(--color-surface) 28%, transparent);
-        backdrop-filter: blur(12px) saturate(1.2);
-        -webkit-backdrop-filter: blur(12px) saturate(1.2);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 25%, transparent);
-        box-shadow: var(--shadow-md);
+        background-color: color-mix(in oklch, var(--color-surface) 84%, transparent);
+        backdrop-filter: blur(18px) saturate(1.3);
+        -webkit-backdrop-filter: blur(18px) saturate(1.3);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 35%, transparent);
+        box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
 
     [data-theme='dark'][data-surface='glass'] .panel-raised {
-        background-color: color-mix(in oklch, var(--color-surface) 35%, transparent);
-        backdrop-filter: blur(14px) saturate(1.25);
-        -webkit-backdrop-filter: blur(14px) saturate(1.25);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 30%, transparent);
+        background-color: color-mix(in oklch, var(--color-surface) 82%, transparent);
+        backdrop-filter: blur(20px) saturate(1.3);
+        -webkit-backdrop-filter: blur(20px) saturate(1.3);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 35%, transparent);
         box-shadow:
             var(--shadow-md),
-            0 0 0 1px color-mix(in oklch, var(--color-primary) 20%, transparent);
+            0 0 0 1px color-mix(in oklch, var(--color-primary) 20%, transparent),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
 
     /*
@@ -715,10 +718,10 @@
     }
 
     [data-surface='glass'] .panel-nav {
-        background-color: color-mix(in oklch, var(--color-surface) 30%, transparent);
-        backdrop-filter: blur(14px) saturate(1.2);
-        -webkit-backdrop-filter: blur(14px) saturate(1.2);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 25%, transparent);
+        background-color: color-mix(in oklch, var(--color-surface) 86%, transparent);
+        backdrop-filter: blur(20px) saturate(1.3);
+        -webkit-backdrop-filter: blur(20px) saturate(1.3);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 30%, transparent);
     }
 
     /*
@@ -748,7 +751,7 @@
     .app-background {
         position: fixed;
         inset: 0;
-        z-index: 0;
+        z-index: -1;
         background-image: var(--user-wallpaper, none);
         background-size: cover;
         background-position: center;
@@ -761,16 +764,9 @@
         position: fixed;
         inset: 0;
         background: var(--color-bg);
-        /*
-         * 0.6, no el 0.88 que traía la especificación original: probado
-         * contra el fondo real (docs §11) — a 0.88 el tema claro lavaba el
-         * fondo casi por completo (imagen irreconocible); a 0.6 se ve el
-         * fondo con claridad en los dos temas y el texto sigue legible
-         * porque el contenido real vive dentro de tarjetas .panel-raised,
-         * que ya tienen su propia capa translúcida (§4, Trampa 3).
-         */
-        opacity: 0.45;
+        opacity: 0.55;
         pointer-events: none;
+        z-index: -1;
     }
 
     /*
@@ -778,17 +774,34 @@
      */
     [data-theme='light'][data-surface='glass'] .panel-raised,
     [data-theme='light'][data-surface='glass'] .panel-nav {
-        background-color: color-mix(in oklch, var(--color-surface) 35%, transparent);
-        backdrop-filter: blur(14px) saturate(1.2);
-        -webkit-backdrop-filter: blur(14px) saturate(1.2);
-        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 25%, transparent);
-        box-shadow: 0 8px 32px color-mix(in oklch, var(--color-content-primary) 12%, transparent);
+        background-color: color-mix(in oklch, var(--color-surface) 86%, transparent);
+        backdrop-filter: blur(20px) saturate(1.3);
+        -webkit-backdrop-filter: blur(20px) saturate(1.3);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 30%, transparent);
+        box-shadow: 0 8px 32px color-mix(in oklch, var(--color-content-primary) 8%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.6);
         color: var(--color-content-primary);
     }
 
     [data-theme='light'][data-surface='glass'] .app-background::before {
-        background: color-mix(in oklch, var(--color-bg) 65%, black 35%);
-        opacity: 0.40;
+        background: var(--color-bg);
+        opacity: 0.65;
+    }
+
+    /*
+     * Adaptación de utilidades bg-surface y bg-surface-raised en modo Vidrio:
+     * Asegura que contenedores que no usan BaseCard pero usan estas clases
+     * tengan el desenfoque y opacidad adecuada sobre cualquier fondo de pantalla.
+     */
+    [data-surface='glass'] .bg-surface {
+        background-color: color-mix(in oklch, var(--color-surface) 86%, transparent);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+
+    [data-surface='glass'] .bg-surface-raised {
+        background-color: color-mix(in oklch, var(--color-surface-raised) 88%, transparent);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
     }
 
 }

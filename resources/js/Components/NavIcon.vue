@@ -25,6 +25,10 @@ defineProps({
             <path d="M3 11.5 12 4l9 7.5" />
             <path d="M5.5 10v8.5a1 1 0 0 0 1 1H10v-5.5h4V19.5h3.5a1 1 0 0 0 1-1V10" />
         </template>
+        <template v-else-if="name === 'planner' || name === 'day-planner'">
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </template>
         <template v-else-if="name === 'habits'">
             <circle cx="12" cy="12" r="8.5" />
             <path d="m8.25 12.5 2.5 2.5 5-5.5" />
@@ -82,6 +86,24 @@ defineProps({
             <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
             <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
             <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+        </template>
+        <template v-else-if="name === 'shop' || name === 'store'">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+            <path d="M3 6h18" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+        </template>
+        <template v-else-if="name === 'finance' || name === 'money'">
+            <line x1="12" x2="12" y1="2" y2="22" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </template>
+        <template v-else-if="name === 'fitness' || name === 'workout' || name === 'exercise'">
+            <path d="m6.5 6.5 11 11" />
+            <path d="m21 21-1-1" />
+            <path d="m3 3 1 1" />
+            <path d="m18 22 4-4" />
+            <path d="m2 6 4-4" />
+            <path d="m3 10 7-7" />
+            <path d="m14 21 7-7" />
         </template>
         <template v-else-if="name === 'settings'">
             <path d="M4 7h10M18 7h2" />

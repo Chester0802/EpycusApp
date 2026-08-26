@@ -331,18 +331,17 @@ const concepts = [
 const comparisonFeatures = [
     { name: 'Diagnóstico Científico EPA al Iniciar (+50 XP)', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
     { name: 'Ficha de Personaje RPG con Pentágono Radar (5 Atributos)', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
-    { name: 'Camino del Héroe con 5 Fases Evolutivas & Perks', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
-    { name: 'Analítica de Estudio (Heatmap 60d, Horas Pico, Balance por Curso)', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
+    { name: 'Calendario & Time-Blocking 24h con Rutinas del Día', epycus: true, notion: false, habitica: false, forest: false, ticktick: true, focustodo: false, todoist: false },
     { name: 'Temporizador Pomodoro con Música YouTube / Lo-Fi', epycus: true, notion: false, habitica: false, forest: true, ticktick: false, focustodo: true, todoist: false },
-    { name: 'Gestión de Cursos y Horarios Universitarios Semanales', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
+    { name: 'Gestión de Cursos y Horarios Universitarios con Apuntes & Fotos', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
     { name: 'Misiones Vinculadas a Cursos con Tablero Kanban & Matriz Q2', epycus: true, notion: true, habitica: false, forest: false, ticktick: true, focustodo: false, todoist: true },
-    { name: 'Economía de Monedas y Multiplicador de Racha (+50% XP)', epycus: true, notion: false, habitica: true, forest: false, ticktick: false, focustodo: false, todoist: false },
+    { name: 'Finanzas Estudiantiles (Presupuesto Universitario & Metas con XP)', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
+    { name: 'Hub de Salud: Fitness Anti-Sedentarismo & Marcador de 8 Vasos', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
+    { name: 'Tienda de Recompensas de la Vida Real (Canje por Autocuidado)', epycus: true, notion: false, habitica: true, forest: false, ticktick: false, focustodo: false, todoist: false },
+    { name: 'Tutor IA Edy con Contexto 360° (Misiones, Finanzas, Calendario)', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
     { name: 'Avatar 100% Personalizable (Open Peeps con 10 Fases)', epycus: true, notion: false, habitica: true, forest: false, ticktick: false, focustodo: false, todoist: false },
-    { name: 'Elección de Carrera Universitaria con Rangos y Títulos', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
-    { name: 'Hábitos con Chime Sonoro y Confeti Inmediato', epycus: true, notion: false, habitica: true, forest: false, ticktick: true, focustodo: false, todoist: false },
+    { name: 'Camino del Héroe & Catálogo Completo de Logros', epycus: true, notion: false, habitica: true, forest: false, ticktick: false, focustodo: false, todoist: false },
     { name: 'Batallas Semanales contra 10 Villanos de la Procrastinación', epycus: true, notion: false, habitica: true, forest: false, ticktick: false, focustodo: false, todoist: false },
-    { name: 'Diario de Bienestar Emocional con Daño a Jefes', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
-    { name: 'Tutor con IA Adaptado a la Vida Universitaria (Edy)', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
     { name: '100% Gratuito y Libre de Anuncios Invasivos', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
 ];
 
@@ -901,7 +900,7 @@ function handleKeyDown(e) {
                             @click="selectTab('courses')"
                         >
                             <AppIcon name="calendar" :size="15" />
-                            <span>Cursos & Apuntes</span>
+                            <span>Calendario & Time-Blocking</span>
                         </button>
                         <button
                             type="button"
@@ -915,11 +914,29 @@ function handleKeyDown(e) {
                         <button
                             type="button"
                             class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+                            :class="activeTab === 'health' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : (isDark ? 'bg-white/[0.04] text-slate-400 hover:text-white border border-white/10' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm')"
+                            @click="selectTab('health')"
+                        >
+                            <AppIcon name="heart" :size="15" />
+                            <span>Fitness & Hidratación</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+                            :class="activeTab === 'finance' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : (isDark ? 'bg-white/[0.04] text-slate-400 hover:text-white border border-white/10' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm')"
+                            @click="selectTab('finance')"
+                        >
+                            <AppIcon name="coins" :size="15" />
+                            <span>Finanzas & Tienda</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer"
                             :class="activeTab === 'avatar' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : (isDark ? 'bg-white/[0.04] text-slate-400 hover:text-white border border-white/10' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm')"
                             @click="selectTab('avatar')"
                         >
                             <AppIcon name="trophy" :size="15" />
-                            <span>Avatares & Recompensas</span>
+                            <span>Avatares & Logros</span>
                         </button>
                     </div>
 
@@ -936,8 +953,8 @@ function handleKeyDown(e) {
                             <div>
                                 <div class="flex items-center justify-between mb-4">
                                     <span class="text-xs font-black uppercase tracking-wider px-3 py-1 rounded-lg bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 flex items-center gap-1.5">
-                                        <AppIcon :name="activeTab === 'pomodoro' ? 'timer' : (activeTab === 'courses' ? 'calendar' : (activeTab === 'missions' ? 'clipboard' : 'trophy'))" :size="14" />
-                                        <span>{{ activeTab === 'pomodoro' ? 'Estudio Ininterrumpido' : (activeTab === 'courses' ? 'Agenda Universitaria' : (activeTab === 'missions' ? 'Tareas Descompuestas' : 'Progresión de Jugador')) }}</span>
+                                        <AppIcon :name="activeTab === 'pomodoro' ? 'timer' : (activeTab === 'courses' ? 'calendar' : (activeTab === 'missions' ? 'clipboard' : (activeTab === 'health' ? 'heart' : (activeTab === 'finance' ? 'coins' : 'trophy'))))" :size="14" />
+                                        <span>{{ activeTab === 'pomodoro' ? 'Estudio Ininterrumpido' : (activeTab === 'courses' ? 'Planificador Visual 24h' : (activeTab === 'missions' ? 'Tareas Descompuestas' : (activeTab === 'health' ? 'Hub de Salud & Bienestar' : (activeTab === 'finance' ? 'Presupuesto Universitario' : 'Progresión de Jugador')))) }}</span>
                                     </span>
                                     <span class="text-xs font-mono" :class="isDark ? 'text-slate-400' : 'text-slate-500'">app.epycus.es</span>
                                 </div>
@@ -969,26 +986,28 @@ function handleKeyDown(e) {
                                     </div>
                                 </div>
 
-                                <!-- Vista Tab 2: Cursos -->
+                                <!-- Vista Tab 2: Calendario & Time-Blocking -->
                                 <div v-else-if="activeTab === 'courses'" class="space-y-4">
-                                    <h3 class="text-2xl sm:text-3xl font-black" :class="isDark ? 'text-white' : 'text-slate-900'">Gestión de Cursos con Apuntes e Imágenes</h3>
+                                    <h3 class="text-2xl sm:text-3xl font-black" :class="isDark ? 'text-white' : 'text-slate-900'">Time-Blocking Visual 24h & Bloc de Apuntes</h3>
                                     <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-                                        Configura tus asignaturas con horarios semanales (Lunes a Domingo), fecha de inicio y fin de semestre, y redacta apuntes rápidos adjuntando fotos de pizarras o diapositivas.
+                                        Combina tus clases universitarias con un checklist de 3 bloques diarios (Mañana, Tarde, Noche). Sube fotos de pizarras en tus apuntes y sincroniza con los 16 feriados peruanos oficiales.
                                     </p>
                                     <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                                         <div class="p-3 rounded-xl border" :class="isDark ? 'bg-[#070A12] border-indigo-500/30' : 'bg-indigo-50/50 border-indigo-200'">
-                                            <div class="font-bold text-indigo-500 flex items-center gap-1.5">
-                                                <AppIcon name="book-open" :size="14" />
-                                                <span>Cálculo Integral</span>
+                                            <div class="font-bold text-indigo-500 flex items-center justify-between">
+                                                <span>🕒 Time-Blocking 08:00 - 10:00</span>
+                                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400">Clase</span>
                                             </div>
-                                            <p class="text-[11px] mt-1" :class="isDark ? 'text-slate-400' : 'text-slate-500'">Lun / Mié • 08:00 - 10:00 [Aula B-302]</p>
+                                            <p class="text-[11px] mt-1 font-bold text-content-primary">Cálculo Integral [Aula B-302]</p>
+                                            <p class="text-[10px] text-content-muted mt-0.5">📝 Bloc con fotos de fórmulas adjuntas</p>
                                         </div>
-                                        <div class="p-3 rounded-xl border" :class="isDark ? 'bg-[#070A12] border-cyan-500/30' : 'bg-cyan-50/50 border-cyan-200'">
-                                            <div class="font-bold text-cyan-500 flex items-center gap-1.5">
-                                                <AppIcon name="brain" :size="14" />
-                                                <span>Metodología de Inv.</span>
+                                        <div class="p-3 rounded-xl border" :class="isDark ? 'bg-[#070A12] border-emerald-500/30' : 'bg-emerald-50/50 border-emerald-200'">
+                                            <div class="font-bold text-emerald-500 flex items-center justify-between">
+                                                <span>☀️ Rutina de Mañana</span>
+                                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">Hecho</span>
                                             </div>
-                                            <p class="text-[11px] mt-1" :class="isDark ? 'text-slate-400' : 'text-slate-500'">Mar / Jue • 14:00 - 16:00 [Lab 4]</p>
+                                            <p class="text-[11px] mt-1 font-bold text-content-primary">Repaso activo 25 min + Café</p>
+                                            <p class="text-[10px] text-success mt-0.5">+15 XP acumulados</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1024,11 +1043,59 @@ function handleKeyDown(e) {
                                     </div>
                                 </div>
 
-                                <!-- Vista Tab 4: Avatar -->
-                                <div v-else class="space-y-4">
-                                    <h3 class="text-2xl sm:text-3xl font-black" :class="isDark ? 'text-white' : 'text-slate-900'">Credencial Holográfica & 50 Niveles de Progresión</h3>
+                                <!-- Vista Tab 4: Health (Fitness & Hidratación) -->
+                                <div v-else-if="activeTab === 'health'" class="space-y-4">
+                                    <h3 class="text-2xl sm:text-3xl font-black" :class="isDark ? 'text-white' : 'text-slate-900'">Fitness Anti-Sedentarismo & 8 Vasos de Agua</h3>
                                     <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
-                                        Personaliza tu avatar con el estilo Open Peeps, desbloquea 10 marcos evolutivos según tu constancia, acumula monedas (1 moneda por cada 10 XP) y gana títulos profesionales según tu carrera universitaria.
+                                        Rutinas express de escritorio, estiramientos y calistenia en casa adaptadas al estudiante. Rastrea tus 8 vasos de agua al día para maximizar tu memoria y agudeza mental (+25 XP por sesión).
+                                    </p>
+                                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div class="p-3 rounded-xl border" :class="isDark ? 'bg-[#070A12] border-cyan-500/30' : 'bg-cyan-50/50 border-cyan-200'">
+                                            <div class="font-bold text-cyan-400 flex items-center justify-between">
+                                                <span>💧 Hidratación Diaria</span>
+                                                <span class="font-mono text-cyan-300">6 / 8 vasos</span>
+                                            </div>
+                                            <p class="text-[11px] text-content-secondary mt-1">1,500 ml consumidos hoy (75%)</p>
+                                        </div>
+                                        <div class="p-3 rounded-xl border" :class="isDark ? 'bg-[#070A12] border-rose-500/30' : 'bg-rose-50/50 border-rose-200'">
+                                            <div class="font-bold text-rose-400 flex items-center justify-between">
+                                                <span>💪 Rutina Express</span>
+                                                <span class="text-rose-300">+25 XP</span>
+                                            </div>
+                                            <p class="text-[11px] text-content-secondary mt-1">Estiramiento cervical & lumbar (10 min)</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Vista Tab 5: Finance & Tienda -->
+                                <div v-else-if="activeTab === 'finance'" class="space-y-4">
+                                    <h3 class="text-2xl sm:text-3xl font-black" :class="isDark ? 'text-white' : 'text-slate-900'">Control de Gastos & Tienda de Autocuidado</h3>
+                                    <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
+                                        Control presupuestario de transporte, comidas y materiales de estudio. Canjea tus monedas ganadas por disciplina por premios de la vida real (café especial, tarde de cine, noche de videojuegos).
+                                    </p>
+                                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div class="p-3 rounded-xl border" :class="isDark ? 'bg-[#070A12] border-emerald-500/30' : 'bg-emerald-50/50 border-emerald-200'">
+                                            <div class="font-bold text-emerald-400 flex items-center justify-between">
+                                                <span>💰 Presupuesto Mensual</span>
+                                                <span class="text-emerald-300">Superávit S/ 140.00</span>
+                                            </div>
+                                            <p class="text-[11px] text-content-secondary mt-1">S/ 320 gastados de S/ 450 presupuestados</p>
+                                        </div>
+                                        <div class="p-3 rounded-xl border" :class="isDark ? 'bg-[#070A12] border-amber-500/30' : 'bg-amber-50/50 border-amber-200'">
+                                            <div class="font-bold text-amber-400 flex items-center justify-between">
+                                                <span>🎁 Recompensa Canjeada</span>
+                                                <span class="text-amber-300 font-mono">🪙 50</span>
+                                            </div>
+                                            <p class="text-[11px] text-content-secondary mt-1">☕ Café especial de fin de semana</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Vista Tab 6: Avatar & Logros -->
+                                <div v-else class="space-y-4">
+                                    <h3 class="text-2xl sm:text-3xl font-black" :class="isDark ? 'text-white' : 'text-slate-900'">Credencial Holográfica, Logros & 50 Niveles</h3>
+                                    <p class="text-sm leading-relaxed" :class="isDark ? 'text-slate-300' : 'text-slate-600'">
+                                        Personaliza tu avatar con el estilo Open Peeps, desbloquea insignias de maestría en tu perfil, sube de nivel con tu carrera y disfruta de perks permanentes de estudio.
                                     </p>
                                     <div
                                         class="mt-4 p-4 rounded-2xl border flex items-center justify-between"
@@ -1044,7 +1111,7 @@ function handleKeyDown(e) {
                                                 <div class="font-bold text-sm" :class="isDark ? 'text-white' : 'text-slate-900'">Credencial Estudiantil Digital</div>
                                                 <div class="text-xs text-amber-500 font-mono flex items-center gap-1 mt-0.5">
                                                     <AppIcon name="coins" :size="13" />
-                                                    <span>2,000 Monedas • Nivel 14 • Racha +20% XP</span>
+                                                    <span>2,000 Monedas • Nivel 14 • 18 Logros Desbloqueados</span>
                                                 </div>
                                             </div>
                                         </div>

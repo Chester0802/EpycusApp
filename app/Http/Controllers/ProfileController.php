@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use App\Modules\Achievements\Application\UseCases\GetUserAchievementsUseCase;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,6 +21,7 @@ class ProfileController extends Controller
     public function __construct(
         private UserProgressReaderInterface $progressReader,
         private CharacterStatsCalculator $statsCalculator,
+        private GetUserAchievementsUseCase $getUserAchievements,
     ) {}
 
     public function edit(Request $request): Response
@@ -61,6 +63,9 @@ class ProfileController extends Controller
         $characterStats = $this->statsCalculator->calculate($userId, $level, $streak);
         $herosJourneyPhases = $this->statsCalculator->getHerosJourneyPhases();
 
+        // Cargar logros y medallas del usuario
+        $achievementsData = $this->getUserAchievements->execute($userId);
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => false,
             'status' => session('status'),
@@ -70,6 +75,7 @@ class ProfileController extends Controller
             'progress' => $progressData,
             'characterStats' => $characterStats,
             'herosJourneyPhases' => array_values($herosJourneyPhases),
+            'achievementsData' => $achievementsData,
             'participantCode' => $participant?->participant_code,
             'careers' => config('careers.styles'),
             'cycles' => config('careers.cycles'),

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue';
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
@@ -486,6 +486,28 @@ const triggerXpToast = (msg) => {
 
     <AppLayout>
         <div class="mx-auto max-w-4xl space-y-6">
+            <!-- Pestañas de Navegación del Hub de Salud & Bienestar -->
+            <div class="flex items-center gap-2 border-b border-border/70 pb-2 overflow-x-auto">
+                <Link
+                    :href="route('habits.index')"
+                    class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-primary-strong text-on-primary-strong shadow-sm flex items-center gap-2 shrink-0"
+                >
+                    <span>🌿</span> Hábitos Diarios
+                </Link>
+                <Link
+                    :href="route('wellbeing.index')"
+                    class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-content-secondary hover:bg-surface-raised hover:text-content-primary flex items-center gap-2 shrink-0"
+                >
+                    <span>🧘</span> Diario & Ánimo
+                </Link>
+                <Link
+                    :href="route('fitness.index')"
+                    class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-content-secondary hover:bg-surface-raised hover:text-content-primary flex items-center gap-2 shrink-0"
+                >
+                    <span>💪</span> Fitness & Hidratación
+                </Link>
+            </div>
+
             <!-- Tip dinámico del módulo -->
             <UsageTipBanner module="habits" />
 
@@ -577,7 +599,7 @@ const triggerXpToast = (msg) => {
                             class="px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border shrink-0"
                             :class="
                                 activeTimeOfDay === 'all'
-                                    ? 'bg-primary-strong text-white border-primary-strong shadow-xs'
+                                    ? 'bg-primary-strong text-on-primary-strong border-primary-strong shadow-xs'
                                     : 'bg-surface-raised/60 border-border-interactive text-content-secondary hover:bg-surface-raised hover:text-content-primary'
                             "
                             @click="setTimeOfDayFilter('all')"
@@ -589,7 +611,7 @@ const triggerXpToast = (msg) => {
                             class="px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border shrink-0 flex items-center gap-1"
                             :class="
                                 activeTimeOfDay === 'morning'
-                                    ? 'bg-amber-500 text-white border-amber-500 shadow-xs'
+                                    ? 'bg-amber-500 text-on-primary-strong border-amber-500 shadow-xs'
                                     : 'bg-surface-raised/60 border-border-interactive text-content-secondary hover:bg-surface-raised hover:text-content-primary'
                             "
                             @click="setTimeOfDayFilter('morning')"
@@ -601,7 +623,7 @@ const triggerXpToast = (msg) => {
                             class="px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border shrink-0 flex items-center gap-1"
                             :class="
                                 activeTimeOfDay === 'afternoon'
-                                    ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
+                                    ? 'bg-orange-500 text-on-primary-strong border-orange-500 shadow-xs'
                                     : 'bg-surface-raised/60 border-border-interactive text-content-secondary hover:bg-surface-raised hover:text-content-primary'
                             "
                             @click="setTimeOfDayFilter('afternoon')"
@@ -613,7 +635,7 @@ const triggerXpToast = (msg) => {
                             class="px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border shrink-0 flex items-center gap-1"
                             :class="
                                 activeTimeOfDay === 'night'
-                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                                    ? 'bg-indigo-600 text-on-primary-strong border-indigo-600 shadow-xs'
                                     : 'bg-surface-raised/60 border-border-interactive text-content-secondary hover:bg-surface-raised hover:text-content-primary'
                             "
                             @click="setTimeOfDayFilter('night')"
@@ -627,7 +649,7 @@ const triggerXpToast = (msg) => {
                         <button
                             type="button"
                             class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer"
-                            :class="viewMode === 'weekly' ? 'bg-primary-strong text-white shadow-xs' : 'text-content-secondary hover:text-content-primary'"
+                            :class="viewMode === 'weekly' ? 'bg-primary-strong text-on-primary-strong shadow-xs' : 'text-content-secondary hover:text-content-primary'"
                             @click="setViewMode('weekly')"
                         >
                             <AppIcon name="calendar-days" :size="14" />
@@ -636,7 +658,7 @@ const triggerXpToast = (msg) => {
                         <button
                             type="button"
                             class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer"
-                            :class="viewMode === 'monthly' ? 'bg-primary-strong text-white shadow-xs' : 'text-content-secondary hover:text-content-primary'"
+                            :class="viewMode === 'monthly' ? 'bg-primary-strong text-on-primary-strong shadow-xs' : 'text-content-secondary hover:text-content-primary'"
                             @click="setViewMode('monthly')"
                         >
                             <AppIcon name="layout-grid" :size="14" />

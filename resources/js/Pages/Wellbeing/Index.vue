@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
 import AppIcon from '@/Components/AppIcon.vue';
@@ -93,7 +93,29 @@ const yearOptions = Array.from({ length: 5 }, (_, i) => 2026 + i);
     <Head title="Bienestar — Epycus" />
 
     <AppLayout>
-        <div class="mx-auto max-w-5xl">
+        <div class="mx-auto max-w-5xl space-y-6">
+            <!-- Pestañas de Navegación del Hub de Salud & Bienestar -->
+            <div class="flex items-center gap-2 border-b border-border/70 pb-2 overflow-x-auto">
+                <Link
+                    :href="route('habits.index')"
+                    class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-content-secondary hover:bg-surface-raised hover:text-content-primary flex items-center gap-2 shrink-0"
+                >
+                    <span>🌿</span> Hábitos Diarios
+                </Link>
+                <Link
+                    :href="route('wellbeing.index')"
+                    class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-primary-strong text-on-primary-strong shadow-sm flex items-center gap-2 shrink-0"
+                >
+                    <span>🧘</span> Diario & Ánimo
+                </Link>
+                <Link
+                    :href="route('fitness.index')"
+                    class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-content-secondary hover:bg-surface-raised hover:text-content-primary flex items-center gap-2 shrink-0"
+                >
+                    <span>💪</span> Fitness & Hidratación
+                </Link>
+            </div>
+
             <BaseCard class="mb-6">
                 <header class="flex items-center justify-between">
                     <div>

@@ -7,6 +7,7 @@ namespace App\Modules\AiAssistant\Application\Services;
 use App\Shared\Domain\Contracts\UserProgressReaderInterface;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 final class AiContextBuilderService
 {
@@ -20,17 +21,19 @@ final class AiContextBuilderService
         $phase = $this->progressReader->getPhaseFor($userId);
         $streak = $this->progressReader->getCurrentStreakFor($userId);
 
-        $today = Carbon::now()->toDateString();
-        $sevenDaysAgo = Carbon::now()->subDays(7)->toDateString();
+        $today = Carbon::now('America/Lima')->toDateString();
+        $sevenDaysAgo = Carbon::now('America/Lima')->subDays(7)->toDateString();
+        $currentMonth = Carbon::now('America/Lima')->month;
+        $currentYear = Carbon::now('America/Lima')->year;
 
-        // 1. Métricas de Hábitos (últimos 7 días)
+        // 1. Métricas de Hábitos (hoy)
         $habitsDoneToday = DB::table('habit_completions')
             ->join('habits', 'habits.id', '=', 'habit_completions.habit_id')
             ->where('habits.user_id', $userId)
             ->where('habit_completions.completed_for', $today)
             ->count();
 
-        // 2. Minutos de Foco Pomodoro (últimos 7 días)
+        // 2. Minutos de Foco Pomodoro
         $focusMinutesToday = (int) DB::table('pomodoro_sessions')
             ->where('user_id', $userId)
             ->where('status', 'completed')
@@ -43,7 +46,7 @@ final class AiContextBuilderService
             ->whereDate('started_at', '>=', $sevenDaysAgo)
             ->sum(DB::raw('COALESCE(focus_minutes, planned_minutes)'));
 
-        // 3. Resumen de Bienestar (promedio de ánimo sin texto privado)
+        // 3. Resumen de Bienestar & Diario
         $moodEntries = DB::table('journal_entries')
             ->where('user_id', $userId)
             ->whereDate('created_at', '>=', $sevenDaysAgo)
@@ -66,34 +69,103 @@ final class AiContextBuilderService
             ? implode(', ', array_slice(array_unique($allTags), 0, 3))
             : 'Ninguna';
 
-        // 4. Misiones Activas y Distribución en Matriz de Eisenhower
+        // 4. Misiones Activas y Matriz de Eisenhower
         $activeMissions = DB::table('missions')
             ->where('user_id', $userId)
             ->whereNull('completed_at')
             ->whereNull('deleted_at')
-            ->get(['title', 'difficulty', 'priority', 'eisenhower_quadrant', 'is_overdue', 'due_date']);
+            ->get(['title', 'difficulty', 'priority', 'eisenhower_quadrant', 'is_overdue']);
 
         $totalActiveMissions = $activeMissions->count();
         $q1CrisisCount = $activeMissions->where('eisenhower_quadrant', 'q1')->count();
         $q2StrategicCount = $activeMissions->where('eisenhower_quadrant', 'q2')->count();
         $overdueMissionsCount = $activeMissions->where('is_overdue', true)->count();
         $urgentMissionTitles = $activeMissions->where('eisenhower_quadrant', 'q1')->pluck('title')->take(2)->implode(', ');
-        $urgentMissionDetails = ! empty($urgentMissionTitles) ? " [Atención inmediata requerida: '{$urgentMissionTitles}']" : '';
+        $urgentMissionDetails = ! empty($urgentMissionTitles) ? " [Atención requerida: '{$urgentMissionTitles}']" : '';
+
+        // 5. Plan Diario y Time-Blocking de Hoy
+        $dayPlanContext = 'Sin actividades registradas hoy';
+        if (Schema::hasTable('daily_plan_items')) {
+            $planItems = DB::table('daily_plan_items')
+                ->where('user_id', $userId)
+                ->where('plan_date', $today)
+                ->get(['title', 'status', 'postponed_count']);
+
+            if ($planItems->isNotEmpty()) {
+                $doneCount = $planItems->where('status', 'done')->count();
+                $postponedCount = $planItems->where('status', 'postponed')->count();
+                $totalItems = $planItems->count();
+                $dayPlanContext = "{$doneCount}/{$totalItems} completadas, {$postponedCount} postergadas";
+            }
+        }
+
+        // 6. Estado Financiero del Mes
+        $financeContext = 'Sin movimientos registrados este mes';
+        if (Schema::hasTable('finance_transactions')) {
+            $expenses = (float) DB::table('finance_transactions')
+                ->where('user_id', $userId)
+                ->where('type', 'expense')
+                ->whereMonth('date', $currentMonth)
+                ->whereYear('date', $currentYear)
+                ->sum('amount');
+
+            $income = (float) DB::table('finance_transactions')
+                ->where('user_id', $userId)
+                ->where('type', 'income')
+                ->whereMonth('date', $currentMonth)
+                ->whereYear('date', $currentYear)
+                ->sum('amount');
+
+            $netBalance = $income - $expenses;
+            $financeContext = sprintf('Gastos: S/ %.2f, Ingresos: S/ %.2f, Balance Neto: S/ %.2f', $expenses, $income, $netBalance);
+        }
+
+        // 7. Fitness e Hidratación de Hoy
+        $hydrationGlasses = 0;
+        if (Schema::hasTable('daily_hydration_logs')) {
+            $hydrationGlasses = (int) (DB::table('daily_hydration_logs')
+                ->where('user_id', $userId)
+                ->where('date', $today)
+                ->value('glasses_count') ?? 0);
+        }
+
+        $workoutMinutesWeek = 0;
+        if (Schema::hasTable('fitness_workout_logs')) {
+            $workoutMinutesWeek = (int) DB::table('fitness_workout_logs')
+                ->where('user_id', $userId)
+                ->whereDate('performed_at', '>=', $sevenDaysAgo)
+                ->sum('duration_minutes');
+        }
+
+        // 8. Monedas para Canje en Tienda
+        $coins = 0;
+        if (Schema::hasTable('user_progress')) {
+            $coins = (int) (DB::table('user_progress')
+                ->where('user_id', $userId)
+                ->value('coins') ?? 0);
+        }
 
         return sprintf(
-            "Contexto de progreso del participante (Anónimo):\n".
-            "- Nivel actual: %d (Fase %d)\n".
-            "- Racha activa: %d días\n".
+            "Contexto Integral del Estudiante (Anónimo y Privado):\n".
+            "- Nivel actual: %d (Fase %d) | Racha activa: %d días | Monedas acumuladas: %d 🪙\n".
             "- Hábitos completados hoy: %d\n".
-            "- Minutos de foco acumulados hoy: %d min (Total 7 días: %d min)\n".
-            "- Promedio de ánimo últimos 7 días: %s / 5 (Etiquetas frecuentes: %s)\n".
+            "- Plan Diario / Time-Blocking hoy: %s\n".
+            "- Minutos de foco Pomodoro: %d min hoy (%d min últimos 7 días)\n".
+            "- Estado de Salud & Fitness: %d/8 vasos de agua hoy | %d min ejercicio últimos 7 días\n".
+            "- Estado de Finanzas este mes: %s\n".
+            "- Estado emocional reciente: Promedio %s / 5 (Etiquetas: %s)\n".
             '- Misiones activas: %d (En Q1/Crisis: %d, En Q2/Estratégico: %d, Vencidas: %d)%s',
             $level,
             $phase,
             $streak,
+            $coins,
             $habitsDoneToday,
+            $dayPlanContext,
             $focusMinutesToday,
             $focusMinutesWeek,
+            $hydrationGlasses,
+            $workoutMinutesWeek,
+            $financeContext,
             $avgMood,
             $topTags,
             $totalActiveMissions,
