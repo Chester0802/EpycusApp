@@ -166,6 +166,7 @@ final class PomodoroController extends Controller
         return [
             'id' => $session->id,
             'planned_minutes' => $session->planned_minutes,
+            'mission_id' => $session->mission_id,
             'started_at' => $session->started_at->setTimezone('America/Lima')->toIso8601String(),
             'paused_at' => $session->paused_at?->setTimezone('America/Lima')->toIso8601String(),
             'total_paused_seconds' => $session->total_paused_seconds,

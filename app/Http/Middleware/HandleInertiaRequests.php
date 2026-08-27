@@ -67,9 +67,16 @@ class HandleInertiaRequests extends Middleware
                 ->first();
 
             if ($session) {
+                $missionTitle = null;
+                if ($session->mission_id) {
+                    $missionTitle = DB::table('missions')->where('id', $session->mission_id)->value('title');
+                }
+
                 $activePomodoro = [
                     'id' => $session->id,
                     'planned_minutes' => $session->planned_minutes,
+                    'mission_id' => $session->mission_id,
+                    'mission_title' => $missionTitle,
                     'started_at' => $session->started_at->setTimezone('America/Lima')->toIso8601String(),
                     'paused_at' => $session->paused_at?->setTimezone('America/Lima')->toIso8601String(),
                     'total_paused_seconds' => $session->total_paused_seconds,

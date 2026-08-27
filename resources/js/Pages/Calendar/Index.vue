@@ -299,6 +299,7 @@ function selectDay(dateStr) {
         selectedDay.value = dateStr;
         router.visit(route('calendar.index', { date: dateStr, month: props.month, year: props.year }), {
             preserveScroll: true,
+            preserveState: true,
         });
     }
 }
