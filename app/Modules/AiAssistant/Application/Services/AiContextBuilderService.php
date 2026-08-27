@@ -145,12 +145,40 @@ final class AiContextBuilderService
                 ->value('coins') ?? 0);
         }
 
+        // 9. Cursos y Minutos de Pomodoro por Curso (últimos 7 días)
+        $coursesContext = 'Sin cursos registrados';
+        if (Schema::hasTable('courses')) {
+            $coursesData = DB::table('courses')
+                ->where('courses.user_id', $userId)
+                ->leftJoin('missions', 'missions.course_id', '=', 'courses.id')
+                ->leftJoin('pomodoro_sessions', function ($join) use ($sevenDaysAgo) {
+                    $join->on('pomodoro_sessions.mission_id', '=', 'missions.id')
+                         ->where('pomodoro_sessions.status', '=', 'completed')
+                         ->whereDate('pomodoro_sessions.started_at', '>=', $sevenDaysAgo);
+                })
+                ->select(
+                    'courses.name',
+                    DB::raw('SUM(COALESCE(pomodoro_sessions.focus_minutes, pomodoro_sessions.planned_minutes)) as total_focus')
+                )
+                ->groupBy('courses.id', 'courses.name')
+                ->get();
+
+            if ($coursesData->isNotEmpty()) {
+                $courseStrings = $coursesData->map(function ($c) {
+                    $mins = (int) $c->total_focus;
+                    return "{$c->name} ({$mins} min foco)";
+                })->implode(', ');
+                $coursesContext = $courseStrings;
+            }
+        }
+
         return sprintf(
             "Contexto Integral del Estudiante (Anónimo y Privado):\n".
             "- Nivel actual: %d (Fase %d) | Racha activa: %d días | Monedas acumuladas: %d 🪙\n".
             "- Hábitos completados hoy: %d\n".
             "- Plan Diario / Time-Blocking hoy: %s\n".
             "- Minutos de foco Pomodoro: %d min hoy (%d min últimos 7 días)\n".
+            "- Desglose de cursos activos: %s\n".
             "- Estado de Salud & Fitness: %d/8 vasos de agua hoy | %d min ejercicio últimos 7 días\n".
             "- Estado de Finanzas este mes: %s\n".
             "- Estado emocional reciente: Promedio %s / 5 (Etiquetas: %s)\n".
@@ -163,6 +191,7 @@ final class AiContextBuilderService
             $dayPlanContext,
             $focusMinutesToday,
             $focusMinutesWeek,
+            $coursesContext,
             $hydrationGlasses,
             $workoutMinutesWeek,
             $financeContext,
