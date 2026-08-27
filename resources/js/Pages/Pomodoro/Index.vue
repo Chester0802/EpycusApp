@@ -137,6 +137,8 @@ const GOAL_OPTIONS = [
     { value: 240, label: '4 horas' },
     { value: 300, label: '5 horas' },
     { value: 360, label: '6 horas' },
+    { value: 420, label: '7 horas' },
+    { value: 480, label: '8 horas' },
 ];
 const goalMinutesInput = ref(0);
 const hasGoal = computed(() => goalMinutesInput.value > 0);
@@ -554,17 +556,25 @@ watch(
                     </template>
 
                     <template v-else-if="goalJustCompleted">
-                        <div class="py-2">
-                            <p class="font-display text-2xl font-bold text-content-primary">¡Meta cumplida! 🎉</p>
-                            <p class="mt-2 text-sm text-content-secondary max-w-md mx-auto">
-                                Completaste {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco en
+                        <div class="py-6 px-4 rounded-3xl bg-gradient-to-br from-amber-200/40 via-amber-100/20 to-orange-100/40 border border-amber-300/30 relative overflow-hidden shadow-inner">
+                            <!-- Sparkles effect -->
+                            <div class="absolute -top-4 -left-4 text-4xl animate-bounce" style="animation-duration: 2s">✨</div>
+                            <div class="absolute -bottom-4 -right-4 text-4xl animate-bounce" style="animation-duration: 2.5s; animation-delay: 0.5s">🎊</div>
+                            <div class="absolute top-1/2 left-4 text-2xl animate-pulse">🌟</div>
+                            <div class="absolute top-1/3 right-4 text-2xl animate-pulse" style="animation-delay: 0.3s">🎉</div>
+                            
+                            <p class="font-display text-3xl font-black text-amber-600 drop-shadow-sm mb-1 animate-pulse">
+                                ¡META CUMPLIDA! 🏆
+                            </p>
+                            <p class="mt-2 text-base text-amber-800 font-medium max-w-md mx-auto">
+                                ¡Increíble! Completaste {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco en
                                 {{ todayCompletedCount }} ciclos hoy.
                             </p>
-                            <div class="mt-6 flex flex-wrap justify-center gap-3">
-                                <BaseButton :disabled="busy" @click="continueStudying">
+                            <div class="mt-8 flex flex-wrap justify-center gap-3 relative z-10">
+                                <BaseButton :disabled="busy" @click="continueStudying" class="shadow-lg shadow-amber-500/30 hover:scale-105 transition-transform">
                                     Seguir estudiando (+{{ plannedMinutesInput }} min)
                                 </BaseButton>
-                                <BaseButton variant="ghost" :disabled="busy" @click="chooseAnotherGoal">
+                                <BaseButton variant="ghost" :disabled="busy" @click="chooseAnotherGoal" class="text-amber-700 hover:bg-amber-500/10 hover:scale-105 transition-transform">
                                     Aumentar meta diaria
                                 </BaseButton>
                             </div>
