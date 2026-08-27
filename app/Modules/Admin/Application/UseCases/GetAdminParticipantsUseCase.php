@@ -18,6 +18,7 @@ final class GetAdminParticipantsUseCase
             ->leftJoin('user_progress', 'user_progress.user_id', '=', 'users.id')
             ->where('users.role', 'student')
             ->select([
+                'users.id as user_id',
                 'participants.participant_code',
                 'users.alias',
                 'users.career',
@@ -32,7 +33,8 @@ final class GetAdminParticipantsUseCase
             ->orderBy('user_progress.total_xp', 'desc')
             ->get()
             ->map(fn ($p) => [
-                'participant_code'  => $p->participant_code ?? 'P-UNKNOWN',
+                'user_id'          => $p->user_id,
+                'participant_code' => $p->participant_code ?? 'P-UNKNOWN',
                 'alias'            => $p->alias ?? '—',
                 'career'           => $p->career ?? '—',
                 'cycle'            => $p->cycle ? "Ciclo {$p->cycle}" : '—',

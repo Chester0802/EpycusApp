@@ -21,6 +21,8 @@ import {
     User,
     Search,
     ArrowUpDown,
+    Target,
+    MessageSquare,
 } from '@lucide/vue'
 
 const props = defineProps({
@@ -193,7 +195,7 @@ const exportDatasets = [
             <!-- ══════════════════════════════════════════════════════════════ -->
             <div v-if="activeTab === 'dashboard'" class="space-y-5">
                 <!-- KPI Cards -->
-                <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
                     <BaseCard class="p-4 text-center space-y-1.5">
                         <Users class="mx-auto text-primary-strong" :size="20" />
                         <p class="font-display text-2xl font-bold text-content-primary">{{ metrics.total_participants }}</p>
@@ -209,17 +211,29 @@ const exportDatasets = [
                     <BaseCard class="p-4 text-center space-y-1.5">
                         <Timer class="mx-auto text-primary-strong" :size="20" />
                         <p class="font-display text-2xl font-bold text-primary-strong">{{ metrics.total_pomodoros }}</p>
-                        <p class="text-xs text-content-secondary">Pomodoros Completados</p>
+                        <p class="text-xs text-content-secondary">Pomodoros</p>
+                    </BaseCard>
+
+                    <BaseCard class="p-4 text-center space-y-1.5">
+                        <Target class="mx-auto text-purple-400" :size="20" />
+                        <p class="font-display text-2xl font-bold text-purple-400">{{ metrics.total_missions }}</p>
+                        <p class="text-xs text-content-secondary">Misiones</p>
+                    </BaseCard>
+
+                    <BaseCard class="p-4 text-center space-y-1.5">
+                        <MessageSquare class="mx-auto text-blue-400" :size="20" />
+                        <p class="font-display text-2xl font-bold text-blue-400">{{ metrics.total_ai_queries }}</p>
+                        <p class="text-xs text-content-secondary">Consultas IA</p>
                     </BaseCard>
 
                     <BaseCard class="p-4 text-center space-y-1.5">
                         <ShieldAlert class="mx-auto text-rose-400" :size="20" />
                         <p class="font-display text-2xl font-bold text-rose-400">{{ metrics.dropout_risk_count }}</p>
-                        <p class="text-xs text-content-secondary">Riesgo Deserción (3+ días)</p>
+                        <p class="text-xs text-content-secondary">Riesgo (3+ días)</p>
                     </BaseCard>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <BaseCard class="p-5 space-y-2">
                         <h3 class="font-bold text-sm text-content-primary flex items-center gap-2">
                             <Flame class="text-orange-400" :size="15" />
@@ -230,6 +244,18 @@ const exportDatasets = [
                             <span class="text-sm font-normal text-content-secondary">días seguidos</span>
                         </p>
                         <p class="text-xs text-content-muted">Promedio global de constancia diaria en hábitos de estudio.</p>
+                    </BaseCard>
+
+                    <BaseCard class="p-5 space-y-2">
+                        <h3 class="font-bold text-sm text-content-primary flex items-center gap-2">
+                            <Timer class="text-blue-400" :size="15" />
+                            Minutos de Foco (Pomodoro)
+                        </h3>
+                        <p class="text-3xl font-display font-bold text-blue-400">
+                            {{ metrics.total_focus_minutes }}
+                            <span class="text-sm font-normal text-content-secondary">min</span>
+                        </p>
+                        <p class="text-xs text-content-muted">Tiempo total de estudio productivo acumulado por la comunidad.</p>
                     </BaseCard>
 
                     <BaseCard class="p-5 space-y-2">
@@ -301,7 +327,12 @@ const exportDatasets = [
                                     :key="p.participant_code"
                                     class="hover:bg-surface-raised/40"
                                 >
-                                    <td class="p-3 font-mono font-bold text-primary-strong">{{ p.participant_code }}</td>
+                                    <td class="p-3 font-mono font-bold text-primary-strong">
+                                        <Link v-if="p.user_id" :href="route('admin.participants.show', p.user_id)" class="hover:underline flex items-center gap-1">
+                                            {{ p.participant_code }}
+                                        </Link>
+                                        <span v-else>{{ p.participant_code }}</span>
+                                    </td>
                                     <td class="p-3 font-medium text-content-primary">{{ p.alias }}</td>
                                     <td class="p-3 text-content-secondary">{{ p.career }}</td>
                                     <td class="p-3 text-content-secondary">{{ p.cycle }}</td>
