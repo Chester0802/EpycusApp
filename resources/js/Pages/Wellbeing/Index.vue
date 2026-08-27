@@ -94,23 +94,23 @@ const yearOptions = Array.from({ length: 5 }, (_, i) => 2026 + i);
 
     <AppLayout>
         <div class="mx-auto max-w-5xl space-y-6">
-            <!-- Pestañas de Navegación del Hub de Salud & Bienestar -->
-            <div class="flex items-center gap-2 border-b border-border/70 pb-2 overflow-x-auto">
+            <!-- Subnavegador del Hub de Salud & Bienestar (100% Responsivo) -->
+            <div class="flex rounded-2xl bg-surface-sunken p-1.5 border border-border overflow-x-auto gap-1 shadow-inner">
                 <Link
                     :href="route('habits.index')"
-                    class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-content-secondary hover:bg-surface-raised hover:text-content-primary flex items-center gap-2 shrink-0"
+                    class="flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold text-center transition-all text-content-secondary hover:text-content-primary hover:bg-surface flex items-center justify-center gap-1.5"
                 >
                     <span>🌿</span> Hábitos Diarios
                 </Link>
                 <Link
                     :href="route('wellbeing.index')"
-                    class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-primary-strong text-on-primary-strong shadow-sm flex items-center gap-2 shrink-0"
+                    class="flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold text-center transition-all bg-primary-strong text-on-primary-strong shadow-md flex items-center justify-center gap-1.5"
                 >
                     <span>🧘</span> Diario & Ánimo
                 </Link>
                 <Link
                     :href="route('fitness.index')"
-                    class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-content-secondary hover:bg-surface-raised hover:text-content-primary flex items-center gap-2 shrink-0"
+                    class="flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold text-center transition-all text-content-secondary hover:text-content-primary hover:bg-surface flex items-center justify-center gap-1.5"
                 >
                     <span>💪</span> Fitness & Hidratación
                 </Link>

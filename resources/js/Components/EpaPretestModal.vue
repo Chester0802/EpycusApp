@@ -1,8 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
-import BaseModal from '@/Components/ui/BaseModal.vue';
-import BaseButton from '@/Components/ui/BaseButton.vue';
 import { triggerConfetti, playSuccessChime } from '@/utils/celebration';
 
 const props = defineProps({
@@ -14,7 +12,7 @@ const props = defineProps({
 
 const page = usePage();
 
-const currentStep = ref(0); // 0-indexed (0 to 7)
+const currentStep = ref(0); // 0 a 7
 const isSubmitting = ref(false);
 const errorMessage = ref('');
 const showResults = ref(false);
@@ -99,8 +97,14 @@ const progressPercent = computed(() => {
     return Math.round(((step + 1) / items.length) * 100);
 });
 
+function isOptionSelected(val) {
+    if (!currentItem.value) return false;
+    return answers.value[currentItem.value.key] === val;
+}
+
 const isCurrentAnswered = computed(() => {
-    return currentItem.value ? answers.value[currentItem.value.key] !== null : false;
+    if (!currentItem.value) return false;
+    return answers.value[currentItem.value.key] !== null;
 });
 
 const isAllAnswered = computed(() => {
@@ -164,13 +168,12 @@ function selectOption(val) {
     if (!currentItem.value) return;
     answers.value[currentItem.value.key] = val;
     if (advanceTimeout) clearTimeout(advanceTimeout);
-    // Auto-advance if not on last step
     if (currentStep.value < items.length - 1) {
         advanceTimeout = setTimeout(() => {
             if (currentStep.value < items.length - 1) {
                 currentStep.value++;
             }
-        }, 220);
+        }, 180);
     }
 }
 
@@ -201,7 +204,7 @@ function markAsCompleted() {
                 localStorage.setItem(`epycus_epa_completed_${userId}`, '1');
             }
             localStorage.setItem('epycus_epa_completed_latest', '1');
-        } catch (e) {
+        } catch {
             // Silencioso
         }
     }
@@ -260,219 +263,215 @@ function finishAndClose() {
 </script>
 
 <template>
-    <BaseModal :show="isModalVisible" :closeable="false">
-        <div class="p-2 sm:p-4">
-            <!-- ── Vista 1: Cuestionario EPA ── -->
-            <div v-if="!showResults">
-                <!-- Header con colores y gradientes enriquecidos -->
-                <div class="mb-6 text-center">
-                    <div
-                        class="mb-3 inline-flex items-center gap-2 rounded-full bg-primary-strong/15 px-3.5 py-1 text-xs font-bold text-primary-strong shadow-sm"
-                    >
-                        📋 Evaluación Inicial · Escala EPA
-                    </div>
-                    <h2 class="font-display text-2xl font-extrabold text-content-primary sm:text-3xl">
-                        Diagnóstico de procrastinación actual
-                    </h2>
-                    <p class="mt-2 text-sm text-content-secondary">
-                        Responde con honestidad sobre tus hábitos de estudio actuales. Al completar
-                        recibirás <strong class="font-bold text-accent">+50 XP</strong>.
-                    </p>
-                </div>
-
-                <!-- Progress Bar animada -->
-                <div class="mb-6">
-                    <div
-                        class="mb-1.5 flex items-center justify-between text-xs font-semibold text-content-secondary"
-                    >
-                        <span>Pregunta {{ currentStep + 1 }} de {{ items.length }}</span>
-                        <span class="text-primary-strong">{{ progressPercent }}% completado</span>
-                    </div>
-                    <div class="h-2.5 w-full overflow-hidden rounded-full bg-surface-sunken">
+    <Teleport to="body">
+        <div
+            v-if="isModalVisible"
+            class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md overflow-y-auto"
+        >
+            <div
+                class="relative w-full max-w-lg my-auto rounded-3xl bg-surface-raised border border-border/80 shadow-2xl p-5 sm:p-6 text-content-primary"
+            >
+                <!-- ── Vista 1: Cuestionario EPA Obligatorio ── -->
+                <div v-if="!showResults" class="space-y-4">
+                    <!-- Header -->
+                    <div class="text-center space-y-1">
                         <div
-                            class="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-300 ease-out shadow-sm"
-                            :style="{ width: `${progressPercent}%` }"
-                        />
-                    </div>
-                </div>
-
-                <!-- Question Card -->
-                <div
-                    class="panel-sunken mb-6 rounded-2xl border border-border/80 p-5 transition-all duration-200"
-                >
-                    <div class="mb-2 text-xs font-bold uppercase tracking-wider text-primary-strong">
-                        {{ currentItem.title }}
-                    </div>
-                    <p class="text-lg font-bold leading-snug text-content-primary">
-                        "{{ currentItem.text }}"
-                    </p>
-
-                    <!-- Options -->
-                    <div class="mt-5 space-y-2.5">
-                        <button
-                            v-for="opt in options"
-                            :key="opt.value"
-                            type="button"
-                            class="flex min-h-[48px] w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
-                            :class="[
-                                answers[currentItem.key] === opt.value
-                                    ? 'bg-primary text-on-primary border-primary-strong shadow-md font-bold scale-[1.01]'
-                                    : 'bg-surface-raised border-border-interactive text-content-primary hover:border-primary-strong hover:bg-surface-raised/80',
-                            ]"
-                            @click="selectOption(opt.value)"
+                            class="inline-flex items-center gap-1.5 rounded-full bg-primary-strong/15 px-3 py-1 text-xs font-bold text-primary-strong"
                         >
-                            <span class="text-sm">
-                                <span class="mr-2.5 font-bold opacity-80">{{ opt.value }}.</span>
-                                {{ opt.label }}
-                            </span>
+                            📋 Evaluación Inicial · Escala EPA
+                        </div>
+                        <h2 class="font-display text-xl sm:text-2xl font-extrabold text-content-primary">
+                            Diagnóstico de Hábitos de Estudio
+                        </h2>
+                        <p class="text-xs sm:text-sm text-content-secondary leading-relaxed">
+                            Responde las 8 preguntas para calibrar tu perfil. Al finalizar ganarás <strong class="font-bold text-accent">+50 XP</strong>.
+                        </p>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between text-xs font-semibold text-content-secondary">
+                            <span>Pregunta {{ currentStep + 1 }} de {{ items.length }}</span>
+                            <span class="text-primary-strong font-bold">{{ progressPercent }}% completado</span>
+                        </div>
+                        <div class="h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
                             <div
-                                class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors"
-                                :class="
-                                    answers[currentItem.key] === opt.value
-                                        ? 'border-white bg-white/30'
-                                        : 'border-content-secondary/40'
-                                "
-                            >
-                                <span
-                                    v-if="answers[currentItem.key] === opt.value"
-                                    class="h-2 w-2 rounded-full bg-white"
-                                />
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Error Message -->
-                <div
-                    v-if="errorMessage"
-                    class="mb-4 rounded-xl bg-danger/10 p-3 text-center text-xs font-semibold text-danger-text border border-danger/20"
-                >
-                    {{ errorMessage }}
-                </div>
-
-                <!-- Actions -->
-                <div class="flex items-center justify-between pt-2">
-                    <BaseButton
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        :disabled="currentStep === 0 || isSubmitting"
-                        @click="prevStep"
-                    >
-                        ← Anterior
-                    </BaseButton>
-
-                    <div class="flex gap-2">
-                        <BaseButton
-                            v-if="currentStep < items.length - 1"
-                            type="button"
-                            variant="primary"
-                            size="sm"
-                            :disabled="!isCurrentAnswered"
-                            @click="nextStep"
-                        >
-                            Siguiente →
-                        </BaseButton>
-
-                        <BaseButton
-                            v-else
-                            type="button"
-                            variant="accent"
-                            size="md"
-                            :disabled="!isAllAnswered || isSubmitting"
-                            @click="submitSurvey"
-                        >
-                            {{ isSubmitting ? 'Guardando…' : 'Finalizar y ver resultados 🎉' }}
-                        </BaseButton>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Vista 2: Pantalla de Resultados y Diagnóstico ── -->
-            <div v-else class="text-center py-2 animate-fadeIn">
-                <!-- Badge Día 1 -->
-                <div class="inline-flex items-center gap-2 rounded-full bg-primary/15 border border-primary/30 px-3.5 py-1 text-xs font-bold text-primary mb-3">
-                    🏁 Día 1 · Punto de Partida
-                </div>
-
-                <h2 class="font-display text-2xl font-black text-content-primary sm:text-3xl">
-                    ¡Tu Diagnóstico Inicial EPA está listo!
-                </h2>
-                <p class="mt-1 text-sm text-content-secondary">
-                    Has completado la evaluación científica de entrada y ganaste <strong class="text-accent font-bold">+50 XP</strong>.
-                </p>
-
-                <!-- Score Card -->
-                <div class="mt-5 rounded-2xl border border-border/80 bg-surface-raised p-5 text-left shadow-sm">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/60 pb-4">
-                        <div>
-                            <span class="text-xs font-semibold uppercase tracking-wider text-content-muted">Puntuación Total</span>
-                            <div class="flex items-baseline gap-1.5 mt-0.5">
-                                <span class="font-display text-3xl font-extrabold text-content-primary">{{ calculatedScore }}</span>
-                                <span class="text-sm font-semibold text-content-secondary">/ 32 puntos</span>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col sm:items-end">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-content-muted">Nivel Diagnosticado</span>
-                            <span
-                                class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold mt-0.5"
-                                :class="diagnosticInfo.badgeClass"
-                            >
-                                <span>{{ diagnosticInfo.icon }}</span>
-                                <span>{{ diagnosticInfo.level }}</span>
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Progress Gauge Bar -->
-                    <div class="my-4">
-                        <div class="flex justify-between text-xs text-content-secondary mb-1">
-                            <span>8 pts (Alta Procrastinación)</span>
-                            <span class="font-bold text-primary">{{ Math.round((calculatedScore / 32) * 100) }}%</span>
-                            <span>32 pts (Máxima Autorregulación)</span>
-                        </div>
-                        <div class="h-3 w-full rounded-full bg-surface-sunken overflow-hidden">
-                            <div
-                                class="h-full rounded-full bg-gradient-to-r transition-all duration-700 ease-out"
-                                :class="diagnosticInfo.barClass"
-                                :style="{ width: `${(calculatedScore / 32) * 100}%` }"
+                                class="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-300 ease-out"
+                                :style="{ width: `${progressPercent}%` }"
                             />
                         </div>
                     </div>
 
-                    <!-- Explicación del diagnóstico -->
-                    <div class="rounded-xl bg-surface-sunken p-4 border border-border/60 text-sm">
-                        <p class="font-semibold text-content-primary leading-relaxed">
-                            {{ diagnosticInfo.description }}
+                    <!-- Question Box -->
+                    <div class="rounded-2xl border border-border/80 bg-surface p-4 sm:p-5 space-y-3 shadow-inner">
+                        <div class="text-[11px] font-bold uppercase tracking-wider text-primary-strong">
+                            {{ currentItem.title }}
+                        </div>
+                        <p class="text-base sm:text-lg font-bold leading-snug text-content-primary">
+                            "{{ currentItem.text }}"
                         </p>
-                        <ul class="mt-3 space-y-1.5 text-xs text-content-secondary">
-                            <li v-for="(tip, idx) in diagnosticInfo.tips" :key="idx" class="flex items-start gap-2">
-                                <span class="text-primary font-bold">✓</span>
-                                <span>{{ tip }}</span>
-                            </li>
-                        </ul>
+
+                        <!-- Options List -->
+                        <div class="space-y-2 pt-1">
+                            <button
+                                v-for="opt in options"
+                                :key="opt.value"
+                                type="button"
+                                class="flex min-h-[44px] w-full items-center justify-between rounded-xl border px-4 py-2.5 text-left transition-all duration-150 cursor-pointer"
+                                :class="[
+                                    isOptionSelected(opt.value)
+                                        ? 'bg-primary-strong text-on-primary-strong border-primary-strong shadow-md font-bold scale-[1.01]'
+                                        : 'bg-surface-raised border-border text-content-primary hover:border-primary/50 hover:bg-surface-sunken',
+                                ]"
+                                @click="selectOption(opt.value)"
+                            >
+                                <span class="text-sm">
+                                    <span class="mr-2 font-bold opacity-80">{{ opt.value }}.</span>
+                                    {{ opt.label }}
+                                </span>
+                                <div
+                                    class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors"
+                                    :class="
+                                        isOptionSelected(opt.value)
+                                            ? 'border-white bg-white/30'
+                                            : 'border-content-secondary/40'
+                                    "
+                                >
+                                    <span
+                                        v-if="isOptionSelected(opt.value)"
+                                        class="h-1.5 w-1.5 rounded-full bg-white"
+                                    />
+                                </div>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="mt-3.5 flex items-center justify-between text-[11px] text-content-muted">
-                        <span>🗓️ Registrado hoy · Día 1</span>
-                        <span class="font-semibold text-accent">📍 Visible siempre en Bienestar</span>
+                    <!-- Error Message -->
+                    <div
+                        v-if="errorMessage"
+                        class="rounded-xl bg-danger-text/10 p-3 text-center text-xs font-semibold text-danger-text border border-danger-text/20"
+                    >
+                        {{ errorMessage }}
+                    </div>
+
+                    <!-- Actions / Nav Buttons -->
+                    <div class="flex items-center justify-between pt-1">
+                        <button
+                            type="button"
+                            class="px-4 py-2 rounded-xl text-xs font-bold text-content-secondary hover:text-content-primary transition-all disabled:opacity-40 disabled:pointer-events-none"
+                            :disabled="currentStep === 0 || isSubmitting"
+                            @click="prevStep"
+                        >
+                            ← Anterior
+                        </button>
+
+                        <div class="flex gap-2">
+                            <button
+                                v-if="currentStep < items.length - 1"
+                                type="button"
+                                class="px-5 py-2.5 rounded-xl bg-primary-strong text-on-primary-strong text-xs font-bold shadow-md hover:opacity-90 transition-all disabled:opacity-40 disabled:pointer-events-none"
+                                :disabled="!isCurrentAnswered"
+                                @click="nextStep"
+                            >
+                                Siguiente →
+                            </button>
+
+                            <button
+                                v-else
+                                type="button"
+                                class="px-6 py-2.5 rounded-xl bg-primary-strong text-on-primary-strong text-sm font-bold shadow-lg hover:opacity-90 transition-all disabled:opacity-40 disabled:pointer-events-none flex items-center gap-1.5"
+                                :disabled="!isAllAnswered || isSubmitting"
+                                @click="submitSurvey"
+                            >
+                                <span>{{ isSubmitting ? 'Guardando…' : 'Finalizar y ver resultados 🎉' }}</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Botón de acción para cerrar y comenzar -->
-                <div class="mt-6 flex justify-center">
-                    <BaseButton
-                        type="button"
-                        variant="primary"
-                        size="lg"
-                        class="w-full sm:w-auto px-8 shadow-lg font-bold"
-                        @click="finishAndClose"
-                    >
-                        Comenzar mi Aventura (Día 1) 🚀
-                    </BaseButton>
+                <!-- ── Vista 2: Pantalla de Resultados y Diagnóstico ── -->
+                <div v-else class="text-center space-y-4">
+                    <div class="w-16 h-16 mx-auto rounded-3xl bg-success/15 text-success flex items-center justify-center text-3xl shadow-inner animate-bounce">
+                        🎉
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="inline-flex items-center gap-1.5 rounded-full bg-primary/15 border border-primary/30 px-3 py-0.5 text-xs font-bold text-primary">
+                            🏁 Evaluación Completada
+                        </div>
+                        <h2 class="font-display text-2xl font-black text-content-primary">
+                            ¡Tu Diagnóstico EPA está listo!
+                        </h2>
+                        <p class="text-xs sm:text-sm text-content-secondary">
+                            Has completado la evaluación inicial y ganaste <strong class="text-accent font-bold">+50 XP</strong>.
+                        </p>
+                    </div>
+
+                    <!-- Score Card -->
+                    <div class="rounded-2xl border border-border/80 bg-surface p-4 sm:p-5 text-left space-y-3 shadow-inner">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border/60 pb-3">
+                            <div>
+                                <span class="text-[10px] font-semibold uppercase tracking-wider text-content-muted">Puntuación Total</span>
+                                <div class="flex items-baseline gap-1.5 mt-0.5">
+                                    <span class="font-display text-3xl font-extrabold text-content-primary">{{ calculatedScore }}</span>
+                                    <span class="text-xs font-semibold text-content-secondary">/ 32 puntos</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col sm:items-end">
+                                <span class="text-[10px] font-semibold uppercase tracking-wider text-content-muted">Nivel Diagnosticado</span>
+                                <span
+                                    class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold mt-0.5"
+                                    :class="diagnosticInfo.badgeClass"
+                                >
+                                    <span>{{ diagnosticInfo.icon }}</span>
+                                    <span>{{ diagnosticInfo.level }}</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[11px] text-content-secondary">
+                                <span>8 pts (Baja regulación)</span>
+                                <span class="font-bold text-primary">{{ Math.round((calculatedScore / 32) * 100) }}%</span>
+                                <span>32 pts (Máxima regulación)</span>
+                            </div>
+                            <div class="h-2.5 w-full rounded-full bg-surface-sunken overflow-hidden">
+                                <div
+                                    class="h-full rounded-full bg-gradient-to-r transition-all duration-700 ease-out"
+                                    :class="diagnosticInfo.barClass"
+                                    :style="{ width: `${(calculatedScore / 32) * 100}%` }"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Description & Tips -->
+                        <div class="rounded-xl bg-surface-raised p-3.5 border border-border/60 text-xs sm:text-sm space-y-2">
+                            <p class="font-semibold text-content-primary leading-relaxed">
+                                {{ diagnosticInfo.description }}
+                            </p>
+                            <ul class="space-y-1 text-xs text-content-secondary">
+                                <li v-for="(tip, idx) in diagnosticInfo.tips" :key="idx" class="flex items-start gap-2">
+                                    <span class="text-primary font-bold">✓</span>
+                                    <span>{{ tip }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Final Button -->
+                    <div class="pt-2">
+                        <button
+                            type="button"
+                            class="w-full sm:w-auto px-8 py-3 rounded-2xl bg-primary-strong text-on-primary-strong font-bold text-sm shadow-xl hover:opacity-90 transition-all cursor-pointer"
+                            @click="finishAndClose"
+                        >
+                            🚀 Comenzar mi Aventura en Epycus
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </BaseModal>
+    </Teleport>
 </template>

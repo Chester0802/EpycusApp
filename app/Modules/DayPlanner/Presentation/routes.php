@@ -15,4 +15,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/day-planner/routines', [DayPlannerController::class, 'storeRoutine'])->name('day-planner.routines.store');
     Route::put('/day-planner/routines/{id}', [DayPlannerController::class, 'updateRoutine'])->name('day-planner.routines.update');
     Route::delete('/day-planner/routines/{id}', [DayPlannerController::class, 'destroyRoutine'])->name('day-planner.routines.destroy');
+
+    Route::post('/day-planner/apply-routines', [DayPlannerController::class, 'applyRoutines'])->name('day-planner.routines.apply');
+    Route::post('/day-planner/load-starter-template', [DayPlannerController::class, 'loadStarterTemplate'])->name('day-planner.starter-template');
 });

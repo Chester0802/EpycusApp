@@ -15,15 +15,25 @@ final class DayPlannerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_view_day_planner_page_and_it_auto_seeds_defaults(): void
+    public function test_user_can_view_day_planner_page_clean_and_load_templates_on_demand(): void
     {
         $user = UserModel::factory()->create();
+        $today = Carbon::now('America/Lima')->toDateString();
 
         $response = $this->actingAs($user)->get(route('day-planner.index'));
 
         $response->assertStatus(200);
 
-        // Se deben haber creado rutinas y los ítems del día
+        // El día debe iniciar limpio sin rutinas forzadas
+        $this->assertEquals(0, DailyPlanItemModel::where('user_id', $user->id)->count());
+
+        // Cargar plantilla recomendada bajo demanda
+        $loadRes = $this->actingAs($user)->post(route('day-planner.starter-template'), [
+            'plan_date' => $today,
+        ]);
+
+        $loadRes->assertRedirect();
+
         $this->assertDatabaseHas('daily_routines', [
             'user_id' => $user->id,
             'time_block' => 'morning',
@@ -31,7 +41,7 @@ final class DayPlannerTest extends TestCase
 
         $this->assertDatabaseHas('daily_plan_items', [
             'user_id' => $user->id,
-            'plan_date' => Carbon::now('America/Lima')->toDateString(),
+            'plan_date' => $today,
         ]);
     }
 

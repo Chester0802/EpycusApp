@@ -33,4 +33,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/calendar/planner/routines', [CalendarController::class, 'storeRoutine'])->name('calendar.planner.routines.store');
     Route::put('/calendar/planner/routines/{id}', [CalendarController::class, 'updateRoutine'])->name('calendar.planner.routines.update');
     Route::delete('/calendar/planner/routines/{id}', [CalendarController::class, 'destroyRoutine'])->name('calendar.planner.routines.destroy');
+
+    Route::post('/calendar/planner/apply-routines', [CalendarController::class, 'applyRoutines'])->name('calendar.planner.routines.apply');
+    Route::post('/calendar/planner/load-starter-template', [CalendarController::class, 'loadStarterTemplate'])->name('calendar.planner.starter-template');
 });

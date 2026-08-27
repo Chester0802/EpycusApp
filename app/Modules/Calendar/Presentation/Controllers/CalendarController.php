@@ -372,6 +372,30 @@ final class CalendarController extends Controller
         return back()->with('success', 'Plantilla de rutina eliminada.');
     }
 
+    public function applyRoutines(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'plan_date' => 'required|date',
+        ]);
+
+        $userId = (int) Auth::id();
+        $this->getPlan->applyRoutinesToDate($userId, $validated['plan_date']);
+
+        return back()->with('success', 'Plantillas de rutina aplicadas al plan del día.');
+    }
+
+    public function loadStarterTemplate(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'plan_date' => 'required|date',
+        ]);
+
+        $userId = (int) Auth::id();
+        $this->getPlan->seedStarterTemplate($userId, $validated['plan_date']);
+
+        return back()->with('success', 'Plantilla recomendada cargada con éxito.');
+    }
+
     private function getStatusMessage(string $status): string
     {
         return match ($status) {

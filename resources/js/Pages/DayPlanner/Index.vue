@@ -187,10 +187,38 @@ function submitNewRoutine() {
 }
 
 function deleteRoutine(routineId) {
-    if (!confirm('¿Eliminar esta plantilla de rutina? Ya no se generará automáticamente en días futuros.')) return;
+    if (!confirm('¿Eliminar esta plantilla de rutina? Ya no se generará en días futuros.')) return;
     router.delete(route('day-planner.routines.destroy', { id: routineId }), {
         preserveScroll: true,
     });
+}
+
+function applyMyRoutines() {
+    isProcessing.value = true;
+    router.post(
+        route('day-planner.routines.apply'),
+        { plan_date: props.currentDate },
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                isProcessing.value = false;
+            },
+        }
+    );
+}
+
+function loadRecommendedTemplates() {
+    isProcessing.value = true;
+    router.post(
+        route('day-planner.starter-template'),
+        { plan_date: props.currentDate },
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                isProcessing.value = false;
+            },
+        }
+    );
 }
 
 function changeDate(deltaDays) {

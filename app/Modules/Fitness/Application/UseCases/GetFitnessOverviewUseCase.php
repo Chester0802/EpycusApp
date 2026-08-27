@@ -17,7 +17,7 @@ final class GetFitnessOverviewUseCase
             'calories' => 45,
             'difficulty' => 'Fácil',
             'icon' => '🪑',
-            'description' => 'Alivia la tensión de cuello, hombros y espalda baja provocada por horas de estudio y laptop.',
+            'description' => 'Alivia la tensión de cuello, hombros y espalda baja provocada por horas de estudio frente a la pantalla.',
             'exercises' => ['Estiramiento Cervical y Trapecio', 'Movilidad y Descompresión de Muñecas', 'Torsión Torácica en Silla'],
         ],
         [
@@ -42,6 +42,21 @@ final class GetFitnessOverviewUseCase
         ],
     ];
 
+    private const SLUG_TO_WORKOUT_GUIDE = [
+        'estiramiento-cervical' => 'cross-body-shoulder-stretch',
+        'movilidad-munecas' => 'arm-circles',
+        'torsion-toracica-silla' => 'torso-twist-stretch',
+        'sentadillas-peso-corporal' => 'squat',
+        'flexiones-brazos' => 'push-up',
+        'plancha-isometrica' => 'plank',
+        'jumping-jacks' => 'jumping-jack',
+        'puente-gluteos' => 'glute-bridge',
+        'fondos-silla' => 'chair-dip',
+        'zancadas-piernas' => 'forward-lunge',
+        'crunch-abdominal' => 'crunch',
+        'escaladores-montana' => 'mountain-climber',
+    ];
+
     public function __construct(
         private readonly FitnessRepositoryInterface $repository,
     ) {}
@@ -62,17 +77,26 @@ final class GetFitnessOverviewUseCase
 
         return [
             'todayDate' => $today,
-            'exercises' => $exercises->map(fn ($e) => [
-                'id' => $e->id,
-                'name' => $e->name,
-                'slug' => $e->slug,
-                'category' => $e->category,
-                'difficulty' => $e->difficulty,
-                'target_muscles' => $e->target_muscles,
-                'instructions' => $e->instructions,
-                'default_duration_seconds' => $e->default_duration_seconds,
-                'icon' => $e->icon,
-            ])->values()->toArray(),
+            'exercises' => $exercises->map(function ($e) {
+                $imgSlug = self::SLUG_TO_WORKOUT_GUIDE[$e->slug] ?? $e->slug;
+                return [
+                    'id' => $e->id,
+                    'name' => $e->name,
+                    'slug' => $e->slug,
+                    'image_slug' => $imgSlug,
+                    'frames' => [
+                        "/assets/exercises/{$imgSlug}/frame-1.png",
+                        "/assets/exercises/{$imgSlug}/frame-2.png",
+                        "/assets/exercises/{$imgSlug}/frame-3.png",
+                    ],
+                    'category' => $e->category,
+                    'difficulty' => $e->difficulty,
+                    'target_muscles' => $e->target_muscles,
+                    'instructions' => $e->instructions,
+                    'default_duration_seconds' => $e->default_duration_seconds,
+                    'icon' => $e->icon,
+                ];
+            })->values()->toArray(),
             'routines' => self::PREBUILT_ROUTINES,
             'history' => $workouts->map(fn ($w) => [
                 'id' => $w->id,

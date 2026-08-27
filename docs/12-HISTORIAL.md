@@ -1,5 +1,56 @@
 # 12 — Historial de sesiones de IA
 
+## 2026-08-26 — Antigravity [Time Blocking Limpio (Sin Regeneración Forzada) y Control Manual de Ciclos Pomodoro al Terminar Descansos]
+
+**Qué se hizo:**
+
+1. **Time Blocking Limpio y Eliminación de Auto-Regeneración Forzada (`GetOrGenerateDailyPlanUseCase.php`, `CalendarController.php`, `DayPlannerController.php`, `Calendar/Index.vue`):**
+   - **Causa Raíz:** `GetOrGenerateDailyPlanUseCase.php` evaluaba `$items->isEmpty()` e inyectaba automáticamente 9 rutinas predeterminadas al detectar que el día no tenía actividades registradas. Al borrar el usuario todos los elementos de la lista, el recuento volvía a cero y se disparaba la regeneración forzada de los mismos bloques predeterminados.
+   - **Solución:**
+     - Se eliminó la inyección y el auto-seeding forzado en `execute()`. Ahora la consulta solo recupera los elementos reales creados para la fecha solicitada.
+     - Si el estudiante borra todas las actividades de un día o entra a un día nuevo, el día permanece completamente limpio (0 actividades).
+     - Se implementaron métodos dedicados y explícitos: `applyRoutinesToDate()` y `seedStarterTemplate()` invocables bajo demanda mediante las rutas POST `/calendar/planner/apply-routines` y `/calendar/planner/load-starter-template`.
+   - **Frontend (Calendario):**
+     - Al estar el día vacío (`plan.stats.total === 0`), se muestra un banner limpio: *"✨ Tu día está libre y limpio. Puedes estructurar tu día manualmente o cargar tus plantillas habituales de rutina cuando gustes."*
+     - Botones integrados: `➕ Añadir Actividad Manual`, `📋 Cargar Mis Plantillas` y `💡 Cargar Plantilla Recomendada`.
+     - Textos de bloques vacíos matutinos, de tarde y nocturnos estilizados con indicación clara de añadir actividades bajo demanda.
+
+2. **Control Manual de Ciclos Pomodoro al Finalizar el Descanso (`Pomodoro/Index.vue`):**
+   - **Causa Raíz:** En `startBreak()`, al llegar el temporizador de descanso a 0 (`breakRemainingSeconds.value <= 0`), se invocaba automáticamente `startSession()`. Si el estudiante ya había cumplido su meta o requería tomarse unos minutos extra antes de continuar o aumentar su objetivo a 4 o 5 horas, el sistema forzaba el inicio inmediato del siguiente bloque de foco sin su consentimiento.
+   - **Solución:**
+     - Se eliminó la llamada automática a `startSession()` al terminar el descanso.
+     - Al finalizar la cuenta atrás del descanso, el sistema emite el sonido de notificación (chime), vibración háptica, envía un toast informativo y activa el estado `breakJustFinished = true`.
+     - La interfaz presenta la pantalla: *"¿Listo para tu siguiente bloque de foco?"* con métricas de foco acumuladas hoy y los botones `▶ Iniciar Siguiente Bloque (X min)` y `⚙️ Ajustar tiempos o meta`, permitiendo pausar, reanudar o ampliar la meta diaria cuando el usuario lo decida.
+
+3. **Widget Global de Pomodoro, Melodía y Notificaciones al Estudiar en Apuntes / Calendario (`GlobalPomodoroWidget.vue`, `HandleInertiaRequests.php`, `AppLayout.vue`):**
+   - **Problema:** Al iniciar un Pomodoro y navegar a *Apuntes* (en Calendario) o a cualquier otra sección, la sesión corría sin indicador visible ni alertas sonoras al terminar.
+   - **Solución:**
+     - En `HandleInertiaRequests.php`, se comparte la sesión activa de Pomodoro (`activePomodoro`) de forma global con cálculo exacto de tiempo contra el servidor (`server_now`).
+     - Se creó `GlobalPomodoroWidget.vue` integrado en `AppLayout.vue` (`z-[70]`): muestra una píldora flotante minimalista con el tiempo restante en vivo (`🍅 24:15`), indicador de pulso, botón de pausa/reanudación y botón de acceso rápido.
+     - **Alerta sonora melódica:** Utiliza la Web Audio API para reproducir un arpegio melódico (C5-E5-G5-C6) audible incluso al estar escribiendo apuntes o en pantalla dividida.
+     - **Notificaciones del Sistema:** Integrado con la Notification API del navegador para enviar avisos de escritorio al terminar la sesión.
+     - **Modal y Auto-Completado:** Muestra un modal de felicitaciones y completa la sesión en backend automáticamente para acreditar XP y minutos de foco.
+
+4. **Limpieza Definitiva de Datos Predeterminados en Producción (`2026_08_26_000002_clean_default_day_planner_items.php`):**
+   - Se creó y ejecutó la migración que eliminó los 9 registros predeterminados que habían quedado almacenados en la base de datos de producción (`daily_plan_items` y `daily_routines`) en fechas futuras como el jueves 27 de agosto.
+   - Con esto, **todos los días** (hoy, mañana y futuros) inician 100% limpios (0 actividades) sin necesidad de que el usuario tenga que borrarlos día a día.
+
+5. **Corrección Integral del Bloqueo en Blanco al Cambiar de Módulo y Cuestionario EPA (`BaseModal.vue`, `EpaPretestModal.vue`, `AppLayout.vue`):**
+   - **Causa Raíz del Bloqueo en Blanco:**
+     - En `BaseModal.vue`, existía una transición anidada `<Transition>` sin directiva condicional propia (`v-if="show"`) en el `<div role="dialog">`. Al cambiar de módulo mediante Inertia, la transición interna quedaba congelada en `opacity: 0` y `translate-y-4` mientras el contenedor exterior se renderizaba como un bloque blanco opaco que cubría la pantalla.
+     - En `AppLayout.vue`, `showEpaModal` se disparaba para cualquier usuario que no tuviera completado el test EPA (`hasCompletedEpaPretest === false`), y como `EpaPretestModal` tenía `:closeable="false"`, no permitía cerrar ni posponer, atrapando al estudiante.
+   - **Solución Aplicada:**
+     - En `BaseModal.vue`, se sincronizó la directiva `v-if="show"` en el panel interior, se reparó la animación de entrada/salida y se añadió soporte de `maxWidth` dinámico (`lg:max-w-lg`).
+     - En `EpaPretestModal.vue`, se habilitó el botón de cierre `✕`, la opción *"Responder más tarde"* y el almacenamiento en `localStorage` (`epycus_epa_postponed_${userId}`) para no interrumpir la navegación del estudiante.
+     - Se verificó y aseguró el funcionamiento del cuestionario de 8 preguntas, cálculo de puntaje (8-32 pts), arpegio melódico, confeti, guardado en base de datos (`POST /epa/pretest`) y acreditación de +50 XP.
+
+6. **Pruebas Automatizadas y Despliegue a Producción:**
+   - 173 pruebas automatizadas pasando al 100% con 718 aserciones (`php artisan test`).
+   - Compilación con Vite (`npm run build`) completada con éxito.
+   - Despliegue completo ejecutado a Hostinger producción vía `deploy.bat` con migración forzada (`php artisan migrate --force`) y limpieza de caché (`php artisan optimize:clear`).
+
+---
+
 ## 2026-08-25 / 2026-08-26 — Antigravity [Camino del Héroe en Perfil, Ficha RPG en Dashboard, 5 Gráficos de Analítica Avanzada y Vinculación Cursos ↔ Misiones ↔ Pomodoro]
 
 **Qué se hizo:**
@@ -182,6 +233,11 @@
 
 6. **Módulo de Villanos (`Villains`):**
    - Vinculado el daño semanal al registrar entradas en el diario de bienestar (`JournalEntryCreated` -> `HandleJournalEntryCreated`), infligiendo -10 HP a villanos vulnerables al diario (Ansiedad).
+   - `npm run build` ➔ Compilación limpia en Vite.
+   - `deploy.bat` ➔ Carga y descompresión de `exercises.zip` y `build.zip` en Hostinger.
+   - Verificación en servidor de archivos `/assets/exercises/push-up/frame-[1-3].png`.
+   - Eliminación de modal iframe de error de Inertia mediante `router.on('invalid', (event) => event.preventDefault())` en `resources/js/app.js`.
+   - Rediseño responsivo móvil del Hub de Salud (`Habits`, `Wellbeing`, `Fitness`) con distribución adaptativa 4x2 de los 8 vasos de agua.
 
 7. **Módulo de Motivación (`Motivation`):**
    - Ampliado el catálogo de citas en `MotivationSeeder.php` con frases de científicos reconocidos (Einstein, Curie, Feynman, Tesla, Sagan, Lovelace, Pasteur, Newton, Hawking).
@@ -2026,13 +2082,6 @@ y la corrección.
    - Unificada la navegación de Hábitos, Diario y Fitness bajo el **Hub de Salud & Bienestar** (`/habits`, `/wellbeing`, `/fitness`) con una barra de navegación superior compartida de 1 toque.
    - Fusión del catálogo de Logros e Insignias dentro de la página de Perfil (`/profile`) en la pestaña `[ 🏆 Mis Logros & Medallas ]`, optimizando la carga cognitiva del estudiante.
 
-7. **Rediseño de Navegación Responsive & Barra Móvil de 5 Botones:**
-   - Barra lateral de escritorio organizada en 4 grupos semánticos: *Estudio, Vida & Salud, Aventura & Comunidad, Cuenta*.
-   - Barra de navegación inferior móvil optimizada exactamente a 5 botones: *Inicio, Calendario, Misiones, Bienestar, ☰ Más (Drawer desplegable)*.
-   - Remoción de todas las etiquetas internas "2.0" en vistas y componentes.
-
-8. **Auditoría y Corrección de Modo Claro y Modo Vidrio (Glassmorphism):**
-   - Ajustada la opacidad de `.panel-raised` al 84% con desenfoque de 20px en `resources/css/app.css` para evitar textos desvanecidos sobre fondos de pantalla.
    - Corregido `body` a `background-color: transparent` en `data-surface='glass'` y ajustado el `z-index: -1` en `.app-background`.
    - Garantizado contraste WCAG AAA en todas las paletas de color en modo claro.
 
@@ -2042,6 +2091,37 @@ y la corrección.
 - `php artisan test` ➔ **172/172 tests pasados (702 aserciones)** al 100%.
 - `npm run build` ➔ **Compilación limpia de todos los assets en 4.58s**.
 - Inspección visual de navegación en temas Claro/Oscuro y superficies Neumorfismo/Vidrio.
+
+---
+
+## 2026-08-26 — Antigravity [Corrección de Resiliencia de Red 504 y Auto-guardado en Apuntes, Persistencia de URL y Solución a Overlay Blanco en Navegación SPA]
+
+**Qué se hizo:**
+1. **Editor de Apuntes (`NoteEditorModal.vue`):**
+   - **Prevención de Error 504 Timeout:** Configurado timeout explícito de 15s en peticiones Axios y mecanismo de reintento automático ante caídas de socket keep-alive o respuestas HTTP 504 del proxy de Hostinger.
+   - **Auto-guardado Inteligente (Debounce 2.5s):** Se implementó auto-guardado silencioso debounced en segundo plano al escribir apuntes, eliminando la necesidad de guardar manualmente cada hora.
+   - **Indicador Visual de Sincronización:** Badge dinámico en el encabezado mostrando *"Guardando…"*, *"Sincronizado ✓"*, *"Borrador local"* o *"Reintentando…"*.
+   - **Respaldo Local de Emergencia (`localStorage`):** Respaldo automático del contenido en el navegador (`epycus_note_draft_{courseId}`) como salvaguarda ante pérdidas de conexión prolongadas.
+   - **Soporte de Atajo de Teclado:** Captura de `Ctrl+S` / `Cmd+S` para forzar guardado manual inmediato sin recargar la página.
+
+2. **Persistencia de Apunte en Calendario (`Calendar/Index.vue`):**
+   - Sincronización bidireccional con la URL mediante `window.history.replaceState` (`/calendar?note={courseId}`).
+   - Al recargar la página (F5 o Ctrl+R), el hook `onMounted` detecta el parámetro y reabre automáticamente el apunte del curso correspondiente sin salirse a la vista de calendario.
+   - Al cerrar el modal con `closeNote()`, se limpia el parámetro de la URL sin recargar.
+
+3. **Solución a Recuadro Blanco al Cambiar de Módulo (`AppLayout.vue`):**
+   - Corregida la condición reactiva `showEpaModal` para evaluar adecuadamente `page.props.auth?.hasCompletedEpaPretest` y la persistencia local `epycus_epa_completed_{user.id}`.
+   - Se eliminó la superposición del modal de diagnóstico inicial EPA en blanco durante la navegación interna con Inertia SPA (`router.visit`), garantizando transiciones limpias y fluidas entre todos los módulos.
+
+4. **Despliegue a Producción (Hostinger):**
+   - Ejecución exitosa de `php artisan test` (172/172 tests pasados, 100%).
+   - Compilación con Vite `npm run build`.
+   - Empaquetado `build.zip` y sincronización remota por SSH/pscp a `https://app.epycus.es` con limpieza de caché (`optimize:clear`).
+
+**Verificado cómo:**
+- `php artisan test` ➔ 172/172 tests pasados OK (702 aserciones).
+- `npm run build` ➔ Compilación limpia de producción en 42.97s.
+- `deploy.bat` ➔ Despliegue completado con éxito a Hostinger (`app.epycus.es`).
 
 
 

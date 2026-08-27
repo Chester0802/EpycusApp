@@ -38,6 +38,7 @@ const emit = defineEmits(['close']);
 const loading        = ref(false);
 const saving         = ref(false);
 const saveSuccess    = ref(false);
+const autoSaveStatus = ref('saved'); // 'saved' | 'saving' | 'unsaved' | 'error'
 const noteId         = ref(null);
 const entries        = ref([]);
 const images         = ref([]);
@@ -48,6 +49,8 @@ const videoEl        = ref(null);
 const canvasEl       = ref(null);
 const uploadingImage = ref(false);
 const cameraError    = ref('');
+
+let autoSaveTimer = null;
 
 // Menú contextual (click derecho)
 const showContextMenu = ref(false);
@@ -70,6 +73,36 @@ function formatTime12h(timeStr) {
     return `${String(h12).padStart(2, '0')}:${m} ${period}`;
 }
 
+function getDraftKey(courseId) {
+    return `epycus_note_draft_${courseId}`;
+}
+
+function saveLocalDraft() {
+    if (!props.course?.id) return;
+    try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            const draft = {
+                timestamp: Date.now(),
+                entries: entries.value,
+            };
+            localStorage.setItem(getDraftKey(props.course.id), JSON.stringify(draft));
+        }
+    } catch {
+        // Silencioso
+    }
+}
+
+function clearLocalDraft() {
+    if (!props.course?.id) return;
+    try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.removeItem(getDraftKey(props.course.id));
+        }
+    } catch {
+        // Silencioso
+    }
+}
+
 // ── Cargar apunte al abrir o cambiar curso ───────────────────────────────────
 watch(
     [() => props.show, () => props.course?.id],
@@ -78,6 +111,7 @@ watch(
             await loadNote();
         }
         if (!show) {
+            if (autoSaveTimer) clearTimeout(autoSaveTimer);
             stopCamera();
             cameraError.value = '';
         }
@@ -95,7 +129,9 @@ async function loadNote() {
     if (!props.course?.id) return;
     loading.value = true;
     try {
-        const res = await axios.get(route('calendar.notes.show', { courseId: props.course.id }));
+        const res = await axios.get(route('calendar.notes.show', { courseId: props.course.id }), {
+            timeout: 15000,
+        });
         const data = res.data;
         if (data.note) {
             noteId.value  = data.note.id;
@@ -106,6 +142,24 @@ async function loadNote() {
             entries.value = [];
             images.value  = [];
         }
+
+        // Revisar si existe borrador local más reciente
+        if (typeof window !== 'undefined' && window.localStorage) {
+            try {
+                const rawDraft = localStorage.getItem(getDraftKey(props.course.id));
+                if (rawDraft) {
+                    const parsed = JSON.parse(rawDraft);
+                    const serverTime = data.note?.updated_at ? new Date(data.note.updated_at).getTime() : 0;
+                    if (parsed.timestamp && parsed.timestamp > serverTime && Array.isArray(parsed.entries) && parsed.entries.length > 0) {
+                        entries.value = parsed.entries;
+                        autoSaveStatus.value = 'unsaved';
+                    }
+                }
+            } catch {
+                // Silencioso
+            }
+        }
+
         if (entries.value.length > 0) {
             activeEntryId.value = entries.value[entries.value.length - 1].id;
         } else {
@@ -136,7 +190,7 @@ function loadEditorContent() {
 // ── Agregar nueva entrada fechada ──────────────────────────────────────────
 async function addEntry() {
     syncBlocks();
-    const id  = crypto.randomUUID();
+    const id  = crypto.randomUUID ? crypto.randomUUID() : 'entry_' + Date.now();
     const now = new Date().toISOString();
     entries.value.push({
         id,
@@ -144,6 +198,7 @@ async function addEntry() {
         blocks: [{ type: 'html', html: '' }],
     });
     activeEntryId.value = id;
+    triggerAutoSave();
     await nextTick();
     if (editorEl.value) {
         editorEl.value.innerHTML = '';
@@ -171,7 +226,7 @@ async function deleteEntry(entryId) {
         } else {
             activeEntryId.value = null;
         }
-        await saveNote();
+        await saveNote(false);
     }
 }
 
@@ -181,32 +236,77 @@ function syncBlocks() {
     currentEntry.value.blocks = [{ type: 'html', html: editorEl.value.innerHTML }];
 }
 
-// ── Guardar apunte ─────────────────────────────────────────────────────────
-async function saveNote() {
-    if (!props.course) return;
+// ── Manejo de entrada con auto-guardado debounced ──────────────────────────
+function onEditorInput() {
     syncBlocks();
+    saveLocalDraft();
+    autoSaveStatus.value = 'unsaved';
+    triggerAutoSave();
+}
+
+function triggerAutoSave() {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+        saveNote(true);
+    }, 2500);
+}
+
+// ── Guardar apunte con soporte para timeout, auto-guardado y reintentos ────
+async function saveNote(isAutoSave = false) {
+    if (!props.course) return;
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    syncBlocks();
+    saveLocalDraft();
+
     saving.value = true;
-    try {
-        const content = { version: '1.0', entries: entries.value };
-        const res = await axios.post(route('calendar.notes.upsert', { courseId: props.course.id }), {
-            content,
+    autoSaveStatus.value = 'saving';
+
+    const payload = {
+        content: { version: '1.0', entries: entries.value },
+    };
+
+    const makeRequest = () =>
+        axios.post(route('calendar.notes.upsert', { courseId: props.course.id }), payload, {
+            timeout: 15000,
         });
+
+    try {
+        let res;
+        try {
+            res = await makeRequest();
+        } catch (firstErr) {
+            // Reintento automático inmediato si ocurrió 504 Gateway Timeout o desconexión de socket
+            const status = firstErr.response?.status;
+            if (status === 504 || status === 502 || firstErr.code === 'ECONNABORTED' || !firstErr.response) {
+                console.warn('Reintentando guardado de apunte tras corte o timeout 504...');
+                await new Promise(r => setTimeout(r, 600));
+                res = await makeRequest();
+            } else {
+                throw firstErr;
+            }
+        }
+
         const data = res.data;
         if (data.note) {
-            noteId.value      = data.note.id;
+            noteId.value = data.note.id;
             if (Array.isArray(data.note.images)) {
                 images.value = data.note.images;
             }
-            saveSuccess.value = true;
-            setTimeout(() => (saveSuccess.value = false), 2000);
+            saveSuccess.value    = true;
+            autoSaveStatus.value = 'saved';
+            clearLocalDraft();
+            setTimeout(() => (saveSuccess.value = false), 2200);
         } else {
-            console.error('Error del servidor al guardar:', data);
-            alert('Error al guardar el apunte.');
+            autoSaveStatus.value = 'error';
+            if (!isAutoSave) alert('Error al guardar el apunte en el servidor.');
         }
     } catch (e) {
-        console.error('Error al guardar:', e);
+        console.error('Error al guardar apunte:', e);
+        autoSaveStatus.value = 'error';
         const msg = e.response?.data?.message || e.response?.data?.error || e.message;
-        alert('Error al guardar el apunte: ' + msg);
+        if (!isAutoSave) {
+            alert('No se pudo sincronizar el apunte: ' + msg + '. Tus cambios están respaldados localmente.');
+        }
     } finally {
         saving.value = false;
     }
@@ -618,12 +718,16 @@ function formatShortDate(isoString) {
 }
 
 function close() {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
     stopCamera();
     cameraError.value = '';
     emit('close');
 }
 
-onBeforeUnmount(() => stopCamera());
+onBeforeUnmount(() => {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    stopCamera();
+});
 </script>
 
 <template>
@@ -665,6 +769,22 @@ onBeforeUnmount(() => stopCamera());
                                 </button>
                             </div>
                             <div class="note-header-actions">
+                                <!-- Indicador de estado de sincronización / auto-guardado -->
+                                <div class="note-sync-indicator mr-1">
+                                    <span v-if="autoSaveStatus === 'saving'" class="text-[11px] text-primary-strong flex items-center gap-1 font-semibold animate-pulse">
+                                        <Loader2 :size="11" class="animate-spin" /> Guardando…
+                                    </span>
+                                    <span v-else-if="autoSaveStatus === 'saved' || saveSuccess" class="text-[11px] text-success flex items-center gap-1 font-medium opacity-90">
+                                        <Check :size="12" /> Sincronizado
+                                    </span>
+                                    <span v-else-if="autoSaveStatus === 'unsaved'" class="text-[11px] text-content-muted flex items-center gap-1">
+                                        ✏️ Borrador local
+                                    </span>
+                                    <span v-else-if="autoSaveStatus === 'error'" class="text-[11px] text-danger-text flex items-center gap-1 font-semibold">
+                                        ⚠️ Reintentando…
+                                    </span>
+                                </div>
+
                                 <button
                                     type="button"
                                     class="note-btn note-btn-secondary"
@@ -683,7 +803,7 @@ onBeforeUnmount(() => stopCamera());
                                     <FileJson :size="14" />
                                     <span>JSON</span>
                                 </button>
-                                <button type="button" class="note-btn note-btn-primary" :disabled="saving" @click="saveNote">
+                                <button type="button" class="note-btn note-btn-primary" :disabled="saving" @click="saveNote(false)">
                                     <Loader2 v-if="saving"      :size="14" class="animate-spin" />
                                     <Check   v-else-if="saveSuccess" :size="14" />
                                     <Save    v-else               :size="14" />
@@ -940,9 +1060,9 @@ onBeforeUnmount(() => stopCamera());
                                             contenteditable="true"
                                             dir="ltr"
                                             spellcheck="true"
-                                            @input="syncBlocks"
+                                            @input="onEditorInput"
                                             @contextmenu="openContextMenu($event)"
-                                            @keydown.ctrl.s.prevent="saveNote"
+                                            @keydown.ctrl.s.prevent="saveNote(false)"
                                         ></div>
                                     </div>
                                 </div>

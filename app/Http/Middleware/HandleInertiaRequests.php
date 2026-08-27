@@ -58,12 +58,34 @@ class HandleInertiaRequests extends Middleware
         $preferences = $user ? $this->preferences->findByUserId(new UserId($user->id)) : null;
         $hasCompletedEpaPretest = $user ? DB::table('epa_responses')->where('user_id', $user->id)->where('phase', 'pretest')->exists() : true;
 
+        $activePomodoro = null;
+        if ($user) {
+            /** @var \App\Modules\Pomodoro\Infrastructure\Models\PomodoroSessionModel|null $session */
+            $session = \App\Modules\Pomodoro\Infrastructure\Models\PomodoroSessionModel::where('user_id', $user->id)
+                ->whereIn('status', ['running', 'paused'])
+                ->latest('id')
+                ->first();
+
+            if ($session) {
+                $activePomodoro = [
+                    'id' => $session->id,
+                    'planned_minutes' => $session->planned_minutes,
+                    'started_at' => $session->started_at->setTimezone('America/Lima')->toIso8601String(),
+                    'paused_at' => $session->paused_at?->setTimezone('America/Lima')->toIso8601String(),
+                    'total_paused_seconds' => $session->total_paused_seconds,
+                    'status' => $session->status,
+                    'server_now' => \Carbon\CarbonImmutable::now('America/Lima')->toIso8601String(),
+                ];
+            }
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $user,
                 'hasCompletedEpaPretest' => $hasCompletedEpaPretest,
             ],
+            'activePomodoro' => $activePomodoro,
             'preferences' => $preferences ? [
                 'surfaceMode' => $preferences->surfaceMode()->value(),
                 'wallpaperKey' => $preferences->wallpaperKey(),

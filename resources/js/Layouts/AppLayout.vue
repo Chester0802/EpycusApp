@@ -8,6 +8,7 @@ import ThemeToggle from '@/Components/ThemeToggle.vue';
 import NavIcon from '@/Components/NavIcon.vue';
 import BaseBadge from '@/Components/ui/BaseBadge.vue';
 import EpaPretestModal from '@/Components/EpaPretestModal.vue';
+import GlobalPomodoroWidget from '@/Components/Pomodoro/GlobalPomodoroWidget.vue';
 import { MoreHorizontal, X, LogOut } from '@lucide/vue';
 
 const page = usePage();
@@ -79,8 +80,17 @@ const showEpaModal = computed(() => {
     if (!user) return false;
     if (page.url.includes('/profile/complete')) return false;
     if (!user.career || !user.cycle) return false;
-    const answeredEpa = page.props.auth?.answered_epa;
-    return answeredEpa === false;
+    if (page.props.auth?.hasCompletedEpaPretest === true) return false;
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+        if (
+            localStorage.getItem(`epycus_epa_completed_${user.id}`) === '1' ||
+            localStorage.getItem('epycus_epa_completed_latest') === '1'
+        ) {
+            return false;
+        }
+    }
+    return true;
 });
 
 function isItemActive(item) {
@@ -124,6 +134,18 @@ watch(
     },
     { immediate: true },
 );
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('epycus-toast', (e) => {
+        if (e.detail?.message) {
+            toastMessage.value = e.detail.message;
+            toastType.value = e.detail.type || 'info';
+            setTimeout(() => {
+                toastMessage.value = null;
+            }, 4500);
+        }
+    });
+}
 </script>
 
 <template>
@@ -366,5 +388,8 @@ watch(
                 </div>
             </div>
         </div>
+
+        <!-- Widget Global de Pomodoro (Flotante en cualquier pantalla + Sonido y Notificación) -->
+        <GlobalPomodoroWidget />
     </div>
 </template>

@@ -248,6 +248,26 @@ function openNote(courseId) {
     if (!course) return;
     selectedCourse.value = course;
     showNoteModal.value  = true;
+
+    // Sincronizar parámetro en la URL para que persista ante recargas (F5)
+    if (typeof window !== 'undefined' && window.history) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('note', String(courseId));
+        window.history.replaceState({}, '', url.toString());
+    }
+}
+
+function closeNote() {
+    showNoteModal.value = false;
+    selectedCourse.value = null;
+
+    // Remover parámetro de la URL
+    if (typeof window !== 'undefined' && window.history) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('note');
+        url.searchParams.delete('course_id');
+        window.history.replaceState({}, '', url.toString());
+    }
 }
 
 // ── Selección de Día & Modo de Vista ────────────────────────────────────────
@@ -260,6 +280,17 @@ onMounted(() => {
         calendarViewMode.value = 'grid';
     } else if (urlParams.get('view') === 'timeblocking') {
         calendarViewMode.value = 'timeblocking';
+    }
+
+    // Auto-abrir apunte si viene en la URL (?note=ID o ?course_id=ID)
+    const noteParam = urlParams.get('note') || urlParams.get('course_id');
+    if (noteParam) {
+        const targetId = Number(noteParam);
+        const course = props.courses.find(c => c.id === targetId);
+        if (course) {
+            selectedCourse.value = course;
+            showNoteModal.value = true;
+        }
     }
 });
 
@@ -576,10 +607,38 @@ function submitRoutine() {
 }
 
 function deleteRoutine(routineId) {
-    if (!confirm('¿Eliminar esta plantilla de rutina? Ya no se generará automáticamente en días futuros.')) return;
+    if (!confirm('¿Eliminar esta plantilla de rutina? Ya no se generará en días futuros.')) return;
     router.delete(route('calendar.planner.routines.destroy', { id: routineId }), {
         preserveScroll: true,
     });
+}
+
+function applyMyRoutines() {
+    isProcessing.value = true;
+    router.post(
+        route('calendar.planner.routines.apply'),
+        { plan_date: selectedDay.value },
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                isProcessing.value = false;
+            },
+        }
+    );
+}
+
+function loadRecommendedTemplates() {
+    isProcessing.value = true;
+    router.post(
+        route('calendar.planner.starter-template'),
+        { plan_date: selectedDay.value },
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                isProcessing.value = false;
+            },
+        }
+    );
 }
 
 function goToPomodoro(item) {
@@ -732,6 +791,55 @@ function goToPomodoro(item) {
                         </div>
                     </BaseCard>
                 </div>
+
+                <!-- Banner cuando el día está limpio (0 actividades) -->
+                <BaseCard v-if="plan.stats.total === 0" class="p-6 text-center border-dashed border-border/80">
+                    <div class="max-w-md mx-auto space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary-strong flex items-center justify-center text-2xl mx-auto shadow-sm">
+                            ✨
+                        </div>
+                        <h3 class="font-display font-bold text-lg text-content-primary">
+                            Tu día está libre y limpio
+                        </h3>
+                        <p class="text-xs text-content-secondary leading-relaxed">
+                            No hay actividades registradas para esta fecha. Puedes estructurar tu día manualmente o cargar tus plantillas habituales de rutina cuando gustes.
+                        </p>
+                        <div class="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+                            <button
+                                type="button"
+                                class="px-4 py-2 rounded-xl bg-primary-strong text-on-primary-strong text-xs font-bold shadow-sm hover:opacity-90 transition-all flex items-center gap-1.5"
+                                @click="openAddPlanModal('morning')"
+                            >
+                                ➕ Añadir Actividad Manual
+                            </button>
+                            <button
+                                v-if="plan.routines.length > 0"
+                                type="button"
+                                class="px-4 py-2 rounded-xl bg-surface-raised border border-border text-primary-strong hover:bg-surface text-xs font-bold transition-all flex items-center gap-1.5"
+                                :disabled="isProcessing"
+                                @click="applyMyRoutines"
+                            >
+                                📋 Cargar Mis Plantillas ({{ plan.routines.length }})
+                            </button>
+                            <button
+                                v-else
+                                type="button"
+                                class="px-4 py-2 rounded-xl bg-surface-raised border border-border text-accent hover:bg-surface text-xs font-bold transition-all flex items-center gap-1.5"
+                                :disabled="isProcessing"
+                                @click="loadRecommendedTemplates"
+                            >
+                                💡 Cargar Plantilla Recomendada
+                            </button>
+                            <button
+                                type="button"
+                                class="px-3.5 py-2 rounded-xl border border-border bg-surface text-content-secondary hover:text-content-primary text-xs font-semibold transition-all"
+                                @click="showRoutinesModal = true"
+                            >
+                                ⚙️ Plantillas
+                            </button>
+                        </div>
+                    </div>
+                </BaseCard>
 
                 <!-- Card Modo Enfoque: Siguiente Acción Ahora -->
                 <div v-if="plan.next_action" class="relative overflow-hidden bg-surface-raised border-2 border-primary/40 p-6 rounded-3xl shadow-md">
@@ -886,7 +994,7 @@ function goToPomodoro(item) {
                             </div>
 
                             <div v-if="plan.blocks.morning.length === 0" class="p-5 text-center text-content-muted text-xs border border-dashed border-border rounded-2xl">
-                                No hay actividades matutinas. Haz clic en añadir o revisa tus plantillas.
+                                No hay actividades matutinas. Haz clic en <strong>➕ Añadir</strong> para registrar una.
                             </div>
 
                             <div v-else class="space-y-2.5">
@@ -990,7 +1098,7 @@ function goToPomodoro(item) {
                             </div>
 
                             <div v-if="plan.blocks.afternoon.length === 0" class="p-5 text-center text-content-muted text-xs border border-dashed border-border rounded-2xl">
-                                No hay actividades para la tarde. Haz clic en añadir.
+                                No hay actividades para la tarde. Haz clic en <strong>➕ Añadir</strong> para registrar una.
                             </div>
 
                             <div v-else class="space-y-2.5">
@@ -1102,7 +1210,7 @@ function goToPomodoro(item) {
                             </div>
 
                             <div v-if="plan.blocks.night.length === 0" class="p-5 text-center text-content-muted text-xs border border-dashed border-border rounded-2xl">
-                                No hay actividades nocturnas para hoy. Haz clic en añadir.
+                                No hay actividades nocturnas para hoy. Haz clic en <strong>➕ Añadir</strong> para registrar una.
                             </div>
 
                             <div v-else class="space-y-2.5">
@@ -1631,7 +1739,7 @@ function goToPomodoro(item) {
         <NoteEditorModal
             :show="showNoteModal"
             :course="selectedCourse"
-            @close="showNoteModal = false"
+            @close="closeNote"
         />
     </AppLayout>
 </template>

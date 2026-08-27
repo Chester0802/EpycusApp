@@ -17,53 +17,66 @@ final class GetOrGenerateDailyPlanUseCase
     ) {}
 
     /**
+     * Obtiene el plan diario para una fecha específica sin auto-generar ni inyectar datos no solicitados.
+     *
      * @return array<string, mixed>
      */
     public function execute(int $userId, ?string $date = null): array
     {
         $planDate = $date ?? Carbon::now('America/Lima')->toDateString();
-        $carbonDate = Carbon::parse($planDate, 'America/Lima');
-        $dayOfWeek = $carbonDate->dayOfWeekIso; // 1 (Mon) to 7 (Sun)
 
         $items = $this->repository->getPlanItemsForDate($userId, $planDate);
-
-        // Si no hay ítems creados para esta fecha, auto-generar desde las rutinas activas
-        if ($items->isEmpty()) {
-            $routines = $this->repository->getActiveRoutinesForUser($userId);
-
-            // Si es un usuario nuevo sin rutinas, crear un set inicial de rutinas recomendadas
-            if ($routines->isEmpty()) {
-                $this->seedInitialRoutines($userId);
-                $routines = $this->repository->getActiveRoutinesForUser($userId);
-            }
-
-            foreach ($routines as $routine) {
-                // Verificar si la rutina aplica para el día de la semana actual
-                $days = $routine->days_of_week ?? [1, 2, 3, 4, 5, 6, 7];
-                if (! in_array($dayOfWeek, $days, true)) {
-                    continue;
-                }
-
-                $this->repository->createItem([
-                    'user_id' => $userId,
-                    'plan_date' => $planDate,
-                    'routine_id' => $routine->id,
-                    'title' => $routine->title,
-                    'category' => $routine->category,
-                    'time_block' => $routine->time_block,
-                    'scheduled_time' => $routine->scheduled_time,
-                    'estimated_minutes' => $routine->estimated_minutes,
-                    'status' => 'pending',
-                    'sort_order' => $routine->sort_order,
-                ]);
-            }
-
-            $items = $this->repository->getPlanItemsForDate($userId, $planDate);
-        }
-
         $allRoutines = $this->repository->getActiveRoutinesForUser($userId);
 
         return $this->formatPlanResponse($items, $allRoutines, $planDate);
+    }
+
+    /**
+     * Aplica las plantillas de rutinas guardadas del usuario a la fecha indicada bajo demanda.
+     *
+     * @return array<string, mixed>
+     */
+    public function applyRoutinesToDate(int $userId, string $planDate): array
+    {
+        $carbonDate = Carbon::parse($planDate, 'America/Lima');
+        $dayOfWeek = $carbonDate->dayOfWeekIso;
+
+        $routines = $this->repository->getActiveRoutinesForUser($userId);
+
+        foreach ($routines as $routine) {
+            $days = $routine->days_of_week ?? [1, 2, 3, 4, 5, 6, 7];
+            if (! in_array($dayOfWeek, $days, true)) {
+                continue;
+            }
+
+            $this->repository->createItem([
+                'user_id' => $userId,
+                'plan_date' => $planDate,
+                'routine_id' => $routine->id,
+                'title' => $routine->title,
+                'category' => $routine->category,
+                'time_block' => $routine->time_block,
+                'scheduled_time' => $routine->scheduled_time,
+                'estimated_minutes' => $routine->estimated_minutes,
+                'status' => 'pending',
+                'sort_order' => $routine->sort_order,
+            ]);
+        }
+
+        $items = $this->repository->getPlanItemsForDate($userId, $planDate);
+        return $this->formatPlanResponse($items, $routines, $planDate);
+    }
+
+    /**
+     * Carga la plantilla inicial recomendada de rutinas cuando el usuario lo solicita explícitamente.
+     *
+     * @return array<string, mixed>
+     */
+    public function seedStarterTemplate(int $userId, ?string $planDate = null): array
+    {
+        $targetDate = $planDate ?? Carbon::now('America/Lima')->toDateString();
+        $this->seedInitialRoutines($userId);
+        return $this->applyRoutinesToDate($userId, $targetDate);
     }
 
     private function seedInitialRoutines(int $userId): void

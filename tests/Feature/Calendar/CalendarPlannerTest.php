@@ -145,4 +145,34 @@ final class CalendarPlannerTest extends TestCase
         $this->assertEquals('07:00', $routine->scheduled_time);
         $this->assertEquals(20, $routine->estimated_minutes);
     }
+
+    public function test_user_can_load_starter_templates_and_deleting_items_leaves_day_clean(): void
+    {
+        $user = UserModel::factory()->create();
+        $today = Carbon::now('America/Lima')->toDateString();
+
+        // 1. Cargar plantilla recomendada
+        $loadRes = $this->actingAs($user)->post(route('calendar.planner.starter-template'), [
+            'plan_date' => $today,
+        ]);
+        $loadRes->assertRedirect();
+
+        $count = DailyPlanItemModel::where('user_id', $user->id)->count();
+        $this->assertGreaterThan(0, $count);
+
+        // 2. Eliminar todos los ítems uno por uno
+        $items = DailyPlanItemModel::where('user_id', $user->id)->get();
+        foreach ($items as $item) {
+            $delRes = $this->actingAs($user)->delete(route('calendar.planner.items.destroy', ['id' => $item->id]));
+            $delRes->assertRedirect();
+        }
+
+        // 3. Verificar que quedan 0 ítems
+        $this->assertEquals(0, DailyPlanItemModel::where('user_id', $user->id)->count());
+
+        // 4. Volver a cargar el calendario / día: NO debe auto-regenerar ítems
+        $calRes = $this->actingAs($user)->get(route('calendar.index'));
+        $calRes->assertStatus(200);
+        $this->assertEquals(0, DailyPlanItemModel::where('user_id', $user->id)->count());
+    }
 }

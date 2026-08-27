@@ -1,7 +1,7 @@
 import '../css/app.css';
 import './bootstrap';
 
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
@@ -16,6 +16,19 @@ try {
 
 if (!isFramed) {
     const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+    router.on('invalid', (event) => {
+        event.preventDefault();
+        const response = event.detail.response;
+        const targetUrl = response?.config?.url || window.location.href;
+        console.warn('[Epycus SPA] Respuesta no válida interceptada. Redirigiendo limpiamente a:', targetUrl);
+        window.location.href = targetUrl;
+    });
+
+    router.on('exception', (event) => {
+        event.preventDefault();
+        console.warn('[Epycus SPA] Excepción de navegación interceptada:', event.detail.error);
+    });
 
     createInertiaApp({
         title: (title) => `${title} - ${appName}`,
@@ -39,10 +52,7 @@ if (!isFramed) {
 /**
  * Fix para bfcache en móvil:
  * Cuando el navegador restaura la página desde el Back-Forward Cache
- * (evento pageshow con persisted=true), Vue y el runtime de Inertia
- * ya no están activos. Si el usuario navega, el servidor devuelve JSON
- * de Inertia pero no hay nada que lo consuma → se muestra como texto plano.
- * Solución: forzar un reload completo al detectar restauración desde bfcache.
+ * (evento pageshow con persisted=true), forzar un reload limpio.
  */
 window.addEventListener('pageshow', (event) => {
     if (event.persisted) {

@@ -14,11 +14,42 @@ final readonly class Career
      * @var array<string, list<string>>
      */
     private const CAREERS_BY_STYLE = [
-        'health' => ['Medicina', 'Enfermería', 'Obstetricia'],
-        'business' => ['Administración de Empresas', 'Contabilidad'],
-        'technical' => ['Ingeniería Civil', 'Ingeniería Industrial', 'Ingeniería de Minas', 'Arquitectura'],
-        'systems' => ['Ingeniería de Sistemas'],
-        'law' => ['Derecho'],
+        'health' => [
+            'Medicina',
+            'Enfermería',
+            'Obstetricia',
+            'Psicología',
+            'Odontología',
+            'Nutrición y Dietética',
+            'Farmacia y Bioquímica',
+        ],
+        'business' => [
+            'Administración de Empresas',
+            'Contabilidad',
+            'Economía',
+            'Marketing y Publicidad',
+            'Negocios Internacionales',
+        ],
+        'technical' => [
+            'Ingeniería Civil',
+            'Ingeniería Industrial',
+            'Ingeniería de Minas',
+            'Arquitectura',
+            'Ingeniería Ambiental',
+            'Ingeniería Mecánica',
+            'Ingeniería Electrónica',
+            'Otra carrera',
+        ],
+        'systems' => [
+            'Ingeniería de Sistemas',
+            'Ingeniería de Software',
+            'Ciencia de Datos e Inteligencia Artificial',
+        ],
+        'law' => [
+            'Derecho',
+            'Ciencias de la Comunicación',
+            'Educación',
+        ],
     ];
 
     public function __construct(private string $value)

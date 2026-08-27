@@ -44,10 +44,7 @@ final class UserFactory extends Factory
 
     public function participant(): static
     {
-        $careers = [
-            'Medicina', 'Enfermería', 'Ingeniería Civil', 'Derecho',
-            'Administración de Empresas', 'Ingeniería de Sistemas',
-        ];
+        $careers = \App\Modules\Identity\Domain\ValueObjects\Career::all();
 
         return $this->state(fn (array $attributes) => [
             'career' => \fake()->randomElement($careers),

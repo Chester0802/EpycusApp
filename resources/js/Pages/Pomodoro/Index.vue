@@ -226,6 +226,7 @@ function isLongBreakCycle(cycleNumber) {
  */
 const onBreak = ref(false);
 const onBreakIsLong = ref(false);
+const breakJustFinished = ref(false);
 const breakTotalSeconds = ref(0);
 const breakRemainingSeconds = ref(0);
 let breakTimer = null;
@@ -260,6 +261,7 @@ function stopBreakTicker() {
 function startBreak(isLong) {
     onBreak.value = true;
     onBreakIsLong.value = isLong;
+    breakJustFinished.value = false;
     breakTotalSeconds.value = (isLong ? longBreakMinutes.value : breakMinutesInput.value) * 60;
     breakRemainingSeconds.value = breakTotalSeconds.value;
     playChime();
@@ -269,16 +271,22 @@ function startBreak(isLong) {
         if (breakRemainingSeconds.value <= 0) {
             stopBreakTicker();
             onBreak.value = false;
+            breakJustFinished.value = true;
             playChime();
-            // Si hay meta y ya se llegó (con el foco YA acreditado por el
-            // servidor tras el `router.reload` disparado al completar), no
-            // se arranca otro foco solo — se corta el ciclo automático y se
-            // muestra el estado de "meta cumplida". Sin meta, sigue como
-            // siempre: foco → descanso → foco, sin que el usuario toque nada.
+
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(
+                    new CustomEvent('epycus-toast', {
+                        detail: {
+                            message: '☕ ¡Descanso finalizado! Puedes iniciar el siguiente bloque cuando estés listo.',
+                            type: 'info',
+                        },
+                    }),
+                );
+            }
+
             if (hasGoal.value && todayFocusMinutes.value >= goalMinutesInput.value) {
                 goalJustCompleted.value = true;
-            } else {
-                startSession(); // "y otra vez a enfoque" — el ciclo sigue solo
             }
         }
     }, 1000);
@@ -287,6 +295,7 @@ function startBreak(isLong) {
 function skipBreak() {
     stopBreakTicker();
     onBreak.value = false;
+    breakJustFinished.value = false;
     startSession();
 }
 
@@ -397,6 +406,7 @@ function csrfHeader() {
 }
 
 async function startSession() {
+    breakJustFinished.value = false;
     goalJustCompleted.value = false;
     busy.value = true;
     toast.value = null;
@@ -448,7 +458,7 @@ async function callAction(action) {
             const cycleJustCompleted = action === 'complete' ? todayCompletedCount.value + 1 : null;
             session.value = null;
             router.reload({ only: ['todaySessions', 'stats'] });
-            if (action === 'complete') {
+            if (action === 'complete' && cycleJustCompleted !== null) {
                 toast.value = `¡Foco completado! +${body.xp_awarded ?? 0} XP. Empieza el descanso.`;
                 startBreak(isLongBreakCycle(cycleJustCompleted));
             }
@@ -468,11 +478,13 @@ async function completeSession() {
 }
 
 function continueStudying() {
+    breakJustFinished.value = false;
     goalJustCompleted.value = false;
     startSession();
 }
 
 function chooseAnotherGoal() {
+    breakJustFinished.value = false;
     goalJustCompleted.value = false;
     goalMinutesInput.value = 0;
 }
@@ -851,18 +863,42 @@ onUnmounted(() => {
                     </template>
 
                     <template v-else-if="goalJustCompleted">
-                        <p class="font-display text-xl text-content-primary">¡Meta cumplida! 🎉</p>
-                        <p class="mt-2 text-sm text-content-secondary">
-                            Completaste {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco en
-                            {{ todayCompletedCount }} ciclos hoy.
-                        </p>
-                        <div class="mt-6 flex flex-wrap justify-center gap-3">
-                            <BaseButton :disabled="busy" @click="continueStudying">
-                                Seguir estudiando
-                            </BaseButton>
-                            <BaseButton variant="ghost" :disabled="busy" @click="chooseAnotherGoal">
-                                Elegir otra meta
-                            </BaseButton>
+                        <div class="py-2">
+                            <p class="font-display text-2xl font-bold text-content-primary">¡Meta cumplida! 🎉</p>
+                            <p class="mt-2 text-sm text-content-secondary max-w-md mx-auto">
+                                Completaste {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco en
+                                {{ todayCompletedCount }} ciclos hoy.
+                            </p>
+                            <div class="mt-6 flex flex-wrap justify-center gap-3">
+                                <BaseButton :disabled="busy" @click="continueStudying">
+                                    Seguir estudiando (+{{ plannedMinutesInput }} min)
+                                </BaseButton>
+                                <BaseButton variant="ghost" :disabled="busy" @click="chooseAnotherGoal">
+                                    Aumentar meta diaria
+                                </BaseButton>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-else-if="breakJustFinished">
+                        <div class="py-2">
+                            <div class="mb-3 inline-flex items-center gap-2 rounded-full bg-success/15 px-3.5 py-1 text-xs font-bold text-success shadow-sm">
+                                ☕ Descanso finalizado
+                            </div>
+                            <p class="font-display text-2xl font-bold text-content-primary">
+                                ¿Listo para tu siguiente bloque de foco?
+                            </p>
+                            <p class="mt-2 text-sm text-content-secondary max-w-md mx-auto leading-relaxed">
+                                Llevas {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco completados hoy (Ciclo {{ todayCompletedCount }} listo). Inicia el siguiente ciclo cuando estés preparado o ajusta tus metas.
+                            </p>
+                            <div class="mt-6 flex flex-wrap justify-center gap-3">
+                                <BaseButton :disabled="busy" @click="startSession">
+                                    ▶ Iniciar Siguiente Bloque ({{ plannedMinutesInput }} min)
+                                </BaseButton>
+                                <BaseButton variant="ghost" :disabled="busy" @click="breakJustFinished = false">
+                                    ⚙️ Ajustar tiempos o meta
+                                </BaseButton>
+                            </div>
                         </div>
                     </template>
 
