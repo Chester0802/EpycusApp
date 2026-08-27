@@ -55,8 +55,41 @@ function formatMarkdown(text) {
     // Viñetas de lista (- o *)
     html = html.replace(/^[\-\*]\s+(.*)$/gm, '<span class="inline-block pl-2">• $1</span>');
 
-    // Preservar saltos de línea
+    // Parsear tablas simples
+    html = html.replace(/(?:\|.*\|(?:\n|$))+/g, (match) => {
+        const rows = match.trim().split('\n');
+        let tableHtml = '<div class="overflow-x-auto my-3 rounded-lg border border-border-interactive"><table class="min-w-full divide-y divide-border-interactive text-sm">';
+        
+        let hasBodyStarted = false;
+        rows.forEach((row, idx) => {
+            // Ignorar fila separadora |---|---|
+            if (row.replace(/[\s\|-]/g, '').length === 0) return;
+            
+            // Extraer celdas ignorando los pipes de los extremos
+            const cells = row.trim().replace(/^\||\|$/g, '').split('|');
+            
+            if (idx === 0) {
+                tableHtml += '<thead><tr class="bg-surface-raised">';
+                cells.forEach(c => tableHtml += `<th class="px-3 py-2 text-left font-semibold text-content-primary">${c.trim()}</th>`);
+                tableHtml += '</tr></thead><tbody class="divide-y divide-border-interactive">';
+                hasBodyStarted = true;
+            } else {
+                tableHtml += '<tr class="bg-surface/50">';
+                cells.forEach(c => tableHtml += `<td class="px-3 py-2 text-content-secondary">${c.trim()}</td>`);
+                tableHtml += '</tr>';
+            }
+        });
+        if (hasBodyStarted) tableHtml += '</tbody>';
+        tableHtml += '</table></div>';
+        return tableHtml;
+    });
+
+    // Preservar saltos de línea (asegurando no romper los tags div/table creados)
     html = html.replace(/\n/g, '<br>');
+    
+    // Limpiar saltos de linea dentro de tablas
+    html = html.replace(/<\/table><\/div><br>/g, '</table></div>');
+    html = html.replace(/<br><div class="overflow-x-auto/g, '<div class="overflow-x-auto');
 
     return html;
 }
@@ -330,7 +363,7 @@ async function rateMessage(msg, stars) {
                 </BaseCard>
 
                 <!-- Chat Interface Box -->
-                <BaseCard class="sm:col-span-8 flex flex-col h-[520px] p-0 overflow-hidden">
+                <BaseCard class="sm:col-span-8 flex flex-col h-[65vh] min-h-[520px] md:h-[75vh] p-0 overflow-hidden">
                     <!-- Messages Scroll Area -->
                     <div ref="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-4">
                         <!-- Welcome Initial Prompt if no messages -->
@@ -471,21 +504,7 @@ async function rateMessage(msg, stars) {
                         ⚠️ {{ errorMessage }}
                     </div>
 
-                    <!-- Suggestion Chips (when quota available) -->
-                    <div
-                        v-if="!currentQuota.is_exhausted && !isLoading"
-                        class="px-4 py-2 border-t border-border-interactive/50 bg-surface-raised/30 flex gap-2 overflow-x-auto text-xs no-scrollbar"
-                    >
-                        <button
-                            v-for="(sug, idx) in suggestions"
-                            :key="idx"
-                            type="button"
-                            class="whitespace-nowrap rounded-full bg-surface-raised px-3 py-1 text-content-secondary border border-border-interactive hover:border-primary-strong hover:text-primary-strong transition-colors shrink-0"
-                            @click="sendSuggestion(sug)"
-                        >
-                            💡 {{ sug }}
-                        </button>
-                    </div>
+
 
                     <!-- Input Controls Box -->
                     <div class="p-3 border-t border-border-interactive bg-surface">
