@@ -71,17 +71,31 @@ final class AiContextBuilderService
 
         // 4. Misiones Activas y Matriz de Eisenhower
         $activeMissions = DB::table('missions')
-            ->where('user_id', $userId)
-            ->whereNull('completed_at')
-            ->whereNull('deleted_at')
-            ->get(['title', 'difficulty', 'priority', 'eisenhower_quadrant', 'is_overdue']);
+            ->leftJoin('courses', 'missions.course_id', '=', 'courses.id')
+            ->where('missions.user_id', $userId)
+            ->whereNull('missions.completed_at')
+            ->whereNull('missions.deleted_at')
+            ->get([
+                'missions.title', 
+                'missions.eisenhower_quadrant', 
+                'missions.is_overdue', 
+                'courses.name as course_name'
+            ]);
 
         $totalActiveMissions = $activeMissions->count();
         $q1CrisisCount = $activeMissions->where('eisenhower_quadrant', 'q1')->count();
         $q2StrategicCount = $activeMissions->where('eisenhower_quadrant', 'q2')->count();
         $overdueMissionsCount = $activeMissions->where('is_overdue', true)->count();
-        $urgentMissionTitles = $activeMissions->where('eisenhower_quadrant', 'q1')->pluck('title')->take(2)->implode(', ');
-        $urgentMissionDetails = ! empty($urgentMissionTitles) ? " [Atención requerida: '{$urgentMissionTitles}']" : '';
+        
+        $missionDetailsList = $activeMissions->take(8)->map(function ($mission) {
+            $courseLabel = $mission->course_name ? " (Curso: {$mission->course_name})" : "";
+            $status = $mission->is_overdue ? "⚠️ Vencida" : ($mission->eisenhower_quadrant === 'q1' ? "🔥 Urgente Q1" : "📅 Q2");
+            return "- {$mission->title}{$courseLabel} [{$status}]";
+        })->implode("\n");
+        
+        $urgentMissionDetails = $activeMissions->isNotEmpty() 
+            ? "\nDetalle de misiones pendientes (máximo 8):\n{$missionDetailsList}" 
+            : "\nNo hay misiones pendientes específicas.";
 
         // 5. Plan Diario y Time-Blocking de Hoy
         $dayPlanContext = 'Sin actividades registradas hoy';
