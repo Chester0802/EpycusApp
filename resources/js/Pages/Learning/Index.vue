@@ -540,27 +540,74 @@ function getMasteryBadgeClass(mastery) {
                             <CheckCircle2 class="w-4 h-4 text-emerald-600" />
                             Idea Clave
                         </span>
-                        <p class="text-sm text-slate-800 leading-relaxed font-normal">
+                        <p class="text-sm text-slate-800 leading-relaxed font-medium">
                             {{ selectedChunk.summary || 'Concepto fundamental extraído de tus apuntes oficiales del curso.' }}
                         </p>
                     </div>
 
-                    <!-- ⚡ APLICACIÓN PROFESIONAL -->
-                    <div v-if="selectedChunk.why_it_matters" class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/70 space-y-1.5">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
-                            <Zap class="w-4 h-4 text-amber-600" />
-                            Aplicación Profesional & Vida Real
-                        </span>
-                        <p class="text-xs sm:text-sm text-amber-950 font-normal leading-relaxed">
-                            {{ selectedChunk.why_it_matters }}
+                    <!-- ❓ COMPRUEBA TU RECUERDO (ACTIVE RECALL) -->
+                    <div id="active-recall-section" class="p-5 sm:p-6 rounded-2xl bg-rose-50/70 border border-rose-200/90 space-y-4 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-rose-700 flex items-center gap-1.5">
+                                <HelpCircle class="w-4 h-4 text-rose-600" />
+                                Comprueba tu Recuerdo (Active Recall)
+                            </span>
+                        </div>
+
+                        <p class="text-base sm:text-lg font-bold text-rose-950 leading-snug">
+                            {{ selectedChunk.quiz_question || `¿Cuál es el rol o definición central de ${selectedChunk.label}?` }}
                         </p>
+
+                        <!-- Respuesta Oculta / Revelada -->
+                        <div v-if="showQuizAnswer" class="space-y-4 animate-fade-in">
+                            <div class="p-4 rounded-xl bg-white border border-rose-200 text-sm text-rose-950 font-normal leading-relaxed shadow-sm">
+                                <strong class="text-rose-700 font-bold">Respuesta Clave:</strong> {{ selectedChunk.quiz_answer || selectedChunk.summary }}
+                            </div>
+
+                            <!-- Autoevaluación de Dominio -->
+                            <div class="space-y-2">
+                                <p class="text-xs font-bold text-rose-900">¿Cómo fue tu retención?</p>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button
+                                        type="button"
+                                        class="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-sm active:scale-95"
+                                        @click="evaluateMastery(-10)"
+                                    >
+                                        🔴 Difícil (-10%)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-sm active:scale-95"
+                                        @click="evaluateMastery(5)"
+                                    >
+                                        🟡 Regular (+5%)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm active:scale-95"
+                                        @click="evaluateMastery(15)"
+                                    >
+                                        🟢 Fácil (+15%)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            v-else
+                            type="button"
+                            class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-md hover:scale-105 active:scale-95 flex items-center gap-2"
+                            @click="showQuizAnswer = true"
+                        >
+                            <span>Mostrar Respuesta</span>
+                        </button>
                     </div>
 
                     <!-- 🔗 SE RELACIONA CON (Navegables con 1 clic) -->
                     <div v-if="selectedChunkRelations.length > 0" class="space-y-2">
                         <span class="text-xs font-bold uppercase tracking-wider text-content-muted flex items-center gap-1.5">
                             <Network class="w-4 h-4 text-indigo-500" />
-                            Se Relaciona Con (Navegación del Segundo Cerebro)
+                            Conceptos Relacionados
                         </span>
                         <div class="flex flex-wrap gap-2">
                             <button
@@ -577,92 +624,23 @@ function getMasteryBadgeClass(mastery) {
                         </div>
                     </div>
 
-                    <!-- ❓ COMPRUEBA TU RECUERDO (ACTIVE RECALL) -->
-                    <div id="active-recall-section" class="p-5 rounded-2xl bg-rose-50/60 border border-rose-200/80 space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-rose-700 flex items-center gap-1.5">
-                                <HelpCircle class="w-4 h-4 text-rose-600" />
-                                Comprueba tu Recuerdo (Active Recall)
-                            </span>
-                        </div>
-
-                        <p class="text-sm sm:text-base font-bold text-rose-950">
-                            {{ selectedChunk.quiz_question || `¿Cuál es el rol o definición central de ${selectedChunk.label}?` }}
-                        </p>
-
-                        <!-- Respuesta Oculta / Revelada -->
-                        <div v-if="showQuizAnswer" class="space-y-4 animate-fade-in">
-                            <div class="p-4 rounded-xl bg-white border border-rose-200 text-sm text-rose-950 font-normal leading-relaxed shadow-sm">
-                                <strong class="text-rose-700 font-bold">Respuesta Clave:</strong> {{ selectedChunk.quiz_answer || selectedChunk.summary }}
-                            </div>
-
-                            <!-- Autoevaluación de Dominio -->
-                            <div class="space-y-2">
-                                <p class="text-xs font-bold text-rose-900">¿Cómo fue tu retención?</p>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <button
-                                        type="button"
-                                        class="py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-sm"
-                                        @click="evaluateMastery(-10)"
-                                    >
-                                        🔴 Difícil (-10%)
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-sm"
-                                        @click="evaluateMastery(5)"
-                                    >
-                                        🟡 Regular (+5%)
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm"
-                                        @click="evaluateMastery(15)"
-                                    >
-                                        🟢 Fácil (+15%)
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button
-                            v-else
-                            type="button"
-                            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
-                            @click="showQuizAnswer = true"
-                        >
-                            <span>Mostrar Respuesta</span>
-                        </button>
-                    </div>
-
-                    <!-- 🎯 MISIÓN DE REFUERZO & ACCIONES FINALES -->
+                    <!-- 🎯 ACCIONES FINALES -->
                     <div class="pt-4 border-t border-border/80 flex flex-wrap items-center justify-between gap-3">
-                        <div class="flex items-center gap-2">
-                            <button
-                                type="button"
-                                class="px-3.5 py-2 rounded-xl bg-surface-raised hover:bg-surface-sunken border border-border text-xs font-bold text-content-primary transition-all flex items-center gap-1.5"
-                                @click="openNoteForCourse(selectedChunk.course_id)"
-                            >
-                                <BookOpen class="w-3.5 h-3.5 text-indigo-500" />
-                                <span>Abrir Apuntes del Curso</span>
-                            </button>
-                            <button
-                                type="button"
-                                class="px-3.5 py-2 rounded-xl bg-surface-raised hover:bg-surface-sunken border border-border text-xs font-bold text-content-primary transition-all flex items-center gap-1.5"
-                                @click="copyForNotebookLM(selectedChunk.course_id)"
-                            >
-                                <Copy class="w-3.5 h-3.5 text-blue-500" />
-                                <span>Copiar para NotebookLM</span>
-                            </button>
-                        </div>
-
                         <button
                             type="button"
-                            class="px-4 py-2 rounded-xl bg-primary-strong hover:bg-primary-strong/90 text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5"
-                            @click="viewInGraph(selectedChunk)"
+                            class="px-4 py-2 rounded-xl bg-surface-raised hover:bg-surface-sunken border border-border text-xs font-bold text-content-primary transition-all flex items-center gap-1.5"
+                            @click="openNoteForCourse(selectedChunk.course_id)"
                         >
-                            <Network class="w-3.5 h-3.5" />
-                            <span>Ver en Segundo Cerebro (Grafo)</span>
+                            <BookOpen class="w-3.5 h-3.5 text-indigo-500" />
+                            <span>Abrir Apuntes del Curso</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="px-4 py-2 rounded-xl bg-surface-raised hover:bg-surface-sunken border border-border text-xs font-bold text-content-primary transition-all flex items-center gap-1.5"
+                            @click="copyForNotebookLM(selectedChunk.course_id)"
+                        >
+                            <Copy class="w-3.5 h-3.5 text-blue-500" />
+                            <span>Copiar para NotebookLM</span>
                         </button>
                     </div>
                 </div>
@@ -798,30 +776,22 @@ function getMasteryBadgeClass(mastery) {
                             </div>
 
                             <!-- Botones de Acción -->
-                            <div class="grid grid-cols-3 gap-1.5 pt-2">
+                            <div class="grid grid-cols-2 gap-2 pt-2">
                                 <button
                                     type="button"
-                                    class="py-1.5 px-2 rounded-xl bg-primary-strong hover:bg-primary-strong/90 text-white text-[11px] font-bold transition-all flex items-center justify-center gap-1 shadow-sm"
+                                    class="py-2 px-3 rounded-xl bg-primary-strong hover:bg-primary-strong/90 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
                                     @click="openInmersiveChunk(chunk)"
                                 >
-                                    <BookOpen class="w-3 h-3" />
+                                    <BookOpen class="w-3.5 h-3.5" />
                                     <span>Estudiar</span>
                                 </button>
                                 <button
                                     type="button"
-                                    class="py-1.5 px-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold transition-all flex items-center justify-center gap-1"
+                                    class="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95"
                                     @click="openInmersiveChunk(chunk, true)"
                                 >
-                                    <HelpCircle class="w-3 h-3" />
+                                    <HelpCircle class="w-3.5 h-3.5" />
                                     <span>Recall</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="py-1.5 px-2 rounded-xl bg-surface-raised hover:bg-surface-sunken border border-border text-content-secondary hover:text-content-primary text-[11px] font-bold transition-all flex items-center justify-center gap-1"
-                                    @click="viewInGraph(chunk)"
-                                >
-                                    <Network class="w-3 h-3" />
-                                    <span>Grafo</span>
                                 </button>
                             </div>
                         </div>

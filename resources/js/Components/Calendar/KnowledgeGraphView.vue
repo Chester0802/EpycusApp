@@ -111,8 +111,76 @@ const selectedNode = ref(null);
 const isFullscreen = ref(false);
 const showQuizAnswer = ref(false);
 const livePulseActive = ref(true); // Modo Sinapsis Viva / Pulso Neural
-const viewMode = ref('3D'); // '2D' o '3D'
+const viewMode = ref('2D'); // '2D' o '3D' (Por defecto 2D para carga inmediata)
 const isMobileDevice = ref(false);
+
+// ── Control de Teclado WASD y +/- ───────────────────────────────────────────
+function handleKeyDown(e) {
+    if (!props.show) return;
+    // Ignorar si el foco está en un input de texto
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {
+        return;
+    }
+
+    const key = e.key.toLowerCase();
+    
+    // Controles de Navegación WASD y +/-
+    if (key === 'w' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (viewMode.value === '2D') {
+            camera.value.y += 45;
+            reheatSimulation(0.2);
+        } else if (graph3DInstance) {
+            const cp = graph3DInstance.cameraPosition();
+            graph3DInstance.cameraPosition({ y: cp.y + 40 }, undefined, 100);
+        }
+    } else if (key === 's' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (viewMode.value === '2D') {
+            camera.value.y -= 45;
+            reheatSimulation(0.2);
+        } else if (graph3DInstance) {
+            const cp = graph3DInstance.cameraPosition();
+            graph3DInstance.cameraPosition({ y: cp.y - 40 }, undefined, 100);
+        }
+    } else if (key === 'a' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (viewMode.value === '2D') {
+            camera.value.x += 45;
+            reheatSimulation(0.2);
+        } else if (graph3DInstance) {
+            const cp = graph3DInstance.cameraPosition();
+            graph3DInstance.cameraPosition({ x: cp.x - 40 }, undefined, 100);
+        }
+    } else if (key === 'd' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (viewMode.value === '2D') {
+            camera.value.x -= 45;
+            reheatSimulation(0.2);
+        } else if (graph3DInstance) {
+            const cp = graph3DInstance.cameraPosition();
+            graph3DInstance.cameraPosition({ x: cp.x + 40 }, undefined, 100);
+        }
+    } else if (key === '+' || key === '=' || e.code === 'NumpadAdd') {
+        e.preventDefault();
+        if (viewMode.value === '2D') {
+            camera.value.zoom = Math.min(2.8, camera.value.zoom * 1.15);
+            reheatSimulation(0.2);
+        } else if (graph3DInstance) {
+            const cp = graph3DInstance.cameraPosition();
+            graph3DInstance.cameraPosition({ x: cp.x * 0.85, y: cp.y * 0.85, z: cp.z * 0.85 }, undefined, 100);
+        }
+    } else if (key === '-' || key === '_' || e.code === 'NumpadSubtract') {
+        e.preventDefault();
+        if (viewMode.value === '2D') {
+            camera.value.zoom = Math.max(0.35, camera.value.zoom / 1.15);
+            reheatSimulation(0.2);
+        } else if (graph3DInstance) {
+            const cp = graph3DInstance.cameraPosition();
+            graph3DInstance.cameraPosition({ x: cp.x * 1.18, y: cp.y * 1.18, z: cp.z * 1.18 }, undefined, 100);
+        }
+    }
+}
 
 // ── Variables 2D / 3D Compartidas ───────────────────────────────────────────
 const simulationNodes = ref([]);
@@ -163,6 +231,7 @@ watch(
         if (newVal) {
             document.body.style.overflow = 'hidden'; // Evitar scrollbar extra en PC
             isMobileDevice.value = window.innerWidth < 768;
+            window.addEventListener('keydown', handleKeyDown);
             loadGraph();
             nextTick(() => {
                 setTimeout(() => {
@@ -177,6 +246,7 @@ watch(
             });
         } else {
             document.body.style.overflow = '';
+            window.removeEventListener('keydown', handleKeyDown);
             stopSimulation();
             destroy3DGraph();
         }
@@ -1820,8 +1890,7 @@ onUnmounted(() => {
 
                 <!-- Leyenda de Ayuda e Interacción -->
                 <div class="absolute bottom-4 right-4 z-20 hidden md:flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-800 text-xs text-slate-300 shadow-xl glass-panel-sm">
-                    <span v-if="viewMode === '3D'" class="text-slate-400">💡 <strong>Arrastra</strong> para rotar 3D • <strong>Rueda</strong> zoom • <strong>Clic</strong> volar al nodo</span>
-                    <span v-else class="text-slate-400">💡 <strong>Arrastra el nodo</strong> para organizar • <strong>Scroll</strong> para zoom</span>
+                    <span class="text-slate-400">💡 <strong>W, A, S, D</strong> mover • <strong>+ / -</strong> zoom • <strong>Arrastra</strong> explorar</span>
                     <span class="text-slate-700">|</span>
                     <div class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-emerald-400" />
