@@ -14,13 +14,12 @@ const props = defineProps({
     initialIndex: { type: Number, default: 0 },
 });
 
-const emit = defineEmits(['close', 'evaluated', 'openStudy']);
+const emit = defineEmits(['close', 'evaluated']);
 
 const currentIndex = ref(0);
 const isFlipped = ref(false);
 const isCompleted = ref(false);
 const evaluatedCount = ref(0);
-const scoreHistory = ref([]);
 
 watch(
     () => props.show,
@@ -30,7 +29,6 @@ watch(
             isFlipped.value = false;
             isCompleted.value = false;
             evaluatedCount.value = 0;
-            scoreHistory.value = [];
         }
     }
 );
@@ -53,18 +51,17 @@ function handleGrade(delta) {
     });
 
     evaluatedCount.value++;
-    scoreHistory.value.push(delta);
 
-    // Verificar si es la última pregunta
+    // Si es la última tarjeta, completar sesión
     if (currentIndex.value >= props.chunks.length - 1) {
         setTimeout(() => {
             isCompleted.value = true;
-        }, 400);
+        }, 350);
     } else {
         setTimeout(() => {
             isFlipped.value = false;
             currentIndex.value++;
-        }, 400);
+        }, 350);
     }
 }
 
@@ -73,48 +70,46 @@ function restartSession() {
     isFlipped.value = false;
     isCompleted.value = false;
     evaluatedCount.value = 0;
-    scoreHistory.value = [];
 }
 </script>
 
 <template>
     <div
         v-if="show && (currentChunk || isCompleted)"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-fade-in select-none"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-fade-in select-none"
         @click.self="emit('close')"
     >
         <div class="relative w-full max-w-lg flex flex-col items-center">
             
-            <!-- ── PANTALLA DE SESIÓN COMPLETADA ────────────────────────────── -->
+            <!-- ── PANTALLA: SESIÓN COMPLETADA ──────────────────────────────── -->
             <div
                 v-if="isCompleted"
-                class="w-full bg-white dark:bg-surface rounded-3xl p-8 border border-border shadow-2xl text-center space-y-6 animate-fade-in"
+                class="w-full bg-white dark:bg-surface rounded-3xl p-8 border border-slate-200 dark:border-border shadow-2xl text-center space-y-6 animate-fade-in"
             >
-                <div class="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-inner">
+                <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 flex items-center justify-center mx-auto shadow-sm">
                     <Trophy class="w-8 h-8" />
                 </div>
 
-                <div class="space-y-1">
-                    <h3 class="text-2xl font-black text-content-primary">
+                <div class="space-y-1.5">
+                    <h3 class="text-2xl font-black text-slate-900 dark:text-content-primary">
                         ¡Sesión Completada!
                     </h3>
-                    <p class="text-xs text-content-secondary">
-                        Has puesto a prueba tu memoria con {{ evaluatedCount }} tarjetas. Tu retención neuronal se ha actualizado.
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-content-secondary">
+                        Has puesto a prueba tu recuerdo con <strong>{{ evaluatedCount }}</strong> tarjetas. Tu dominio global ha sido actualizado.
                     </p>
                 </div>
 
-                <!-- Botones de Acción Final -->
                 <div class="grid grid-cols-2 gap-3 pt-2">
                     <button
                         type="button"
-                        class="py-2.5 px-4 rounded-2xl bg-surface-raised hover:bg-surface-sunken border border-border text-xs font-bold text-content-primary transition-all"
+                        class="py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-surface-raised hover:bg-slate-200 text-xs font-bold text-slate-700 dark:text-content-primary transition-all"
                         @click="restartSession"
                     >
                         Practicar de nuevo
                     </button>
                     <button
                         type="button"
-                        class="py-2.5 px-4 rounded-2xl bg-primary-strong hover:bg-primary-strong/90 text-white text-xs font-bold shadow-md transition-all"
+                        class="py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition-all"
                         @click="emit('close')"
                     >
                         Volver al Deck
@@ -122,17 +117,17 @@ function restartSession() {
                 </div>
             </div>
 
-            <!-- ── FLASHCARD INTERACTIVA EN PROCESO ────────────────────────── -->
+            <!-- ── FLASHCARD EN PROCESO ─────────────────────────────────────── -->
             <div v-else-if="currentChunk" class="w-full space-y-3">
                 
-                <!-- Barra Superior de Progreso -->
-                <div class="w-full flex items-center justify-between text-white/90 text-xs font-semibold px-1">
+                <!-- Encabezado de Sesión -->
+                <div class="w-full flex items-center justify-between text-white text-xs font-bold px-1">
                     <div class="flex items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/10 border border-white/20">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/20 text-white">
                             {{ currentChunk.course_name }}
                         </span>
-                        <span class="text-slate-400 text-[11px]">
-                            Tarjeta {{ currentIndex + 1 }} de {{ chunks.length }}
+                        <span class="text-slate-300 text-xs">
+                            {{ currentIndex + 1 }} de {{ chunks.length }}
                         </span>
                     </div>
 
@@ -145,50 +140,50 @@ function restartSession() {
                     </button>
                 </div>
 
-                <!-- Barra de Progreso Superior -->
-                <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                <!-- Barra de Progreso Finito -->
+                <div class="w-full h-1 bg-white/20 rounded-full overflow-hidden">
                     <div
-                        class="h-full bg-rose-500 transition-all duration-300"
+                        class="h-full bg-indigo-400 transition-all duration-300"
                         :style="{ width: `${((currentIndex + 1) / chunks.length) * 100}%` }"
                     />
                 </div>
 
                 <!-- ── CONTENEDOR 3D FLIP CARD ──────────────────────────────────── -->
-                <div class="perspective-1000 w-full min-h-[360px] sm:min-h-[400px] cursor-pointer" @click="toggleFlip">
+                <div class="perspective-1000 w-full min-h-[380px] sm:min-h-[410px] cursor-pointer" @click="toggleFlip">
                     <div
                         class="relative w-full h-full duration-500 transform-style-3d transition-transform rounded-3xl"
                         :class="isFlipped ? 'rotate-y-180' : ''"
                     >
                         
-                        <!-- ── CARA FRONTAL (ANVERSO: LA PREGUNTA) ─────────────── -->
-                        <div class="absolute inset-0 backface-hidden bg-white dark:bg-surface border border-border/80 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-2xl">
-                            <div class="flex items-center justify-between text-xs text-content-secondary">
-                                <span class="text-xs font-bold text-rose-600 dark:text-rose-400">
-                                    Pregunta de Retención
+                        <!-- ── CARA FRONTAL (ANVERSO: PREGUNTA) ────────────────── -->
+                        <div class="absolute inset-0 backface-hidden bg-white dark:bg-surface border border-slate-200 dark:border-border rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-2xl">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                                    Active Recall
                                 </span>
-                                <span class="px-2.5 py-0.5 rounded-full bg-surface-raised text-content-primary font-bold text-[10px] border border-border">
+                                <span class="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-surface-raised text-slate-700 dark:text-content-secondary font-semibold text-[11px]">
                                     Dominio actual: {{ currentChunk.mastery || 70 }}%
                                 </span>
                             </div>
 
                             <!-- Pregunta Central -->
                             <div class="my-auto text-center space-y-3 py-4">
-                                <span class="text-xs font-semibold text-content-secondary uppercase tracking-wider block">
+                                <span class="text-xs font-semibold text-slate-500 dark:text-content-muted uppercase tracking-wider block">
                                     {{ currentChunk.label }}
                                 </span>
-                                <h3 class="text-lg sm:text-xl font-bold text-content-primary leading-snug px-2">
+                                <h3 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-content-primary leading-snug px-2">
                                     {{ currentChunk.quiz_question || `¿Cuál es el rol o principio central de ${currentChunk.label}?` }}
                                 </h3>
                             </div>
 
-                            <!-- Indicador de Giro -->
-                            <div class="pt-4 border-t border-border flex items-center justify-center gap-2 text-rose-600 dark:text-rose-400 text-xs font-bold">
+                            <!-- Botón para Voltear -->
+                            <div class="pt-4 border-t border-slate-100 dark:border-border/80 flex items-center justify-center gap-2 text-indigo-600 dark:text-indigo-400 text-xs font-bold">
                                 <RotateCcw class="w-4 h-4" />
                                 <span>Toca para ver la respuesta</span>
                             </div>
                         </div>
 
-                        <!-- ── CARA POSTERIOR (REVERSO: LA RESPUESTA) ──────────── -->
+                        <!-- ── CARA POSTERIOR (REVERSO: RESPUESTA) ─────────────── -->
                         <div
                             class="absolute inset-0 backface-hidden rotate-y-180 bg-white dark:bg-surface border border-indigo-200 dark:border-indigo-800/60 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-2xl"
                             @click.stop
@@ -200,7 +195,7 @@ function restartSession() {
                                 </span>
                                 <button
                                     type="button"
-                                    class="text-content-secondary hover:text-content-primary flex items-center gap-1 text-[11px]"
+                                    class="text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 text-[11px]"
                                     @click="toggleFlip"
                                 >
                                     <RotateCcw class="w-3.5 h-3.5" />
@@ -210,40 +205,40 @@ function restartSession() {
 
                             <!-- Respuesta Central -->
                             <div class="my-auto text-center space-y-2 py-4">
-                                <p class="text-sm sm:text-base font-semibold text-content-primary leading-relaxed px-2">
+                                <p class="text-base sm:text-lg font-medium text-slate-900 dark:text-content-primary leading-relaxed px-2">
                                     {{ currentChunk.quiz_answer || currentChunk.summary }}
                                 </p>
                             </div>
 
-                            <!-- 3 Botones de Calificación -->
-                            <div class="space-y-2 pt-4 border-t border-border">
-                                <p class="text-center text-xs font-bold text-content-secondary">
-                                    ¿Cómo fue tu recuerdo?
+                            <!-- 3 Botones de Calificación Elegantes -->
+                            <div class="space-y-2 pt-4 border-t border-slate-100 dark:border-border/80">
+                                <p class="text-center text-xs font-bold text-slate-600 dark:text-content-secondary">
+                                    ¿Cómo fue tu retención mental?
                                 </p>
-                                <div class="grid grid-cols-3 gap-2">
+                                <div class="grid grid-cols-3 gap-2 sm:gap-3">
                                     <button
                                         type="button"
-                                        class="py-2.5 px-2 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5"
+                                        class="py-2.5 px-2 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5"
                                         @click="handleGrade(-10)"
                                     >
                                         <span>Difícil</span>
-                                        <span class="text-[10px] font-normal opacity-90">-10%</span>
+                                        <span class="text-[10px] font-normal opacity-80">-10%</span>
                                     </button>
                                     <button
                                         type="button"
-                                        class="py-2.5 px-2 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5"
+                                        class="py-2.5 px-2 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5"
                                         @click="handleGrade(5)"
                                     >
                                         <span>Regular</span>
-                                        <span class="text-[10px] font-normal opacity-90">+5%</span>
+                                        <span class="text-[10px] font-normal opacity-80">+5%</span>
                                     </button>
                                     <button
                                         type="button"
-                                        class="py-2.5 px-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5"
+                                        class="py-2.5 px-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5"
                                         @click="handleGrade(15)"
                                     >
                                         <span>Fácil</span>
-                                        <span class="text-[10px] font-normal opacity-90">+15%</span>
+                                        <span class="text-[10px] font-normal opacity-80">+15%</span>
                                     </button>
                                 </div>
                             </div>

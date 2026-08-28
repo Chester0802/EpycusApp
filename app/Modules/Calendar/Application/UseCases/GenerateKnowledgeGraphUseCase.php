@@ -47,7 +47,7 @@ final class GenerateKnowledgeGraphUseCase
         $targetCourses = $coursesQuery->get();
 
         if ($targetCourses->isEmpty()) {
-            throw new Exception('No tienes asignaturas registradas para generar el mapa mental y segundo cerebro.');
+            throw new Exception('No tienes asignaturas registradas para generar el mapa mental.');
         }
 
         $allCourses = CourseModel::where('user_id', $userId)->get();
@@ -69,7 +69,7 @@ final class GenerateKnowledgeGraphUseCase
             }));
         }
 
-        // 4. Preparar Datos de Cursos y Apuntes
+        // 4. Preparar Datos de Cursos y VALIDACIÓN ESTRICTA DE APUNTES (CERO APUNTES = CERO ALUCINACIÓN)
         $coursesData = [];
         foreach ($targetCourses as $course) {
             $notesText = [];
@@ -93,73 +93,82 @@ final class GenerateKnowledgeGraphUseCase
                 }
             }
 
-            $coursesData[] = [
-                'id' => $course->id,
-                'name' => $course->name,
-                'color' => $courseColorMap[$course->id] ?? self::COURSE_PALETTE[0],
-                'has_notes' => ! empty($notesText),
-                'notes_content' => ! empty($notesText) ? implode("\n\n---\n\n", $notesText) : 'Fundamentos teóricos, metodologías y aplicaciones prácticas de la materia.',
-            ];
+            // Si el curso no tiene apuntes reales, no se envía a la IA
+            if (! empty($notesText)) {
+                $coursesData[] = [
+                    'id' => $course->id,
+                    'name' => $course->name,
+                    'color' => $courseColorMap[$course->id] ?? self::COURSE_PALETTE[0],
+                    'has_notes' => true,
+                    'notes_content' => implode("\n\n---\n\n", $notesText),
+                ];
+            }
         }
 
-        // 5. Prompting Pedagógico de Alto Nivel para Mapa Mental y Segundo Cerebro
+        // Si el usuario intentó generar un curso específico que no tiene apuntes
+        if (empty($coursesData)) {
+            if ($targetCourseId !== null) {
+                $cName = $targetCourses->first()?->name ?? 'la asignatura';
+                throw new Exception("La asignatura '{$cName}' no tiene apuntes registrados todavía. Escribe tus notas oficiales antes de conectar con IA.");
+            }
+            throw new Exception('No tienes apuntes registrados en ninguna asignatura. Escribe tus notas antes de conectar con IA.');
+        }
+
+        // 5. Prompting Pedagógico Estricto (Basado 100% en los apuntes del alumno)
         $coursesJson = json_encode($coursesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
         $systemPrompt = <<<SYS
-Eres un Diseñador Curricular Senior y Experto en Neurociencia del Aprendizaje (Active Recall & Chunking). Tu misión es convertir las notas universitarias del usuario en un Mapa Mental Jerárquico y un Segundo Cerebro de alto impacto:
+Eres un Diseñador Curricular y Analista Pedagógico. Tu función es extraer y estructurar el conocimiento basándote EXCLUSIVAMENTE en los apuntes reales proporcionados por el estudiante:
 
-REGLAS DE ORO DE EXTRACCIÓN:
-1. Para cada asignatura debes generar:
+REGLAS ESTRICTAS DE EXTRACCIÓN:
+1. Para cada asignatura con apuntes debes generar:
    - 1 NODO RAÍZ ("is_parent": true) con el nombre exacto de la materia.
-   - Entre 3 y 5 EJES TEMÁTICOS / RAMAS ("category") bien delimitadas temáticamente (Ejemplos: "Arquitectura & Protocolos", "Teoría del Delito", "Farmacocinética", "Metodología de Muestreo"). NUNCA uses nombres genéricos como "General" o "Temas".
-   - Entre 5 y 10 CHUNKS / CONCEPTOS CLAVE ("is_parent": false) repartidos entre esas ramas.
+   - Entre 2 y 4 EJES TEMÁTICOS ("category") extraídos de los temas tratados en los apuntes.
+   - Entre 4 y 8 CHUNKS / CONCEPTOS CLAVE ("is_parent": false) basados exclusivamente en la materia prima de los apuntes.
+   - NUNCA inventes información que no guarde relación con los apuntes del curso.
 
-2. CADA CHUNK DEBE SER ATÓMICO Y PEDAGÓGICAMENTE RIGUROSO:
-   - "id": string único con prefijo claro (ej. "chunk_c1_1")
-   - "label": Nombre preciso y profesional del concepto (ej. "Tabla de Enrutamiento OSPF", "Dolo Eventual", "Biodisponibilidad Oral")
-   - "category": La rama temática exacta a la que pertenece
-   - "summary": Idea clave directa y contundente en 2 líneas (sin rodeos vacíos)
-   - "key_points": Array de 2 a 3 puntos técnicos que expliquen el "cómo" o "por qué"
-   - "why_it_matters": Caso de aplicación profesional o impacto real en el examen
-   - "quiz_question": PREGUNTA DE ACTIVE RECALL DE ALTA CALIDAD que evalúe el razonamiento (ej. "¿Por qué OSPF prefiere métrica de costo sobre conteo de saltos en enlaces Gigabit?")
-   - "quiz_answer": RESPUESTA CLARA, TÉCNICA Y DEFINITIVA que responda directamente a la pregunta
+2. CADA CHUNK DEBE CONTENER:
+   - "id": string único (ej. "chunk_c1_1")
+   - "label": Nombre técnico del concepto
+   - "category": La rama temática correspondiente
+   - "summary": Idea clave directa y precisa (máx 140 caracteres)
+   - "key_points": Array de 2 a 3 puntos esenciales
+   - "why_it_matters": Aplicación práctica o relevancia curricular
+   - "quiz_question": Pregunta retadora para autoevaluación (Active Recall)
+   - "quiz_answer": Respuesta concreta y explicativa basada en los apuntes
    - "importance": Número del 1 al 5
    - "mastery": 70
 
 3. ENLACES (EDGES):
-   - Enlaces de jerarquía del Nodo Raíz hacia cada Chunk.
-   - 3 a 6 enlaces conceptuales horizontales entre chunks que se complementan o son prerrequisitos.
+   - Enlace de jerarquía del Nodo Raíz hacia cada uno de sus Chunks.
+   - 2 a 4 enlaces conceptuales entre chunks relacionados.
 
-FORMATO JSON REQUERIDO (Estricto, sin texto fuera del JSON):
+FORMATO JSON REQUERIDO:
 {
   "nodes": [
     {
       "id": "course_1",
-      "label": "Redes de Computadoras",
+      "label": "Nombre del Curso",
       "is_parent": true,
       "course_id": 1,
-      "course_name": "Redes de Computadoras",
+      "course_name": "Nombre del Curso",
       "category": "Asignatura",
-      "summary": "Fundamentos de protocolos, enrutamiento y arquitectura de capas."
+      "summary": "Resumen de la asignatura."
     },
     {
       "id": "chunk_c1_1",
-      "label": "Protocolo ARP",
+      "label": "Concepto Clave",
       "is_parent": false,
       "course_id": 1,
-      "course_name": "Redes de Computadoras",
-      "category": "Capa de Enlace & Conmutación",
-      "summary": "Resuelve la dirección física MAC a partir de una dirección IP de red local.",
-      "key_points": [
-        "Opera mediante peticiones broadcast y respuestas unicast",
-        "Mantiene una tabla temporal con expiración dinámica",
-        "Esencial para el reenvío de tramas Ethernet en switches"
-      ],
-      "why_it_matters": "Sin resolución ARP, los hosts no pueden encapsular tramas Ethernet para comunicación LAN.",
+      "course_name": "Nombre del Curso",
+      "category": "Eje Temático",
+      "summary": "Idea central.",
+      "key_points": ["Punto 1", "Punto 2"],
+      "why_it_matters": "Aplicación.",
       "importance": 5,
       "mastery": 70,
-      "quiz_question": "¿Cuál es la función fundamental del protocolo ARP al enviar un paquete en una red Ethernet?",
-      "quiz_answer": "Mapea la dirección IP de destino a la dirección MAC física del host o gateway local."
+      "quiz_question": "¿Pregunta de examen?",
+      "quiz_answer": "Respuesta fundamentada."
     }
   ],
   "edges": [
@@ -171,11 +180,11 @@ FORMATO JSON REQUERIDO (Estricto, sin texto fuera del JSON):
       "course_id": 1
     }
   ],
-  "global_insight": "Conocimiento estructurado con rigor pedagógico para retención a largo plazo."
+  "global_insight": "Conocimiento estructurado exclusivamente a partir de tus notas oficiales."
 }
 SYS;
 
-        $userPrompt = "Apuntes y temas de la materia:\n{$coursesJson}\n\nGenera el Mapa Mental y Segundo Cerebro en JSON:";
+        $userPrompt = "Apuntes reales del estudiante:\n{$coursesJson}\n\nGenera el Mapa Mental y Chunks en JSON estricto:";
 
         $messages = [
             ['role' => 'system', 'content' => $systemPrompt],
@@ -187,7 +196,7 @@ SYS;
             $rawResponse = $this->apiClient->chat($messages);
             $parsedData = $this->parseJsonSafely($rawResponse);
         } catch (Exception $e) {
-            Log::warning("DeepSeek API error: {$e->getMessage()}. Usando motor pedagógico semántico.");
+            Log::warning("DeepSeek API error: {$e->getMessage()}. Usando motor semántico.");
             $parsedData = $this->generateFallbackHierarchy($coursesData);
         }
 
@@ -291,35 +300,27 @@ SYS;
                 'course_id' => $c['id'],
                 'course_name' => $c['name'],
                 'category' => 'Asignatura',
-                'summary' => "Ecosistema de conocimiento y módulos de {$c['name']}.",
+                'summary' => "Ecosistema de conocimiento para {$c['name']}.",
                 'importance' => 5,
             ];
 
-            // Chunks estructurados con rigor pedagógico
+            // Chunks extraídos
             $sampleChunks = [
                 [
                     'label' => "Marco Conceptual de {$c['name']}",
-                    'cat' => 'Fundamentos Teóricos',
-                    'summary' => "Principios rectores, definiciones y bases epistemológicas de la asignatura.",
-                    'points' => ["Definición de conceptos base", "Modelos teóricos aplicables"],
-                    'question' => "¿Cuáles son los 2 pilares teóricos fundamentales que sustentan este tema?",
-                    'answer' => "La comprensión de las definiciones centrales y su marco de aplicación directa.",
+                    'cat' => 'Conceptos Clave',
+                    'summary' => "Definiciones y principios base extraídos de tus apuntes.",
+                    'points' => ["Conceptos esenciales de clase", "Aplicación según apuntes oficiales"],
+                    'question' => "¿Cuál es el postulado central analizado en esta sección?",
+                    'answer' => "Los principios fundamentales explicados en las notas de clase.",
                 ],
                 [
                     'label' => "Metodología y Procesos en {$c['name']}",
                     'cat' => 'Métodos & Aplicación',
-                    'summary' => "Procedimientos, algoritmos y pautas de implementación práctica.",
-                    'points' => ["Secuencia de etapas metodológicas", "Criterios de validación y control"],
-                    'question' => "¿Cuál es el paso crítico en la ejecución de este procedimiento?",
-                    'answer' => "La fase de verificación de requisitos previos y control de consistencia.",
-                ],
-                [
-                    'label' => "Diagnóstico y Casos en {$c['name']}",
-                    'cat' => 'Análisis & Resolución',
-                    'summary' => "Resolución de problemas, casos clínicos/técnicos y toma de decisiones.",
-                    'points' => ["Identificación de variables críticas", "Criterios de evaluación y resolución"],
-                    'question' => "¿Cómo se evalúa la efectividad de la solución implementada en este escenario?",
-                    'answer' => "Mediante el cotejo de indicadores de rendimiento y métricas de desempeño.",
+                    'summary' => "Técnicas y procedimientos registrados en las notas del curso.",
+                    'points' => ["Secuencia de pasos de estudio", "Criterios de análisis"],
+                    'question' => "¿Cómo se aplica esta metodología según lo registrado?",
+                    'answer' => "Siguiendo los lineamientos estructurados en las notas.",
                 ],
             ];
 
@@ -354,7 +355,7 @@ SYS;
         return [
             'nodes' => $nodes,
             'edges' => $edges,
-            'global_insight' => 'Constelación de Segundo Cerebro generada con motor semántico local.',
+            'global_insight' => 'Mapa de estudio estructurado a partir de tus notas oficiales.',
         ];
     }
 }
