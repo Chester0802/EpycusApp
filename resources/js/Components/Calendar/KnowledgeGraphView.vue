@@ -200,7 +200,7 @@ function init3DGraph() {
     graph3DInstance = ForceGraph3D()(elem)
         .backgroundColor('#020307')
         .showNavInfo(false)
-        .nodeLabel(n => `${n.is_parent ? '🎓 ' : '🧩 '}${n.label}`)
+        .nodeLabel(() => '')
         .nodeColor(n => n.color || '#818cf8')
         .nodeResolution(16)
         .graphData(gData)

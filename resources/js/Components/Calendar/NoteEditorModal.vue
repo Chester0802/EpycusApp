@@ -795,24 +795,6 @@ onBeforeUnmount(() => {
                                     <FileText :size="14" />
                                     <span>PDF</span>
                                 </button>
-                                <button
-                                    type="button"
-                                    class="note-btn note-btn-secondary bg-purple-500/10 text-purple-400 border-purple-500/30 hover:bg-purple-500/20"
-                                    title="Ver este curso en el Grafo de Conocimiento (Segundo Cerebro)"
-                                    @click="emit('openKnowledgeGraph')"
-                                >
-                                    <Network :size="14" />
-                                    <span>Grafo</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="note-btn note-btn-secondary"
-                                    title="Descargar apunte en formato JSON para IA"
-                                    @click="exportAndDownloadJson"
-                                >
-                                    <FileJson :size="14" />
-                                    <span>JSON</span>
-                                </button>
                                 <button type="button" class="note-btn note-btn-primary" :disabled="saving" @click="saveNote(false)">
                                     <Loader2 v-if="saving"      :size="14" class="animate-spin" />
                                     <Check   v-else-if="saveSuccess" :size="14" />

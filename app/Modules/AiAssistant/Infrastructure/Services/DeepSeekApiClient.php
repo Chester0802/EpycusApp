@@ -23,7 +23,7 @@ final class DeepSeekApiClient
         $this->apiKey = (string) (config('services.deepseek.api_key') ?: env('DEEPSEEK_API_KEY') ?: 'sk-3521af985349450d8ba4a155afacd867');
         $this->baseUrl = (string) config('services.deepseek.base_url', 'https://api.deepseek.com');
         $this->model = (string) (config('services.deepseek.model') ?: env('DEEPSEEK_MODEL') ?: 'deepseek-chat');
-        $this->timeout = (int) config('services.deepseek.timeout', 25);
+        $this->timeout = (int) config('services.deepseek.timeout', 60);
     }
 
     /**
