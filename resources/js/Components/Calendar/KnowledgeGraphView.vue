@@ -437,13 +437,24 @@ onUnmounted(() => {
     window.removeEventListener('keydown', handleKeyDown);
     destroy3DGraph();
 });
+function toggleFullscreen() {
+    isFullscreen.value = !isFullscreen.value;
+    nextTick(() => {
+        if (graph3DInstance && containerRef.value) {
+            const rect = containerRef.value.getBoundingClientRect();
+            graph3DInstance.width(rect.width);
+            graph3DInstance.height(rect.height);
+        }
+    });
+}
 </script>
 
 <template>
     <div
         v-if="show"
         ref="containerRef"
-        class="relative w-full h-[78vh] bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden select-none flex flex-col shadow-2xl animate-fade-in"
+        class="relative w-full select-none flex flex-col transition-all duration-300 shadow-2xl animate-fade-in bg-slate-950 overflow-hidden"
+        :class="isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen rounded-none border-none' : 'h-[78vh] rounded-3xl border border-slate-800'"
     >
         <!-- Barra Superior Header 3D -->
         <div class="flex items-center justify-between px-4 sm:px-6 py-3 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 z-20 shrink-0">
@@ -495,6 +506,17 @@ onUnmounted(() => {
                 >
                     <Activity class="w-3.5 h-3.5" :class="livePulseActive ? 'animate-pulse text-indigo-400' : ''" />
                     <span class="hidden md:inline">{{ livePulseActive ? 'Sinapsis Activa' : 'Pausada' }}</span>
+                </button>
+
+                <!-- Botón Pantalla Completa -->
+                <button
+                    type="button"
+                    class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors border border-slate-700/60"
+                    :title="isFullscreen ? 'Salir de Pantalla Completa' : 'Pantalla Completa'"
+                    @click="toggleFullscreen"
+                >
+                    <Minimize2 v-if="isFullscreen" class="w-4 h-4 text-indigo-400" />
+                    <Maximize2 v-else class="w-4 h-4" />
                 </button>
             </div>
         </div>

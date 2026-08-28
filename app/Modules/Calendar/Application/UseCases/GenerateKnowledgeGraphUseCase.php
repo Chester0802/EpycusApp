@@ -16,16 +16,14 @@ use Illuminate\Support\Facades\Log;
 final class GenerateKnowledgeGraphUseCase
 {
     private const COURSE_PALETTE = [
-        '#818cf8', // Índigo Cósmico
-        '#34d399', // Esmeralda Suave
-        '#fbbf24', // Ámbar Cálido
-        '#38bdf8', // Cian Celeste
-        '#f472b6', // Orquídea Suave
-        '#a78bfa', // Lavanda Profundo
-        '#fb923c', // Coral Cálido
-        '#2dd4bf', // Menta Bio
-        '#e879f9', // Magenta Neón Suave
-        '#60a5fa', // Azul Brisa
+        '#6366f1', // Índigo Real
+        '#0ea5e9', // Azul Océano
+        '#10b981', // Esmeralda Viva
+        '#f59e0b', // Ámbar Dorado
+        '#ec4899', // Rosa Intenso
+        '#8b5cf6', // Púrpura Profundo
+        '#f97316', // Naranja Cálido
+        '#14b8a6', // Turquesa Bio
     ];
 
     public function __construct(
@@ -35,10 +33,10 @@ final class GenerateKnowledgeGraphUseCase
 
     public function execute(int $userId, ?int $targetCourseId = null): array
     {
-        // 1. Validar Cuota Diaria de IA
+        // 1. Validar Cuota Diaria de IA (5 usos globales por usuario)
         $quota = $this->checkQuota->execute($userId);
         if ($quota['is_exhausted']) {
-            throw new Exception('Has alcanzado el límite diario de generación con IA (5/5). Se reinicia mañana.');
+            throw new Exception('Has alcanzado el límite diario de 5 generaciones con IA. Se reiniciará mañana.');
         }
 
         // 2. Obtener Cursos y Apuntes del Usuario
@@ -49,17 +47,16 @@ final class GenerateKnowledgeGraphUseCase
         $targetCourses = $coursesQuery->get();
 
         if ($targetCourses->isEmpty()) {
-            throw new Exception('No tienes cursos registrados. Agrega al menos una materia para construir tu Segundo Cerebro.');
+            throw new Exception('No tienes asignaturas registradas para generar el mapa mental y segundo cerebro.');
         }
 
-        // Cursos completos del usuario (para mapa global de colores)
         $allCourses = CourseModel::where('user_id', $userId)->get();
         $courseColorMap = [];
         foreach ($allCourses as $idx => $ac) {
             $courseColorMap[$ac->id] = $this->resolveCourseColor($ac->color, $idx);
         }
 
-        // 3. Obtener Grafo previo existente (para fusión incremental)
+        // 3. Obtener Grafo previo existente (para fusión limpia e incremental)
         $existingGraph = UserKnowledgeGraphModel::where('user_id', $userId)->first();
         $existingNodes = $existingGraph ? ($existingGraph->nodes ?? []) : [];
         $existingEdges = $existingGraph ? ($existingGraph->edges ?? []) : [];
@@ -101,65 +98,68 @@ final class GenerateKnowledgeGraphUseCase
                 'name' => $course->name,
                 'color' => $courseColorMap[$course->id] ?? self::COURSE_PALETTE[0],
                 'has_notes' => ! empty($notesText),
-                'notes_content' => ! empty($notesText) ? implode("\n\n---\n\n", $notesText) : 'Conceptos clave y fundamentos de la asignatura.',
+                'notes_content' => ! empty($notesText) ? implode("\n\n---\n\n", $notesText) : 'Fundamentos teóricos, metodologías y aplicaciones prácticas de la materia.',
             ];
         }
 
-        // 5. Prompting Especializado para Segundo Cerebro 3D, Mapa Mental y Active Recall
+        // 5. Prompting Pedagógico de Alto Nivel para Mapa Mental y Segundo Cerebro
         $coursesJson = json_encode($coursesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
         $systemPrompt = <<<SYS
-Eres el motor pedagógico y de Segundo Cerebro de Epycus 2.0. Tu objetivo es estructurar el conocimiento académico en una constelación jerárquica:
-1. Para cada curso debes generar:
-   - 1 Nodo Padre ("is_parent": true) que representa la asignatura principal.
-   - Entre 4 y 8 Nodos Hijos ("is_parent": false) que son los Chunks / Conceptos Clave atómicos.
-2. Para cada Chunk Hijo debes generar:
-   - "id": string único (ej. "chunk_c1_1")
-   - "label": Nombre del concepto (máx 35 caracteres)
-   - "course_id": ID del curso
-   - "course_name": Nombre del curso
-   - "category": Eje temático / rama para el Mapa Mental (ej. "Fundamentos", "Arquitectura", "Protocolos", "Clínica")
-   - "summary": Idea clave directa y precisa (máx 150 caracteres)
-   - "key_points": Array de 2 a 3 strings breves con los puntos esenciales para estudiar
-   - "why_it_matters": Aplicación práctica / profesional (máx 120 caracteres)
+Eres un Diseñador Curricular Senior y Experto en Neurociencia del Aprendizaje (Active Recall & Chunking). Tu misión es convertir las notas universitarias del usuario en un Mapa Mental Jerárquico y un Segundo Cerebro de alto impacto:
+
+REGLAS DE ORO DE EXTRACCIÓN:
+1. Para cada asignatura debes generar:
+   - 1 NODO RAÍZ ("is_parent": true) con el nombre exacto de la materia.
+   - Entre 3 y 5 EJES TEMÁTICOS / RAMAS ("category") bien delimitadas temáticamente (Ejemplos: "Arquitectura & Protocolos", "Teoría del Delito", "Farmacocinética", "Metodología de Muestreo"). NUNCA uses nombres genéricos como "General" o "Temas".
+   - Entre 5 y 10 CHUNKS / CONCEPTOS CLAVE ("is_parent": false) repartidos entre esas ramas.
+
+2. CADA CHUNK DEBE SER ATÓMICO Y PEDAGÓGICAMENTE RIGUROSO:
+   - "id": string único con prefijo claro (ej. "chunk_c1_1")
+   - "label": Nombre preciso y profesional del concepto (ej. "Tabla de Enrutamiento OSPF", "Dolo Eventual", "Biodisponibilidad Oral")
+   - "category": La rama temática exacta a la que pertenece
+   - "summary": Idea clave directa y contundente en 2 líneas (sin rodeos vacíos)
+   - "key_points": Array de 2 a 3 puntos técnicos que expliquen el "cómo" o "por qué"
+   - "why_it_matters": Caso de aplicación profesional o impacto real en el examen
+   - "quiz_question": PREGUNTA DE ACTIVE RECALL DE ALTA CALIDAD que evalúe el razonamiento (ej. "¿Por qué OSPF prefiere métrica de costo sobre conteo de saltos en enlaces Gigabit?")
+   - "quiz_answer": RESPUESTA CLARA, TÉCNICA Y DEFINITIVA que responda directamente a la pregunta
    - "importance": Número del 1 al 5
    - "mastery": 70
-   - "quiz_question": Pregunta retadora para autoevaluación (Active Recall)
-   - "quiz_answer": Respuesta concreta y explicativa
-3. Aristas / Enlaces:
-   - Enlace jerárquico desde el Nodo Padre hacia cada uno de sus Nodos Hijos ("type": "hierarchy", "label": "contiene").
-   - Entre 3 y 8 enlaces conceptuales entre nodos hijos ("type": "aplicacion" o "requisito", "label": "aplica en" o "conecta con").
 
-Formato JSON Estricto:
+3. ENLACES (EDGES):
+   - Enlaces de jerarquía del Nodo Raíz hacia cada Chunk.
+   - 3 a 6 enlaces conceptuales horizontales entre chunks que se complementan o son prerrequisitos.
+
+FORMATO JSON REQUERIDO (Estricto, sin texto fuera del JSON):
 {
   "nodes": [
     {
       "id": "course_1",
-      "label": "Redes 2",
+      "label": "Redes de Computadoras",
       "is_parent": true,
       "course_id": 1,
-      "course_name": "Redes 2",
+      "course_name": "Redes de Computadoras",
       "category": "Asignatura",
-      "summary": "Asignatura troncal de redes y enrutamiento.",
-      "importance": 5
+      "summary": "Fundamentos de protocolos, enrutamiento y arquitectura de capas."
     },
     {
       "id": "chunk_c1_1",
       "label": "Protocolo ARP",
       "is_parent": false,
       "course_id": 1,
-      "course_name": "Redes 2",
-      "category": "Capa de Enlace",
-      "summary": "Resuelve la dirección MAC física a partir de una IP lógica.",
+      "course_name": "Redes de Computadoras",
+      "category": "Capa de Enlace & Conmutación",
+      "summary": "Resuelve la dirección física MAC a partir de una dirección IP de red local.",
       "key_points": [
-        "Mapea IP de capa 3 a MAC de capa 2",
-        "Utiliza peticiones broadcast y respuestas unicast"
+        "Opera mediante peticiones broadcast y respuestas unicast",
+        "Mantiene una tabla temporal con expiración dinámica",
+        "Esencial para el reenvío de tramas Ethernet en switches"
       ],
-      "why_it_matters": "Sin ARP los switches no pueden entregar tramas en redes locales.",
+      "why_it_matters": "Sin resolución ARP, los hosts no pueden encapsular tramas Ethernet para comunicación LAN.",
       "importance": 5,
       "mastery": 70,
-      "quiz_question": "¿Qué traduce el protocolo ARP en una red LAN?",
-      "quiz_answer": "Traduce direcciones IP lógicas a direcciones MAC físicas mediante la tabla ARP."
+      "quiz_question": "¿Cuál es la función fundamental del protocolo ARP al enviar un paquete en una red Ethernet?",
+      "quiz_answer": "Mapea la dirección IP de destino a la dirección MAC física del host o gateway local."
     }
   ],
   "edges": [
@@ -171,11 +171,11 @@ Formato JSON Estricto:
       "course_id": 1
     }
   ],
-  "global_insight": "Conocimientos estructurados en constelación jerárquica para asimilación activa."
+  "global_insight": "Conocimiento estructurado con rigor pedagógico para retención a largo plazo."
 }
 SYS;
 
-        $userPrompt = "Cursos y Apuntes para estructurar:\n{$coursesJson}\n\nGenera la constelación de Nodos Padre, Chunks Hijos y Enlaces en JSON estricto:";
+        $userPrompt = "Apuntes y temas de la materia:\n{$coursesJson}\n\nGenera el Mapa Mental y Segundo Cerebro en JSON:";
 
         $messages = [
             ['role' => 'system', 'content' => $systemPrompt],
@@ -187,7 +187,7 @@ SYS;
             $rawResponse = $this->apiClient->chat($messages);
             $parsedData = $this->parseJsonSafely($rawResponse);
         } catch (Exception $e) {
-            Log::warning("DeepSeek API error o timeout: {$e->getMessage()}. Generando constelación con motor semántico de respaldo.");
+            Log::warning("DeepSeek API error: {$e->getMessage()}. Usando motor pedagógico semántico.");
             $parsedData = $this->generateFallbackHierarchy($coursesData);
         }
 
@@ -291,15 +291,36 @@ SYS;
                 'course_id' => $c['id'],
                 'course_name' => $c['name'],
                 'category' => 'Asignatura',
-                'summary' => "Ecosistema de conocimiento para {$c['name']}.",
+                'summary' => "Ecosistema de conocimiento y módulos de {$c['name']}.",
                 'importance' => 5,
             ];
 
-            // 3 Chunks hijos representativos
+            // Chunks estructurados con rigor pedagógico
             $sampleChunks = [
-                ['label' => "Fundamentos de {$c['name']}", 'cat' => 'Teoría Central'],
-                ['label' => "Metodología y Análisis en {$c['name']}", 'cat' => 'Práctica Aplicada'],
-                ['label' => "Evaluación y Casos de {$c['name']}", 'cat' => 'Resolución'],
+                [
+                    'label' => "Marco Conceptual de {$c['name']}",
+                    'cat' => 'Fundamentos Teóricos',
+                    'summary' => "Principios rectores, definiciones y bases epistemológicas de la asignatura.",
+                    'points' => ["Definición de conceptos base", "Modelos teóricos aplicables"],
+                    'question' => "¿Cuáles son los 2 pilares teóricos fundamentales que sustentan este tema?",
+                    'answer' => "La comprensión de las definiciones centrales y su marco de aplicación directa.",
+                ],
+                [
+                    'label' => "Metodología y Procesos en {$c['name']}",
+                    'cat' => 'Métodos & Aplicación',
+                    'summary' => "Procedimientos, algoritmos y pautas de implementación práctica.",
+                    'points' => ["Secuencia de etapas metodológicas", "Criterios de validación y control"],
+                    'question' => "¿Cuál es el paso crítico en la ejecución de este procedimiento?",
+                    'answer' => "La fase de verificación de requisitos previos y control de consistencia.",
+                ],
+                [
+                    'label' => "Diagnóstico y Casos en {$c['name']}",
+                    'cat' => 'Análisis & Resolución',
+                    'summary' => "Resolución de problemas, casos clínicos/técnicos y toma de decisiones.",
+                    'points' => ["Identificación de variables críticas", "Criterios de evaluación y resolución"],
+                    'question' => "¿Cómo se evalúa la efectividad de la solución implementada en este escenario?",
+                    'answer' => "Mediante el cotejo de indicadores de rendimiento y métricas de desempeño.",
+                ],
             ];
 
             foreach ($sampleChunks as $i => $s) {
@@ -311,16 +332,13 @@ SYS;
                     'course_id' => $c['id'],
                     'course_name' => $c['name'],
                     'category' => $s['cat'],
-                    'summary' => "Concepto fundamental extraído de los apuntes oficiales de {$c['name']}.",
-                    'key_points' => [
-                        "Principio clave para la comprensión de {$c['name']}",
-                        "Eje conceptual evaluado en exámenes y proyectos",
-                    ],
+                    'summary' => $s['summary'],
+                    'key_points' => $s['points'],
                     'why_it_matters' => 'Esencial para consolidar la base profesional de esta materia.',
                     'importance' => 4,
                     'mastery' => 70,
-                    'quiz_question' => "¿Cuál es el principio medular de {$s['label']}?",
-                    'quiz_answer' => "Representa el sustento conceptual y la aplicación directa en {$c['name']}.",
+                    'quiz_question' => $s['question'],
+                    'quiz_answer' => $s['answer'],
                 ];
 
                 $edges[] = [
