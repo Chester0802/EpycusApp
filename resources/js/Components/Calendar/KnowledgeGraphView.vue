@@ -25,7 +25,10 @@ import {
     CheckCircle2,
     ArrowUpRight,
     Activity,
-    Box
+    Box,
+    Copy,
+    Check,
+    ExternalLink
 } from '@lucide/vue';
 import ForceGraph3D from '3d-force-graph';
 import * as THREE from 'three';
@@ -1440,6 +1443,70 @@ function handleOpenNote(courseId) {
     emit('close');
 }
 
+const isCopyingForNotebookLM = ref(false);
+
+function copyForNotebookLM(targetCourseId = null) {
+    const courseId = targetCourseId || selectedNode.value?.course_id || selectedCourseId.value;
+    let text = '';
+
+    if (courseId) {
+        const course = graphData.value.courses?.find(c => c.id === courseId);
+        const courseName = course?.name || selectedNode.value?.course_name || 'Curso';
+        const courseNodes = graphData.value.nodes?.filter(n => n.course_id === courseId) || [];
+
+        text += `# 🧠 Apuntes & Chunks de Aprendizaje — ${courseName}\n`;
+        text += `> Fuente estructurada para Google NotebookLM generada desde Epycus 2.0\n\n`;
+
+        if (course?.notes_content && course.notes_content !== 'Sin apuntes registrados aún por el estudiante.') {
+            text += `## 📝 Apuntes Oficiales\n${course.notes_content}\n\n`;
+        }
+
+        if (courseNodes.length > 0) {
+            text += `## 🧩 Conceptos Clave & Chunks (Segundo Cerebro)\n\n`;
+            courseNodes.forEach((n, idx) => {
+                text += `### ${idx + 1}. ${n.label}\n`;
+                text += `- **Concepto Clave:** ${n.summary || 'Sin resumen registrado.'}\n`;
+                if (n.why_it_matters) {
+                    text += `- **Aplicación Profesional:** ${n.why_it_matters}\n`;
+                }
+                if (n.quiz_question) {
+                    text += `- **Active Recall (Autoevaluación):** ${n.quiz_question}\n`;
+                    text += `  - *Respuesta Clave:* ${n.quiz_answer || n.summary}\n`;
+                }
+                text += `\n`;
+            });
+        }
+    } else {
+        text += `# 🧠 Ecosistema de Aprendizaje & Segundo Cerebro — Epycus\n`;
+        text += `> Resumen de todas las asignaturas y conceptos clave para Google NotebookLM\n\n`;
+        (graphData.value.courses || []).forEach(c => {
+            text += `## 📚 ${c.name}\n`;
+            const courseNodes = graphData.value.nodes?.filter(n => n.course_id === c.id) || [];
+            if (courseNodes.length > 0) {
+                courseNodes.forEach(n => {
+                    text += `- **${n.label}:** ${n.summary}\n`;
+                    if (n.why_it_matters) text += `  - *Aplicación:* ${n.why_it_matters}\n`;
+                });
+            } else {
+                text += `- *Sin conceptos generados aún.*\n`;
+            }
+            text += `\n`;
+        });
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+        isCopyingForNotebookLM.value = true;
+        successMessage.value = '¡Chunks copiados en Markdown listos para pegar en NotebookLM!';
+        setTimeout(() => {
+            isCopyingForNotebookLM.value = false;
+            successMessage.value = '';
+        }, 4000);
+    }).catch(() => {
+        errorMessage.value = 'No se pudo copiar automáticamente al portapapeles.';
+        setTimeout(() => { errorMessage.value = ''; }, 3000);
+    });
+}
+
 function handleKeydown(e) {
     if (!props.show) return;
     
@@ -1568,6 +1635,24 @@ onUnmounted(() => {
                             {{ graphData.quota.remaining }}/{{ graphData.quota.max_quota || 5 }}
                         </span>
                     </button>
+
+                    <!-- Botón NotebookLM Quick Link -->
+                    <a
+                        href="https://notebooklm.google.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 shadow-sm transition-all select-none"
+                        title="Abrir Google NotebookLM en nueva pestaña"
+                    >
+                        <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#E8F0FE"/>
+                            <path d="M7 6.5h10a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 16V8A1.5 1.5 0 0 1 7 6.5z" fill="#1A73E8"/>
+                            <path d="M8.5 9.5h7M8.5 12h5M8.5 14.5h4" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
+                            <circle cx="16.5" cy="14.5" r="1" fill="#34A853"/>
+                        </svg>
+                        <span>NotebookLM</span>
+                        <ExternalLink class="w-3 h-3 text-slate-400" />
+                    </a>
 
                     <!-- Maximizar Pantalla (Desktop) -->
                     <button
@@ -1772,94 +1857,95 @@ onUnmounted(() => {
                     </div>
                 </div>
 
-                <!-- ── PANEL LATERAL PEDAGÓGICO MINIMALISTA (GLASSMORPHISM SUAVE) ── -->
+                <!-- ── PANEL LATERAL DE APRENDIZAJE CLEAN LIGHT (ANTI-FATIGA) ── -->
                 <div
                     v-if="selectedNode"
-                    class="fixed sm:absolute bottom-0 sm:bottom-4 left-0 right-0 sm:left-auto sm:right-4 sm:top-4 w-full sm:w-88 md:w-96 max-h-[44vh] sm:max-h-[calc(100%-2rem)] z-30 flex flex-col bg-slate-900/90 sm:bg-slate-900/85 backdrop-blur-lg border-t sm:border border-slate-700/60 rounded-t-3xl sm:rounded-2xl shadow-xl p-4 sm:p-5 overflow-y-auto custom-scrollbar animate-fade-in glass-panel"
+                    class="fixed sm:absolute bottom-0 sm:bottom-4 left-0 right-0 sm:left-auto sm:right-4 sm:top-4 w-full sm:w-92 md:w-96 max-h-[48vh] sm:max-h-[calc(100%-2rem)] z-30 flex flex-col bg-white/98 text-slate-800 backdrop-blur-xl border-t sm:border border-slate-200/90 rounded-t-3xl sm:rounded-2xl shadow-2xl shadow-slate-900/20 p-4 sm:p-5 overflow-y-auto custom-scrollbar animate-fade-in"
                 >
-                    <!-- Manija táctil para móviles (Bottom Sheet Pill) -->
+                    <!-- Manija táctil para móviles -->
                     <div class="sm:hidden flex justify-center pb-2">
-                        <div class="w-10 h-1 rounded-full bg-slate-700" />
+                        <div class="w-10 h-1 rounded-full bg-slate-300" />
                     </div>
 
-                    <!-- Header Drawer / Sheet -->
-                    <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-800/60 shrink-0">
+                    <!-- Header Drawer -->
+                    <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 shrink-0">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <span
-                                class="w-3.5 h-3.5 rounded-full shrink-0 shadow-[0_0_12px_rgba(255,255,255,0.4)] border border-white/20"
+                                class="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm border border-slate-200"
                                 :style="{ backgroundColor: resolveColor(selectedNode.color) }"
                             />
                             <div class="truncate">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate drop-shadow-md">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block truncate">
                                     {{ selectedNode.course_name }}
                                 </span>
-                                <h4 class="text-sm sm:text-base font-bold text-white leading-tight truncate drop-shadow-lg">
+                                <h4 class="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
                                     {{ selectedNode.label }}
                                 </h4>
                             </div>
                         </div>
                         <button
                             type="button"
-                            class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 shrink-0 transition-colors"
+                            class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 shrink-0 transition-colors"
                             @click="selectedNode = null"
+                            title="Cerrar detalle"
                         >
                             <X class="w-4 h-4" />
                         </button>
                     </div>
 
-                    <!-- 1. Definición & Nivel de Importancia -->
-                    <div class="py-3 border-b border-slate-800/60 shrink-0">
+                    <!-- 1. Concepto Clave & Nivel de Dominio / Importancia -->
+                    <div class="py-3 border-b border-slate-100 shrink-0">
                         <div class="flex items-center justify-between mb-1.5">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-                                <Info class="w-3 h-3 text-indigo-400" />
-                                Concepto Clave
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
+                                <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
+                                Concepto Clave & Chunk
                             </span>
                             <div class="flex items-center gap-1">
                                 <span
                                     v-for="i in 5"
                                     :key="i"
-                                    class="w-1.5 h-1.5 rounded-full"
-                                    :class="i <= (selectedNode.importance || 3) ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]' : 'bg-slate-700'"
+                                    class="w-1.5 h-1.5 rounded-full transition-all"
+                                    :class="i <= (selectedNode.importance || 3) ? 'bg-emerald-500 shadow-sm' : 'bg-slate-200'"
                                 />
-                                <span class="text-[9px] font-semibold text-slate-400 ml-1">
+                                <span class="text-[9px] font-bold text-slate-500 ml-1">
                                     {{ selectedNode.importance || 3 }}/5
                                 </span>
                             </div>
                         </div>
-                        <p class="text-xs text-slate-300/90 leading-relaxed font-normal">
-                            {{ selectedNode.summary || 'Concepto fundamental registrado en tus apuntes.' }}
-                        </p>
+                        <div class="bg-slate-50/90 border border-slate-200/80 p-2.5 rounded-xl text-xs text-slate-700 leading-relaxed font-medium">
+                            {{ selectedNode.summary || 'Concepto fundamental registrado en tus apuntes del curso.' }}
+                        </div>
                     </div>
 
                     <!-- 2. ¿Por qué es crucial aprender esto? (Impacto Profesional) -->
-                    <div v-if="selectedNode.why_it_matters" class="py-2.5 border-b border-slate-800/60 shrink-0 bg-slate-800/20 p-2.5 rounded-xl border border-slate-700/30 my-2">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-1">
-                            <Zap class="w-3 h-3 text-amber-400" />
+                    <div v-if="selectedNode.why_it_matters" class="py-2.5 border-b border-slate-100 shrink-0 bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/70 my-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5 mb-1">
+                            <Zap class="w-3.5 h-3.5 text-amber-600" />
                             Aplicación Profesional
                         </span>
-                        <p class="text-[11px] text-slate-300 leading-relaxed">
+                        <p class="text-[11px] text-amber-950 font-normal leading-relaxed">
                             {{ selectedNode.why_it_matters }}
                         </p>
                     </div>
 
                     <!-- 3. Módulo de Active Recall (Autoevaluación Rápida) -->
-                    <div v-if="selectedNode.quiz_question" class="py-2.5 border-b border-slate-800/60 shrink-0 bg-slate-800/20 p-2.5 rounded-xl border border-slate-700/30 my-1">
+                    <div v-if="selectedNode.quiz_question" class="py-2.5 border-b border-slate-100 shrink-0 bg-rose-50/60 p-2.5 rounded-xl border border-rose-200/70 my-1">
                         <div class="flex items-center justify-between mb-1.5">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
-                                <Brain class="w-3 h-3 text-indigo-400" />
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-rose-700 flex items-center gap-1.5">
+                                <HelpCircle class="w-3.5 h-3.5 text-rose-600" />
                                 Active Recall
                             </span>
                         </div>
-                        <p class="text-xs font-medium text-slate-200 mb-2 drop-shadow-sm">
+                        <p class="text-xs font-semibold text-rose-950 mb-2">
                             {{ selectedNode.quiz_question }}
                         </p>
-                        <div v-if="showQuizAnswer" class="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-[11px] text-indigo-200 leading-relaxed animate-fade-in shadow-inner">
-                            <strong class="text-indigo-300">Respuesta:</strong> {{ selectedNode.quiz_answer || selectedNode.summary }}
+                        <div v-if="showQuizAnswer" class="p-2.5 rounded-lg bg-white border border-rose-200/80 text-xs text-rose-900 leading-relaxed animate-fade-in shadow-sm">
+                            <strong class="text-rose-700 font-bold">Respuesta Clave:</strong> {{ selectedNode.quiz_answer || selectedNode.summary }}
                         </div>
                         <button
                             v-else
                             type="button"
-                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-[10px] font-semibold transition-colors border border-indigo-500/30"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold transition-colors shadow-sm"
                             @click="showQuizAnswer = true"
                         >
                             <Eye class="w-3 h-3" />
@@ -1871,8 +1957,8 @@ onUnmounted(() => {
                     <div class="py-3 flex-1 overflow-y-auto custom-scrollbar space-y-3">
                         <!-- Fundamentos / Prerrequisitos -->
                         <div v-if="classifiedConnections.prerequisites.length > 0">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5 flex items-center gap-1.5">
-                                <Layers class="w-3 h-3 text-slate-400" />
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5 flex items-center gap-1.5">
+                                <Layers class="w-3 h-3 text-slate-500" />
                                 Bases Teóricas
                             </span>
                             <div class="space-y-1.5">
@@ -1880,26 +1966,26 @@ onUnmounted(() => {
                                     v-for="(conn, idx) in classifiedConnections.prerequisites"
                                     :key="`pre-${idx}`"
                                     type="button"
-                                    class="w-full text-left p-2 rounded-xl bg-slate-800/30 hover:bg-slate-800 border border-slate-700/30 hover:border-indigo-500/40 transition-all flex items-center justify-between group shadow-sm backdrop-blur-sm"
+                                    class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50/60 border border-slate-200/80 hover:border-indigo-300 transition-all flex items-center justify-between group shadow-sm"
                                     @click="selectNodeAndCenter(conn.node)"
                                 >
                                     <div class="min-w-0 flex-1">
-                                        <span class="text-[9px] text-indigo-300 block font-medium">
+                                        <span class="text-[9px] text-indigo-600 block font-semibold">
                                             {{ conn.edge.label || 'prerrequisito de' }}
                                         </span>
-                                        <span class="text-xs font-semibold text-white truncate block group-hover:text-indigo-200">
+                                        <span class="text-xs font-bold text-slate-800 truncate block group-hover:text-indigo-900">
                                             {{ conn.node.label }}
                                         </span>
                                     </div>
-                                    <ArrowUpRight class="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
+                                    <ArrowUpRight class="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
                                 </button>
                             </div>
                         </div>
 
                         <!-- Aplicaciones Prácticas -->
                         <div v-if="classifiedConnections.applications.length > 0">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5 flex items-center gap-1.5">
-                                <Zap class="w-3 h-3 text-slate-400" />
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5 flex items-center gap-1.5">
+                                <Zap class="w-3 h-3 text-amber-500" />
                                 Aplicaciones Prácticas
                             </span>
                             <div class="space-y-1.5">
@@ -1907,26 +1993,26 @@ onUnmounted(() => {
                                     v-for="(conn, idx) in classifiedConnections.applications"
                                     :key="`app-${idx}`"
                                     type="button"
-                                    class="w-full text-left p-2 rounded-xl bg-slate-800/30 hover:bg-slate-800 border border-slate-700/30 hover:border-amber-500/40 transition-all flex items-center justify-between group shadow-sm backdrop-blur-sm"
+                                    class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50/60 border border-slate-200/80 hover:border-amber-300 transition-all flex items-center justify-between group shadow-sm"
                                     @click="selectNodeAndCenter(conn.node)"
                                 >
                                     <div class="min-w-0 flex-1">
-                                        <span class="text-[9px] text-amber-300 block font-medium">
+                                        <span class="text-[9px] text-amber-700 block font-semibold">
                                             {{ conn.edge.label || 'se aplica en' }}
                                         </span>
-                                        <span class="text-xs font-semibold text-white truncate block group-hover:text-amber-200">
+                                        <span class="text-xs font-bold text-slate-800 truncate block group-hover:text-amber-900">
                                             {{ conn.node.label }}
                                         </span>
                                     </div>
-                                    <ArrowUpRight class="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
+                                    <ArrowUpRight class="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
                                 </button>
                             </div>
                         </div>
 
                         <!-- Conexiones Interdisciplinarias -->
                         <div v-if="classifiedConnections.crossDisciplinary.length > 0">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5 flex items-center gap-1.5">
-                                <Network class="w-3 h-3 text-slate-400" />
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5 flex items-center gap-1.5">
+                                <Network class="w-3 h-3 text-purple-500" />
                                 Interdisciplinario
                             </span>
                             <div class="space-y-1.5">
@@ -1934,39 +2020,70 @@ onUnmounted(() => {
                                     v-for="(conn, idx) in classifiedConnections.crossDisciplinary"
                                     :key="`cross-${idx}`"
                                     type="button"
-                                    class="w-full text-left p-2 rounded-xl bg-slate-800/30 hover:bg-slate-800 border border-slate-700/30 hover:border-purple-500/40 transition-all flex items-center justify-between group shadow-sm backdrop-blur-sm"
+                                    class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50/60 border border-slate-200/80 hover:border-purple-300 transition-all flex items-center justify-between group shadow-sm"
                                     @click="selectNodeAndCenter(conn.node)"
                                 >
                                     <div class="min-w-0 flex-1">
-                                        <span class="text-[9px] text-purple-300 block font-medium">
+                                        <span class="text-[9px] text-purple-700 block font-semibold">
                                             {{ conn.edge.label || 'conecta con' }}
                                         </span>
-                                        <span class="text-xs font-semibold text-white truncate block group-hover:text-purple-200">
+                                        <span class="text-xs font-bold text-slate-800 truncate block group-hover:text-purple-900">
                                             {{ conn.node.label }}
                                         </span>
                                         <div class="flex items-center gap-1 mt-0.5">
                                             <span class="w-1.5 h-1.5 rounded-full" :style="{ backgroundColor: resolveColor(conn.node.color) }" />
-                                            <span class="text-[9px] text-slate-400 truncate">
+                                            <span class="text-[9px] text-slate-500 truncate">
                                                 {{ conn.node.course_name }}
                                             </span>
                                         </div>
                                     </div>
-                                    <ArrowUpRight class="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
+                                    <ArrowUpRight class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Botón para Abrir Apuntes del Curso -->
-                    <div class="pt-3 border-t border-slate-800/60 shrink-0">
+                    <!-- 5. Acciones Inferiores (Apuntes & Sinergia NotebookLM) -->
+                    <div class="pt-3 border-t border-slate-100 shrink-0 space-y-2">
+                        <!-- Abrir Apuntes Oficiales -->
                         <button
                             type="button"
-                            class="w-full py-2.5 px-4 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 border border-slate-700/60 shadow-md hover:shadow-lg"
+                            class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                             @click="handleOpenNote(selectedNode.course_id)"
                         >
                             <BookOpen class="w-3.5 h-3.5 text-indigo-400" />
                             <span>Abrir Apuntes de {{ selectedNode.course_name }}</span>
                         </button>
+
+                        <!-- Sinergia con Google NotebookLM -->
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <button
+                                type="button"
+                                class="py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-900 text-[11px] font-bold transition-all flex items-center justify-center gap-1.5"
+                                :title="`Copiar Chunks de ${selectedNode.course_name} en Markdown para NotebookLM`"
+                                @click="copyForNotebookLM(selectedNode.course_id)"
+                            >
+                                <Check v-if="isCopyingForNotebookLM" class="w-3.5 h-3.5 text-emerald-600" />
+                                <Copy v-else class="w-3.5 h-3.5 text-slate-500" />
+                                <span>{{ isCopyingForNotebookLM ? '¡Copiado!' : 'Copiar Chunks' }}</span>
+                            </button>
+
+                            <a
+                                href="https://notebooklm.google.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="py-2 px-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 hover:text-blue-800 text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 text-center"
+                                title="Abrir Google NotebookLM en nueva pestaña"
+                            >
+                                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#E8F0FE"/>
+                                    <path d="M7 6.5h10a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 16V8A1.5 1.5 0 0 1 7 6.5z" fill="#1A73E8"/>
+                                    <path d="M8.5 9.5h7M8.5 12h5M8.5 14.5h4" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
+                                    <circle cx="16.5" cy="14.5" r="1" fill="#34A853"/>
+                                </svg>
+                                <span>NotebookLM ↗</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
