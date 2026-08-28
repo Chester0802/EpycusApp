@@ -138,7 +138,7 @@ const layoutElements = computed(() => {
         const startY = rootY - ((total - 1) * spacingY) / 2;
 
         sideBranches.forEach((branch, bIdx) => {
-            const branchX = isRight ? rootX + 230 : rootX - 230;
+            const branchX = isRight ? rootX + 250 : rootX - 250;
             const branchY = startY + bIdx * spacingY;
             const isExpanded = expandedBranches.value.has(branch.id);
 
@@ -166,9 +166,9 @@ const layoutElements = computed(() => {
             // Si está expandida, renderizar los chunks hijos
             if (isExpanded) {
                 const totalChunks = branch.chunks.length;
-                const chunkSpacingY = 52;
+                const chunkSpacingY = 56;
                 const chunkStartY = branchY - ((totalChunks - 1) * chunkSpacingY) / 2;
-                const chunkX = isRight ? branchX + 210 : branchX - 210;
+                const chunkX = isRight ? branchX + 240 : branchX - 240;
 
                 branch.chunks.forEach((chunk, cIdx) => {
                     const chunkY = chunkStartY + cIdx * chunkSpacingY;
@@ -448,9 +448,9 @@ onUnmounted(() => {
                         @click="toggleBranch(node.id)"
                     >
                         <rect
-                            x="-75"
+                            x="-90"
                             y="-18"
-                            width="150"
+                            width="180"
                             height="36"
                             rx="18"
                             fill="#ffffff"
@@ -461,13 +461,13 @@ onUnmounted(() => {
                         
                         <!-- Indicador de Expansión (+ / -) -->
                         <circle
-                            :cx="node.isRight ? 60 : -60"
+                            :cx="node.isRight ? 72 : -72"
                             cy="0"
                             r="8"
                             :fill="node.color"
                         />
                         <text
-                            :x="node.isRight ? 60 : -60"
+                            :x="node.isRight ? 72 : -72"
                             dy="3.5"
                             text-anchor="middle"
                             fill="#ffffff"
@@ -478,21 +478,21 @@ onUnmounted(() => {
                             {{ node.isExpanded ? '−' : '+' }}
                         </text>
 
-                        <!-- Nombre del Eje Temático -->
+                        <!-- Nombre del Eje Temático Completo -->
                         <text
                             :x="node.isRight ? -8 : 8"
                             text-anchor="middle"
                             dy="4"
                             fill="#1e293b"
-                            font-size="10.5"
+                            font-size="11"
                             font-weight="700"
                             class="select-none font-sans"
                         >
-                            {{ node.label.length > 16 ? node.label.substring(0, 14) + '...' : node.label }}
+                            {{ node.label }}
                         </text>
                     </g>
 
-                    <!-- 2.3. Nodos Hijos (Conceptos / Chunks Clave - Clic para Estudiar) -->
+                    <!-- 2.3. Nodos Hijos (Conceptos / Chunks Clave - Texto Completo) -->
                     <g
                         v-for="node in layoutElements.nodes.filter(n => n.type === 'chunk')"
                         :key="node.id"
@@ -501,9 +501,9 @@ onUnmounted(() => {
                         @click="emit('studyChunk', node.rawChunk)"
                     >
                         <rect
-                            x="-85"
+                            x="-105"
                             y="-16"
-                            width="170"
+                            width="210"
                             height="32"
                             rx="10"
                             fill="#ffffff"
@@ -514,7 +514,7 @@ onUnmounted(() => {
                         
                         <!-- Barra de Acento Izquierda -->
                         <rect
-                            :x="-85"
+                            :x="-105"
                             y="-16"
                             width="4"
                             height="32"
@@ -522,16 +522,16 @@ onUnmounted(() => {
                             :fill="node.color"
                         />
 
-                        <!-- Título del Concepto (Limpio, Sin Porcentajes) -->
+                        <!-- Título del Concepto Completo (Sin Recortes) -->
                         <text
-                            :x="-72"
+                            :x="-92"
                             dy="4"
                             fill="#0f172a"
                             font-size="10.5"
                             font-weight="600"
                             class="select-none font-sans group-hover:fill-indigo-600 transition-colors"
                         >
-                            {{ node.label.length > 20 ? node.label.substring(0, 18) + '...' : node.label }}
+                            {{ node.label }}
                         </text>
                     </g>
                 </g>
