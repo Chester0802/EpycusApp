@@ -475,44 +475,41 @@ function addCosmicOrbTo3DScene() {
     
     cosmicOrbsGroup = new THREE.Group();
     
-    // Campo de Consciencia Central (Icosaedro)
-    const innerGeo = new THREE.IcosahedronGeometry(220, 2);
-    const innerMat = new THREE.MeshBasicMaterial({
-        color: 0x4f46e5, // Indigo
+    // 🧠 1. Estructura Neuronal de Cerebro Artificial (Matriz Holográfica Externa)
+    const brainMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8, // Cian Neón Suave
         wireframe: true,
         transparent: true,
-        opacity: 0.06, // Ligeramente más visible
+        opacity: 0.09,
         blending: THREE.AdditiveBlending,
         depthWrite: false
     });
-    const innerSphere = new THREE.Mesh(innerGeo, innerMat);
-    cosmicOrbsGroup.add(innerSphere);
+    const brainOuter = new THREE.Mesh(new THREE.IcosahedronGeometry(240, 3), brainMat);
+    cosmicOrbsGroup.add(brainOuter);
 
-    // Anillo Exterior (Saturno)
-    const torusOutGeo = new THREE.TorusGeometry(250, 1.2, 12, 64); // Radio reducido a 250 y polígonos reducidos para ahorrar RAM
-    const torusOutMat = new THREE.MeshBasicMaterial({
-        color: 0xa855f7, // Purpura
+    // 🧠 2. Núcleo Sináptico Interior (Cerebro Central Pulsante)
+    const coreMat = new THREE.MeshBasicMaterial({
+        color: 0x818cf8, // Índigo Neural
+        wireframe: true,
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.14,
         blending: THREE.AdditiveBlending,
         depthWrite: false
     });
-    const torusOut = new THREE.Mesh(torusOutGeo, torusOutMat);
-    torusOut.rotation.x = Math.PI / 2.2;
-    cosmicOrbsGroup.add(torusOut);
+    const brainCore = new THREE.Mesh(new THREE.IcosahedronGeometry(150, 2), coreMat);
+    cosmicOrbsGroup.add(brainCore);
 
-    // ✨ Sistema de Partículas (Polvo Estelar) ✨
-    const particleCount = 120; // Reducido al 90% (antes 1200)
+    // ✨ 3. Sistema de Sinapsis y Polvo Estelar ✨
+    const particleCount = 140;
     const particleGeometry = new THREE.BufferGeometry();
     const particlePositions = new Float32Array(particleCount * 3);
     const particleColors = new Float32Array(particleCount * 3);
 
-    const color1 = new THREE.Color(0x818cf8); // Indigo
-    const color2 = new THREE.Color(0xa78bfa); // Purple
+    const color1 = new THREE.Color(0x38bdf8); // Cian
+    const color2 = new THREE.Color(0x818cf8); // Índigo
 
     for (let i = 0; i < particleCount; i++) {
-        // Distribuir en un volumen esférico grande
-        const radius = Math.random() * 600;
+        const radius = Math.random() * 550;
         const theta = Math.random() * 2 * Math.PI;
         const phi = Math.acos((Math.random() * 2) - 1);
         
@@ -530,10 +527,10 @@ function addCosmicOrbTo3DScene() {
     particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
 
     const particleMaterial = new THREE.PointsMaterial({
-        size: isMobileDevice.value ? 0.8 : 1.2, // Partículas más finas
+        size: isMobileDevice.value ? 0.9 : 1.3,
         vertexColors: true,
         transparent: true,
-        opacity: 0.6,
+        opacity: 0.65,
         blending: THREE.AdditiveBlending,
         depthWrite: false
     });
@@ -543,11 +540,13 @@ function addCosmicOrbTo3DScene() {
 
     scene.add(cosmicOrbsGroup);
 
-    // Animar anillos y partículas en el loop
+    // Animar matrices neuronales en el loop
     const animateCosmic = () => {
         if (cosmicOrbsGroup && livePulseActive.value) {
-            torusOut.rotation.z += 0.001;
-            innerSphere.rotation.y += 0.0005;
+            brainOuter.rotation.y += 0.0006;
+            brainOuter.rotation.x += 0.0003;
+            brainCore.rotation.y -= 0.0008;
+            brainCore.rotation.z += 0.0004;
             if (starDustParticles) {
                 starDustParticles.rotation.y += 0.0002;
                 starDustParticles.rotation.x += 0.0001;
@@ -1562,16 +1561,11 @@ onUnmounted(() => {
                         <Brain class="w-5 h-5" />
                     </div>
                     <div class="truncate">
-                        <div class="flex items-center gap-2">
-                            <h2 class="text-sm sm:text-base md:text-lg font-black text-white truncate flex items-center gap-2">
-                                Grafo de Conocimiento
-                                <span class="hidden sm:inline-flex px-2 py-0.5 text-[9px] uppercase font-black tracking-widest rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 border border-indigo-500/40">
-                                    Segundo Cerebro
-                                </span>
-                            </h2>
-                        </div>
+                        <h2 class="text-sm sm:text-base md:text-lg font-black text-white truncate">
+                            Grafo de Conocimiento
+                        </h2>
                         <p class="hidden sm:block text-xs text-slate-400">
-                            Mapa conceptual interactivo y pedagógico asistido por IA
+                            Tú Segundo cerebro
                         </p>
                     </div>
                 </div>
@@ -1615,25 +1609,6 @@ onUnmounted(() => {
                     >
                         <Activity class="w-3.5 h-3.5" :class="livePulseActive ? 'animate-pulse text-indigo-400' : ''" />
                         <span class="hidden md:inline">{{ livePulseActive ? 'Sinapsis Activa' : 'Sinapsis Pausada' }}</span>
-                    </button>
-
-                    <!-- Botón Generar / Actualizar con IA -->
-                    <button
-                        type="button"
-                        :disabled="generating || graphData.quota.is_exhausted"
-                        class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold text-white transition-all shadow-lg select-none disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        :class="graphData.quota.is_exhausted
-                            ? 'bg-slate-800 border border-slate-700 text-slate-400 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-500 hover:to-purple-500 border border-indigo-400/40 shadow-indigo-600/30 hover:scale-[1.02] active:scale-95'"
-                        @click="handleGenerateGraph"
-                    >
-                        <Loader2 v-if="generating" class="w-3.5 h-3.5 animate-spin" />
-                        <Sparkles v-else class="w-3.5 h-3.5 text-yellow-300" />
-                        <span class="hidden sm:inline">{{ generating ? 'Analizando...' : 'Conectar con IA' }}</span>
-                        <span class="sm:hidden">{{ generating ? '...' : 'IA' }}</span>
-                        <span class="px-1.5 py-0.5 text-[9px] font-black rounded bg-black/40 text-indigo-200 border border-white/10">
-                            {{ graphData.quota.remaining }}/{{ graphData.quota.max_quota || 5 }}
-                        </span>
                     </button>
 
                     <!-- Botón NotebookLM Quick Link -->
@@ -1857,235 +1832,6 @@ onUnmounted(() => {
                     </div>
                 </div>
 
-                <!-- ── PANEL LATERAL DE APRENDIZAJE CLEAN LIGHT (ANTI-FATIGA) ── -->
-                <div
-                    v-if="selectedNode"
-                    class="fixed sm:absolute bottom-0 sm:bottom-4 left-0 right-0 sm:left-auto sm:right-4 sm:top-4 w-full sm:w-92 md:w-96 max-h-[48vh] sm:max-h-[calc(100%-2rem)] z-30 flex flex-col bg-white/98 text-slate-800 backdrop-blur-xl border-t sm:border border-slate-200/90 rounded-t-3xl sm:rounded-2xl shadow-2xl shadow-slate-900/20 p-4 sm:p-5 overflow-y-auto custom-scrollbar animate-fade-in"
-                >
-                    <!-- Manija táctil para móviles -->
-                    <div class="sm:hidden flex justify-center pb-2">
-                        <div class="w-10 h-1 rounded-full bg-slate-300" />
-                    </div>
-
-                    <!-- Header Drawer -->
-                    <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 shrink-0">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                            <span
-                                class="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm border border-slate-200"
-                                :style="{ backgroundColor: resolveColor(selectedNode.color) }"
-                            />
-                            <div class="truncate">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block truncate">
-                                    {{ selectedNode.course_name }}
-                                </span>
-                                <h4 class="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
-                                    {{ selectedNode.label }}
-                                </h4>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 shrink-0 transition-colors"
-                            @click="selectedNode = null"
-                            title="Cerrar detalle"
-                        >
-                            <X class="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    <!-- 1. Concepto Clave & Nivel de Dominio / Importancia -->
-                    <div class="py-3 border-b border-slate-100 shrink-0">
-                        <div class="flex items-center justify-between mb-1.5">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
-                                <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
-                                Concepto Clave & Chunk
-                            </span>
-                            <div class="flex items-center gap-1">
-                                <span
-                                    v-for="i in 5"
-                                    :key="i"
-                                    class="w-1.5 h-1.5 rounded-full transition-all"
-                                    :class="i <= (selectedNode.importance || 3) ? 'bg-emerald-500 shadow-sm' : 'bg-slate-200'"
-                                />
-                                <span class="text-[9px] font-bold text-slate-500 ml-1">
-                                    {{ selectedNode.importance || 3 }}/5
-                                </span>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50/90 border border-slate-200/80 p-2.5 rounded-xl text-xs text-slate-700 leading-relaxed font-medium">
-                            {{ selectedNode.summary || 'Concepto fundamental registrado en tus apuntes del curso.' }}
-                        </div>
-                    </div>
-
-                    <!-- 2. ¿Por qué es crucial aprender esto? (Impacto Profesional) -->
-                    <div v-if="selectedNode.why_it_matters" class="py-2.5 border-b border-slate-100 shrink-0 bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/70 my-2">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5 mb-1">
-                            <Zap class="w-3.5 h-3.5 text-amber-600" />
-                            Aplicación Profesional
-                        </span>
-                        <p class="text-[11px] text-amber-950 font-normal leading-relaxed">
-                            {{ selectedNode.why_it_matters }}
-                        </p>
-                    </div>
-
-                    <!-- 3. Módulo de Active Recall (Autoevaluación Rápida) -->
-                    <div v-if="selectedNode.quiz_question" class="py-2.5 border-b border-slate-100 shrink-0 bg-rose-50/60 p-2.5 rounded-xl border border-rose-200/70 my-1">
-                        <div class="flex items-center justify-between mb-1.5">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-rose-700 flex items-center gap-1.5">
-                                <HelpCircle class="w-3.5 h-3.5 text-rose-600" />
-                                Active Recall
-                            </span>
-                        </div>
-                        <p class="text-xs font-semibold text-rose-950 mb-2">
-                            {{ selectedNode.quiz_question }}
-                        </p>
-                        <div v-if="showQuizAnswer" class="p-2.5 rounded-lg bg-white border border-rose-200/80 text-xs text-rose-900 leading-relaxed animate-fade-in shadow-sm">
-                            <strong class="text-rose-700 font-bold">Respuesta Clave:</strong> {{ selectedNode.quiz_answer || selectedNode.summary }}
-                        </div>
-                        <button
-                            v-else
-                            type="button"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold transition-colors shadow-sm"
-                            @click="showQuizAnswer = true"
-                        >
-                            <Eye class="w-3 h-3" />
-                            <span>Ver Respuesta</span>
-                        </button>
-                    </div>
-
-                    <!-- 4. Conexiones Clasificadas Pedagógicamente -->
-                    <div class="py-3 flex-1 overflow-y-auto custom-scrollbar space-y-3">
-                        <!-- Fundamentos / Prerrequisitos -->
-                        <div v-if="classifiedConnections.prerequisites.length > 0">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5 flex items-center gap-1.5">
-                                <Layers class="w-3 h-3 text-slate-500" />
-                                Bases Teóricas
-                            </span>
-                            <div class="space-y-1.5">
-                                <button
-                                    v-for="(conn, idx) in classifiedConnections.prerequisites"
-                                    :key="`pre-${idx}`"
-                                    type="button"
-                                    class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50/60 border border-slate-200/80 hover:border-indigo-300 transition-all flex items-center justify-between group shadow-sm"
-                                    @click="selectNodeAndCenter(conn.node)"
-                                >
-                                    <div class="min-w-0 flex-1">
-                                        <span class="text-[9px] text-indigo-600 block font-semibold">
-                                            {{ conn.edge.label || 'prerrequisito de' }}
-                                        </span>
-                                        <span class="text-xs font-bold text-slate-800 truncate block group-hover:text-indigo-900">
-                                            {{ conn.node.label }}
-                                        </span>
-                                    </div>
-                                    <ArrowUpRight class="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Aplicaciones Prácticas -->
-                        <div v-if="classifiedConnections.applications.length > 0">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5 flex items-center gap-1.5">
-                                <Zap class="w-3 h-3 text-amber-500" />
-                                Aplicaciones Prácticas
-                            </span>
-                            <div class="space-y-1.5">
-                                <button
-                                    v-for="(conn, idx) in classifiedConnections.applications"
-                                    :key="`app-${idx}`"
-                                    type="button"
-                                    class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50/60 border border-slate-200/80 hover:border-amber-300 transition-all flex items-center justify-between group shadow-sm"
-                                    @click="selectNodeAndCenter(conn.node)"
-                                >
-                                    <div class="min-w-0 flex-1">
-                                        <span class="text-[9px] text-amber-700 block font-semibold">
-                                            {{ conn.edge.label || 'se aplica en' }}
-                                        </span>
-                                        <span class="text-xs font-bold text-slate-800 truncate block group-hover:text-amber-900">
-                                            {{ conn.node.label }}
-                                        </span>
-                                    </div>
-                                    <ArrowUpRight class="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Conexiones Interdisciplinarias -->
-                        <div v-if="classifiedConnections.crossDisciplinary.length > 0">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5 flex items-center gap-1.5">
-                                <Network class="w-3 h-3 text-purple-500" />
-                                Interdisciplinario
-                            </span>
-                            <div class="space-y-1.5">
-                                <button
-                                    v-for="(conn, idx) in classifiedConnections.crossDisciplinary"
-                                    :key="`cross-${idx}`"
-                                    type="button"
-                                    class="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50/60 border border-slate-200/80 hover:border-purple-300 transition-all flex items-center justify-between group shadow-sm"
-                                    @click="selectNodeAndCenter(conn.node)"
-                                >
-                                    <div class="min-w-0 flex-1">
-                                        <span class="text-[9px] text-purple-700 block font-semibold">
-                                            {{ conn.edge.label || 'conecta con' }}
-                                        </span>
-                                        <span class="text-xs font-bold text-slate-800 truncate block group-hover:text-purple-900">
-                                            {{ conn.node.label }}
-                                        </span>
-                                        <div class="flex items-center gap-1 mt-0.5">
-                                            <span class="w-1.5 h-1.5 rounded-full" :style="{ backgroundColor: resolveColor(conn.node.color) }" />
-                                            <span class="text-[9px] text-slate-500 truncate">
-                                                {{ conn.node.course_name }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <ArrowUpRight class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 5. Acciones Inferiores (Apuntes & Sinergia NotebookLM) -->
-                    <div class="pt-3 border-t border-slate-100 shrink-0 space-y-2">
-                        <!-- Abrir Apuntes Oficiales -->
-                        <button
-                            type="button"
-                            class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-                            @click="handleOpenNote(selectedNode.course_id)"
-                        >
-                            <BookOpen class="w-3.5 h-3.5 text-indigo-400" />
-                            <span>Abrir Apuntes de {{ selectedNode.course_name }}</span>
-                        </button>
-
-                        <!-- Sinergia con Google NotebookLM -->
-                        <div class="grid grid-cols-2 gap-1.5">
-                            <button
-                                type="button"
-                                class="py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-900 text-[11px] font-bold transition-all flex items-center justify-center gap-1.5"
-                                :title="`Copiar Chunks de ${selectedNode.course_name} en Markdown para NotebookLM`"
-                                @click="copyForNotebookLM(selectedNode.course_id)"
-                            >
-                                <Check v-if="isCopyingForNotebookLM" class="w-3.5 h-3.5 text-emerald-600" />
-                                <Copy v-else class="w-3.5 h-3.5 text-slate-500" />
-                                <span>{{ isCopyingForNotebookLM ? '¡Copiado!' : 'Copiar Chunks' }}</span>
-                            </button>
-
-                            <a
-                                href="https://notebooklm.google.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="py-2 px-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 hover:text-blue-800 text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 text-center"
-                                title="Abrir Google NotebookLM en nueva pestaña"
-                            >
-                                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#E8F0FE"/>
-                                    <path d="M7 6.5h10a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 16V8A1.5 1.5 0 0 1 7 6.5z" fill="#1A73E8"/>
-                                    <path d="M8.5 9.5h7M8.5 12h5M8.5 14.5h4" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
-                                    <circle cx="16.5" cy="14.5" r="1" fill="#34A853"/>
-                                </svg>
-                                <span>NotebookLM ↗</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

@@ -49,6 +49,7 @@ const isCopyingForNotebookLM = ref(false);
 const toastMessage = ref('');
 const toastType = ref('success');
 const generatingMission = ref(false);
+const generatingAI = ref(false);
 
 // Modal de Apuntes
 const showNoteModal = ref(false);
@@ -58,6 +59,27 @@ const activeNoteCourse = ref(null);
 const localGraphData = ref({ ...props.graphData });
 const localNodes = computed(() => localGraphData.value.nodes || []);
 const localEdges = computed(() => localGraphData.value.edges || []);
+
+async function handleGenerateAI() {
+    generatingAI.value = true;
+    try {
+        const res = await axios.post(route('calendar.knowledge-graph.generate'), {});
+        if (res.data.success) {
+            localGraphData.value.nodes = res.data.nodes || [];
+            localGraphData.value.edges = res.data.edges || [];
+            localGraphData.value.stats = res.data.stats || {};
+            if (res.data.quota) {
+                localGraphData.value.quota = res.data.quota;
+            }
+            triggerToast('¡Chunks y Grafo generados exitosamente con IA! ✨', 'success');
+        }
+    } catch (err) {
+        const msg = err.response?.data?.message || 'Error al conectar con IA';
+        triggerToast(msg, 'error');
+    } finally {
+        generatingAI.value = false;
+    }
+}
 
 // ── Filtros y Chunks ────────────────────────────────────────────────────────
 const filteredChunks = computed(() => {
@@ -293,14 +315,9 @@ function getMasteryBadgeClass(mastery) {
                         <Brain class="w-6 h-6" />
                     </div>
                     <div>
-                        <div class="flex items-center gap-2">
-                            <h1 class="text-xl sm:text-2xl font-black text-content-primary tracking-tight">
-                                Zona de Aprendizaje
-                            </h1>
-                            <span class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                Segundo Cerebro
-                            </span>
-                        </div>
+                        <h1 class="text-xl sm:text-2xl font-black text-content-primary tracking-tight">
+                            Zona de Aprendizaje
+                        </h1>
                         <p class="text-xs text-content-secondary mt-0.5">
                             Asimila tus cursos universitarios mediante micro-cápsulas (*Chunking*), autoevaluación activa y mapa conceptual.
                         </p>
@@ -338,6 +355,24 @@ function getMasteryBadgeClass(mastery) {
                             <span>Segundo Cerebro (Grafo)</span>
                         </button>
                     </div>
+
+                    <!-- Botón Conectar con IA (Genera Chunks y Grafo) -->
+                    <button
+                        type="button"
+                        :disabled="generatingAI || (graphData.quota && graphData.quota.is_exhausted)"
+                        class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white transition-all shadow-md select-none disabled:opacity-50"
+                        :class="graphData.quota && graphData.quota.is_exhausted
+                            ? 'bg-slate-800 border border-slate-700 text-slate-400 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-indigo-500/20 hover:scale-105 active:scale-95'"
+                        @click="handleGenerateAI"
+                    >
+                        <Loader2 v-if="generatingAI" class="w-3.5 h-3.5 animate-spin" />
+                        <Sparkles v-else class="w-3.5 h-3.5 text-yellow-300" />
+                        <span>{{ generatingAI ? 'Generando...' : 'Conectar con IA' }}</span>
+                        <span v-if="graphData.quota && graphData.quota.remaining !== undefined" class="px-1.5 py-0.5 text-[9px] font-black rounded bg-black/30 text-indigo-100">
+                            {{ graphData.quota.remaining }}/{{ graphData.quota.max_quota || 5 }}
+                        </span>
+                    </button>
 
                     <!-- Botón NotebookLM Quick Link -->
                     <a

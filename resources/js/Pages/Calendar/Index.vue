@@ -8,7 +8,6 @@ import BaseModal from '@/Components/ui/BaseModal.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
 import BaseSelect from '@/Components/ui/BaseSelect.vue';
 import NoteEditorModal from '@/Components/Calendar/NoteEditorModal.vue';
-import KnowledgeGraphView from '@/Components/Calendar/KnowledgeGraphView.vue';
 import { triggerConfetti, triggerHapticVibration } from '@/utils/celebration';
 import {
     BookOpen,
@@ -241,10 +240,9 @@ function deleteCourse(id) {
     }
 }
 
-// ── Apuntes & Grafo de Conocimiento ───────────────────────────────────────
+// ── Apuntes Oficiales ───────────────────────────────────────────────────────
 const showNoteModal  = ref(false);
 const selectedCourse = ref(null);
-const showKnowledgeGraphModal = ref(false);
 
 function openNote(courseId) {
     const course = props.courses.find(c => c.id === courseId);
@@ -687,16 +685,6 @@ function goToPomodoro(item) {
                                 📅 Vista Mensual
                             </button>
                         </div>
-
-                        <BaseButton
-                            variant="secondary"
-                            size="sm"
-                            class="bg-purple-500/10 text-purple-400 border-purple-500/30 hover:bg-purple-500/20 font-bold"
-                            @click="showKnowledgeGraphModal = true"
-                        >
-                            <Network :size="15" />
-                            Grafo de Conocimiento
-                        </BaseButton>
 
                         <BaseButton variant="secondary" size="sm" @click="showCourseModal = true">
                             <BookOpen :size="15" />
@@ -1754,15 +1742,7 @@ function goToPomodoro(item) {
             :show="showNoteModal"
             :course="selectedCourse"
             @close="closeNote"
-            @openKnowledgeGraph="showNoteModal = false; showKnowledgeGraphModal = true;"
-        />
-
-        <!-- Modal de Grafo de Conocimiento (Segundo Cerebro Asistido por IA) -->
-        <KnowledgeGraphView
-            :show="showKnowledgeGraphModal"
-            :courses="courses"
-            @close="showKnowledgeGraphModal = false"
-            @openNote="openNote"
+            @openKnowledgeGraph="showNoteModal = false; router.visit(route('learning.index'))"
         />
     </AppLayout>
 </template>
