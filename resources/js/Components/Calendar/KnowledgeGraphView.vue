@@ -1612,32 +1612,46 @@ onUnmounted(() => {
                         </span>
                     </button>
 
-                    <button
+                    <div
                         v-for="(course, idx) in graphData.courses"
                         :key="course.id"
-                        type="button"
-                        class="flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold transition-all shrink-0 border text-xs"
+                        class="inline-flex items-center rounded-xl border transition-all shrink-0 text-xs overflow-hidden group/course"
                         :class="selectedCourseId === course.id
                             ? 'bg-slate-800 text-white shadow-lg border-white/40'
                             : 'bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white border-slate-700/50'"
-                        @click="selectCourseAndFilter(course.id)"
                     >
-                        <span
-                            class="w-2.5 h-2.5 rounded-full shadow-md shrink-0"
-                            :style="{ backgroundColor: resolveColor(course.color, idx) }"
-                        />
-                        <span class="truncate max-w-[120px]">{{ course.name }}</span>
-                        <span
-                            v-if="courseConceptCounts[course.id]"
-                            class="px-1.5 py-0.2 rounded-full text-[10px] font-black"
-                            :style="{
-                                backgroundColor: hexToRgba(resolveColor(course.color, idx), 0.25),
-                                color: resolveColor(course.color, idx)
-                            }"
+                        <button
+                            type="button"
+                            class="flex items-center gap-2 pl-3 pr-2 py-1.5 font-bold focus:outline-none"
+                            @click="selectCourseAndFilter(course.id)"
                         >
-                            {{ courseConceptCounts[course.id] }}
-                        </span>
-                    </button>
+                            <span
+                                class="w-2.5 h-2.5 rounded-full shadow-md shrink-0"
+                                :style="{ backgroundColor: resolveColor(course.color, idx) }"
+                            />
+                            <span class="truncate max-w-[120px]">{{ course.name }}</span>
+                            <span
+                                v-if="courseConceptCounts[course.id]"
+                                class="px-1.5 py-0.2 rounded-full text-[10px] font-black"
+                                :style="{
+                                    backgroundColor: hexToRgba(resolveColor(course.color, idx), 0.25),
+                                    color: resolveColor(course.color, idx)
+                                }"
+                            >
+                                {{ courseConceptCounts[course.id] }}
+                            </span>
+                        </button>
+                        
+                        <!-- Botón directo para abrir apuntes de este curso -->
+                        <button
+                            type="button"
+                            class="px-2 py-1.5 border-l border-slate-700/60 hover:bg-indigo-600/30 text-slate-400 hover:text-indigo-200 transition-colors focus:outline-none"
+                            :title="`Abrir apuntes de ${course.name}`"
+                            @click.stop="handleOpenNote(course.id)"
+                        >
+                            <BookOpen class="w-3.5 h-3.5 text-indigo-400 group-hover/course:text-indigo-300" />
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Buscador de Conceptos -->
