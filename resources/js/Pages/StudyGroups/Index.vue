@@ -57,151 +57,57 @@ function phaseLabel(session) {
 </script>
 
 <template>
-    <AppLayout title="Sesiones de estudio">
-        <div class="mx-auto max-w-4xl space-y-8">
-            <BaseCard class="p-6">
-                <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h1 class="font-display text-3xl font-bold tracking-tight text-content-primary">Sesiones de estudio</h1>
-                        <p class="mt-1 text-sm text-content-secondary">
-                            Estudia acompañado en tiempo real con hasta 4 compañeros más.
-                        </p>
-                    </div>
-                    <BaseButton variant="primary" @click="showCreateModal = true">
-                        + Crear sesión
-                    </BaseButton>
-                </header>
-            </BaseCard>
+    <AppLayout title="Metaverso de Estudio">
+        <div class="mx-auto max-w-5xl space-y-8 px-4 py-8">
+            <header class="text-center mb-12">
+                <h1 class="font-display text-4xl sm:text-5xl font-black tracking-tight text-content-primary mb-4">
+                    El Metaverso de Estudio
+                </h1>
+                <p class="text-base sm:text-lg text-content-secondary max-w-2xl mx-auto">
+                    Únete a una sala virtual, arrastra tu silla donde quieras y estudia enfocado junto a otros compañeros. Tu reloj Pomodoro es 100% independiente.
+                </p>
+            </header>
 
-            <BaseCard
-                v-if="flash?.success"
-                class="p-3 text-sm text-success-text"
-            >
-                {{ flash.success }}
-            </BaseCard>
-            <BaseCard
-                v-if="flash?.error || errors?.error"
-                class="p-3 text-sm text-danger-text"
-            >
+            <BaseCard v-if="flash?.error || errors?.error" class="p-4 text-sm text-white bg-danger mb-6 rounded-xl font-bold">
                 {{ flash?.error || errors?.error }}
             </BaseCard>
 
-            <!-- Caso 1: No hay ninguna sesión (ni activa del usuario ni abierta) -->
-            <BaseCard
-                v-if="activeSessions.length === 0 && (!sessions.open || sessions.open.length === 0)"
-                class="p-6"
-            >
-                <EmptyState
-                    title="No hay sesiones de estudio"
-                    description="Crea una sesión de estudio e invita a tus compañeros para estudiar juntos."
+            <div class="grid gap-6 md:grid-cols-2">
+                <!-- Tarjetas de las Salas Maestras -->
+                <div 
+                    v-for="session in sessions" 
+                    :key="session.id" 
+                    class="relative rounded-3xl overflow-hidden group border border-border-interactive shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
                 >
-                    <template #action>
-                        <BaseButton @click="showCreateModal = true">Crear primera sesión</BaseButton>
-                    </template>
-                </EmptyState>
-            </BaseCard>
-
-            <!-- Caso 2: Hay al menos una sesión activa o alguna sesión abierta -->
-            <template v-else>
-                <!-- Tus sesiones activas -->
-                <div v-if="activeSessions.length > 0" class="space-y-3">
-                    <h2 class="text-lg font-semibold text-content-primary">Tus sesiones activas</h2>
-                    <BaseCard v-for="as in activeSessions" :key="as.id" class="p-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-lg font-semibold text-content-primary">{{ as.name }}</p>
-                                <p class="text-xs text-content-muted">
-                                    {{ phaseLabel(as) }} · {{ as.participant_count }} participante{{ as.participant_count !== 1 ? 's' : '' }}
-                                </p>
-                            </div>
-                            <div class="flex gap-2">
-                                <BaseButton @click="goToSession(as.id)">Entrar</BaseButton>
-                                <BaseButton variant="danger" @click="leaveSession(as.id)">Salir</BaseButton>
+                    <!-- Imagen de Fondo -->
+                    <img :src="session.image" :alt="session.name" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    
+                    <!-- Gradiente Oscuro -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                    
+                    <!-- Contenido -->
+                    <div class="relative p-6 sm:p-8 h-80 flex flex-col justify-end">
+                        <div class="flex items-center justify-between mb-2">
+                            <h2 class="text-3xl font-black text-white drop-shadow-md">{{ session.name }}</h2>
+                            <div class="flex items-center gap-1.5 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-white font-medium text-sm shadow-inner">
+                                👥 {{ session.participants_count }} / {{ session.max_seats }}
                             </div>
                         </div>
-                    </BaseCard>
-                </div>
-
-                <!-- Sesiones abiertas disponibles para unirse -->
-                <div class="space-y-4">
-                    <h2 class="text-lg font-semibold text-content-primary">Otras sesiones abiertas</h2>
-                    <div v-if="sessions.open && sessions.open.length > 0" class="grid gap-4 sm:grid-cols-2">
-                        <BaseCard v-for="session in sessions.open" :key="session.id" class="p-4">
-                            <div class="flex items-start justify-between">
-                                <div class="min-w-0 flex-1">
-                                    <h3 class="truncate text-base font-semibold text-content-primary">{{ session.name }}</h3>
-                                    <p class="mt-1 text-sm text-content-secondary">
-                                        {{ session.participant_count }} / {{ session.max_seats }} participantes
-                                    </p>
-                                    <p class="text-xs text-content-muted">{{ phaseLabel(session) }}</p>
-                                </div>
-                                <BaseButton
-                                    :disabled="session.participant_count >= session.max_seats"
-                                    @click="joinSession(session.id)"
-                                >
-                                    {{ session.participant_count >= session.max_seats ? 'Completa' : 'Unirse' }}
-                                </BaseButton>
-                            </div>
-                        </BaseCard>
-                    </div>
-
-                    <BaseCard v-else class="p-6 text-center">
-                        <p class="text-sm text-content-secondary">
-                            No hay más sesiones abiertas disponibles en este momento. Puedes crear una nueva con el botón superior.
+                        <p class="text-sm text-white/80 mb-6 drop-shadow-sm font-medium">
+                            {{ session.id === 1 ? 'El murmullo de una cafetería, ideal para trabajo creativo.' : 'Silencio absoluto, ideal para estudio profundo.' }}
                         </p>
-                    </BaseCard>
+                        
+                        <div class="flex items-center gap-3">
+                            <BaseButton 
+                                class="w-full justify-center !bg-white !text-black hover:!bg-white/90 shadow-xl"
+                                @click="joinSession(session.id)"
+                            >
+                                Entrar a la Sala
+                            </BaseButton>
+                        </div>
+                    </div>
                 </div>
-            </template>
-
-            <BaseModal :show="showCreateModal" @close="showCreateModal = false">
-                <template #title>Crear sesión de estudio</template>
-                <form class="space-y-4" @submit.prevent="createSession">
-                    <BaseInput
-                        v-model="newSession.name"
-                        label="Nombre de la sesión"
-                        placeholder="Semana de parciales"
-                        maxlength="80"
-                        required
-                    />
-                    <BaseSelect
-                        v-model.number="newSession.max_seats"
-                        label="Participantes (máximo)"
-                        :options="[
-                            { value: 2, label: 'Tú + 1' },
-                            { value: 3, label: 'Tú + 2' },
-                            { value: 4, label: 'Tú + 3' },
-                            { value: 5, label: 'Tú + 4' },
-                        ]"
-                    />
-                    <div class="grid grid-cols-3 gap-3">
-                        <BaseInput
-                            v-model.number="newSession.focus_minutes"
-                            label="Foco (min)"
-                            type="number"
-                            min="5"
-                            max="120"
-                        />
-                        <BaseInput
-                            v-model.number="newSession.break_minutes"
-                            label="Descanso (min)"
-                            type="number"
-                            min="1"
-                            max="30"
-                        />
-                        <BaseInput
-                            v-model.number="newSession.cycles"
-                            label="Ciclos"
-                            type="number"
-                            min="1"
-                            max="20"
-                        />
-                    </div>
-                    <div class="flex justify-end gap-2 pt-2">
-                        <BaseButton type="button" variant="ghost" @click="showCreateModal = false">Cancelar</BaseButton>
-                        <BaseButton type="submit">Crear sesión</BaseButton>
-                    </div>
-                </form>
-            </BaseModal>
+            </div>
         </div>
     </AppLayout>
 </template>

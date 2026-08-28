@@ -3,9 +3,8 @@ import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
-import BaseCard from '@/Components/ui/BaseCard.vue';
-import BaseModal from '@/Components/ui/BaseModal.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
+import BaseModal from '@/Components/ui/BaseModal.vue';
 import ProceduralAvatar from '@/Components/ProceduralAvatar.vue';
 
 import { useTelemetry } from '@/Composables/useTelemetry';
@@ -21,78 +20,71 @@ const props = defineProps({
 
 const chatMessages = ref(props.messages);
 const chatParticipants = ref(props.participants);
+const activePomodoros = ref([]);
 const currentLastId = ref(props.lastMessageId);
 const newMessage = ref('');
 const isSending = ref(false);
 const chatContainer = ref(null);
 const pollInterval = ref(null);
-const tickInterval = ref(null);
 
-const roomPhase = ref(props.session.phase || 'idle');
-const roomPhaseEndsAt = ref(props.session.phase_ends_at || null);
-const roomCycle = ref(props.session.current_cycle || 0);
-const roomTotalCycles = ref(props.session.cycles || 4);
-const roomState = ref(props.session.state || 'open');
-const serverNow = ref(null);
-const clockOffsetMs = ref(0);
-const remainingSeconds = ref(0);
+const backgrounds = [
+    { id: 1, name: 'Cafetería', path: '/assets/images/rooms/cafeteria.webp' },
+    { id: 2, name: 'Biblioteca', path: '/assets/images/rooms/biblioteca.webp' },
+];
+const currentBg = computed(() => backgrounds.find(b => b.id === props.session.id) || backgrounds[0]);
 
-const showConfigureModal = ref(false);
-const configForm = ref({
-    focus_minutes: props.session.focus_minutes || 25,
-    break_minutes: props.session.break_minutes || 5,
-    cycles: props.session.cycles || 4,
-});
+const draggingId = ref(null);
+const sceneRef = ref(null);
 
-const isHost = computed(() => props.session.host_id === props.userId);
-const isIdle = computed(() => roomPhase.value === 'idle');
-const isFocus = computed(() => roomPhase.value === 'focus');
-const isBreak = computed(() => roomPhase.value === 'break');
-const isCompleted = computed(() => roomPhase.value === 'completed');
-const isRunning = computed(() => isFocus.value || isBreak.value);
-const chatEnabled = computed(() => isIdle.value || isBreak.value || isCompleted.value);
-
-const phaseIcon = computed(() => {
-    if (isFocus.value) return '🔴';
-    if (isBreak.value) return '🟢';
-    if (isCompleted.value) return '✅';
-    return '⏸';
-});
-
-const phaseText = computed(() => {
-    if (isCompleted.value) return 'Completado';
-    if (isFocus.value) return 'Enfoque';
-    if (isBreak.value) return 'Descanso';
-    return 'Esperando inicio';
-});
-
-function formatTime(seconds) {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+function handlePointerDown(e, participantId) {
+    if (participantId !== props.userId) return;
+    draggingId.value = participantId;
+    e.target.setPointerCapture(e.pointerId);
 }
 
-function updateRemaining() {
-    if (!roomPhaseEndsAt.value) {
-        remainingSeconds.value = 0;
-        return;
+function handlePointerMove(e) {
+    if (draggingId.value !== props.userId || !sceneRef.value) return;
+    
+    const rect = sceneRef.value.getBoundingClientRect();
+    const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+    const y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+    
+    const posX = (x / rect.width) * 100;
+    const posY = (y / rect.height) * 100;
+    
+    const p = chatParticipants.value.find(p => p.id === props.userId);
+    if (p) {
+        p.pos_x = posX;
+        p.pos_y = posY;
     }
-    const now = Date.now() + clockOffsetMs.value;
-    const endsAt = new Date(roomPhaseEndsAt.value).getTime();
-    remainingSeconds.value = Math.max(0, Math.floor((endsAt - now) / 1000));
 }
 
-function startTicker() {
-    stopTicker();
-    updateRemaining();
-    tickInterval.value = setInterval(updateRemaining, 1000);
-}
-
-function stopTicker() {
-    if (tickInterval.value) {
-        clearInterval(tickInterval.value);
-        tickInterval.value = null;
+function handlePointerUp(e) {
+    if (draggingId.value !== props.userId) return;
+    draggingId.value = null;
+    
+    const p = chatParticipants.value.find(p => p.id === props.userId);
+    if (p && p.pos_x !== null && p.pos_y !== null) {
+        postJson(route('study-groups.move', props.session.id), {
+            pos_x: p.pos_x,
+            pos_y: p.pos_y
+        });
     }
+}
+
+function getAvatarStyle(p, index) {
+    if (p.pos_x !== null && p.pos_y !== null) {
+        return { left: `${p.pos_x}%`, top: `${p.pos_y}%` };
+    }
+    // Fallback default positions
+    const defaults = [
+        { left: '25%', top: '60%' },
+        { left: '45%', top: '60%' },
+        { left: '65%', top: '60%' },
+        { left: '15%', top: '75%' },
+        { left: '75%', top: '75%' },
+    ];
+    return defaults[index % defaults.length];
 }
 
 function postJson(url, body = {}) {
@@ -112,87 +104,8 @@ function postJson(url, body = {}) {
     });
 }
 
-function playPhaseChime(phase) {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
-        const now = ctx.currentTime;
-
-        if (phase === 'focus') {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.setValueAtTime(520, now);
-            osc.frequency.exponentialRampToValueAtTime(660, now + 0.3);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-            osc.start(now);
-            osc.stop(now + 0.5);
-        } else if (phase === 'break') {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.setValueAtTime(880, now);
-            osc.frequency.exponentialRampToValueAtTime(587, now + 0.4);
-            gain.gain.setValueAtTime(0.25, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-            osc.start(now);
-            osc.stop(now + 0.6);
-        } else if (phase === 'completed') {
-            [523.25, 659.25, 783.99].forEach((freq, i) => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.15, now + i * 0.1);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.7);
-                osc.start(now + i * 0.1);
-                osc.stop(now + i * 0.1 + 0.7);
-            });
-        }
-    } catch {
-        // Silencioso si el navegador no permite audio automático sin interacción previa
-    }
-}
-
-function advancePhase() {
-    postJson(route('study-groups.advance', props.session.id))
-        .then((r) => r.json())
-        .then((data) => {
-            if (data.advanced) {
-                playPhaseChime(data.phase);
-                track(
-                    data.phase === 'focus' ? 'group_focus.started' : 'group_break.started',
-                    'study_groups',
-                    {
-                        session_id: props.session.id,
-                        cycle: data.cycle,
-                    },
-                );
-            }
-        })
-        .catch(() => {});
-}
-
-function configureRoom() {
-    postJson(route('study-groups.configure', props.session.id), {
-        focus_minutes: configForm.value.focus_minutes,
-        break_minutes: configForm.value.break_minutes,
-        cycles: configForm.value.cycles,
-    })
-        .then((r) => r.json())
-        .then(() => {
-            showConfigureModal.value = false;
-        })
-        .catch(() => {});
-}
-
 function sendMessage() {
-    if (!newMessage.value.trim() || isSending.value || !chatEnabled.value) return;
+    if (!newMessage.value.trim() || isSending.value) return;
     isSending.value = true;
 
     postJson(route('study-groups.messages', props.session.id), {
@@ -234,30 +147,22 @@ function poll() {
                 scrollToBottom();
             }
             if (data.participants) {
-                chatParticipants.value = data.participants;
-            }
-            if (data.room) {
-                const prevPhase = roomPhase.value;
-                roomPhase.value = data.room.phase;
-                roomPhaseEndsAt.value = data.room.phase_ends_at;
-                roomCycle.value = data.room.current_cycle;
-                roomTotalCycles.value = data.room.total_cycles;
-                roomState.value = data.room.state;
-                serverNow.value = data.room.server_now;
-
-                if (serverNow.value) {
-                    clockOffsetMs.value = new Date(data.room.server_now).getTime() - Date.now();
-                }
-
-                if (data.room.phase !== prevPhase) {
-                    playPhaseChime(data.room.phase);
-                    updateRemaining();
-                    if (data.room.phase === 'focus' || data.room.phase === 'break') {
-                        startTicker();
+                // Actualizar coords solo si no estoy arrastrando mi propio avatar
+                for (const updatedP of data.participants) {
+                    const idx = chatParticipants.value.findIndex(p => p.id === updatedP.id);
+                    if (idx !== -1) {
+                        if (updatedP.id !== props.userId || draggingId.value !== props.userId) {
+                            chatParticipants.value[idx] = updatedP;
+                        }
                     } else {
-                        stopTicker();
+                        chatParticipants.value.push(updatedP);
                     }
                 }
+                // Remover los que ya no están
+                chatParticipants.value = chatParticipants.value.filter(p => data.participants.some(up => up.id === p.id));
+            }
+            if (data.active_pomodoros) {
+                activePomodoros.value = data.active_pomodoros;
             }
         })
         .catch(() => {});
@@ -276,232 +181,218 @@ function leaveSession() {
     router.post(route('study-groups.leave', props.session.id));
 }
 
+// POMODORO LOCAL LOGIC
+const pomoStatus = ref('idle'); // idle, running, break
+const pomoTimeRemaining = ref(25 * 60);
+const pomoTimer = ref(null);
+const pomoFocusMinutes = ref(25);
+const pomoBreakMinutes = ref(5);
+
+const formattedLocalTime = computed(() => {
+    const m = Math.floor(pomoTimeRemaining.value / 60);
+    const s = pomoTimeRemaining.value % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+});
+
+function toggleLocalPomodoro() {
+    if (pomoStatus.value === 'running') {
+        // Stop it completely or just pause? Let's treat it as complete/cancel for simplicity
+        pomoStatus.value = 'idle';
+        clearInterval(pomoTimer.value);
+        pomoTimeRemaining.value = pomoFocusMinutes.value * 60;
+        return;
+    }
+
+    if (pomoStatus.value === 'idle' || pomoStatus.value === 'break') {
+        pomoStatus.value = 'running';
+        pomoTimeRemaining.value = pomoFocusMinutes.value * 60;
+        
+        postJson(route('study-groups.pomodoro.start', props.session.id), {
+            planned_minutes: pomoFocusMinutes.value,
+        });
+
+        pomoTimer.value = setInterval(() => {
+            if (pomoTimeRemaining.value > 0) {
+                pomoTimeRemaining.value--;
+            } else {
+                clearInterval(pomoTimer.value);
+                pomoStatus.value = 'break';
+                pomoTimeRemaining.value = pomoBreakMinutes.value * 60;
+                // Auto start break countdown
+                pomoTimer.value = setInterval(() => {
+                    if (pomoTimeRemaining.value > 0) {
+                        pomoTimeRemaining.value--;
+                    } else {
+                        clearInterval(pomoTimer.value);
+                        pomoStatus.value = 'idle';
+                        pomoTimeRemaining.value = pomoFocusMinutes.value * 60;
+                    }
+                }, 1000);
+            }
+        }, 1000);
+    }
+}
+
 onMounted(() => {
     scrollToBottom();
     pollInterval.value = setInterval(poll, 5000);
-    if (isRunning.value) startTicker();
 });
 
 onUnmounted(() => {
     if (pollInterval.value) clearInterval(pollInterval.value);
-    stopTicker();
+    if (pomoTimer.value) clearInterval(pomoTimer.value);
 });
+
+function getParticipantPomodoro(userId) {
+    return activePomodoros.value.find(p => p.user_id === userId);
+}
 </script>
 
 <template>
-    <AppLayout :title="`Sesión: ${session.name}`">
-        <div class="mx-auto flex h-[calc(100vh-10rem)] max-w-6xl flex-col gap-4 lg:flex-row">
-            <div class="flex flex-1 flex-col rounded-xl panel-raised">
-                <div
-                    class="flex items-center justify-between border-b border-border-interactive px-4 py-3"
+    <AppLayout :title="`Sala: ${session.name}`">
+        <div class="mx-auto flex flex-col h-[calc(100vh-6rem)] max-w-7xl px-2 lg:px-4 gap-4">
+            
+            <div class="flex items-center justify-between bg-surface/50 backdrop-blur-md border border-border-interactive px-4 py-3 rounded-2xl">
+                <div>
+                    <h2 class="text-xl font-black text-content-primary flex items-center gap-2">
+                        {{ session.name }}
+                    </h2>
+                    <p class="text-xs text-content-muted font-medium">
+                        {{ chatParticipants.length }} / {{ session.max_seats }} participantes
+                    </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <BaseButton variant="danger" size="sm" @click="leaveSession">Salir de la sala</BaseButton>
+                </div>
+            </div>
+
+            <div 
+                ref="sceneRef"
+                class="relative w-full flex-1 rounded-3xl overflow-hidden shadow-2xl border border-border-interactive group select-none touch-none"
+                @pointermove="handlePointerMove"
+                @pointerup="handlePointerUp"
+                @pointerleave="handlePointerUp"
+            >
+                <img 
+                    :src="currentBg.path" 
+                    :alt="currentBg.name" 
+                    class="absolute inset-0 w-full h-full object-cover transition-all duration-1000 dark:brightness-50 dark:saturate-75"
+                    draggable="false"
+                />
+
+                <!-- Avatares Posicionados -->
+                <div 
+                    v-for="(p, index) in chatParticipants.slice(0, 5)" 
+                    :key="p.id"
+                    class="absolute transform -translate-x-1/2 -translate-y-1/2 transition-all ease-out z-10"
+                    :class="[
+                        draggingId === p.id ? 'duration-0 scale-110 z-20 cursor-grabbing' : 'duration-700 hover:scale-105',
+                        p.id === userId ? 'cursor-grab' : 'cursor-default'
+                    ]"
+                    :style="getAvatarStyle(p, index)"
+                    @pointerdown="handlePointerDown($event, p.id)"
                 >
-                    <div>
-                        <h2 class="text-lg font-semibold text-content-primary">
-                            {{ session.name }}
-                        </h2>
-                        <p class="text-xs text-content-muted">
-                            {{ chatParticipants.length }} participante{{
-                                chatParticipants.length !== 1 ? 's' : ''
-                            }}
-                        </p>
+                    <div class="flex flex-col items-center gap-2 group/avatar">
+                        
+                        <!-- Etiqueta Estado Pomodoro Compañero -->
+                        <div v-if="getParticipantPomodoro(p.id) && p.id !== userId" class="px-2 py-1 bg-white/90 backdrop-blur-md rounded-full text-[11px] font-bold text-black shadow-lg shadow-black/20 animate-bounce">
+                            {{ getParticipantPomodoro(p.id).status === 'running' ? '🔴 Enfocado' : '🟢 Descanso' }}
+                        </div>
+                        <div v-else-if="p.id === userId && pomoStatus !== 'idle'" class="px-2 py-1 bg-white/90 backdrop-blur-md rounded-full text-[11px] font-bold text-black shadow-lg shadow-black/20">
+                            {{ pomoStatus === 'running' ? '🔴' : '🟢' }} {{ formattedLocalTime }}
+                        </div>
+
+                        <!-- Etiqueta del usuario -->
+                        <div class="px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg text-[10px] font-bold text-white shadow-lg opacity-80 group-hover/avatar:opacity-100 transition-opacity whitespace-nowrap">
+                            {{ p.id === userId ? 'Tú' : (p.alias || 'Estudiante') }}
+                        </div>
+                        
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 shrink-0 overflow-hidden rounded-full border-4 shadow-2xl transition-all border-white/30 hover:border-primary-strong/80"
+                            :class="[
+                                p.id === userId && pomoStatus === 'running' ? 'border-primary-strong/80 shadow-primary-strong/30' : '',
+                                getParticipantPomodoro(p.id)?.status === 'running' ? 'border-primary-strong/80 shadow-primary-strong/30' : ''
+                            ]"
+                        >
+                            <ProceduralAvatar
+                                :career="p.avatar_style || 'base'"
+                                :gender="p.avatar_gender || 'm'"
+                                :avatar-options="p.avatar_options"
+                                :size="120"
+                            />
+                        </div>
                     </div>
-                    <BaseButton variant="danger" size="sm" @click="leaveSession">Salir</BaseButton>
                 </div>
 
-                <div
-                    class="flex flex-col items-center justify-center border-b border-border-interactive px-4 py-8"
-                >
-                    <div class="mb-2 flex items-center gap-2">
-                        <span>{{ phaseIcon }}</span>
-                        <span
-                            class="text-sm font-medium uppercase tracking-wider text-content-secondary"
-                            >{{ phaseText }}</span
-                        >
-                        <span v-if="isRunning" class="text-xs text-content-muted"
-                            >Ciclo {{ roomCycle }}/{{ roomTotalCycles }}</span
-                        >
-                    </div>
-                    <div
-                        v-if="isRunning"
-                        class="text-6xl font-extrabold tabular-nums tracking-tighter text-content-primary"
-                    >
-                        {{ formatTime(remainingSeconds) }}
-                    </div>
-                    <div v-else-if="isIdle" class="flex flex-col items-center gap-3">
-                        <p class="text-sm text-content-secondary">
-                            {{ session.focus_minutes }} min foco · {{ session.break_minutes }} min
-                            descanso · {{ session.cycles }} ciclos
-                        </p>
-                        <BaseButton v-if="isHost" @click="advancePhase">Iniciar estudio</BaseButton>
-                    </div>
-                    <div v-else class="flex flex-col items-center gap-2">
-                        <p class="text-lg text-content-secondary">¡Sesión completada!</p>
-                    </div>
-                    <div
-                        v-if="isRunning"
-                        class="mt-3 h-2 w-64 overflow-hidden rounded-full bg-surface-raised"
-                    >
-                        <div
-                            class="h-full rounded-full transition-all duration-1000"
-                            :class="isFocus ? 'bg-danger' : 'bg-success'"
-                            :style="{
-                                width:
-                                    roomTotalCycles > 0
-                                        ? `${(roomCycle / roomTotalCycles) * 100}%`
-                                        : '0%',
-                            }"
-                        />
-                    </div>
-                </div>
+                <div class="absolute inset-0 pointer-events-none flex flex-col lg:flex-row justify-between p-4 lg:p-6 gap-4">
+                    
+                    <!-- Pomodoro Widget Local -->
+                    <div class="pointer-events-auto flex flex-col items-center lg:items-start self-start lg:self-center mt-4 lg:mt-0 w-full lg:w-auto">
+                        <div class="bg-white/70 dark:bg-black/60 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-3xl p-6 shadow-2xl flex flex-col items-center w-72 transition-all transform hover:scale-105">
+                            <div class="mb-3 flex items-center gap-2 bg-black/5 dark:bg-black/40 px-3 py-1 rounded-full backdrop-blur-md border border-black/5 dark:border-white/10">
+                                <span>{{ pomoStatus === 'running' ? '🔴' : (pomoStatus === 'break' ? '🟢' : '⏸') }}</span>
+                                <span class="text-xs font-bold uppercase tracking-widest text-content-primary">{{ pomoStatus === 'running' ? 'Enfoque' : (pomoStatus === 'break' ? 'Descanso' : 'Listo') }}</span>
+                            </div>
+                            
+                            <div class="text-6xl font-black tabular-nums tracking-tighter text-content-primary drop-shadow-sm">
+                                {{ formattedLocalTime }}
+                            </div>
+                            
+                            <div v-if="pomoStatus === 'idle'" class="flex gap-2 mt-4 w-full">
+                                <BaseInput type="number" v-model.number="pomoFocusMinutes" min="15" max="50" class="w-1/2 text-center bg-white/50 dark:bg-black/50" />
+                                <BaseInput type="number" v-model.number="pomoBreakMinutes" min="1" max="15" class="w-1/2 text-center bg-white/50 dark:bg-black/50" />
+                            </div>
 
-                <div ref="chatContainer" class="flex-1 space-y-3 overflow-y-auto p-4">
-                    <div v-for="msg in chatMessages" :key="msg.id" class="flex items-start gap-3">
-                        <div class="flex flex-col">
-                            <span class="text-xs text-content-muted">
-                                {{ msg.user_id === userId ? 'Tú' : (msg.alias || (chatParticipants.find(p => p.id === msg.user_id)?.alias || 'Compañero')) }}
-                            </span>
-                            <div
-                                class="mt-1 max-w-[80%] rounded-xl px-4 py-2 text-sm"
-                                :class="
-                                    msg.user_id === userId
-                                        ? 'ml-auto rounded-br-sm bg-primary-strong text-on-accent'
-                                        : 'rounded-bl-sm bg-surface-raised text-content-primary'
-                                "
-                            >
-                                {{ msg.body }}
+                            <div class="flex flex-col items-center gap-4 w-full mt-4">
+                                <button @click="toggleLocalPomodoro" class="w-full py-3 bg-primary text-white font-black rounded-xl hover:bg-primary-strong transition-all shadow-xl">
+                                    {{ pomoStatus === 'idle' ? 'Iniciar Estudio' : 'Cancelar / Parar' }}
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div
-                        v-if="chatMessages.length === 0"
-                        class="py-8 text-center text-sm text-content-muted"
-                    >
-                        {{
-                            isFocus ? 'Chat desactivado durante el enfoque' : 'No hay mensajes aún'
-                        }}
-                    </div>
-                </div>
 
-                <form
-                    v-if="chatEnabled"
-                    class="flex gap-2 border-t border-border-interactive p-4"
-                    @submit.prevent="sendMessage"
-                >
-                    <input
-                        v-model="newMessage"
-                        type="text"
-                        maxlength="500"
-                        placeholder="Escribe un mensaje..."
-                        class="min-h-[44px] flex-1 rounded-xl bg-surface-raised px-4 text-sm text-content-primary placeholder-content-muted outline-none ring-1 ring-border-interactive focus:ring-2 focus:ring-primary-strong"
-                        :disabled="isSending"
-                    />
-                    <BaseButton type="submit" :disabled="!newMessage.trim() || isSending"
-                        >Enviar</BaseButton
-                    >
-                </form>
-                <div
-                    v-else
-                    class="flex items-center justify-center gap-2 border-t border-border-interactive bg-surface-raised/50 p-4"
-                >
-                    <span class="text-sm text-content-muted"
-                        >💬 Chat disponible durante el descanso</span
-                    >
+                    <!-- Chat Widget -->
+                    <div class="pointer-events-auto flex flex-col self-end lg:self-stretch w-full lg:w-80 h-64 lg:h-full max-h-[500px] bg-white/10 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-3xl overflow-hidden shadow-2xl transition-all">
+                        <div class="bg-black/20 px-4 py-3 border-b border-white/10 flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <span>💬 Chat de Estudio</span>
+                            </h3>
+                        </div>
+                        
+                        <div ref="chatContainer" class="flex-1 space-y-4 overflow-y-auto p-4 custom-scrollbar">
+                            <div v-for="msg in chatMessages" :key="msg.id" class="flex flex-col" :class="msg.user_id === userId ? 'items-end' : 'items-start'">
+                                <span class="text-[10px] text-white/60 mb-1 font-medium px-1">
+                                    {{ msg.user_id === userId ? 'Tú' : (msg.alias || (chatParticipants.find(p => p.id === msg.user_id)?.alias || 'Compañero')) }}
+                                </span>
+                                <div class="max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-md"
+                                     :class="msg.user_id === userId ? 'bg-primary-strong text-white rounded-br-sm' : 'bg-white/20 backdrop-blur-md text-white border border-white/10 rounded-bl-sm'">
+                                    {{ msg.body }}
+                                </div>
+                            </div>
+                            <div v-if="chatMessages.length === 0" class="py-10 text-center text-xs font-medium text-white/50">
+                                Comienza la conversación.
+                            </div>
+                        </div>
+
+                        <form class="p-3 bg-black/20 border-t border-white/10" @submit.prevent="sendMessage">
+                            <div class="flex gap-2 relative">
+                                <input
+                                    v-model="newMessage"
+                                    type="text"
+                                    maxlength="500"
+                                    placeholder="Escribe algo..."
+                                    class="w-full rounded-xl bg-white/10 border-white/20 text-white placeholder-white/40 px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-strong focus:border-transparent outline-none backdrop-blur-md transition-all"
+                                    :disabled="isSending"
+                                />
+                                <button type="submit" :disabled="!newMessage.trim() || isSending"
+                                        class="absolute right-1.5 top-1.5 p-1.5 bg-primary-strong text-white rounded-lg disabled:opacity-50 hover:bg-primary transition-colors">
+                                    ➤
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
                 </div>
             </div>
-
-            <aside class="w-full shrink-0 space-y-4 lg:w-64">
-                <BaseCard class="p-4">
-                    <h3 class="mb-3 text-sm font-semibold text-content-primary">Sala de estudio</h3>
-                    <div class="space-y-2 text-xs text-content-secondary">
-                        <p>
-                            <span class="font-medium text-content-primary">Foco:</span>
-                            {{ session.focus_minutes }} min
-                        </p>
-                        <p>
-                            <span class="font-medium text-content-primary">Descanso:</span>
-                            {{ session.break_minutes }} min
-                        </p>
-                        <p>
-                            <span class="font-medium text-content-primary">Ciclos:</span>
-                            {{ session.cycles }}
-                        </p>
-                    </div>
-                    <BaseButton
-                        v-if="isHost && isIdle"
-                        size="sm"
-                        class="mt-3 w-full"
-                        @click="showConfigureModal = true"
-                    >
-                        Configurar
-                    </BaseButton>
-                </BaseCard>
-
-                <BaseCard class="p-4">
-                    <h3 class="mb-3 text-sm font-semibold text-content-primary">Participantes</h3>
-                    <ul class="space-y-3">
-                        <li
-                            v-for="p in chatParticipants"
-                            :key="p.id"
-                            class="flex items-center gap-3"
-                        >
-                            <div class="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border-interactive bg-surface-raised">
-                                <ProceduralAvatar
-                                    :career="p.avatar_style || 'base'"
-                                    :gender="p.avatar_gender || 'm'"
-                                    :avatar-options="p.avatar_options"
-                                    :size="64"
-                                />
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-medium text-content-primary">
-                                    {{ p.alias || 'Estudiante' }}
-                                </p>
-                                <p
-                                    v-if="p.id === session.host_id"
-                                    class="text-xs text-primary-strong"
-                                >
-                                    Anfitrión
-                                </p>
-                            </div>
-                        </li>
-                    </ul>
-                </BaseCard>
-            </aside>
         </div>
     </AppLayout>
-
-    <BaseModal :show="showConfigureModal" @close="showConfigureModal = false">
-        <template #title>Configurar sala de estudio</template>
-        <form class="space-y-4" @submit.prevent="configureRoom">
-            <div class="grid grid-cols-3 gap-3">
-                <BaseInput
-                    v-model.number="configForm.focus_minutes"
-                    label="Foco (min)"
-                    type="number"
-                    min="5"
-                    max="120"
-                />
-                <BaseInput
-                    v-model.number="configForm.break_minutes"
-                    label="Descanso (min)"
-                    type="number"
-                    min="1"
-                    max="30"
-                />
-                <BaseInput
-                    v-model.number="configForm.cycles"
-                    label="Ciclos"
-                    type="number"
-                    min="1"
-                    max="20"
-                />
-            </div>
-            <div class="flex justify-end gap-2 pt-2">
-                <BaseButton type="button" variant="ghost" @click="showConfigureModal = false"
-                    >Cancelar</BaseButton
-                >
-                <BaseButton type="submit">Guardar configuración</BaseButton>
-            </div>
-        </form>
-    </BaseModal>
 </template>

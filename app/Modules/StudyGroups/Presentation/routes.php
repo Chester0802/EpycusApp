@@ -22,4 +22,5 @@ Route::middleware(['web', 'auth', 'throttle:120,1'])->group(function () {
     Route::post('/api/study-sessions/{id}/pomodoro/start', [StudyGroupController::class, 'startPomodoro'])->name('study-groups.pomodoro.start');
     Route::post('/api/study-sessions/{id}/configure', [StudyGroupController::class, 'configure'])->name('study-groups.configure');
     Route::post('/api/study-sessions/{id}/advance', [StudyGroupController::class, 'advance'])->name('study-groups.advance');
+    Route::post('/api/study-sessions/{id}/move', [StudyGroupController::class, 'move'])->name('study-groups.move');
 });
