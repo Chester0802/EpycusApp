@@ -86,52 +86,54 @@ function handleKeyDown(e) {
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
 
     const key = e.key.toLowerCase();
-    const cp = graph3DInstance.cameraPosition();
+    const camera = graph3DInstance.camera();
+    const controls = graph3DInstance.controls();
+    if (!camera) return;
 
-    // A / D: Rotación orbital azimutal alrededor del cerebro holográfico
+    const target = controls?.target ? controls.target.clone() : new THREE.Vector3(0, 0, 0);
+    const offset = new THREE.Vector3().subVectors(camera.position, target);
+    const spherical = new THREE.Spherical().setFromVector3(offset);
+
+    let changed = false;
+
+    // A / D: Rotación orbital azimutal alrededor del cerebro
     if (key === 'a' || e.key === 'ArrowLeft') {
         e.preventDefault();
-        const r = Math.sqrt(cp.x * cp.x + cp.z * cp.z) || 450;
-        const currentAngle = Math.atan2(cp.z, cp.x);
-        const newAngle = currentAngle + 0.14;
-        graph3DInstance.cameraPosition(
-            { x: r * Math.cos(newAngle), y: cp.y, z: r * Math.sin(newAngle) },
-            undefined,
-            80
-        );
+        spherical.theta += 0.12;
+        changed = true;
     } else if (key === 'd' || e.key === 'ArrowRight') {
         e.preventDefault();
-        const r = Math.sqrt(cp.x * cp.x + cp.z * cp.z) || 450;
-        const currentAngle = Math.atan2(cp.z, cp.x);
-        const newAngle = currentAngle - 0.14;
-        graph3DInstance.cameraPosition(
-            { x: r * Math.cos(newAngle), y: cp.y, z: r * Math.sin(newAngle) },
-            undefined,
-            80
-        );
+        spherical.theta -= 0.12;
+        changed = true;
     } 
-    // W / S: Elevación polar / pitch
+    // W / S: Elevación polar / inclinación
     else if (key === 'w' || e.key === 'ArrowUp') {
         e.preventDefault();
-        graph3DInstance.cameraPosition({ y: cp.y + 40 }, undefined, 80);
+        spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi - 0.08));
+        changed = true;
     } else if (key === 's' || e.key === 'ArrowDown') {
         e.preventDefault();
-        graph3DInstance.cameraPosition({ y: cp.y - 40 }, undefined, 80);
+        spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + 0.08));
+        changed = true;
     } 
-    // + / -: Dolly Zoom cinemático hacia el centro
+    // + / -: Zoom in / Zoom out cinemático
     else if (key === '+' || key === '=' || e.code === 'NumpadAdd') {
         e.preventDefault();
-        graph3DInstance.cameraPosition(
-            { x: cp.x * 0.85, y: cp.y * 0.85, z: cp.z * 0.85 },
-            undefined,
-            100
-        );
+        spherical.radius = Math.max(80, spherical.radius * 0.85);
+        changed = true;
     } else if (key === '-' || key === '_' || e.code === 'NumpadSubtract') {
         e.preventDefault();
+        spherical.radius = Math.min(1200, spherical.radius * 1.18);
+        changed = true;
+    }
+
+    if (changed) {
+        offset.setFromSpherical(spherical);
+        const newPos = new THREE.Vector3().addVectors(target, offset);
         graph3DInstance.cameraPosition(
-            { x: cp.x * 1.18, y: cp.y * 1.18, z: cp.z * 1.18 },
-            undefined,
-            100
+            { x: newPos.x, y: newPos.y, z: newPos.z },
+            target,
+            80
         );
     }
 }

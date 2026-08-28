@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import KnowledgeGraphView from '@/Components/Calendar/KnowledgeGraphView.vue';
@@ -11,27 +11,16 @@ import ActiveRecallModal from '@/Components/Learning/ActiveRecallModal.vue';
 import {
     Brain,
     Layers,
-    Sparkles,
     Search,
     BookOpen,
-    Network,
-    Zap,
-    CheckCircle2,
     HelpCircle,
-    Copy,
-    Check,
-    Flame,
-    Clock,
-    Target,
     Loader2,
-    Activity,
-    Star,
-    Compass
+    Sparkles
 } from '@lucide/vue';
 
 const props = defineProps({
     courses: { type: Array, default: () => [] },
-    graphData: { type: Object, default: () => ({ has_graph: false, nodes: [], edges: [], stats: {}, quota: {} }) },
+    graphData: { type: Object, default: () => ({ has_graph: false, nodes: [], edges: [], stats: {}, quota: { used_count: 0, max_quota: 5, remaining: 5 } }) },
     learningStats: { type: Object, default: () => ({ avgMastery: 70, totalChunks: 0, weakChunksCount: 0, streakDays: 4 }) },
 });
 
@@ -47,6 +36,7 @@ const generatingAI = ref(false);
 const showStudyModal = ref(false);
 const showRecallModal = ref(false);
 const activeChunk = ref(null);
+const selectedRecallIndex = ref(0);
 const showNoteModal = ref(false);
 const activeNoteCourse = ref(null);
 
@@ -58,6 +48,15 @@ const allEdges = computed(() => localGraphData.value.edges || []);
 // Filtrar solo los chunks (excluyendo nodos padre de curso en el deck)
 const localChunks = computed(() => {
     return allNodes.value.filter(n => !n.is_parent);
+});
+
+// ── Cuota de IA Restante (5 globales por usuario) ───────────────────────────
+const quotaRemaining = computed(() => {
+    if (localGraphData.value.quota?.remaining !== undefined) {
+        return localGraphData.value.quota.remaining;
+    }
+    const used = localGraphData.value.quota?.used_count || 0;
+    return Math.max(0, 5 - used);
 });
 
 // ── Métricas Reales Reactivas en Vivo ────────────────────────────────────────
@@ -139,6 +138,8 @@ function openStudy(chunk) {
 
 function openRecall(chunk) {
     activeChunk.value = chunk;
+    const idx = filteredChunks.value.findIndex(c => c.id === chunk.id);
+    selectedRecallIndex.value = idx >= 0 ? idx : 0;
     showRecallModal.value = true;
 }
 
@@ -159,22 +160,16 @@ function handleRecallEvaluation({ chunkId, delta }) {
         console.error('Error guardando mastery:', err);
     });
 
-    triggerToast(`¡Dominio actualizado a ${updated}%! 🧠`, delta > 0 ? 'success' : 'info');
-}
-
-function nextRecallChunk() {
-    const list = filteredChunks.value;
-    if (list.length <= 1 || !activeChunk.value) {
-        showRecallModal.value = false;
-        return;
-    }
-    const idx = list.findIndex(c => c.id === activeChunk.value.id);
-    const nextIdx = (idx + 1) % list.length;
-    activeChunk.value = list[nextIdx];
+    triggerToast(`Dominio actualizado a ${updated}%`, delta > 0 ? 'success' : 'info');
 }
 
 // ── Generación de IA por Curso o Global ─────────────────────────────────────
 async function handleGenerateAI(courseId = null) {
+    if (quotaRemaining.value <= 0) {
+        triggerToast('Has alcanzado el límite de 5 intentos diarios de IA', 'error');
+        return;
+    }
+
     generatingAI.value = true;
     try {
         const targetId = courseId || selectedCourseId.value;
@@ -188,7 +183,7 @@ async function handleGenerateAI(courseId = null) {
             if (res.data.quota) {
                 localGraphData.value.quota = res.data.quota;
             }
-            triggerToast('¡Constelación de conocimiento generada con IA! ✨', 'success');
+            triggerToast('Conocimiento actualizado con IA exitosamente', 'success');
         }
     } catch (err) {
         const msg = err.response?.data?.message || 'Error al conectar con IA';
@@ -226,7 +221,7 @@ function getMasteryColor(mastery) {
         <!-- Toast Flotante -->
         <div
             v-if="toastMessage"
-            class="fixed top-5 right-5 z-50 px-4 py-2.5 rounded-2xl shadow-xl text-xs font-bold transition-all animate-bounce"
+            class="fixed top-5 right-5 z-50 px-4 py-2.5 rounded-2xl shadow-xl text-xs font-bold transition-all"
             :class="toastType === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'"
         >
             {{ toastMessage }}
@@ -237,7 +232,7 @@ function getMasteryColor(mastery) {
             <!-- ── 1. HEADER PRINCIPAL: MÉTRICAS & SELECTOR DE VISTAS ─────────── -->
             <div class="bg-surface rounded-3xl border border-border p-6 sm:p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <div class="flex items-center gap-2.5">
+                    <div class="flex items-center gap-3">
                         <div class="p-2.5 rounded-2xl bg-indigo-500/10 text-primary-strong border border-indigo-500/20">
                             <Brain class="w-6 h-6" />
                         </div>
@@ -252,10 +247,10 @@ function getMasteryColor(mastery) {
                     </div>
 
                     <!-- Métricas Reactivas en Vivo -->
-                    <div class="flex items-center gap-4 mt-4 text-xs">
+                    <div class="flex items-center gap-3 mt-4 text-xs">
                         <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-raised border border-border">
-                            <span class="text-content-muted font-semibold">Dominio Global:</span>
-                            <span class="font-black text-emerald-600 dark:text-emerald-400">
+                            <span class="text-content-muted font-medium">Dominio Global:</span>
+                            <span class="font-bold text-emerald-600 dark:text-emerald-400">
                                 {{ realGlobalMastery }}%
                             </span>
                             <div class="w-16 h-1.5 bg-surface-sunken rounded-full overflow-hidden">
@@ -269,54 +264,49 @@ function getMasteryColor(mastery) {
                                 ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 text-rose-700 dark:text-rose-400'
                                 : 'bg-surface-raised border-border text-content-secondary'"
                         >
-                            <Flame class="w-3.5 h-3.5" :class="weakChunksCount > 0 ? 'text-rose-500 animate-pulse' : 'text-amber-500'" />
                             <span><strong>{{ weakChunksCount }}</strong> por reforzar (&lt;60%)</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Selector de Modos de Aprendizaje (Tríada) & Conectar con IA -->
+                <!-- Selector de Modos de Aprendizaje (Sin Símbolos, Solo Títulos) & Conectar con IA -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <div class="flex items-center bg-surface-sunken p-1 rounded-2xl border border-border">
                         <button
                             type="button"
-                            class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
                             :class="viewMode === 'chunks' ? 'bg-surface text-primary-strong shadow-sm' : 'text-content-secondary hover:text-content-primary'"
                             @click="viewMode = 'chunks'"
                         >
-                            <Layers class="w-3.5 h-3.5" />
-                            <span>Deck Chunks</span>
+                            Deck Chunks
                         </button>
                         <button
                             type="button"
-                            class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
                             :class="viewMode === 'mindmap' ? 'bg-surface text-primary-strong shadow-sm' : 'text-content-secondary hover:text-content-primary'"
                             @click="viewMode = 'mindmap'"
                         >
-                            <Compass class="w-3.5 h-3.5" />
-                            <span>Mapa Mental</span>
+                            Mapa Mental
                         </button>
                         <button
                             type="button"
-                            class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
                             :class="viewMode === 'graph' ? 'bg-surface text-primary-strong shadow-sm' : 'text-content-secondary hover:text-content-primary'"
                             @click="viewMode = 'graph'"
                         >
-                            <Brain class="w-3.5 h-3.5" />
-                            <span>Segundo Cerebro 3D</span>
+                            Segundo Cerebro 3D
                         </button>
                     </div>
 
-                    <!-- Botón Conectar con IA -->
+                    <!-- Botón Conectar con IA con Intentos Restantes -->
                     <button
                         type="button"
-                        class="px-4 py-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
-                        :disabled="generatingAI"
+                        class="px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                        :disabled="generatingAI || quotaRemaining <= 0"
                         @click="handleGenerateAI(selectedCourseId)"
                     >
                         <Loader2 v-if="generatingAI" class="w-4 h-4 animate-spin" />
-                        <Sparkles v-else class="w-4 h-4 text-amber-300" />
-                        <span>{{ generatingAI ? 'Generando...' : 'Conectar con IA' }}</span>
+                        <span>{{ generatingAI ? 'Generando...' : `Conectar con IA (${quotaRemaining}/5)` }}</span>
                     </button>
                 </div>
             </div>
@@ -368,14 +358,15 @@ function getMasteryColor(mastery) {
                             href="https://notebooklm.google.com"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-raised hover:bg-surface-sunken border border-border text-xs font-bold text-content-secondary hover:text-blue-600 transition-all shrink-0"
+                            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-surface-raised hover:bg-slate-50 dark:hover:bg-surface-sunken border border-slate-200 dark:border-border text-xs font-semibold text-slate-700 dark:text-content-secondary hover:text-blue-600 shadow-sm transition-all shrink-0"
                             title="Abrir Google NotebookLM"
                         >
-                            <!-- SVG Oficial Google NotebookLM -->
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                                <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" fill="#E8F0FE"/>
-                                <path d="M8 7h8M8 11h8M8 15h5" stroke="#1A73E8" stroke-width="1.8" stroke-linecap="round"/>
-                                <circle cx="16.5" cy="15.5" r="1.5" fill="#34A853"/>
+                            <!-- Logo Oficial Google NotebookLM -->
+                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
+                                <rect width="24" height="24" rx="5" fill="#F1F3F4"/>
+                                <path d="M7 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="#4285F4"/>
+                                <path d="M8.5 9.5h7M8.5 12h5M8.5 14.5h4" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round"/>
+                                <circle cx="15.5" cy="14.5" r="1" fill="#34A853"/>
                             </svg>
                             <span>NotebookLM</span>
                         </a>
@@ -399,11 +390,11 @@ function getMasteryColor(mastery) {
                         class="px-4 py-2 rounded-xl bg-primary-strong text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
                         @click="handleGenerateAI(selectedCourseId)"
                     >
-                        Generar con IA ✨
+                        Generar con IA
                     </button>
                 </div>
 
-                <!-- Grid de Chunks -->
+                <!-- Grid de Chunks Limpio (Sin Emojis ni Estrellas saturadas) -->
                 <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div
                         v-for="chunk in filteredChunks"
@@ -412,16 +403,16 @@ function getMasteryColor(mastery) {
                     >
                         <div>
                             <div class="flex items-center justify-between gap-2 mb-2">
-                                <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-surface-raised border border-border text-content-secondary truncate max-w-[140px]">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-surface-raised border border-border text-content-secondary truncate max-w-[140px]">
                                     {{ chunk.course_name }}
                                 </span>
-                                <div class="flex items-center gap-0.5 text-amber-500 text-xs">
-                                    <Star v-for="s in (chunk.importance || 4)" :key="s" class="w-3 h-3 fill-amber-400 text-amber-400" />
-                                </div>
+                                <span v-if="chunk.category" class="text-[10px] text-content-muted font-medium">
+                                    {{ chunk.category }}
+                                </span>
                             </div>
 
                             <h3 class="text-base font-bold text-content-primary group-hover:text-primary-strong transition-colors line-clamp-1">
-                                🧩 {{ chunk.label }}
+                                {{ chunk.label }}
                             </h3>
 
                             <p class="text-xs text-content-secondary mt-1.5 line-clamp-2 leading-relaxed font-normal">
@@ -432,8 +423,8 @@ function getMasteryColor(mastery) {
                         <!-- Barra de Dominio -->
                         <div class="space-y-2 pt-2 border-t border-border/60">
                             <div class="flex items-center justify-between text-xs">
-                                <span class="text-[11px] font-bold text-content-secondary">Dominio</span>
-                                <span class="text-xs font-black" :class="getMasteryColor(chunk.mastery || 70).split(' ')[0]">
+                                <span class="text-[11px] font-medium text-content-secondary">Dominio</span>
+                                <span class="text-xs font-bold" :class="getMasteryColor(chunk.mastery || 70).split(' ')[0]">
                                     {{ chunk.mastery || 70 }}%
                                 </span>
                             </div>
@@ -469,7 +460,7 @@ function getMasteryColor(mastery) {
                 </div>
             </div>
 
-            <!-- ── 3. VISTA 2: MAPA MENTAL POR CURSO ────────────────────────────── -->
+            <!-- ── 3. VISTA 2: MAPA MENTAL POR CURSO (Fondo Blanco) ─────────────── -->
             <div v-else-if="viewMode === 'mindmap'" class="space-y-4 animate-fade-in">
                 <!-- Selector de Curso para el Mapa Mental -->
                 <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
@@ -490,7 +481,6 @@ function getMasteryColor(mastery) {
                     :course="activeCourse"
                     :chunks="filteredChunks"
                     @studyChunk="openStudy"
-                    @recallChunk="openRecall"
                     @generateAi="handleGenerateAI(activeCourse.id)"
                 />
             </div>
@@ -518,10 +508,10 @@ function getMasteryColor(mastery) {
 
             <ActiveRecallModal
                 :show="showRecallModal"
-                :chunk="activeChunk"
+                :chunks="filteredChunks"
+                :initial-index="selectedRecallIndex"
                 @close="showRecallModal = false"
                 @evaluated="handleRecallEvaluation"
-                @next="nextRecallChunk"
             />
 
             <NoteEditorModal
