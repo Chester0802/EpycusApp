@@ -22,6 +22,7 @@ const navSections = [
         items: [
             { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
             { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
+            { label: 'Aprendizaje', routeName: 'learning.index', icon: 'brain', matchRoutes: ['learning.*'] },
             { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
             { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro' },
         ],
@@ -56,14 +57,16 @@ const navSections = [
 const mobileBottomNavItems = [
     { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
     { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
+    { label: 'Aprendizaje', routeName: 'learning.index', icon: 'brain', matchRoutes: ['learning.*'] },
     { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
-    { label: 'Bienestar', routeName: 'habits.index', icon: 'habits', matchRoutes: ['habits.index', 'wellbeing.index', 'wellbeing.day', 'fitness.index'] },
     { label: 'Más', action: 'more', icon: 'settings' },
 ];
 
 const mobileDrawerItems = [
     { label: 'Mi Perfil & Logros', routeName: 'profile.edit', icon: 'user', desc: 'Avatar, XP y Medallas' },
+    { label: 'Zona de Aprendizaje', routeName: 'learning.index', icon: 'brain', desc: 'Chunks, Active Recall & Grafo' },
     { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro', desc: 'Temporizador de estudio' },
+    { label: 'Bienestar & Hábitos', routeName: 'habits.index', icon: 'habits', desc: 'Rutinas, diario y salud' },
     { label: 'Finanzas', routeName: 'finance.index', icon: 'finance', desc: 'Presupuesto y ahorro' },
     { label: 'Tienda', routeName: 'shop.index', icon: 'shop', desc: 'Canje de recompensas' },
     { label: 'Edy AI', routeName: 'ai-assistant.index', icon: 'ai', desc: 'Tutor y consejero' },

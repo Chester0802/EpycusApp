@@ -10,6 +10,7 @@ use App\Modules\Fitness\Infrastructure\Providers\FitnessServiceProvider;
 use App\Modules\Gamification\Infrastructure\Providers\GamificationServiceProvider;
 use App\Modules\Habits\Infrastructure\Providers\HabitsServiceProvider;
 use App\Modules\Identity\Infrastructure\Providers\IdentityServiceProvider;
+use App\Modules\Learning\Infrastructure\Providers\LearningServiceProvider;
 use App\Modules\Missions\Infrastructure\Providers\MissionsServiceProvider;
 use App\Modules\Motivation\Infrastructure\Providers\MotivationServiceProvider;
 use App\Modules\Pomodoro\Infrastructure\Providers\PomodoroServiceProvider;
@@ -34,6 +35,7 @@ return [
     HabitsServiceProvider::class,
     MissionsServiceProvider::class,
     CalendarServiceProvider::class,
+    LearningServiceProvider::class,
     PomodoroServiceProvider::class,
     WellbeingServiceProvider::class,
     StudyGroupsServiceProvider::class,
