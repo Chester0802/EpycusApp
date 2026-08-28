@@ -629,12 +629,13 @@ function destroy3DGraph() {
 }
 
 function createTextSprite3D(message, color, glowColor) {
+    const safeMessage = "  " + message + "  "; // Padding seguro para primera/última letra
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
     // Soporte HiDPI (Retina)
     const dpr = window.devicePixelRatio || 1;
-    const baseWidth = 512;
+    const baseWidth = 640; // Ensanchado para texto largo y evitar corte
     const baseHeight = 128;
     
     // Multiplicar dimensiones internas por DPR para nitidez
@@ -651,8 +652,8 @@ function createTextSprite3D(message, color, glowColor) {
     // Halo oscuro para legibilidad (Crispness)
     ctx.shadowColor = '#000000';
     ctx.shadowBlur = 8;
-    ctx.fillText(message, baseWidth / 2, baseHeight / 2);
-    ctx.fillText(message, baseWidth / 2, baseHeight / 2); // Doble trazo (Crisp text)
+    ctx.fillText(safeMessage, baseWidth / 2, baseHeight / 2);
+    ctx.fillText(safeMessage, baseWidth / 2, baseHeight / 2); // Doble trazo (Crisp text)
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.minFilter = THREE.LinearFilter;
@@ -1512,11 +1513,11 @@ onUnmounted(() => {
                 <div class="flex items-center gap-2 shrink-0">
                     
                     <!-- Toggle 2D / 3D -->
-                    <div class="hidden md:flex bg-slate-800/80 p-0.5 rounded-xl border border-slate-700/50" role="group" aria-label="Alternar modo visual">
+                    <div class="flex bg-slate-800/80 p-0.5 rounded-xl border border-slate-700/50" role="group" aria-label="Alternar modo visual">
                         <button
                             type="button"
                             aria-pressed="viewMode === '2D'"
-                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            class="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             :class="viewMode === '2D' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'"
                             @click="viewMode = '2D'"
                         >
@@ -1525,11 +1526,11 @@ onUnmounted(() => {
                         <button
                             type="button"
                             aria-pressed="viewMode === '3D'"
-                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            class="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 sm:gap-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500"
                             :class="viewMode === '3D' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'"
                             @click="viewMode = '3D'"
                         >
-                            <Box class="w-3.5 h-3.5" />
+                            <Box class="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                             3D
                         </button>
                     </div>
