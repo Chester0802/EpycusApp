@@ -39,17 +39,18 @@ final class KnowledgeGraphController extends Controller
         }
     }
 
-    public function generate(): JsonResponse
+    public function generate(Request $request): JsonResponse
     {
         $userId = (int) Auth::id();
+        $courseId = $request->input('course_id') ? (int) $request->input('course_id') : null;
 
         try {
-            $data = $this->generateKnowledgeGraph->execute($userId);
+            $data = $this->generateKnowledgeGraph->execute($userId, $courseId);
 
             return response()->json([
                 'success' => true,
                 'data' => $data,
-                'message' => '¡Grafo de conocimiento actualizado exitosamente con IA!',
+                'message' => '¡Constelación de conocimiento actualizada exitosamente con IA!',
             ]);
         } catch (Exception $e) {
             return response()->json([
