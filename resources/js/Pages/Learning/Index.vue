@@ -311,6 +311,24 @@ function getMasteryColor(mastery) {
                 </div>
             </div>
 
+            <!-- Banner Informativo de Procesamiento de IA -->
+            <div
+                v-if="generatingAI"
+                class="bg-indigo-50/95 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/80 rounded-3xl p-4 sm:p-5 flex items-center gap-3.5 shadow-sm animate-fade-in"
+            >
+                <div class="p-2.5 rounded-2xl bg-indigo-600 text-white shadow-md shrink-0">
+                    <Loader2 class="w-5 h-5 animate-spin" />
+                </div>
+                <div class="space-y-0.5">
+                    <h4 class="text-sm font-black text-slate-900 dark:text-content-primary">
+                        Sintetizando tu Segundo Cerebro con IA...
+                    </h4>
+                    <p class="text-xs text-slate-600 dark:text-content-secondary">
+                        La IA está procesando tus apuntes oficiales para construir el mapa mental y flashcards. <strong>Esto puede tardar entre 30s y 2 minutos</strong>. Ten paciencia o continúa navegando en tus asignaturas mientras el motor neuronal termina.
+                    </p>
+                </div>
+            </div>
+
             <!-- ── 2. VISTA 1: DECK VISUAL DE CHUNKS ────────────────────────────── -->
             <div v-if="viewMode === 'chunks'" class="space-y-4">
                 

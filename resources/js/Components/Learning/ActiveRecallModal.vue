@@ -77,7 +77,7 @@ function restartSession() {
 <template>
     <div
         v-if="show && (currentChunk || isCompleted)"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-fade-in select-none"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-fade-in select-none"
         @click.self="emit('close')"
     >
         <div class="relative w-full max-w-lg flex flex-col items-center">
@@ -118,10 +118,10 @@ function restartSession() {
                 </div>
             </div>
 
-            <!-- ── FLASHCARD INTERACTIVA (CUADRO BLANCO PROFESIONAL) ───────── -->
+            <!-- ── FLASHCARD INTERACTIVA (CUADRO BLANCO SÓLIDO TOTAL) ───────── -->
             <div v-else-if="currentChunk" class="w-full space-y-3">
                 
-                <!-- Barra Superior con Asignatura, Conteo y Salir -->
+                <!-- Barra Superior de Navegación -->
                 <div class="w-full flex items-center justify-between text-white text-xs font-bold px-2">
                     <div class="flex items-center gap-2">
                         <span class="px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-white backdrop-blur-sm">
@@ -141,16 +141,16 @@ function restartSession() {
                     </button>
                 </div>
 
-                <!-- ── CONTENEDOR 3D FLIP CARD (CUADRO BLANCO SÓLIDO) ──────────── -->
-                <div class="perspective-1000 w-full min-h-[380px] sm:min-h-[420px] cursor-pointer" @click="toggleFlip">
+                <!-- ── CONTENEDOR 3D FLIP CARD CON ALTURA DEFINIDA ──────────────── -->
+                <div class="perspective-1000 w-full h-[440px] sm:h-[470px] cursor-pointer relative" @click="toggleFlip">
                     <div
-                        class="relative w-full h-full duration-500 transform-style-3d transition-transform rounded-3xl"
+                        class="w-full h-full duration-500 transform-style-3d transition-transform relative"
                         :class="isFlipped ? 'rotate-y-180' : ''"
                     >
                         
                         <!-- ── CARA FRONTAL (ANVERSO: PREGUNTA) ────────────────── -->
-                        <div class="absolute inset-0 backface-hidden bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-2xl">
-                            <div class="flex items-center justify-between text-xs pb-3 border-b border-slate-100">
+                        <div class="absolute inset-0 w-full h-full backface-hidden bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-2xl overflow-hidden">
+                            <div class="flex items-center justify-between text-xs pb-3 border-b border-slate-100 shrink-0">
                                 <span class="text-[11px] font-black uppercase tracking-wider text-indigo-600 flex items-center gap-1.5">
                                     <HelpCircle class="w-4 h-4" />
                                     Active Recall Flashcard
@@ -160,8 +160,8 @@ function restartSession() {
                                 </span>
                             </div>
 
-                            <!-- Pregunta Central Destacada -->
-                            <div class="my-auto text-center space-y-3 py-6">
+                            <!-- Pregunta Central Destacada (Texto Negro de Alto Contraste) -->
+                            <div class="my-auto text-center space-y-3 py-4 overflow-y-auto max-h-[220px]">
                                 <span class="text-xs font-bold text-slate-400 uppercase tracking-widest block">
                                     {{ currentChunk.label }}
                                 </span>
@@ -171,7 +171,7 @@ function restartSession() {
                             </div>
 
                             <!-- Botón para Voltear -->
-                            <div class="pt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-indigo-600 text-xs font-bold">
+                            <div class="pt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-indigo-600 text-xs font-bold shrink-0">
                                 <RotateCcw class="w-4 h-4" />
                                 <span>Toca para voltear y ver la respuesta</span>
                             </div>
@@ -179,10 +179,10 @@ function restartSession() {
 
                         <!-- ── CARA POSTERIOR (REVERSO: RESPUESTA & CALIFICACIÓN) ── -->
                         <div
-                            class="absolute inset-0 backface-hidden rotate-y-180 bg-white border border-indigo-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-2xl"
+                            class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-white border border-indigo-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-2xl overflow-hidden"
                             @click.stop
                         >
-                            <div class="flex items-center justify-between text-xs pb-3 border-b border-slate-100">
+                            <div class="flex items-center justify-between text-xs pb-3 border-b border-slate-100 shrink-0">
                                 <span class="text-[11px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1.5">
                                     <CheckCircle2 class="w-4 h-4" />
                                     Respuesta Clave Explicada
@@ -197,15 +197,15 @@ function restartSession() {
                                 </button>
                             </div>
 
-                            <!-- Respuesta Central -->
-                            <div class="my-auto text-center space-y-2 py-4">
-                                <p class="text-base sm:text-lg font-semibold text-slate-800 leading-relaxed px-2">
+                            <!-- Respuesta Central (Texto Nítido y Claro) -->
+                            <div class="my-auto text-center space-y-2 py-3 overflow-y-auto max-h-[190px]">
+                                <p class="text-sm sm:text-base font-semibold text-slate-800 leading-relaxed px-2">
                                     {{ currentChunk.quiz_answer || currentChunk.summary }}
                                 </p>
                             </div>
 
                             <!-- 3 Botones de Calificación Claros -->
-                            <div class="space-y-2 pt-4 border-t border-slate-100">
+                            <div class="space-y-2 pt-3 border-t border-slate-100 shrink-0">
                                 <p class="text-center text-xs font-bold text-slate-500">
                                     ¿Cómo fue tu retención mental?
                                 </p>

@@ -33,6 +33,8 @@ final class GenerateKnowledgeGraphUseCase
 
     public function execute(int $userId, ?int $targetCourseId = null): array
     {
+        @set_time_limit(240);
+
         // 1. Validar Cuota Diaria de IA (5 usos globales por usuario)
         $quota = $this->checkQuota->execute($userId);
         if ($quota['is_exhausted']) {
@@ -114,23 +116,23 @@ final class GenerateKnowledgeGraphUseCase
         $coursesJson = json_encode($coursesData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
         $systemPrompt = <<<SYS
-Eres un Diseñador Curricular y Experto en Neurociencia del Aprendizaje. Tu tarea es extraer con TOTAL RIGOR los conceptos clave a partir de los apuntes reales proporcionados por el estudiante para construir su Mapa Mental y Flashcards de Active Recall:
+Eres un Diseñador Curricular y Experto en Neurociencia del Aprendizaje. Tu tarea es estructurar con TOTAL RIGOR los conceptos clave a partir de los apuntes reales proporcionados por el estudiante para construir su Mapa Mental y Flashcards de Active Recall:
 
-REGLAS ESTRICTAS DE EXTRACCIÓN:
+REGLAS ESTRICTAS DE ESTRUCTURACIÓN:
 1. Para cada asignatura debes generar:
-   - 1 NODO RAÍZ ("is_parent": true) con el nombre exacto de la materia.
-   - Entre 2 y 4 EJES TEMÁTICOS ("category") que agrupen lógicamente los temas reales (ej. "Conmutación & Tabla CAM", "Protocolos LAN", "Arquitectura Ethernet").
+   - 1 NODO RAÍZ ("is_parent": true) con el nombre de la materia.
+   - Entre 2 y 4 EJES TEMÁTICOS ("category") para distribuir armónicamente las ramas del Mapa Mental (ej. "Conmutación & Tabla CAM", "Direccionamiento & Protocolos", "Hardware & Capa 3").
    - 1 CHUNK ("is_parent": false) POR CADA TEMA O SECCIÓN REAL de los apuntes.
 
-2. CADA CHUNK DEBE TENER INFORMACIÓN SUSTANTIVA (NO TEXTO GENÉRICO):
+2. CADA CHUNK DEBE TENER TÍTULOS CONCISOS Y CONTENIDO SUSTANTIVO (NUNCA PALABRAS CORTADAS):
    - "id": string único (ej. "chunk_c1_1")
-   - "label": TÍTULO CORTO Y CONCRETO (MÁXIMO 24 CARACTERES) para que entre perfecto en el mapa mental (ej. "Tabla CAM & Reenvío", "Subcapas LLC y MAC", "Protocolo ARP", "Estructura de Trama", "Switches de Capa 3").
+   - "label": Título limpio, completo y directo de 2 a 5 palabras (ej. "Decisiones Tabla CAM", "Subcapas LLC y MAC", "Campos de Trama Ethernet", "Dirección MAC", "Protocolo ARP", "Broadcast y Rendimiento", "Conmutación MAC", "Switches Modulares", "Configuración Capa 3").
    - "category": El eje temático correspondiente.
-   - "summary": Idea clave directa y contundente basada en el apunte (máx 150 caracteres).
+   - "summary": Idea clave directa y contundente basada en el apunte (máx 150 caracteres, sin prefijos como "Definición aceptada:").
    - "key_points": Array de 2 a 3 puntos técnicos explicativos.
    - "why_it_matters": Ejemplo práctico o caso de uso según el apunte.
-   - "quiz_question": PREGUNTA DE ACTIVE RECALL DESAFIANTE sobre el mecanismo del tema (ej. "¿Cómo decide un switch el reenvío de una trama si la MAC destino no está en la tabla CAM?").
-   - "quiz_answer": RESPUESTA CLAVE PRECISA Y CONCRETA (ej. "Realiza una inundación (flooding) enviando la trama por todos los puertos activos excepto por el que la recibió.").
+   - "quiz_question": PREGUNTA DE ACTIVE RECALL DESAFIANTE sobre el mecanismo del tema (ej. "¿Qué acción toma el switch cuando la MAC destino de una trama no está en su tabla CAM?").
+   - "quiz_answer": RESPUESTA CLAVE PRECISA Y CONCRETA (ej. "Realiza una inundación (flooding) replicando la trama por todos los puertos activos excepto el de origen.").
    - "importance": 5
    - "mastery": 70
 
@@ -152,12 +154,12 @@ FORMATO JSON REQUERIDO (Estricto, sin comentarios ni texto adicional):
     },
     {
       "id": "chunk_c1_1",
-      "label": "Tabla CAM & Reenvío",
+      "label": "Decisiones Tabla CAM",
       "is_parent": false,
       "course_id": 1,
       "course_name": "Redes 2",
-      "category": "Conmutación",
-      "summary": "Proceso del switch para asociar direcciones MAC a puertos físicos y reenviar tramas.",
+      "category": "Conmutación & Tabla CAM",
+      "summary": "Mecanismo del switch para asociar direcciones MAC a puertos físicos y reenviar tramas.",
       "key_points": [
         "Aprende leyendo la MAC origen de cada trama",
         "Reenvía por el puerto exacto si la MAC destino está registrada",
@@ -195,7 +197,7 @@ SYS;
             $rawResponse = $this->apiClient->chat($messages);
             $parsedData = $this->parseJsonSafely($rawResponse);
         } catch (Exception $e) {
-            Log::warning("DeepSeek API error: {$e->getMessage()}. Usando motor de extracción directa de apuntes.");
+            Log::warning("DeepSeek API error: {$e->getMessage()}. Usando motor de estructuración directa de apuntes.");
             $parsedData = $this->generateHierarchyFromRealSections($coursesData);
         }
 
@@ -291,38 +293,57 @@ SYS;
     }
 
     /**
-     * Parsea bloques HTML de apuntes y extrae cada sección temática con su título, definición y ejemplo
+     * Parsea bloques HTML de apuntes y extrae cada sección temática con títulos limpios y concisos
      */
     private function extractSectionsFromHtml(string $html): array
     {
         $sections = [];
         
-        // Dividir por etiquetas h3 o párrafos que inicien con palabra/frase
         $parts = preg_split('/<h3[^>]*>/i', $html);
         foreach ($parts as $part) {
             $part = trim($part);
             if ($part === '') continue;
 
-            // Extraer título hasta el cierre de h3 o primer salto
             if (str_contains($part, '</h3>')) {
                 [$heading, $body] = explode('</h3>', $part, 2);
             } else {
-                $heading = 'Concepto';
+                $heading = 'Concepto Clave';
                 $body = $part;
             }
 
             $headingClean = trim(strip_tags($heading));
-            // Limpiar números iniciales como "1. " o "Palabra / Frase: "
+            // Limpiar prefijos redundantes
             $headingClean = preg_replace('/^(Palabra\s*\/\s*Frase:\s*|\d+\.\s*)/i', '', $headingClean);
-            if (strlen($headingClean) > 24) {
-                $headingClean = mb_substr($headingClean, 0, 24);
+            
+            // Simplificar títulos largos de forma inteligente (sin cortar palabras)
+            $titleReplacements = [
+                'Decisiones de reenvío de tramas a través de la Tabla CAM' => 'Decisiones Tabla CAM',
+                'Subcapas de Ethernet (LLC y MAC)' => 'Subcapas LLC y MAC',
+                'Campos principales de la trama de Ethernet' => 'Campos de Trama Ethernet',
+                'Propósito y características de la dirección MAC de Ethernet' => 'Dirección MAC Ethernet',
+                'Propósito del protocolo ARP (Address Resolution Protocol)' => 'Protocolo ARP',
+                'Cómo las solicitudes ARP afectan el rendimiento de la red y del host' => 'Rendimiento y Broadcast ARP',
+                'Conceptos básicos de conmutación' => 'Conmutación (Aprender/Reenviar)',
+                'Switches de configuración fija vs modulares' => 'Switches Fijos vs Modulares',
+                'Configurar un switch de capa 3' => 'Switches de Capa 3',
+            ];
+
+            if (isset($titleReplacements[$headingClean])) {
+                $headingClean = $titleReplacements[$headingClean];
+            } else if (mb_strlen($headingClean) > 30) {
+                // Acortar por palabras completas
+                $words = explode(' ', $headingClean);
+                $headingClean = implode(' ', array_slice($words, 0, 4));
             }
 
             $bodyClean = trim(strip_tags($body));
-            if ($headingClean !== '' && strlen($bodyClean) > 20) {
+            // Limpiar texto de "Definición aceptada:"
+            $bodyClean = preg_replace('/^Definición aceptada:\s*/i', '', $bodyClean);
+
+            if ($headingClean !== '' && strlen($bodyClean) > 15) {
                 $sections[] = [
                     'title' => $headingClean,
-                    'content' => mb_substr($bodyClean, 0, 300),
+                    'content' => mb_substr($bodyClean, 0, 350),
                 ];
             }
         }
@@ -331,7 +352,7 @@ SYS;
     }
 
     /**
-     * Fallback inteligente basado 100% en las secciones reales de los apuntes del alumno
+     * Fallback inteligente basado en las secciones reales de los apuntes
      */
     private function generateHierarchyFromRealSections(array $coursesData): array
     {
@@ -358,10 +379,18 @@ SYS;
                 ];
             }
 
+            // Distribuir en 3 ramas temáticas balanceadas
+            $branchThemes = [
+                'Conmutación & Tabla CAM',
+                'Direccionamiento & Protocolos',
+                'Arquitectura & Capa 3',
+            ];
+
             foreach ($sections as $i => $sec) {
                 $childId = "chunk_c{$c['id']}_{$i}";
                 $title = $sec['title'];
                 $content = $sec['content'];
+                $branchCat = $branchThemes[$i % count($branchThemes)];
 
                 $nodes[] = [
                     'id' => $childId,
@@ -369,8 +398,8 @@ SYS;
                     'is_parent' => false,
                     'course_id' => $c['id'],
                     'course_name' => $c['name'],
-                    'category' => 'Conceptos Oficiales',
-                    'summary' => mb_substr($content, 0, 140) . '...',
+                    'category' => $branchCat,
+                    'summary' => mb_substr($content, 0, 140),
                     'key_points' => [
                         "Definición y principios según notas de clase",
                         "Mecanismo de operación y aplicación práctica"
