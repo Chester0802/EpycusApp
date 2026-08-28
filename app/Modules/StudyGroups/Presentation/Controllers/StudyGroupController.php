@@ -89,12 +89,34 @@ final class StudyGroupController extends Controller
         $participants = $this->repository->getParticipants($id);
         $lastMessageId = $messages->last()->id ?? 0;
 
+        // Misiones activas del usuario (igual que módulo Pomodoro)
+        $missionRepo = app(\App\Modules\Missions\Domain\Contracts\MissionRepositoryInterface::class);
+        $missions = $missionRepo->getActiveForUser($userId);
+        $missionsData = $missions->map(function ($m) {
+            return [
+                'id'         => $m->id,
+                'title'      => $m->title,
+                'difficulty' => $m->difficulty,
+                'priority'   => $m->priority,
+                'subtask_count' => $m->subtasks->count(),
+                'subtask_done'  => $m->subtasks->where('is_completed', true)->count(),
+                'subtasks'   => $m->subtasks->map(function ($s) {
+                    return [
+                        'id'           => $s->id,
+                        'title'        => $s->title,
+                        'is_completed' => (bool) $s->is_completed,
+                    ];
+                })->values()->all(),
+            ];
+        })->values()->all();
+
         return inertia('StudyGroups/Show', [
-            'session' => $this->mapper->toSessionArray($session),
-            'messages' => $messages->map(fn (ChatMessageModel $m) => $this->mapper->toMessageArray($m))->values()->all(),
-            'participants' => $this->mapParticipants($participants),
+            'session'       => $this->mapper->toSessionArray($session),
+            'messages'      => $messages->map(fn (ChatMessageModel $m) => $this->mapper->toMessageArray($m))->values()->all(),
+            'participants'  => $this->mapParticipants($participants),
             'lastMessageId' => $lastMessageId,
-            'userId' => $userId,
+            'userId'        => $userId,
+            'missions'      => $missionsData,
         ]);
     }
 

@@ -6,6 +6,7 @@ const props = defineProps({
     title: { type: String, default: '' },
     closeable: { type: Boolean, default: true },
     maxWidth: { type: String, default: 'lg' },
+    size: { type: String, default: null },
 });
 
 const emit = defineEmits(['close']);
@@ -29,6 +30,7 @@ watch(
 );
 
 const maxWidthClass = computed(() => {
+    const widthKey = props.size || props.maxWidth || 'lg';
     return {
         sm: 'lg:max-w-sm',
         md: 'lg:max-w-md',
@@ -36,7 +38,7 @@ const maxWidthClass = computed(() => {
         xl: 'lg:max-w-xl',
         '2xl': 'lg:max-w-2xl',
         '3xl': 'lg:max-w-3xl',
-    }[props.maxWidth] || 'lg:max-w-lg';
+    }[widthKey] || 'lg:max-w-lg';
 });
 </script>
 

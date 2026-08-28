@@ -23,6 +23,7 @@ const {
     skipBreak,
     syncWithInertiaProps,
     requestNotificationPermission,
+    isWidgetHidden,
 } = usePomodoroState();
 
 // ── Arrastre Libre de la Píldora ───────────────────────────────────────────
@@ -44,7 +45,7 @@ const isPomodoroPage = computed(() => {
 });
 
 const isVisible = computed(() => {
-    return (mode.value === 'focus' || mode.value === 'break') && !isPomodoroPage.value;
+    return (mode.value === 'focus' || mode.value === 'break') && !isPomodoroPage.value && !isWidgetHidden.value;
 });
 
 function togglePlayPause() {

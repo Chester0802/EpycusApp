@@ -20,6 +20,7 @@ const busy = ref(false);
 const hasCompletedFocusModal = ref(false);
 const completedSessionInfo = ref(null);
 const breakJustFinished = ref(false);
+const isWidgetHidden = ref(false); // Flag para ocultar el widget en módulos específicos (como salas)
 
 let ticker = null;
 let isInitialized = false;
@@ -261,7 +262,7 @@ function handleBreakFinished() {
 
 // ── Acciones de Usuario ─────────────────────────────────────────────────────
 
-export async function startFocus(plannedMinutes, missionId = null, missionTitle = null) {
+export async function startFocus(plannedMinutes, missionId = null, missionTitle = null, studyGroupSessionId = null) {
     if (busy.value) return;
     busy.value = true;
     try {
@@ -275,6 +276,7 @@ export async function startFocus(plannedMinutes, missionId = null, missionTitle 
             body: JSON.stringify({
                 planned_minutes: plannedMinutes,
                 mission_id: missionId,
+                study_group_session_id: studyGroupSessionId,
             }),
         });
 
@@ -524,6 +526,7 @@ export function usePomodoroState() {
         hasCompletedFocusModal,
         completedSessionInfo,
         breakJustFinished,
+        isWidgetHidden,
 
         // Acciones
         startFocus,

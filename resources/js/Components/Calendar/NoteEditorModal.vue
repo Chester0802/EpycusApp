@@ -25,6 +25,7 @@ import {
     Type,
     RotateCcw,
     Trash2,
+    Network,
 } from '@lucide/vue';
 
 const props = defineProps({
@@ -32,7 +33,7 @@ const props = defineProps({
     course: { type: Object,  default: null },
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'openKnowledgeGraph']);
 
 // ── Estado ──────────────────────────────────────────────────────────────────
 const loading        = ref(false);
@@ -793,6 +794,15 @@ onBeforeUnmount(() => {
                                 >
                                     <FileText :size="14" />
                                     <span>PDF</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="note-btn note-btn-secondary bg-purple-500/10 text-purple-400 border-purple-500/30 hover:bg-purple-500/20"
+                                    title="Ver este curso en el Grafo de Conocimiento (Segundo Cerebro)"
+                                    @click="emit('openKnowledgeGraph')"
+                                >
+                                    <Network :size="14" />
+                                    <span>Grafo</span>
                                 </button>
                                 <button
                                     type="button"

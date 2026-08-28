@@ -10,7 +10,7 @@ Route::middleware(['web', 'auth', 'throttle:30,1'])->group(function () {
     Route::get('/study-groups', [StudyGroupController::class, 'index'])->name('study-groups.index');
     Route::get('/study-groups/{id}', [StudyGroupController::class, 'show'])->name('study-groups.show');
     Route::post('/study-groups', [StudyGroupController::class, 'store'])->name('study-groups.store');
-    Route::post('/study-groups/{id}/join', [StudyGroupController::class, 'join'])->name('study-groups.join');
+    Route::match(['get', 'post'], '/study-groups/{id}/join', [StudyGroupController::class, 'join'])->name('study-groups.join');
     Route::post('/study-groups/{id}/leave', [StudyGroupController::class, 'leave'])->name('study-groups.leave');
 });
 

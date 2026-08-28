@@ -3,12 +3,18 @@
 declare(strict_types=1);
 
 use App\Modules\Calendar\Presentation\Controllers\CalendarController;
+use App\Modules\Calendar\Presentation\Controllers\KnowledgeGraphController;
 use App\Modules\Calendar\Presentation\Controllers\NoteImageController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])->group(function () {
     // Calendario & Time-Blocking
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+
+    // Grafo de Conocimiento (Segundo Cerebro Asistido por IA)
+    Route::get('/api/calendar/knowledge-graph', [KnowledgeGraphController::class, 'show'])->name('calendar.knowledge-graph.show');
+    Route::post('/api/calendar/knowledge-graph/generate', [KnowledgeGraphController::class, 'generate'])->name('calendar.knowledge-graph.generate');
+    Route::post('/api/calendar/knowledge-graph/positions', [KnowledgeGraphController::class, 'savePositions'])->name('calendar.knowledge-graph.positions');
 
     // Cursos
     Route::post('/calendar/courses', [CalendarController::class, 'storeCourse'])->name('calendar.courses.store');
@@ -37,3 +43,4 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/calendar/planner/apply-routines', [CalendarController::class, 'applyRoutines'])->name('calendar.planner.routines.apply');
     Route::post('/calendar/planner/load-starter-template', [CalendarController::class, 'loadStarterTemplate'])->name('calendar.planner.starter-template');
 });
+

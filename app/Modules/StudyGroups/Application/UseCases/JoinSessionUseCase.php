@@ -31,7 +31,14 @@ final readonly class JoinSessionUseCase
 
         $activeSessions = $this->repository->findActiveSessionsForUser($userId);
         if ($activeSessions->isNotEmpty()) {
-            throw new AlreadyInSessionException($userId);
+            foreach ($activeSessions as $active) {
+                if ($active->id === $sessionId) {
+                    // Ya está aquí dentro (idempotente)
+                    return $this->mapper->toSessionArray($session);
+                }
+                // Si es un fantasma en otra sala, lo retiramos
+                $this->repository->removeParticipant($active->id, $userId, now()->toDateTimeString());
+            }
         }
 
         $count = $this->repository->participantCount($sessionId);

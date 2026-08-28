@@ -110,12 +110,14 @@ final class PomodoroController extends Controller
         $validated = $request->validate([
             'planned_minutes' => 'required|integer|min:15|max:50',
             'mission_id' => 'nullable|integer',
+            'study_group_session_id' => 'nullable|integer',
         ]);
 
         $session = $this->startPomodoro->execute(
             userId: (int) Auth::id(),
             plannedMinutes: (int) $validated['planned_minutes'],
             missionId: isset($validated['mission_id']) ? (int) $validated['mission_id'] : null,
+            studyGroupSessionId: isset($validated['study_group_session_id']) ? (int) $validated['study_group_session_id'] : null,
         );
 
         return response()->json($this->serializeSession($session));

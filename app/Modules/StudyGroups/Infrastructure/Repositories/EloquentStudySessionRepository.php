@@ -73,11 +73,10 @@ final class EloquentStudySessionRepository implements StudySessionRepositoryInte
 
     public function addParticipant(int $sessionId, int $userId, string $joinedAt): void
     {
-        SessionParticipantModel::create([
-            'session_id' => $sessionId,
-            'user_id' => $userId,
-            'joined_at' => $joinedAt,
-        ]);
+        SessionParticipantModel::updateOrCreate(
+            ['session_id' => $sessionId, 'user_id' => $userId],
+            ['joined_at' => $joinedAt, 'left_at' => null]
+        );
     }
 
     public function removeParticipant(int $sessionId, int $userId, string $leftAt): void
