@@ -34,7 +34,7 @@ final readonly class LeaveSessionUseCase
         ));
 
         $count = $this->repository->participantCount($sessionId);
-        if ($count === 0) {
+        if ($count === 0 && !in_array($sessionId, [1, 2])) {
             $session = $this->repository->findById($sessionId);
             if ($session) {
                 $this->repository->update($session, [

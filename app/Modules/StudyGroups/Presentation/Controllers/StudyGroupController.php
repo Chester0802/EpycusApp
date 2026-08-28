@@ -48,8 +48,24 @@ final class StudyGroupController extends Controller
     {
         $userId = (int) auth()->id();
 
+        // Obtener solo las salas maestras (id 1 y 2)
+        $masterSessions = \App\Modules\StudyGroups\Infrastructure\Models\StudySessionModel::whereIn('id', [1, 2])->get();
+
+        $formattedSessions = $masterSessions->map(function ($session) {
+            $participantsCount = $this->repository->getParticipants($session->id)->count();
+            return [
+                'id' => $session->id,
+                'name' => $session->name,
+                'state' => $session->state,
+                'participants_count' => $participantsCount,
+                'max_seats' => $session->max_seats,
+                // Hardcoding image for UI presentation
+                'image' => $session->id === 1 ? '/assets/images/rooms/cafeteria.webp' : '/assets/images/rooms/biblioteca.webp'
+            ];
+        })->values()->all();
+
         return inertia('StudyGroups/Index', [
-            'sessions' => $this->formatSessions($userId),
+            'sessions' => $formattedSessions,
             'activeSessions' => $this->getActiveSessionsData($userId),
         ]);
     }
@@ -299,5 +315,25 @@ final class StudyGroupController extends Controller
         }
 
         return $result;
+    }
+
+    public function move(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'pos_x' => 'required|numeric|min:0|max:100',
+            'pos_y' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $userId = (int) auth()->id();
+
+        \Illuminate\Support\Facades\DB::table('session_participants')
+            ->where('session_id', $id)
+            ->where('user_id', $userId)
+            ->update([
+                'pos_x' => $validated['pos_x'],
+                'pos_y' => $validated['pos_y'],
+            ]);
+
+        return response()->json(['success' => true]);
     }
 }

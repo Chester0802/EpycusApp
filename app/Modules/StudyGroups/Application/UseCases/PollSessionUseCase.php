@@ -31,35 +31,43 @@ final readonly class PollSessionUseCase
 
         $result = [
             'messages' => $messages->map(fn ($m) => $this->mapper->toMessageArray($m))->values()->all(),
-            'participants' => $participants->map(fn ($p) => [
-                'id' => $p->id,
-                'alias' => $p->alias,
-                'avatar_style' => $p->avatar_style,
-                'avatar_gender' => $p->avatar_gender,
-                'avatar_options' => isset($p->avatar_options) ? (is_array($p->avatar_options) ? $p->avatar_options : json_decode((string) $p->avatar_options, true)) : null,
-                'joined_at' => $p->joined_at,
-            ])->values()->all(),
+            'participants' => $participants->map(function ($p) {
+                // El query del repositorio incluye el pivot o usa DB::table
+                $pivot = \Illuminate\Support\Facades\DB::table('session_participants')
+                    ->where('session_id', $p->pivot->session_id ?? 1)
+                    ->where('user_id', $p->id)
+                    ->first();
+
+                return [
+                    'id' => $p->id,
+                    'alias' => $p->alias,
+                    'avatar_style' => $p->avatar_style,
+                    'avatar_gender' => $p->avatar_gender,
+                    'avatar_options' => isset($p->avatar_options) ? (is_array($p->avatar_options) ? $p->avatar_options : json_decode((string) $p->avatar_options, true)) : null,
+                    'joined_at' => $p->joined_at,
+                    'pos_x' => $pivot ? $pivot->pos_x : null,
+                    'pos_y' => $pivot ? $pivot->pos_y : null,
+                ];
+            })->values()->all(),
         ];
 
         if ($session) {
             $result['room'] = $this->serializeRoom($session);
         }
 
-        $activePomodoro = PomodoroSessionModel::query()
+        // Obtener todos los pomodoros activos de los participantes de esta sala
+        $activePomodoros = PomodoroSessionModel::query()
             ->where('study_group_session_id', $sessionId)
             ->whereIn('status', [PomodoroState::RUNNING, PomodoroState::PAUSED])
-            ->latest('id')
-            ->first();
+            ->get();
 
-        if ($activePomodoro) {
-            $result['active_pomodoro'] = [
-                'pomodoro_session_id' => $activePomodoro->id,
-                'user_id' => $activePomodoro->user_id,
-                'planned_minutes' => $activePomodoro->planned_minutes,
-                'started_at' => $activePomodoro->started_at->toIso8601String(),
-                'status' => $activePomodoro->status,
-            ];
-        }
+        $result['active_pomodoros'] = $activePomodoros->map(fn ($pom) => [
+            'pomodoro_session_id' => $pom->id,
+            'user_id' => $pom->user_id,
+            'planned_minutes' => $pom->planned_minutes,
+            'started_at' => $pom->started_at->toIso8601String(),
+            'status' => $pom->status,
+        ])->all();
 
         return $result;
     }
