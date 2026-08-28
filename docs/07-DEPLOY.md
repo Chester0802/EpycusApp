@@ -443,9 +443,25 @@ plink -batch -hostkey "SHA256:5NPmo7Lsf5dX4VteyZJK2tpslJ3r/zQxyZbWxhjS5+k" -P 65
 
 ---
 
-### C. Manejo de Archivos `.zip` y Respaldos
+### C. Manejo de Archivos `.zip` y Respaldos (Uso de deploy.bat)
 
-- Los archivos `.zip` en la raíz (`epycus-app.zip`, `epycus-deploy.zip`) fueron creados para la subida inicial completa de archivos comprimidos al servidor.
-- Están incluidos en `.gitignore` para no sobrecargar el repositorio Git.
-- **Recomendación:** Puedes conservarlos en tu disco local como un respaldo seguro de la versión desplegada o eliminarlos si deseas liberar espacio en tu disco local.
+Para usar el script `deploy.bat` y enviar las compilaciones rápidamente al servidor:
+
+1. **Atención crítica al empaquetar `build.zip`:**
+   **NUNCA** comprimas la carpeta `build` completa desde la interfaz de Windows (click derecho -> Comprimir), ya que creará una ruta anidada (`build/build/manifest.json`), lo cual romperá la lectura de assets en producción.
+   Para que el script `unzip` del servidor descomprima los archivos en la raíz correcta, **comprime únicamente el contenido interno**.
+
+   Usa este comando exacto en **PowerShell**:
+   ```powershell
+   cd public
+   Compress-Archive -Path "build\*" -DestinationPath "..\build.zip" -Force
+   cd ..
+   ```
+
+2. Ejecuta tu script `deploy.bat`. Este se encargará de:
+   - Subir `build.zip` mediante `pscp`.
+   - Conectarse mediante `plink` y ejecutar la extracción de manera segura (`unzip -o ../build.zip`).
+   - Limpiar toda la caché de vistas y rutas de Laravel (`artisan optimize:clear`).
+
+- *Nota:* Los archivos `.zip` en la raíz (`epycus-app.zip`, `build.zip`) están incluidos en `.gitignore` para no sobrecargar el repositorio Git. Puedes conservarlos o eliminarlos localmente si deseas liberar espacio.
 
