@@ -267,7 +267,7 @@ function init3DGraph() {
 
         // Sprite de Texto flotante en píldora holográfica
         const textSprite = createTextSprite3D(node.label, resolveColor(node.color), isParent);
-        textSprite.position.set(0, nodeRadius + (isParent ? 9 : 6), 0);
+        textSprite.position.set(0, nodeRadius + (isParent ? 12 : 8), 0);
         group.add(textSprite);
 
         return group;
@@ -386,6 +386,14 @@ function createTextSprite3D(message, color = '#6366f1', isParent = false) {
     sprite.padding = [3, 7];
     sprite.fontFace = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     sprite.fontWeight = isParent ? 'bold' : '600';
+
+    // Desactivar depthTest para que la malla de la esfera nunca recorte ni haga z-fighting con el texto
+    if (sprite.material) {
+        sprite.material.depthTest = false;
+        sprite.material.depthWrite = false;
+        sprite.material.transparent = true;
+    }
+
     return sprite;
 }
 
