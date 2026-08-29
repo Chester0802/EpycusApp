@@ -1,0 +1,94 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Identity\Domain\ValueObjects;
+
+final readonly class Career
+{
+    /**
+     * Única fuente de verdad de la lista cerrada de carreras (decisión D-16).
+     * `config/careers.php` lee de aquí — nunca al revés — para que no existan
+     * dos listas que se puedan desincronizar.
+     *
+     * @var array<string, list<string>>
+     */
+    private const CAREERS_BY_STYLE = [
+        'health' => [
+            'Medicina',
+            'Enfermería',
+            'Obstetricia',
+            'Psicología',
+            'Odontología',
+            'Nutrición y Dietética',
+            'Farmacia y Bioquímica',
+        ],
+        'business' => [
+            'Administración de Empresas',
+            'Contabilidad',
+            'Economía',
+            'Marketing y Publicidad',
+            'Negocios Internacionales',
+        ],
+        'technical' => [
+            'Ingeniería Civil',
+            'Ingeniería Industrial',
+            'Ingeniería de Minas',
+            'Arquitectura',
+            'Ingeniería Ambiental',
+            'Ingeniería Mecánica',
+            'Ingeniería Electrónica',
+            'Otra carrera',
+        ],
+        'systems' => [
+            'Ingeniería de Sistemas',
+            'Ingeniería de Software',
+            'Ciencia de Datos e Inteligencia Artificial',
+        ],
+        'law' => [
+            'Derecho',
+            'Ciencias de la Comunicación',
+            'Educación',
+        ],
+    ];
+
+    public function __construct(private string $value)
+    {
+        if (! in_array($value, self::all(), true)) {
+            throw new \InvalidArgumentException("Carrera no válida: $value");
+        }
+    }
+
+    public function value(): string
+    {
+        return $this->value;
+    }
+
+    public static function avatarStyle(string $careerName): string
+    {
+        foreach (self::CAREERS_BY_STYLE as $style => $careers) {
+            if (in_array($careerName, $careers, true)) {
+                return $style;
+            }
+        }
+
+        return 'technical';
+    }
+
+    public static function avatarStyleFor(string $careerName): string
+    {
+        return self::avatarStyle($careerName);
+    }
+
+    /** @return list<string> */
+    public static function all(): array
+    {
+        return array_merge(...array_values(self::CAREERS_BY_STYLE));
+    }
+
+    /** @return array<string, list<string>> */
+    public static function groupedByStyle(): array
+    {
+        return self::CAREERS_BY_STYLE;
+    }
+}

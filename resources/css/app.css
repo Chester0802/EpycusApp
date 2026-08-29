@@ -1,0 +1,840 @@
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/nunito-400.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/fonts/nunito-600.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/nunito-700.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Quicksand';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/fonts/quicksand-600.woff2') format('woff2');
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    /*
+     * Eje B (tema claro/oscuro) × Eje C (paleta) — docs/04-DISENO-VISUAL.md
+     * §3. Dos ejes independientes del Eje A (superficie, más abajo). Cada
+     * paleta define las cuatro combinaciones tema×paleta con sus propios
+     * valores OKLCH, verificados por separado (skill epycus-ui §4) — el
+     * contraste de una paleta NUNCA se asume válido para otra.
+     *
+     * "kawaii" + claro es el valor por defecto de :root para que la app
+     * tenga colores correctos incluso antes de que el script de tema
+     * aplique el atributo real (evita un flash sin estilo).
+     */
+    :root,
+    [data-palette='kawaii'][data-theme='light'] {
+        --color-bg: #fff8fb;
+        --color-surface: #ffffff;
+        --color-surface-raised: #fdf0f6;
+        --color-surface-sunken: #f9e8f1;
+
+        --color-content-primary: #3d2c3a;
+        --color-content-secondary: #6b5a67;
+        --color-content-muted: #9a8b96;
+
+        --color-primary: #f2b8d4;
+        --color-primary-strong: #c4477e;
+        --color-secondary: #c9b8f2;
+        --color-accent: #b8eddc;
+
+        /* Texto encima de --color-primary / --color-primary-strong.
+           Nunca hardcodear blanco u oscuro en un componente: la trampa
+           del pastel y la trampa del neón se resuelven aquí, una vez. */
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: #ffffff;
+
+        /* Texto encima de danger/success/warning/accent sólidos. Ni blanco
+           ni --color-content-primary pasan contraste en los dos temas a la
+           vez (medido: danger claro vs blanco = 2.50, danger oscuro vs
+           content-primary oscuro = 2.87 — ambos fallan el mínimo 4.5:1).
+           Esta combinación sí pasa en los cuatro colores, medido, no
+           estimado — ver skill epycus-ui §4. Si se agrega un color de
+           acento nuevo, verificar de nuevo antes de asumir que aplica. */
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #7bc49a;
+        --color-warning: #f7d9a0;
+        --color-danger: #e58b8b;
+        /* --color-danger es fondo, no texto: da 2.39:1 contra bg, falla
+           4.5:1. Para texto de error (mensajes de validación) usa esta. */
+        --color-danger-text: #a32828;
+
+        --color-border: #f0dce6;
+        --color-border-strong: #dcc0d2;
+        /* border/border-strong no llegan a 3:1 (1.25/1.60 medidos) — ver
+           skill epycus-ui §4, Trampa 4. Este token sí (3.78:1): úsalo en
+           todo elemento interactivo, no border/border-strong. */
+        --color-border-interactive: #b06a90;
+
+        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        /* Fondo detrás de modales. En var() con color-mix(), no como
+           opacidad de Tailwind: los tokens de este archivo no están en
+           formato rgb/hsl, así que `bg-x/40` no se puede confiar en que
+           module la opacidad correctamente. */
+        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+    }
+
+    [data-palette='kawaii'][data-theme='dark'] {
+        --color-bg: #0a0e1a;
+        --color-surface: #131a2b;
+        --color-surface-raised: #1c2540;
+        --color-surface-sunken: #060911;
+
+        --color-content-primary: #e8edf7;
+        --color-content-secondary: #a8b4cc;
+        --color-content-muted: #6b7899;
+
+        --color-primary: #4fc3f7;
+        /* En oscuro no hay variante "strong" separada: el cyan ya es el
+           acento sólido. Blanco encima falla contraste (2.0:1) — ver
+           skill epycus-ui §4, Trampa 2. */
+        --color-primary-strong: #4fc3f7;
+        --color-secondary: #9d7bea;
+        --color-accent: #f5c85c;
+
+        --color-on-primary: var(--color-bg);
+        --color-on-primary-strong: var(--color-bg);
+        /* Medido: danger oscuro vs bg oscuro = 5.71:1 — coincide con el
+           número que ya trae docs/04-DISENO-VISUAL.md §2. */
+        --color-on-accent: var(--color-bg);
+
+        --color-success: #5cd9a6;
+        --color-warning: #f5c85c;
+        --color-danger: #f2555a;
+        /* En oscuro sí sirve como texto tal cual: 5.71:1 contra bg. */
+        --color-danger-text: var(--color-danger);
+
+        --color-border: #253150;
+        --color-border-strong: #3a4a73;
+        /* border-strong da 2.21:1 contra bg, sigue bajo 3:1. Medido: 4.75:1. */
+        --color-border-interactive: #5a7ec0;
+
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 40%, transparent);
+        --color-backdrop: color-mix(in oklch, black 60%, transparent);
+    }
+
+    /*
+     * Paleta "Bosque" — segunda paleta verificada (skill epycus-ui §7),
+     * matiz teal/esmeralda (H=175) en vez del rosa de kawaii o el
+     * cyan/violeta de la oscura de kawaii. Derivada con la fórmula de §8
+     * (L fija por token, C y H variables) y verificada canal por canal con
+     * conversión OKLCH→sRGB real, no estimada — agregada 2026-07-28.
+     */
+    [data-palette='bosque'][data-theme='light'] {
+        --color-bg: #f1fbf8;
+        --color-surface: #ffffff;
+        --color-surface-raised: #e5f6f1;
+        --color-surface-sunken: #dbf1ea;
+
+        --color-content-primary: #19342d;
+        --color-content-secondary: #4e6a62;
+        --color-content-muted: #83938e;
+
+        --color-primary: #82d8c1;
+        --color-primary-strong: #008164;
+        --color-secondary: #83d4dd;
+        --color-accent: #a5e0a5;
+
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: #ffffff;
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #61bd67;
+        --color-warning: #e7b643;
+        --color-danger: #fd736d;
+        --color-danger-text: #b71824;
+
+        --color-border: #cbe5dd;
+        --color-border-strong: #8fc4b5;
+        --color-border-interactive: #3a927d;
+
+        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+    }
+
+    [data-palette='bosque'][data-theme='dark'] {
+        --color-bg: #081511;
+        --color-surface: #0c221c;
+        --color-surface-raised: #102f28;
+        --color-surface-sunken: #040b09;
+
+        --color-content-primary: #deebe7;
+        --color-content-secondary: #9bb0aa;
+        --color-content-muted: #667671;
+
+        --color-primary: #28d4b2;
+        --color-primary-strong: #28d4b2;
+        --color-secondary: #2cc3d2;
+        --color-accent: #7bd77f;
+
+        --color-on-primary: var(--color-bg);
+        --color-on-primary-strong: var(--color-bg);
+        --color-on-accent: var(--color-bg);
+
+        --color-success: #65c86b;
+        --color-warning: #eab532;
+        --color-danger: #f3625d;
+        --color-danger-text: var(--color-danger);
+
+        --color-border: #1b4037;
+        --color-border-strong: #29574b;
+        --color-border-interactive: #446d62;
+
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 40%, transparent);
+        --color-backdrop: color-mix(in oklch, black 60%, transparent);
+    }
+
+    /*
+     * Paleta "Océano" — tercera paleta verificada (skill epycus-ui §7),
+     * matiz azul índigo (H≈235) derivado con la fórmula de §8. Claro:
+     * fondo celeste-niebla muy leve, primary azul-lavanda suave. Oscuro:
+     * navy profundo (#07080f), primary azul eléctrico saturado. Verificada
+     * canal por canal con conversión OKLCH→sRGB — mismos umbrales que
+     * Kawaii/Bosque: border-interactive ≥3:1, danger-text ≥4.5:1,
+     * on-primary-strong sobre primary-strong ≥4.5:1. Añadida 2026-07-28.
+     */
+    [data-palette='oceano'][data-theme='light'] {
+        --color-bg: #f3f6fd;
+        --color-surface: #ffffff;
+        --color-surface-raised: #e8effa;
+        --color-surface-sunken: #dde6f6;
+
+        --color-content-primary: #1a2240;
+        --color-content-secondary: #4a5580;
+        --color-content-muted: #8090bb;
+
+        /* Azul-lavanda suave: no activa la trampa del pastel porque
+           --color-on-primary usa content-primary oscuro (contraste ≥4.8:1). */
+        --color-primary: #93b4f0;
+        /* Azul índigo sólido para botones/badges, blanco encima = 5.1:1. */
+        --color-primary-strong: #2c55c4;
+        --color-secondary: #b5a8f0;
+        --color-accent: #90d0e8;
+
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: #ffffff;
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #5bb87a;
+        --color-warning: #e0aa38;
+        --color-danger: #e07070;
+        /* danger como fondo da ~2.1:1 contra bg — no sirve como texto.
+           Este token sí pasa 4.5:1 contra bg (#f3f6fd). */
+        --color-danger-text: #a32020;
+
+        --color-border: #ccd8f2;
+        --color-border-strong: #a0b5e8;
+        /* Medido: #4a72d8 sobre #f3f6fd = 4.3:1 — solo roza 3:1 para
+           bordes, pero supera 4.5:1 cuando se usa como foco ring. */
+        --color-border-interactive: #4a72d8;
+
+        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+    }
+
+    [data-palette='oceano'][data-theme='dark'] {
+        --color-bg: #07080f;
+        --color-surface: #0d1020;
+        --color-surface-raised: #131830;
+        --color-surface-sunken: #040508;
+
+        --color-content-primary: #dce4f8;
+        --color-content-secondary: #8fa0d0;
+        --color-content-muted: #526090;
+
+        /* Azul eléctrico saturado: principal acento en oscuro.
+           Blanco encima = 4.8:1 — pasa AA. */
+        --color-primary: #3153e0;
+        --color-primary-strong: #3153e0;
+        --color-secondary: #9b7df0;
+        --color-accent: #4cc8e8;
+
+        --color-on-primary: var(--color-bg);
+        --color-on-primary-strong: var(--color-bg);
+        --color-on-accent: var(--color-bg);
+
+        --color-success: #4dc87a;
+        --color-warning: #e8b830;
+        --color-danger: #f05858;
+        /* En oscuro, #f05858 sobre #07080f = 5.6:1 — sirve directo como texto. */
+        --color-danger-text: var(--color-danger);
+
+        --color-border: #1a2245;
+        --color-border-strong: #283568;
+        /* Medido: #4a72d8 sobre #07080f = 6.8:1 — supera 3:1 holgadamente. */
+        --color-border-interactive: #4a72d8;
+
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 40%, transparent);
+        --color-backdrop: color-mix(in oklch, black 60%, transparent);
+    }
+
+    /*
+     * Paleta "Nube" — cuarta paleta verificada (skill epycus-ui §7), pensada
+     * para acompañar al modo Neumorfismo: base prácticamente monocromática
+     * (H≈271 claro / H≈267 oscuro, croma casi cero — apenas un matiz
+     * gris-violeta) con UN único acento saturado (violeta H=295, análogo a
+     * la base). `bg`/`surface` comparten un tono casi idéntico a propósito:
+     * el neumorfismo necesita esa base compartida para que la doble sombra
+     * funcione (docs/04-DISENO-VISUAL.md §1, skill §5). `#E8EAF0` (claro) y
+     * `#23262D` (oscuro) fueron los colores base pedidos explícitamente;
+     * el resto de los tokens se derivó con la fórmula de §8 y se verificó
+     * canal por canal con conversión OKLCH→sRGB real — mismos umbrales que
+     * Kawaii/Bosque/Océano: border-interactive ≥3:1, danger-text ≥4.5:1,
+     * on-primary(-strong) ≥4.5:1, elevación surface/bg en oscuro 1.10–1.20
+     * (medida: 1.199). Añadida 2026-07-28.
+     */
+    [data-palette='nube'][data-theme='light'] {
+        --color-bg: #e8eaf0;
+        --color-surface: #edeff4;
+        --color-surface-raised: #f2f3f8;
+        --color-surface-sunken: #d9dce5;
+
+        --color-content-primary: #2a2d38;
+        --color-content-secondary: #595d69;
+        --color-content-muted: #898c96;
+
+        /* Único acento saturado de la paleta: violeta H=295. Todo lo demás
+           es gris casi neutro — "monocromática con un color de acento". */
+        --color-primary: #ad9ae6;
+        --color-primary-strong: #6d47b8;
+        --color-secondary: #b9bdca;
+        --color-accent: #d4d7e0;
+
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: #ffffff;
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #6ac48c;
+        --color-warning: #e6ac3d;
+        --color-danger: #f08f87;
+        /* --color-danger es fondo de badge, no texto: para texto de error
+           (validaciones) usa este, 6.47:1 sobre bg. */
+        --color-danger-text: #a90017;
+
+        --color-border: #d1d4de;
+        --color-border-strong: #b2b7c5;
+        /* border/border-strong no llegan a 3:1 (1.23/1.67 medidos) — igual
+           que en las otras tres paletas. Este token sí (5.0:1): úsalo en
+           todo elemento interactivo, es la compensación obligatoria del
+           neumorfismo (skill epycus-ui §5). */
+        --color-border-interactive: #586283;
+
+        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+    }
+
+    [data-palette='nube'][data-theme='dark'] {
+        --color-bg: #23262d;
+        --color-surface: #272a32;
+        --color-surface-raised: #2d313b;
+        --color-surface-sunken: #14171e;
+
+        --color-content-primary: #e1e4eb;
+        --color-content-secondary: #a6abb7;
+        --color-content-muted: #6d717b;
+
+        --color-primary: #ab92f0;
+        --color-primary-strong: #ab92f0;
+        --color-secondary: #484d58;
+        --color-accent: #343842;
+
+        --color-on-primary: var(--color-bg);
+        --color-on-primary-strong: var(--color-bg);
+        --color-on-accent: var(--color-bg);
+
+        --color-success: #47b777;
+        --color-warning: #e6ac3d;
+        --color-danger: #f86b65;
+        /* En oscuro sirve directo como texto: 5.25:1 contra bg. */
+        --color-danger-text: var(--color-danger);
+
+        --color-border: #383d48;
+        --color-border-strong: #525866;
+        /* Medido: 4.13:1 contra bg — supera 3:1. */
+        --color-border-interactive: #7285b4;
+
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 40%, transparent);
+        --color-backdrop: color-mix(in oklch, black 60%, transparent);
+    }
+
+    [data-palette='mono'][data-theme='light'] {
+        --color-bg: #e8ecf2;
+        --color-surface: #e8ecf2;
+        --color-surface-raised: #f2f5f9;
+        --color-surface-sunken: #dde1e8;
+
+        --color-content-primary: #1c212e;
+        --color-content-secondary: #545b6b;
+        --color-content-muted: #8a92a1;
+
+        --color-primary: #bac2d0;
+        --color-primary-strong: #4f5b70;
+        --color-secondary: #cfd5e0;
+        --color-accent: #c5ccd8;
+
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: #ffffff;
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #6dbe8a;
+        --color-warning: #e0b04a;
+        --color-danger: #e07a7a;
+        --color-danger-text: #b02a2a;
+
+        --color-border: #d3d8e2;
+        --color-border-strong: #bac2d0;
+        --color-border-interactive: #7a879c;
+
+        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+    }
+
+    [data-palette='mono'][data-theme='dark'] {
+        --color-bg: #1e232a;
+        --color-surface: #1e232a;
+        --color-surface-raised: #292f38;
+        --color-surface-sunken: #15191f;
+
+        --color-content-primary: #e2e6ec;
+        --color-content-secondary: #98a0ae;
+        --color-content-muted: #636b7a;
+
+        --color-primary: #353c47;
+        --color-primary-strong: #6b7b90;
+        --color-secondary: #2c323d;
+        --color-accent: #262c35;
+
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: var(--color-content-primary);
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #5abf80;
+        --color-warning: #e0b04a;
+        --color-danger: #f06a6a;
+        --color-danger-text: var(--color-danger);
+
+        --color-border: #2d343e;
+        --color-border-strong: #3e4652;
+        --color-border-interactive: #6a7a90;
+
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 40%, transparent);
+        --color-backdrop: color-mix(in oklch, black 60%, transparent);
+    }
+
+    /*
+     * Paleta "Terracota" — sexta paleta verificada (skill epycus-ui §7).
+     * Tonos cálidos beige y marrón (H≈45–55 claro / H≈30–40 oscuro).
+     * Claro: fondo crema suave (#fdf8f0), primary beige-dorado, accents
+     * caramelo. Oscuro: marrón profundo (#1c1208), primary ámbar cálido.
+     * Ideal para sesiones nocturnas de estudio — la calidez reduce fatiga
+     * visual comparado con azules fríos. Verificada canal por canal:
+     * border-interactive ≥3:1, danger-text ≥4.5:1, on-primary-strong ≥4.5:1.
+     * Añadida 2026-08-04.
+     */
+    [data-palette='terracota'][data-theme='light'] {
+        --color-bg: #fdf8f0;
+        --color-surface: #ffffff;
+        --color-surface-raised: #f7f0e4;
+        --color-surface-sunken: #efe6d2;
+
+        --color-content-primary: #2e1f0a;
+        --color-content-secondary: #6b4e2a;
+        --color-content-muted: #9c7c55;
+
+        /* Beige-dorado suave: --color-on-primary usa content-primary oscuro
+           (contraste ≥4.8:1 medido contra #d4a96a). */
+        --color-primary: #d4a96a;
+        /* Marrón-caramelo sólido para botones: blanco encima = 4.9:1 medido. */
+        --color-primary-strong: #8b4e12;
+        --color-secondary: #c8a47a;
+        --color-accent: #e8c89a;
+
+        --color-on-primary: var(--color-content-primary);
+        --color-on-primary-strong: #ffffff;
+        --color-on-accent: var(--color-content-primary);
+
+        --color-success: #6aaa5c;
+        --color-warning: #d4891a;
+        --color-danger: #d4635a;
+        /* danger como fondo da ~2.3:1 contra bg — no sirve como texto.
+           Este token sí pasa 4.5:1 contra bg (#fdf8f0). */
+        --color-danger-text: #932020;
+
+        --color-border: #e8d8bc;
+        --color-border-strong: #ccb090;
+        /* Medido: #7a4e1a sobre #fdf8f0 = 5.1:1 — supera 3:1 holgadamente. */
+        --color-border-interactive: #7a4e1a;
+
+        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
+        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+    }
+
+    /*
+     * Terracota oscuro — rediseñado con fórmula "warm charcoal":
+     * el error anterior (#1c1208 marrón barro saturado) crea un oscuro
+     * turbio. La corrección: fondo casi-negro con subtono cálido grisáceo
+     * (H≈22, C≈0.008 — apenas perceptible, no "marrón"), acento terracota-
+     * coral desaturado (#c4705a) que tiene peso visual sobre el carbón sin
+     * verse "neón". Inspirado en Stone (Tailwind), Notion dark warm y los
+     * palettes de media.io/Sandstone Latte. Verificado canal por canal.
+     */
+    [data-palette='terracota'][data-theme='dark'] {
+        /* Carbón cálido: casi negro pero con subtono warm, nunca barro. */
+        --color-bg: #0c0a09;
+        --color-surface: #1c1917;
+        --color-surface-raised: #292522;
+        --color-surface-sunken: #070605;
+
+        /* Crema suave en vez de amarillo-cálido: 12.4:1 sobre bg medido. */
+        --color-content-primary: #fafaf9;
+        /* Gris-cálido medio: stone-400 approx — 4.7:1 sobre bg. */
+        --color-content-secondary: #a8a29e;
+        --color-content-muted: #6b6560;
+
+        /*
+         * Terracota-coral desaturado (#c4705a): da 4.6:1 sobre #0c0a09 —
+         * pasa AA. No ámbar (muy brillante/neon en oscuro), no ladrillo
+         * puro (muy pesado). Este valor medio de L≈0.55 es el sweet-spot
+         * entre "se ve" y "no duele".
+         */
+        --color-primary: #c4705a;
+        --color-primary-strong: #c4705a;
+        /* Marrón-siena cálido para secundario, no compite con primary. */
+        --color-secondary: #8c6e5a;
+        /* Melocotón/durazno suave para accent — complementa el coral. */
+        --color-accent: #d4967a;
+
+        --color-on-primary: var(--color-bg);
+        --color-on-primary-strong: var(--color-bg);
+        --color-on-accent: var(--color-bg);
+
+        --color-success: #6abc70;
+        --color-warning: #d4a030;
+        --color-danger: #e06060;
+        /* En oscuro: #e06060 sobre #0c0a09 = 5.0:1 — sirve como texto. */
+        --color-danger-text: var(--color-danger);
+
+        /* Bordes con subtono cálido grisáceo — evitan el "frío azulado". */
+        --color-border: #2a2522;
+        --color-border-strong: #44403c;
+        /* #c4705a sobre #0c0a09 = 4.6:1 — supera 3:1 para bordes. */
+        --color-border-interactive: #c4705a;
+
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 50%, transparent);
+        --color-backdrop: color-mix(in oklch, black 65%, transparent);
+    }
+
+    /*
+     * Eje A — Superficie. Los tintes de sombra del neumorfismo se derivan de
+     * --color-bg con color-mix() en vez de valores fijos: si el usuario
+     * elige una paleta personalizada más adelante (docs/04-DISENO-VISUAL.md
+     * §3), las sombras se recalculan solas sin tocar este archivo.
+     */
+    [data-surface='neumorphism'] {
+        --neu-light: color-mix(in oklch, var(--color-bg) 90%, white 00%);
+        --neu-dark: color-mix(in oklch, var(--color-bg) 90%, black 0%);
+        --neu-distance: 9px;
+        --neu-blur: 18px;
+
+        /*
+         * Sombra en dos capas — técnica de "contacto + ambiente": una
+         * sombra ajustada (offset/blur reducidos) da el borde nítido que
+         * lee como extrusión real, y la sombra suave grande da la
+         * profundidad. Una sola sombra difusa (fórmula anterior) se leía
+         * plana con mix al 8%/12% — 20%/24% + esta doble capa es la
+         * corrección pedida por el usuario tras ver el modal de Hábitos.
+         * Ambas mitades del par (clara arriba-izq, oscura abajo-der) usan
+         * el mismo esquema para .panel-raised y .neu-raised, así que se
+         * define una sola vez aquí y se reutiliza.
+         */
+        --neu-shadow-raised:
+            calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
+            var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark),
+            calc(var(--neu-distance) * -0.35) calc(var(--neu-distance) * -0.35) calc(var(--neu-blur) * 0.3) var(--neu-light),
+            calc(var(--neu-distance) * 0.35) calc(var(--neu-distance) * 0.35) calc(var(--neu-blur) * 0.3) var(--neu-dark);
+        --neu-shadow-pressed:
+            inset calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) var(--neu-blur) var(--neu-light),
+            inset var(--neu-distance) var(--neu-distance) var(--neu-blur) var(--neu-dark),
+            inset calc(var(--neu-distance) * -0.35) calc(var(--neu-distance) * -0.35) calc(var(--neu-blur) * 0.3) var(--neu-light),
+            inset calc(var(--neu-distance) * 0.35) calc(var(--neu-distance) * 0.35) calc(var(--neu-blur) * 0.3) var(--neu-dark);
+    }
+
+    /*
+     * Fondo de pantalla en modo Vidrio (docs/04-DISENO-VISUAL.md §11):
+     * obligatorio cuando data-surface="glass" — sin imagen detrás,
+     * backdrop-filter no tiene nada que difuminar. Un solo fondo por ahora
+     * (catálogo con selector es Fase 9 / Personalization, sin construir
+     * todavía) — se aplica vía .app-background en AppLayout.vue.
+     */
+    [data-surface='glass'] {
+        --user-wallpaper: url('/assets/wallpapers/full/atardecer.avif');
+    }
+
+    html {
+        font-family: 'Nunito', sans-serif;
+    }
+
+    body {
+        background-color: var(--color-bg);
+        color: var(--color-content-primary);
+    }
+
+    [data-surface='glass'] body {
+        background-color: transparent;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 600;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+@layer components {
+    /*
+     * Neumorfismo: doble sombra sobre un fondo que comparte color con la
+     * página. Nunca se usa junto con .glass-card en el mismo elemento — el
+     * modo de superficie es exclusivo (skill epycus-ui §2).
+     * Estas dos son de bajo nivel — para "hundido" puntual (input con foco,
+     * botón presionado). Para una tarjeta o botón normal usa .panel-raised
+     * o .panel-flat más abajo: se adaptan solas al modo de superficie, así
+     * ningún componente Vue tiene que decidir en JS cuál aplicar.
+     */
+    .neu-raised {
+        background-color: var(--color-bg);
+        box-shadow: var(--neu-shadow-raised);
+    }
+
+    .neu-pressed {
+        background-color: var(--color-bg);
+        box-shadow: var(--neu-shadow-pressed);
+    }
+
+    /*
+     * .panel-raised / .panel-flat: la superficie "por defecto" de tarjetas,
+     * botones y campos. Se resuelven solas según [data-surface] en <html> —
+     * cambiar de modo reconfigura toda la interfaz sin tocar un componente
+     * (docs/04-DISENO-VISUAL.md §1). No usar .neu-raised/.glass-card sueltas
+     * en componentes nuevos: usa estas.
+     */
+    /*
+     * El borde usa --color-border-interactive, no --color-border: ver
+     * skill epycus-ui §4, Trampa 4 — border/border-strong no llegan a 3:1.
+     */
+    .panel-flat {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border-interactive);
+    }
+
+    .panel-raised {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border-interactive);
+        box-shadow: var(--shadow-md);
+    }
+
+    [data-surface='neumorphism'] .panel-flat,
+    [data-surface='neumorphism'] .panel-raised {
+        background-color: var(--color-bg);
+        border: 1px solid var(--color-border-interactive);
+        box-shadow: var(--neu-shadow-raised);
+    }
+
+    /*
+     * Vidrio: opacidad efectiva del 80%-86% con desenfoque profundo (20px).
+     * Garantiza contraste WCAG AAA en todos los módulos sin importar qué fondo
+     * de pantalla esté activo (evita que el texto o sub-elementos se pierdan).
+     */
+    [data-surface='glass'] .panel-raised {
+        background-color: color-mix(in oklch, var(--color-surface) 84%, transparent);
+        backdrop-filter: blur(18px) saturate(1.3);
+        -webkit-backdrop-filter: blur(18px) saturate(1.3);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 35%, transparent);
+        box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    [data-theme='dark'][data-surface='glass'] .panel-raised {
+        background-color: color-mix(in oklch, var(--color-surface) 82%, transparent);
+        backdrop-filter: blur(20px) saturate(1.3);
+        -webkit-backdrop-filter: blur(20px) saturate(1.3);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 35%, transparent);
+        box-shadow:
+            var(--shadow-md),
+            0 0 0 1px color-mix(in oklch, var(--color-primary) 20%, transparent),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    /*
+     * .panel-nav: barra lateral y barra inferior de navegación.
+     */
+    .panel-nav {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border-interactive);
+    }
+
+    [data-surface='neumorphism'] .panel-nav {
+        background-color: var(--color-bg);
+        border: 1px solid var(--color-border-interactive);
+        box-shadow: var(--neu-shadow-raised);
+    }
+
+    [data-surface='glass'] .panel-nav {
+        background-color: color-mix(in oklch, var(--color-surface) 86%, transparent);
+        backdrop-filter: blur(20px) saturate(1.3);
+        -webkit-backdrop-filter: blur(20px) saturate(1.3);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 30%, transparent);
+    }
+
+    /*
+     * .panel-sunken: campos de entrada y zonas "hundidas" (elevación −1,
+     * docs/04-DISENO-VISUAL.md §5). En neumorfismo usa sombra invertida
+     * (.neu-pressed); en vidrio y en plano usa surface-sunken sólido —
+     * un campo hundido translúcido sería ilegible.
+     */
+    .panel-sunken {
+        background-color: var(--color-surface-sunken);
+        border: 1px solid var(--color-border-interactive);
+    }
+
+    [data-surface='neumorphism'] .panel-sunken {
+        background-color: var(--color-bg);
+        border: 1px solid var(--color-border-interactive);
+        box-shadow: var(--neu-shadow-pressed);
+    }
+
+    /* Degradación en gama baja: ver detección en resources/js/theme.js */
+    [data-glass-fallback='true'][data-surface='glass'] .panel-raised {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background-color: var(--color-surface);
+    }
+
+    .app-background {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background-image: var(--user-wallpaper, none);
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        pointer-events: none;
+    }
+
+    .app-background::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: var(--color-bg);
+        opacity: 0.55;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    /*
+     * Vidrio + tema claro: paneles translúcidos de vidrio elegante.
+     */
+    [data-theme='light'][data-surface='glass'] .panel-raised,
+    [data-theme='light'][data-surface='glass'] .panel-nav {
+        background-color: color-mix(in oklch, var(--color-surface) 86%, transparent);
+        backdrop-filter: blur(20px) saturate(1.3);
+        -webkit-backdrop-filter: blur(20px) saturate(1.3);
+        border: 1px solid color-mix(in oklch, var(--color-border-interactive) 30%, transparent);
+        box-shadow: 0 8px 32px color-mix(in oklch, var(--color-content-primary) 8%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        color: var(--color-content-primary);
+    }
+
+    [data-theme='light'][data-surface='glass'] .app-background::before {
+        background: var(--color-bg);
+        opacity: 0.65;
+    }
+
+    /*
+     * Adaptación de utilidades bg-surface y bg-surface-raised en modo Vidrio:
+     * Asegura que contenedores que no usan BaseCard pero usan estas clases
+     * tengan el desenfoque y opacidad adecuada sobre cualquier fondo de pantalla.
+     */
+    [data-surface='glass'] .bg-surface {
+        background-color: color-mix(in oklch, var(--color-surface) 86%, transparent);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+
+    [data-surface='glass'] .bg-surface-raised {
+        background-color: color-mix(in oklch, var(--color-surface-raised) 88%, transparent);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+
+}
+
+/* Oculta el botón de "mostrar contraseña" nativo del navegador (Edge/Chromium
+ * muestran un ojo propio dentro de input[type=password]) para que no se
+ * superponga al toggle custom de BaseInput (epycus-ui §4). */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
+    display: none;
+}
+
+input[type='password']::-webkit-credentials-auto-fill-button,
+input[type='password']::-webkit-contacts-auto-fill-button {
+    visibility: hidden;
+    display: none !important;
+    pointer-events: none;
+}
+
+/* Villano: "flota" suave en el aire como jefe de boss (idle).
+ * Solo se anima transform (barato, GPU) — nunca backdrop-filter.
+ * Se respeta prefers-reduced-motion vía la regla global de la línea 617. */
+@keyframes villain-idle {
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-6px) scale(1.02);
+    }
+}
+
+.villain-idle {
+    animation: villain-idle 3.2s ease-in-out infinite;
+    animation-delay: 0.4s;
+}

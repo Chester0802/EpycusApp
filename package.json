@@ -1,23 +1,43 @@
 {
-  "name": "epycusapp",
-  "version": "1.0.0",
-  "description": "Sistema multiplataforma de gamificación de hábitos profesionales inspirado en Solo Leveling, enfocado en universitarios peruanos. Incluye gestión de hábitos, temporizador Pomodoro, misiones, progreso con personajes, niveles y un asistente IA (EDY).",
-  "main": "index.js",
-  "scripts": {},
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Chester0802/EpycusApp.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/Chester0802/EpycusApp/issues"
-  },
-  "homepage": "https://github.com/Chester0802/EpycusApp#readme",
-  "devDependencies": {
-    "@playwright/test": "^1.61.1",
-    "@types/node": "^26.0.1"
-  }
+    "$schema": "https://www.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite",
+        "lint": "eslint resources/js --max-warnings=0",
+        "format": "prettier --write \"resources/js/**/*.{js,vue}\"",
+        "format:check": "prettier --check \"resources/js/**/*.{js,vue}\"",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.39.5",
+        "@inertiajs/vue3": "^2.0.0",
+        "@playwright/test": "^1.62.1",
+        "@tailwindcss/forms": "^0.5.3",
+        "@vitejs/plugin-vue": "^5.2.4",
+        "autoprefixer": "^10.5.4",
+        "axios": "^1.11.0",
+        "concurrently": "^9.0.1",
+        "eslint": "^9.39.5",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-vue": "^10.10.0",
+        "globals": "^16.5.0",
+        "laravel-vite-plugin": "^1.3.0",
+        "postcss": "^8.5.23",
+        "prettier": "^3.9.6",
+        "tailwindcss": "^3.4.19",
+        "vite": "^5.4.21",
+        "vue": "^3.4.0"
+    },
+    "dependencies": {
+        "@bryllim/workout-guide": "^1.0.0",
+        "@dicebear/avataaars": "^9.4.2",
+        "@dicebear/core": "^9.4.3",
+        "@dicebear/open-peeps": "^9.4.2",
+        "@lucide/vue": "^1.31.0",
+        "3d-force-graph": "^1.80.0",
+        "three": "^0.185.1"
+    }
 }

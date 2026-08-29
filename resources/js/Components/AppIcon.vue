@@ -1,0 +1,183 @@
+<script setup>
+/**
+ * AppIcon — ícono Lucide centralizado para Epycus.
+ *
+ * Fuente: @lucide/vue (https://lucide.dev) — licencia ISC, diseñados por
+ * humanos (comunidad Lucide), tree-shakeable, 1500+ íconos.
+ *
+ * stroke="currentColor" a propósito: heredan el color del contexto del DOM,
+ * sin hardcodear colores (igual que NavIcon.vue). El atributo `size` acepta
+ * cualquier número; por defecto 20px (equivale a h-5 w-5 de Tailwind).
+ *
+ * Uso:
+ *   <AppIcon name="timer" />
+ *   <AppIcon name="flame" :size="24" class="text-warning" />
+ */
+import {
+    Timer,
+    Zap,
+    ClipboardList,
+    CircleCheck,
+    BarChart2,
+    Trophy,
+    Flame,
+    Coins,
+    Shield,
+    Target,
+    Star,
+    Heart,
+    Brain,
+    BookOpen,
+    BookText,
+    Dumbbell,
+    Footprints,
+    Users,
+    TrendingUp,
+    CheckCircle2,
+    Clock,
+    Sword,
+    Swords,
+    Award,
+    ArrowRight,
+    ArrowLeft,
+    ChevronRight,
+    ChevronDown,
+    Lock,
+    Unlock,
+    Sparkles,
+    SunMedium,
+    Moon,
+    Monitor,
+    CalendarDays,
+    Leaf,
+    Wind,
+    Medal,
+    XCircle,
+    X,
+    Pencil,
+    Trash2,
+    NotebookText,
+    MessageSquare,
+    Palette,
+    Music,
+    Utensils,
+    BedDouble,
+    Activity,
+    Lightbulb,
+    Info,
+    CircleDot,
+    GripVertical,
+    Smile,
+    Meh,
+    Frown,
+    Laugh,
+    Annoyed,
+    Settings,
+    Maximize2,
+    Eye,
+    LayoutGrid,
+    SlidersHorizontal,
+    Camera,
+    Check,
+    Send,
+    RefreshCw,
+    AlertTriangle,
+    Bot,
+} from '@lucide/vue';
+
+defineProps({
+    name: { type: String, required: true },
+    size: { type: [Number, String], default: 20 },
+    strokeWidth: { type: [Number, String], default: 2 },
+});
+
+const iconMap = {
+    timer: Timer,
+    zap: Zap,
+    clipboard: ClipboardList,
+    'check-circle': CircleCheck,
+    'bar-chart': BarChart2,
+    trophy: Trophy,
+    flame: Flame,
+    coins: Coins,
+    shield: Shield,
+    target: Target,
+    star: Star,
+    heart: Heart,
+    brain: Brain,
+    'book-open': BookOpen,
+    'book-text': BookText,
+    dumbbell: Dumbbell,
+    footprints: Footprints,
+    users: Users,
+    'trending-up': TrendingUp,
+    'check-circle-2': CheckCircle2,
+    clock: Clock,
+    sword: Sword,
+    swords: Swords,
+    award: Award,
+    medal: Medal,
+    'arrow-right': ArrowRight,
+    'arrow-left': ArrowLeft,
+    'chevron-right': ChevronRight,
+    'chevron-down': ChevronDown,
+    lock: Lock,
+    unlock: Unlock,
+    sparkles: Sparkles,
+    sun: SunMedium,
+    moon: Moon,
+    monitor: Monitor,
+    calendar: CalendarDays,
+    leaf: Leaf,
+    wind: Wind,
+    // Acciones de UI
+    'x-circle': XCircle,
+    x: X,
+    pencil: Pencil,
+    trash: Trash2,
+    // Bienestar
+    'notebook-text': NotebookText,
+    'message-square': MessageSquare,
+    palette: Palette,
+    music: Music,
+    utensils: Utensils,
+    bed: BedDouble,
+    activity: Activity,
+    lightbulb: Lightbulb,
+    info: Info,
+    'circle-dot': CircleDot,
+    grip: GripVertical,
+    // Mood
+    smile: Smile,
+    meh: Meh,
+    frown: Frown,
+    laugh: Laugh,
+    annoyed: Annoyed,
+    // Extra
+    settings: Settings,
+    maximize: Maximize2,
+    eye: Eye,
+    'layout-grid': LayoutGrid,
+    sliders: SlidersHorizontal,
+    camera: Camera,
+    check: Check,
+    send: Send,
+    'refresh-cw': RefreshCw,
+    'alert-triangle': AlertTriangle,
+    mail: MessageSquare,
+    bot: Bot,
+    robot: Bot,
+    ai: Bot,
+    'edy-ai': Bot,
+};
+</script>
+
+<template>
+    <component
+        :is="iconMap[name]"
+        :size="size"
+        :stroke-width="strokeWidth"
+        aria-hidden="true"
+        class="inline-block shrink-0"
+    />
+</template>

@@ -1,0 +1,19 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - config
+        - routes
+        - tests
+    level: 6
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        -
+            # config/database.php es generado por `laravel new`, no código del
+            # proyecto: compara PHP_VERSION_ID contra 80500 para preparar el
+            # soporte de PHP 8.5. Con PHP 8.3 la comparación es siempre falsa
+            # y eso es exactamente lo esperado hasta que se actualice el runtime.
+            message: '#Comparison operation ">=" between int<80300, 80400> and 80500 is always false#'
+            path: config/database.php
