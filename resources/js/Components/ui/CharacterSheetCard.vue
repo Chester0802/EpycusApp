@@ -4,6 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import BaseCard from '@/Components/ui/BaseCard.vue';
 import ProgressBar from '@/Components/ui/ProgressBar.vue';
 import ProceduralAvatar from '@/Components/ProceduralAvatar.vue';
+import AvatarFrame from '@/Components/ui/AvatarFrame.vue';
 import CharacterRadarChart from '@/Components/ui/CharacterRadarChart.vue';
 import AppIcon from '@/Components/AppIcon.vue';
 
@@ -68,27 +69,20 @@ const streakAuraClass = computed(() => {
             <!-- Lado Izquierdo: Identidad del Héroe, Nivel y Título de Clase (7 columnas) -->
             <div class="lg:col-span-7 space-y-4">
                 <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-                    <!-- Avatar con Marco de Nivel y Aura de Racha -->
-                    <div class="relative shrink-0">
-                        <div
-                            class="h-22 w-22 rounded-2xl overflow-hidden bg-surface-raised/80 p-1 border-2 shadow-md transition-all duration-300 flex items-center justify-center"
-                            :class="[avatarFrameClass, streakAuraClass]"
-                        >
-                            <ProceduralAvatar
-                                :options="avatarOptions"
-                                :gender="avatarGender"
-                                :size="80"
-                                class="h-full w-full object-contain"
-                            />
-                        </div>
-
-                        <!-- Badge de Nivel flotante -->
-                        <div
-                            class="absolute -bottom-2 -right-2 rounded-full bg-primary-strong px-2 py-0.5 text-[11px] font-black text-on-accent border-2 border-surface shadow-md"
-                        >
-                            Nv. {{ progress.level }}
-                        </div>
-                    </div>
+                    <!-- Avatar con Marco Evolutivo y Aura de Racha -->
+                    <AvatarFrame
+                        :phase="progress.phase || 1"
+                        :streak="progress.currentStreak || 0"
+                        size-class="h-32 w-26 shrink-0"
+                    >
+                        <ProceduralAvatar
+                            :career="avatarStyle"
+                            :gender="avatarGender"
+                            :avatar-options="avatarOptions"
+                            :phase="progress.phase || 1"
+                            :size="220"
+                        />
+                    </AvatarFrame>
 
                     <!-- Nombre, Título de Clase y Carrera -->
                     <div class="text-center sm:text-left space-y-1 min-w-0 flex-1">

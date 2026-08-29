@@ -360,35 +360,33 @@ function getMasteryColor(mastery) {
                             />
                         </div>
 
-                        <!-- Botón Oficial Google NotebookLM -->
+                        <!-- Botón Oficial Google Notebook -->
                         <a
                             href="https://notebooklm.google.com"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-surface-raised hover:bg-slate-50 dark:hover:bg-surface-sunken border border-slate-200 dark:border-border text-xs font-semibold text-slate-700 dark:text-content-secondary hover:text-blue-600 shadow-sm transition-all shrink-0"
-                            title="Abrir Google NotebookLM"
+                            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-surface-raised hover:bg-slate-50 dark:hover:bg-surface-sunken border border-slate-200 dark:border-border text-xs font-semibold text-slate-700 dark:text-content-secondary hover:text-indigo-600 shadow-sm transition-all shrink-0"
+                            title="Abrir Google Notebook"
                         >
-                            <!-- Logo Oficial Google NotebookLM -->
-                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-                                <rect width="24" height="24" rx="5" fill="#F1F3F4"/>
-                                <path d="M7 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="#4285F4"/>
-                                <path d="M8.5 9.5h7M8.5 12h5M8.5 14.5h4" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round"/>
-                                <circle cx="15.5" cy="14.5" r="1" fill="#34A853"/>
+                            <!-- Logo Oficial Gemini Notebook AI -->
+                            <svg class="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12.0014 3.50928c6.6271 0.00006 11.9997 5.37254 11.9997 11.99972l-0.0035 4.4977c0 0.4376 -0.3548 0.7922 -0.7923 0.7922h-1.1621c-0.4374 0 -0.792 -0.3546 -0.7921 -0.7922l0.0036 -4.4977c0 -5.1104 -4.143 -9.25336 -9.2533 -9.25342 -0.1954 0 -0.3895 0.00605 -0.5819 0.01799 4.4483 0.81634 7.8193 4.71323 7.8193 9.39753v0.0018l-0.0013 4.3338c0 0.4376 -0.3546 0.7922 -0.7922 0.7922h-1.1618c-0.4375 0 -0.7917 -0.3546 -0.7917 -0.7922V15.583c-0.0471 -3.7196 -3.0772 -6.72041 -6.80786 -6.72047 -0.34884 0 -0.6922 0.02551 -1.02803 0.07468 0.02195 0.00479 0.04387 0.00962 0.06575 0.01461 3.25564 0.74232 5.69664 3.62518 5.76414 7.08968h0.0029v3.9652c0 0.4376 -0.3548 0.7922 -0.7923 0.7922h-1.162c-0.4375 0 -0.7922 -0.3546 -0.7922 -0.7922l-0.0012 -3.8178c-0.0001 -2.5422 -2.02879 -4.6109 -4.55565 -4.6749 -0.04008 -0.001 -0.08034 -0.0015 -0.12067 -0.0015 -0.04193 0 -0.0836 0.0005 -0.12501 0.0014 -1.28352 0.0281 -2.313 0.4882 -3.01944 1.1911 -0.67318 0.6699 -1.11836 1.6251 -1.16792 2.8172 -0.00147 0.0355 -0.00261 0.0712 -0.00338 0.107l0.00595 4.3776c-0.00004 0.4375 -0.35471 0.7923 -0.79223 0.7923H0.800818c-0.437489 -0.0001 -0.79218757 -0.3548 -0.79223241 -0.7923L0.00155074 15.846l-0.00002309 -0.0019c-0.001345827 -0.1115 -0.0026994 -0.2237 0.00015837 -0.3351C0.00168602 8.88179 5.37421 3.50928 12.0014 3.50928"/>
                             </svg>
-                            <span>NotebookLM</span>
+                            <span>Notebook</span>
                         </a>
 
-                        <!-- Botón Generar IA por Curso -->
+                        <!-- Botón Aplicar IA: Solo visible cuando se selecciona un curso específico -->
                         <button
+                            v-if="selectedCourseId !== null"
                             type="button"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all shrink-0 disabled:opacity-50"
                             :disabled="generatingAI || quotaRemaining <= 0"
-                            @click="handleGenerateAI(selectedCourseId || (courses[0]?.id))"
-                            :title="selectedCourseId ? `Generar IA para ${activeCourse.name}` : 'Generar IA para la materia seleccionada'"
+                            @click="handleGenerateAI(selectedCourseId)"
+                            :title="`Aplicar IA para ${activeCourse.name}`"
                         >
                             <Loader2 v-if="generatingAI" class="w-3.5 h-3.5 animate-spin" />
                             <Brain v-else class="w-3.5 h-3.5" />
-                            <span>Generar IA ({{ quotaRemaining }}/5)</span>
+                            <span>Aplicar IA ({{ quotaRemaining }}/5)</span>
                         </button>
                     </div>
                 </div>
@@ -410,7 +408,7 @@ function getMasteryColor(mastery) {
                         class="px-4 py-2 rounded-xl bg-primary-strong text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
                         @click="handleGenerateAI(selectedCourseId || (courses[0]?.id))"
                     >
-                        Generar con IA ({{ quotaRemaining }}/5)
+                        Aplicar IA ({{ quotaRemaining }}/5)
                     </button>
                 </div>
 
@@ -498,7 +496,7 @@ function getMasteryColor(mastery) {
                         </button>
                     </div>
 
-                    <!-- Botón Generar IA dedicado para este curso -->
+                    <!-- Botón Aplicar IA dedicado para este curso -->
                     <button
                         type="button"
                         class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all shrink-0 disabled:opacity-50"
@@ -507,7 +505,7 @@ function getMasteryColor(mastery) {
                     >
                         <Loader2 v-if="generatingAI" class="w-3.5 h-3.5 animate-spin" />
                         <Brain v-else class="w-3.5 h-3.5" />
-                        <span>Generar IA: {{ activeCourse.name }} ({{ quotaRemaining }}/5)</span>
+                        <span>Aplicar IA ({{ quotaRemaining }}/5)</span>
                     </button>
                 </div>
 
