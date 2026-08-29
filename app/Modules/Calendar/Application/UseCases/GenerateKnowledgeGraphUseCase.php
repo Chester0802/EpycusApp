@@ -34,6 +34,7 @@ final class GenerateKnowledgeGraphUseCase
     public function execute(int $userId, ?int $targetCourseId = null): array
     {
         @set_time_limit(240);
+        @ignore_user_abort(true);
 
         // 1. Validar Cuota Diaria de IA (5 usos globales por usuario)
         $quota = $this->checkQuota->execute($userId);

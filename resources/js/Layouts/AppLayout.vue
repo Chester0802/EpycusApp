@@ -58,7 +58,7 @@ const navSections = [
 const mobileBottomNavItems = [
     { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
     { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
-    { label: 'Aprendizaje', routeName: 'learning.index', icon: 'brain', matchRoutes: ['learning.*'] },
+    { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro', matchRoutes: ['pomodoro.*'] },
     { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
     { label: 'Más', action: 'more', icon: 'settings' },
 ];

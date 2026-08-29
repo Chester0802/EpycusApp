@@ -321,12 +321,13 @@ function getMasteryColor(mastery) {
             <!-- ── 2. VISTA 1: DECK VISUAL DE CHUNKS ────────────────────────────── -->
             <div v-if="viewMode === 'chunks'" class="space-y-4">
                 
-                <!-- Barra de Filtros por Asignatura & Buscador -->
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-surface p-3.5 rounded-2xl border border-border/80">
-                    <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+                <!-- Barra de Filtros por Asignatura & Buscador (Diseño Responsivo en 2 Filas sin Desbordes) -->
+                <div class="bg-surface p-3 sm:p-4 rounded-2xl border border-border/80 space-y-3 shadow-sm">
+                    <!-- Fila 1: Pestañas de Cursos con scroll horizontal suave -->
+                    <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 scroll-smooth">
                         <button
                             type="button"
-                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0"
+                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer"
                             :class="selectedCourseId === null ? 'bg-primary-strong text-white shadow-sm' : 'bg-surface-raised text-content-secondary hover:text-content-primary border border-border'"
                             @click="selectedCourseId = null"
                         >
@@ -336,21 +337,22 @@ function getMasteryColor(mastery) {
                             v-for="c in courses"
                             :key="c.id"
                             type="button"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border cursor-pointer"
                             :class="selectedCourseId === c.id ? 'bg-surface-raised border-primary-strong text-primary-strong shadow-sm' : 'bg-surface-raised/60 border-border text-content-secondary hover:text-content-primary'"
                             @click="selectedCourseId = c.id"
                         >
-                            <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: c.color || '#6366f1' }" />
-                            <span>{{ c.name }}</span>
+                            <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: c.color || '#6366f1' }" />
+                            <span class="whitespace-nowrap">{{ c.name }}</span>
                             <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-surface-sunken text-content-muted">
                                 {{ courseChunkCounts[c.id] || 0 }}
                             </span>
                         </button>
                     </div>
 
-                    <!-- Buscador & Enlace NotebookLM -->
-                    <div class="flex items-center gap-2">
-                        <div class="relative w-full sm:w-56 shrink-0">
+                    <!-- Fila 2: Buscador y Acciones (NotebookLM & Aplicar IA) -->
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-border/50">
+                        <!-- Buscador Flexible -->
+                        <div class="relative flex-1 min-w-0">
                             <Search class="w-3.5 h-3.5 absolute left-3 top-2.5 text-content-muted" />
                             <input
                                 v-model="searchQuery"
@@ -360,55 +362,64 @@ function getMasteryColor(mastery) {
                             />
                         </div>
 
-                        <!-- Botón Oficial Google Notebook -->
-                        <a
-                            href="https://notebooklm.google.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-surface-raised hover:bg-slate-50 dark:hover:bg-surface-sunken border border-slate-200 dark:border-border text-xs font-semibold text-slate-700 dark:text-content-secondary hover:text-indigo-600 shadow-sm transition-all shrink-0"
-                            title="Abrir Google Notebook"
-                        >
-                            <!-- Logo Oficial Gemini Notebook AI -->
-                            <svg class="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12.0014 3.50928c6.6271 0.00006 11.9997 5.37254 11.9997 11.99972l-0.0035 4.4977c0 0.4376 -0.3548 0.7922 -0.7923 0.7922h-1.1621c-0.4374 0 -0.792 -0.3546 -0.7921 -0.7922l0.0036 -4.4977c0 -5.1104 -4.143 -9.25336 -9.2533 -9.25342 -0.1954 0 -0.3895 0.00605 -0.5819 0.01799 4.4483 0.81634 7.8193 4.71323 7.8193 9.39753v0.0018l-0.0013 4.3338c0 0.4376 -0.3546 0.7922 -0.7922 0.7922h-1.1618c-0.4375 0 -0.7917 -0.3546 -0.7917 -0.7922V15.583c-0.0471 -3.7196 -3.0772 -6.72041 -6.80786 -6.72047 -0.34884 0 -0.6922 0.02551 -1.02803 0.07468 0.02195 0.00479 0.04387 0.00962 0.06575 0.01461 3.25564 0.74232 5.69664 3.62518 5.76414 7.08968h0.0029v3.9652c0 0.4376 -0.3548 0.7922 -0.7923 0.7922h-1.162c-0.4375 0 -0.7922 -0.3546 -0.7922 -0.7922l-0.0012 -3.8178c-0.0001 -2.5422 -2.02879 -4.6109 -4.55565 -4.6749 -0.04008 -0.001 -0.08034 -0.0015 -0.12067 -0.0015 -0.04193 0 -0.0836 0.0005 -0.12501 0.0014 -1.28352 0.0281 -2.313 0.4882 -3.01944 1.1911 -0.67318 0.6699 -1.11836 1.6251 -1.16792 2.8172 -0.00147 0.0355 -0.00261 0.0712 -0.00338 0.107l0.00595 4.3776c-0.00004 0.4375 -0.35471 0.7923 -0.79223 0.7923H0.800818c-0.437489 -0.0001 -0.79218757 -0.3548 -0.79223241 -0.7923L0.00155074 15.846l-0.00002309 -0.0019c-0.001345827 -0.1115 -0.0026994 -0.2237 0.00015837 -0.3351C0.00168602 8.88179 5.37421 3.50928 12.0014 3.50928"/>
-                            </svg>
-                            <span>Notebook</span>
-                        </a>
+                        <!-- Botones de Acción (Notebook & Aplicar IA) -->
+                        <div class="flex items-center gap-2 shrink-0 justify-end">
+                            <!-- Botón Oficial Google Notebook -->
+                            <a
+                                href="https://notebooklm.google.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-raised hover:bg-surface-sunken border border-border text-xs font-semibold text-content-secondary hover:text-primary-strong shadow-sm transition-all shrink-0"
+                                title="Abrir Google Notebook"
+                            >
+                                <svg class="w-4 h-4 shrink-0 text-primary-strong" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12.0014 3.50928c6.6271 0.00006 11.9997 5.37254 11.9997 11.99972l-0.0035 4.4977c0 0.4376 -0.3548 0.7922 -0.7923 0.7922h-1.1621c-0.4374 0 -0.792 -0.3546 -0.7921 -0.7922l0.0036 -4.4977c0 -5.1104 -4.143 -9.25336 -9.2533 -9.25342 -0.1954 0 -0.3895 0.00605 -0.5819 0.01799 4.4483 0.81634 7.8193 4.71323 7.8193 9.39753v0.0018l-0.0013 4.3338c0 0.4376 -0.3546 0.7922 -0.7922 0.7922h-1.1618c-0.4375 0 -0.7917 -0.3546 -0.7917 -0.7922V15.583c-0.0471 -3.7196 -3.0772 -6.72041 -6.80786 -6.72047 -0.34884 0 -0.6922 0.02551 -1.02803 0.07468 0.02195 0.00479 0.04387 0.00962 0.06575 0.01461 3.25564 0.74232 5.69664 3.62518 5.76414 7.08968h0.0029v3.9652c0 0.4376 -0.3548 0.7922 -0.7923 0.7922h-1.162c-0.4375 0 -0.7922 -0.3546 -0.7922 -0.7922l-0.0012 -3.8178c-0.0001 -2.5422 -2.02879 -4.6109 -4.55565 -4.6749 -0.04008 -0.001 -0.08034 -0.0015 -0.12067 -0.0015 -0.04193 0 -0.0836 0.0005 -0.12501 0.0014 -1.28352 0.0281 -2.313 0.4882 -3.01944 1.1911 -0.67318 0.6699 -1.11836 1.6251 -1.16792 2.8172 -0.00147 0.0355 -0.00261 0.0712 -0.00338 0.107l0.00595 4.3776c-0.00004 0.4375 -0.35471 0.7923 -0.79223 0.7923H0.800818c-0.437489 -0.0001 -0.79218757 -0.3548 -0.79223241 -0.7923L0.00155074 15.846l-0.00002309 -0.0019c-0.001345827 -0.1115 -0.0026994 -0.2237 0.00015837 -0.3351C0.00168602 8.88179 5.37421 3.50928 12.0014 3.50928"/>
+                                </svg>
+                                <span>Notebook</span>
+                            </a>
 
-                        <!-- Botón Aplicar IA: Solo visible cuando se selecciona un curso específico -->
-                        <button
-                            v-if="selectedCourseId !== null"
-                            type="button"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all shrink-0 disabled:opacity-50"
-                            :disabled="generatingAI || quotaRemaining <= 0"
-                            @click="handleGenerateAI(selectedCourseId)"
-                            :title="`Aplicar IA para ${activeCourse.name}`"
-                        >
-                            <Loader2 v-if="generatingAI" class="w-3.5 h-3.5 animate-spin" />
-                            <Brain v-else class="w-3.5 h-3.5" />
-                            <span>Aplicar IA ({{ quotaRemaining }}/5)</span>
-                        </button>
+                            <!-- Botón Aplicar IA: EXCLUSIVO cuando se selecciona un curso específico -->
+                            <button
+                                v-if="selectedCourseId !== null"
+                                type="button"
+                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-strong hover:bg-primary-strong/90 text-white text-xs font-bold shadow-sm transition-all shrink-0 disabled:opacity-50 cursor-pointer"
+                                :disabled="generatingAI || quotaRemaining <= 0"
+                                @click="handleGenerateAI(selectedCourseId)"
+                                :title="activeCourse ? `Aplicar IA para ${activeCourse.name}` : 'Aplicar IA'"
+                            >
+                                <Loader2 v-if="generatingAI" class="w-3.5 h-3.5 animate-spin" />
+                                <Brain v-else class="w-3.5 h-3.5" />
+                                <span>Aplicar IA ({{ quotaRemaining }}/5)</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Estado Vacío -->
                 <div
                     v-if="filteredChunks.length === 0"
-                    class="p-12 text-center rounded-3xl bg-surface border border-dashed border-border space-y-3"
+                    class="p-8 sm:p-12 text-center rounded-3xl bg-surface border border-dashed border-border space-y-3"
                 >
-                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-primary-strong flex items-center justify-center mx-auto">
                         <Layers class="w-6 h-6" />
                     </div>
-                    <h3 class="text-base font-bold text-content-primary">No hay Chunks registrados</h3>
+                    <h3 class="text-base font-bold text-content-primary">
+                        {{ selectedCourseId === null ? 'Selecciona una asignatura' : 'No hay Chunks registrados' }}
+                    </h3>
                     <p class="text-xs text-content-secondary max-w-md mx-auto">
-                        Genera con IA tus tarjetas de estudio y mapa conceptual a partir de tus notas oficiales.
+                        {{ selectedCourseId === null 
+                            ? 'Elige una de tus asignaturas arriba para ver sus cápsulas conceptuales o generar nuevo conocimiento con IA.' 
+                            : `Genera con IA las tarjetas de estudio y mapa mental para ${activeCourse?.name || 'esta asignatura'}.` }}
                     </p>
                     <button
+                        v-if="selectedCourseId !== null"
                         type="button"
-                        class="px-4 py-2 rounded-xl bg-primary-strong text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
-                        @click="handleGenerateAI(selectedCourseId || (courses[0]?.id))"
+                        class="px-4 py-2 rounded-xl bg-primary-strong text-white text-xs font-bold shadow-md hover:scale-105 transition-all cursor-pointer disabled:opacity-50"
+                        :disabled="generatingAI || quotaRemaining <= 0"
+                        @click="handleGenerateAI(selectedCourseId)"
                     >
-                        Aplicar IA ({{ quotaRemaining }}/5)
+                        <Loader2 v-if="generatingAI" class="w-3.5 h-3.5 animate-spin inline mr-1" />
+                        <span>Aplicar IA ({{ quotaRemaining }}/5)</span>
                     </button>
                 </div>
 
