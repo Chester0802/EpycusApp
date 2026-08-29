@@ -59,23 +59,27 @@ const quotaRemaining = computed(() => {
     return Math.max(0, 5 - used);
 });
 
-// ── Métricas Reales Reactivas en Vivo ────────────────────────────────────────
+// ── Métricas Reales Reactivas en Vivo (Inician en 0% hasta evaluar Flashcards) ──
 const realGlobalMastery = computed(() => {
     const list = localChunks.value;
-    if (list.length === 0) return 70;
-    const sum = list.reduce((acc, c) => acc + (c.mastery !== undefined ? c.mastery : 70), 0);
+    if (list.length === 0) return 0;
+    const sum = list.reduce((acc, c) => acc + (Number(c.mastery) || 0), 0);
     return Math.round(sum / list.length);
 });
 
 const weakChunksCount = computed(() => {
-    return localChunks.value.filter(c => (c.mastery !== undefined ? c.mastery : 70) < 60).length;
+    return localChunks.value.filter(c => (Number(c.mastery) || 0) < 60 && (Number(c.mastery) || 0) > 0).length;
 });
 
-// Chunks filtrados por buscador y curso seleccionado
+// Chunks filtrados por buscador y curso seleccionado (Coincidencia por ID o Nombre)
 const filteredChunks = computed(() => {
     let list = localChunks.value;
     if (selectedCourseId.value !== null) {
-        list = list.filter(n => n.course_id === selectedCourseId.value);
+        const selCourse = props.courses.find(c => String(c.id) === String(selectedCourseId.value));
+        list = list.filter(n =>
+            String(n.course_id) === String(selectedCourseId.value) ||
+            (selCourse && n.course_name && n.course_name.trim().toLowerCase() === selCourse.name.trim().toLowerCase())
+        );
     }
     if (searchQuery.value.trim() !== '') {
         const q = searchQuery.value.toLowerCase();
@@ -92,15 +96,20 @@ const activeCourse = computed(() => {
     if (selectedCourseId.value === null) {
         return props.courses[0] || { id: 1, name: 'Asignatura', color: '#6366f1' };
     }
-    return props.courses.find(c => c.id === selectedCourseId.value) || props.courses[0];
+    return props.courses.find(c => String(c.id) === String(selectedCourseId.value)) || props.courses[0];
 });
 
 const courseChunkCounts = computed(() => {
     const counts = {};
     localChunks.value.forEach(n => {
-        if (n.course_id) {
-            counts[n.course_id] = (counts[n.course_id] || 0) + 1;
-        }
+        props.courses.forEach(c => {
+            if (
+                String(n.course_id) === String(c.id) ||
+                (n.course_name && n.course_name.trim().toLowerCase() === c.name.trim().toLowerCase())
+            ) {
+                counts[c.id] = (counts[c.id] || 0) + 1;
+            }
+        });
     });
     return counts;
 });
@@ -148,8 +157,8 @@ function handleRecallEvaluation({ chunkId, delta }) {
     if (!chunk) return;
 
     // Actualizar dominio reactivamente en vivo
-    const current = chunk.mastery !== undefined ? chunk.mastery : 70;
-    const updated = Math.max(10, Math.min(100, current + delta));
+    const current = Number(chunk.mastery) || 0;
+    const updated = Math.max(0, Math.min(100, current + delta));
     chunk.mastery = updated;
 
     // Persistir en Backend
@@ -193,10 +202,27 @@ async function handleGenerateAI(courseId = null) {
     }
 }
 
-function openNoteForCourse(courseId) {
-    const found = props.courses.find(c => c.id === courseId);
+function openNoteForCourse(courseIdentifier) {
+    let found = null;
+    if (typeof courseIdentifier === 'object' && courseIdentifier !== null) {
+        found = props.courses.find(c =>
+            String(c.id) === String(courseIdentifier.courseId) ||
+            (courseIdentifier.courseName && c.name.trim().toLowerCase() === courseIdentifier.courseName.trim().toLowerCase())
+        );
+    } else if (courseIdentifier) {
+        found = props.courses.find(c =>
+            String(c.id) === String(courseIdentifier) ||
+            c.name.trim().toLowerCase() === String(courseIdentifier).trim().toLowerCase()
+        );
+    }
+    if (!found && activeChunk.value?.course_name) {
+        found = props.courses.find(c => c.name.trim().toLowerCase() === activeChunk.value.course_name.trim().toLowerCase());
+    }
     if (found) {
         activeNoteCourse.value = found;
+        showNoteModal.value = true;
+    } else if (props.courses.length > 0) {
+        activeNoteCourse.value = props.courses[0];
         showNoteModal.value = true;
     }
 }
@@ -208,8 +234,10 @@ function triggerToast(msg, type = 'success') {
 }
 
 function getMasteryColor(mastery) {
-    if (mastery >= 80) return 'text-emerald-600 bg-emerald-500';
-    if (mastery >= 60) return 'text-amber-600 bg-amber-500';
+    const m = Number(mastery) || 0;
+    if (m === 0) return 'text-slate-400 bg-slate-200 dark:bg-slate-700';
+    if (m >= 80) return 'text-emerald-600 bg-emerald-500';
+    if (m >= 60) return 'text-amber-600 bg-amber-500';
     return 'text-rose-600 bg-rose-500';
 }
 </script>

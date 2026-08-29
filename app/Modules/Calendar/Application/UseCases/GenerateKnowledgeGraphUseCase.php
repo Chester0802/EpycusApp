@@ -202,15 +202,28 @@ SYS;
             $parsedData = $this->generateHierarchyFromRealSections($coursesData);
         }
 
-        // 7. Normalizar y colorear nuevos nodos
+        // 7. Normalizar y colorear nuevos nodos con IDs reales de base de datos
+        $courseNameToId = [];
+        foreach ($allCourses as $c) {
+            $courseNameToId[mb_strtolower(trim($c->name))] = $c->id;
+        }
+
         $newNodes = $parsedData['nodes'] ?? [];
         foreach ($newNodes as &$node) {
+            if ($targetCourseId !== null) {
+                $node['course_id'] = $targetCourseId;
+            } else {
+                $cName = mb_strtolower(trim($node['course_name'] ?? ''));
+                if (isset($courseNameToId[$cName])) {
+                    $node['course_id'] = $courseNameToId[$cName];
+                }
+            }
             $cId = $node['course_id'] ?? null;
             $node['color'] = $courseColorMap[$cId] ?? self::COURSE_PALETTE[0];
             $node['is_parent'] = (bool) ($node['is_parent'] ?? false);
-            $node['mastery'] = isset($node['mastery']) ? (int) $node['mastery'] : 70;
+            $node['mastery'] = 0; // Inicia en 0% hasta que el alumno practique las flashcards
             $node['importance'] = isset($node['importance']) ? (int) $node['importance'] : 4;
-            $node['last_reviewed_at'] = 'Hoy';
+            $node['last_reviewed_at'] = 'Pendiente';
         }
         unset($node);
 
