@@ -9,12 +9,13 @@ import NavIcon from '@/Components/NavIcon.vue';
 import BaseBadge from '@/Components/ui/BaseBadge.vue';
 import EpaPretestModal from '@/Components/EpaPretestModal.vue';
 import GlobalPomodoroWidget from '@/Components/Pomodoro/GlobalPomodoroWidget.vue';
-import { MoreHorizontal, X, LogOut } from '@lucide/vue';
+import { MoreHorizontal, X, LogOut, ChevronLeft, ChevronRight } from '@lucide/vue';
 
 const page = usePage();
 const { track } = useTelemetry();
 
 const showMobileMore = ref(false);
+const isSidebarCollapsed = ref(false);
 
 const navSections = [
     {
@@ -198,16 +199,43 @@ if (typeof window !== 'undefined') {
         <!-- Fondo de pantalla — solo modo Vidrio -->
         <div v-if="surface === 'glass'" class="app-background" aria-hidden="true" />
 
-        <!-- Barra lateral — solo escritorio (Organizada por Secciones Semánticas) -->
-        <aside class="panel-nav relative z-10 hidden w-[250px] shrink-0 lg:flex lg:flex-col border-r border-border h-screen sticky top-0">
-            <div class="flex h-16 items-center justify-between gap-2 px-5 border-b border-border/50">
+        <!-- Botón Flotante para Mostrar Barra Lateral cuando está Oculta -->
+        <button
+            v-if="isSidebarCollapsed"
+            type="button"
+            class="fixed left-3 top-3.5 z-40 px-3 py-2 rounded-2xl bg-surface border border-border shadow-xl text-content-secondary hover:text-primary-strong hover:scale-105 transition-all hidden lg:flex items-center gap-2 text-xs font-black cursor-pointer animate-fade-in"
+            title="Mostrar barra lateral"
+            @click="isSidebarCollapsed = false"
+        >
+            <ChevronRight class="w-4 h-4 text-primary-strong" />
+            <span>Menú</span>
+        </button>
+
+        <!-- Barra lateral — solo escritorio (Organizada por Secciones Semánticas con Toggle) -->
+        <aside
+            class="panel-nav relative z-10 hidden shrink-0 lg:flex lg:flex-col border-r border-border h-screen sticky top-0 transition-all duration-300 ease-in-out"
+            :class="isSidebarCollapsed ? 'w-0 -translate-x-full border-r-0 overflow-hidden opacity-0 pointer-events-none' : 'w-[250px] translate-x-0 opacity-100'"
+        >
+            <div class="flex h-16 items-center justify-between gap-2 px-4 border-b border-border/50">
                 <button type="button" class="flex items-center gap-2.5 cursor-pointer" @click="navigate('dashboard')">
                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-strong p-1 shadow-sm">
                         <ApplicationLogo class="h-full w-full rounded" />
                     </span>
                     <span class="font-display text-lg font-bold text-content-primary">Epycus</span>
                 </button>
-                <ThemeToggle />
+                
+                <div class="flex items-center gap-1">
+                    <ThemeToggle />
+                    <!-- Flecha para Ocultar Barra Lateral -->
+                    <button
+                        type="button"
+                        class="p-1.5 rounded-xl text-content-muted hover:text-content-primary hover:bg-surface-raised transition cursor-pointer"
+                        title="Ocultar barra de navegación"
+                        @click="isSidebarCollapsed = true"
+                    >
+                        <ChevronLeft class="w-4 h-4" />
+                    </button>
+                </div>
             </div>
 
             <nav class="flex-1 overflow-y-auto space-y-4 px-3 py-3" aria-label="Navegación principal">

@@ -242,27 +242,29 @@ function resetView() {
     pan.value = { x: 0, y: 0 };
 }
 
-// Fullscreen Nativo del Navegador (100% Pantalla Real)
+// Fullscreen Robusto (Nativo con Fallback CSS Total para Móviles)
 function toggleFullscreen() {
     if (!containerRef.value) return;
 
-    if (!document.fullscreenElement) {
-        containerRef.value.requestFullscreen().then(() => {
-            isFullscreen.value = true;
-        }).catch(err => {
-            console.error('Error al entrar a pantalla completa:', err);
-        });
+    if (isFullscreen.value) {
+        isFullscreen.value = false;
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+        }
     } else {
-        document.exitFullscreen().then(() => {
-            isFullscreen.value = false;
-        }).catch(err => {
-            console.error('Error al salir de pantalla completa:', err);
-        });
+        isFullscreen.value = true;
+        if (containerRef.value.requestFullscreen) {
+            containerRef.value.requestFullscreen().catch(() => {
+                // Fallback visual en dispositivos móviles que no admitan fullscreen nativo
+            });
+        }
     }
 }
 
 function onFullscreenChange() {
-    isFullscreen.value = !!document.fullscreenElement;
+    if (!document.fullscreenElement && isFullscreen.value) {
+        isFullscreen.value = false;
+    }
 }
 
 onMounted(() => {
@@ -277,7 +279,8 @@ onUnmounted(() => {
 <template>
     <div
         ref="containerRef"
-        class="relative w-full h-[76vh] bg-slate-50 select-none flex flex-col rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden"
+        class="relative w-full select-none flex flex-col transition-all duration-300 shadow-sm overflow-hidden bg-slate-50"
+        :class="isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen rounded-none border-none' : 'h-[76vh] rounded-3xl border border-slate-200/90'"
     >
         <!-- Header Flotante del Mapa Mental -->
         <div class="absolute top-4 left-4 z-20 flex items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">

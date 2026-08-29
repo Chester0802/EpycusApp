@@ -436,20 +436,18 @@ watch(selectedCourseId, () => {
 function toggleFullscreen() {
     if (!containerRef.value) return;
 
-    if (!document.fullscreenElement) {
-        containerRef.value.requestFullscreen().then(() => {
-            isFullscreen.value = true;
-            resize3D();
-        }).catch(err => {
-            console.error('Error fullscreen:', err);
-        });
+    if (isFullscreen.value) {
+        isFullscreen.value = false;
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+        }
+        resize3D();
     } else {
-        document.exitFullscreen().then(() => {
-            isFullscreen.value = false;
-            resize3D();
-        }).catch(err => {
-            console.error('Error exit fullscreen:', err);
-        });
+        isFullscreen.value = true;
+        if (containerRef.value.requestFullscreen) {
+            containerRef.value.requestFullscreen().catch(() => {});
+        }
+        resize3D();
     }
 }
 
@@ -466,7 +464,9 @@ function resize3D() {
 }
 
 function onFullscreenChange() {
-    isFullscreen.value = !!document.fullscreenElement;
+    if (!document.fullscreenElement && isFullscreen.value) {
+        isFullscreen.value = false;
+    }
     resize3D();
 }
 
@@ -485,7 +485,8 @@ onUnmounted(() => {
     <div
         v-if="show"
         ref="containerRef"
-        class="relative w-full h-[78vh] bg-slate-950 rounded-3xl border border-slate-800 select-none flex flex-col shadow-2xl animate-fade-in overflow-hidden"
+        class="relative w-full select-none flex flex-col transition-all duration-300 shadow-2xl animate-fade-in bg-slate-950 overflow-hidden"
+        :class="isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen rounded-none border-none' : 'h-[78vh] rounded-3xl border border-slate-800'"
     >
         <!-- Barra Superior Header 3D -->
         <div class="flex items-center justify-between px-4 sm:px-6 py-3 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 z-20 shrink-0">
