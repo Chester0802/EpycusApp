@@ -372,23 +372,22 @@ function addCosmicOrbTo3DScene() {
 
 function createTextSprite3D(message, color = '#6366f1', isParent = false) {
     const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 128;
     const ctx = canvas.getContext('2d');
-    const dpr = 2; // DPR fijo optimizado para nitidez sin artefactos
     
     // Limitar longitud para evitar texto apretado
-    const maxLen = isParent ? 30 : 22;
-    const cleanText = message.length > maxLen ? message.substring(0, maxLen - 2) + '…' : message;
+    const maxLen = isParent ? 28 : 20;
+    const cleanText = (message || '').length > maxLen ? (message || '').substring(0, maxLen - 2) + '…' : (message || '');
     
-    canvas.width = 320 * dpr;
-    canvas.height = 70 * dpr;
-    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, 512, 128);
     
-    // Dibujar píldora oscura con borde temático
-    const w = 310;
-    const h = 48;
-    const x = 5;
-    const y = 11;
-    const r = 12;
+    // Dibujar píldora oscura nítida con dimensiones proporcionales a 512x128
+    const x = 16;
+    const y = 16;
+    const w = 480;
+    const h = 96;
+    const r = 24;
     
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -402,32 +401,36 @@ function createTextSprite3D(message, color = '#6366f1', isParent = false) {
     ctx.quadraticCurveTo(x, y, x + r, y);
     ctx.closePath();
     
-    ctx.fillStyle = isParent ? 'rgba(15, 23, 42, 0.92)' : 'rgba(15, 23, 42, 0.85)';
+    ctx.fillStyle = isParent ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.88)';
     ctx.fill();
     
-    ctx.strokeStyle = isParent ? color : 'rgba(148, 163, 184, 0.4)';
-    ctx.lineWidth = isParent ? 2 : 1;
+    ctx.strokeStyle = isParent ? color : 'rgba(148, 163, 184, 0.5)';
+    ctx.lineWidth = isParent ? 4 : 2;
     ctx.stroke();
     
-    // Texto nítido sin sombras difusas que causen rayas
-    ctx.font = isParent ? 'bold 18px Inter, system-ui, sans-serif' : '600 15px Inter, system-ui, sans-serif';
-    ctx.fillStyle = isParent ? '#ffffff' : '#f8fafc';
+    // Renderizado tipográfico nítido y universal
+    ctx.font = isParent ? 'bold 34px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : '600 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(cleanText, 160, 35);
+    ctx.fillText(cleanText, 256, 64);
 
     const texture = new THREE.CanvasTexture(canvas);
+    texture.generateMipmaps = false;
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.needsUpdate = true;
     
     const spriteMaterial = new THREE.SpriteMaterial({
         map: texture,
         transparent: true,
-        depthTest: true,
+        depthTest: false,
         depthWrite: false
     });
     const sprite = new THREE.Sprite(spriteMaterial);
-    sprite.scale.set(isParent ? 42 : 30, isParent ? 9.5 : 6.8, 1);
+    sprite.scale.set(isParent ? 44 : 32, isParent ? 11 : 8, 1);
     return sprite;
 }
 
