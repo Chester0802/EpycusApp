@@ -297,17 +297,6 @@ function getMasteryColor(mastery) {
                             Segundo Cerebro 3D
                         </button>
                     </div>
-
-                    <!-- Botón Conectar con IA con Intentos Restantes -->
-                    <button
-                        type="button"
-                        class="px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
-                        :disabled="generatingAI || quotaRemaining <= 0"
-                        @click="handleGenerateAI(selectedCourseId)"
-                    >
-                        <Loader2 v-if="generatingAI" class="w-4 h-4 animate-spin" />
-                        <span>{{ generatingAI ? 'Generando...' : `Conectar con IA (${quotaRemaining}/5)` }}</span>
-                    </button>
                 </div>
             </div>
 
@@ -388,6 +377,19 @@ function getMasteryColor(mastery) {
                             </svg>
                             <span>NotebookLM</span>
                         </a>
+
+                        <!-- Botón Generar IA por Curso -->
+                        <button
+                            type="button"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all shrink-0 disabled:opacity-50"
+                            :disabled="generatingAI || quotaRemaining <= 0"
+                            @click="handleGenerateAI(selectedCourseId || (courses[0]?.id))"
+                            :title="selectedCourseId ? `Generar IA para ${activeCourse.name}` : 'Generar IA para la materia seleccionada'"
+                        >
+                            <Loader2 v-if="generatingAI" class="w-3.5 h-3.5 animate-spin" />
+                            <Brain v-else class="w-3.5 h-3.5" />
+                            <span>Generar IA ({{ quotaRemaining }}/5)</span>
+                        </button>
                     </div>
                 </div>
 
@@ -406,9 +408,9 @@ function getMasteryColor(mastery) {
                     <button
                         type="button"
                         class="px-4 py-2 rounded-xl bg-primary-strong text-white text-xs font-bold shadow-md hover:scale-105 transition-all"
-                        @click="handleGenerateAI(selectedCourseId)"
+                        @click="handleGenerateAI(selectedCourseId || (courses[0]?.id))"
                     >
-                        Generar con IA
+                        Generar con IA ({{ quotaRemaining }}/5)
                     </button>
                 </div>
 
@@ -480,18 +482,32 @@ function getMasteryColor(mastery) {
 
             <!-- ── 3. VISTA 2: MAPA MENTAL POR CURSO (Fondo Blanco) ─────────────── -->
             <div v-else-if="viewMode === 'mindmap'" class="space-y-4 animate-fade-in">
-                <!-- Selector de Curso para el Mapa Mental -->
-                <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
+                <!-- Selector de Curso para el Mapa Mental & Botón de IA del Curso -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-surface p-3.5 rounded-2xl border border-border/80">
+                    <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+                        <button
+                            v-for="c in courses"
+                            :key="c.id"
+                            type="button"
+                            class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 border"
+                            :class="activeCourse.id === c.id ? 'bg-surface-raised border-primary-strong text-primary-strong shadow-sm' : 'bg-surface border-border text-content-secondary hover:text-content-primary'"
+                            @click="selectedCourseId = c.id"
+                        >
+                            <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: c.color || '#6366f1' }" />
+                            <span>{{ c.name }}</span>
+                        </button>
+                    </div>
+
+                    <!-- Botón Generar IA dedicado para este curso -->
                     <button
-                        v-for="c in courses"
-                        :key="c.id"
                         type="button"
-                        class="flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 border"
-                        :class="activeCourse.id === c.id ? 'bg-surface-raised border-primary-strong text-primary-strong shadow-sm' : 'bg-surface border-border text-content-secondary hover:text-content-primary'"
-                        @click="selectedCourseId = c.id"
+                        class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all shrink-0 disabled:opacity-50"
+                        :disabled="generatingAI || quotaRemaining <= 0"
+                        @click="handleGenerateAI(activeCourse.id)"
                     >
-                        <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: c.color || '#6366f1' }" />
-                        <span>{{ c.name }}</span>
+                        <Loader2 v-if="generatingAI" class="w-3.5 h-3.5 animate-spin" />
+                        <Brain v-else class="w-3.5 h-3.5" />
+                        <span>Generar IA: {{ activeCourse.name }} ({{ quotaRemaining }}/5)</span>
                     </button>
                 </div>
 
