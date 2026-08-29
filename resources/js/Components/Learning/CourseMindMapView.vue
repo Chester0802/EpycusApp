@@ -212,7 +212,24 @@ function generateBezierCurve(x1, y1, x2, y2, isRight) {
     return `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
 }
 
-// Pan & Zoom
+// ── Centrado Automático y Pan/Zoom Inteligente ───────────────────────────────
+function centerGraph() {
+    if (!containerRef.value) return;
+    const rect = containerRef.value.getBoundingClientRect();
+    const isMobile = rect.width < 640;
+    const targetZoom = isMobile ? 0.70 : 0.95;
+    zoom.value = targetZoom;
+    pan.value = {
+        x: (rect.width / 2) - (550 * targetZoom),
+        y: (rect.height / 2) - (360 * targetZoom),
+    };
+}
+
+function resetView() {
+    centerGraph();
+}
+
+// Pan & Zoom con Mouse
 function handleMouseDown(e) {
     if (e.target.closest('.interactive-node')) return;
     isDragging.value = true;
@@ -234,15 +251,55 @@ function handleMouseUp() {
 function handleWheel(e) {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.92 : 1.08;
-    zoom.value = Math.max(0.35, Math.min(2.2, zoom.value * delta));
+    zoom.value = Math.max(0.30, Math.min(2.5, zoom.value * delta));
 }
 
-function resetView() {
-    zoom.value = 1;
-    pan.value = { x: 0, y: 0 };
+// ── Soporte Táctil Completo para Móviles (Arrastre + Pellizco Zoom) ─────────
+let touchStartDist = 0;
+let initialZoom = 1;
+
+function handleTouchStart(e) {
+    if (e.target.closest('.interactive-node')) return;
+    if (e.touches.length === 1) {
+        isDragging.value = true;
+        dragStart.value = {
+            x: e.touches[0].clientX - pan.value.x,
+            y: e.touches[0].clientY - pan.value.y,
+        };
+    } else if (e.touches.length === 2) {
+        isDragging.value = false;
+        touchStartDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
+        initialZoom = zoom.value;
+    }
 }
 
-// Fullscreen Robusto (Nativo con Fallback CSS Total para Móviles)
+function handleTouchMove(e) {
+    if (e.touches.length === 1 && isDragging.value) {
+        e.preventDefault();
+        pan.value = {
+            x: e.touches[0].clientX - dragStart.value.x,
+            y: e.touches[0].clientY - dragStart.value.y,
+        };
+    } else if (e.touches.length === 2 && touchStartDist > 0) {
+        e.preventDefault();
+        const dist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
+        const factor = dist / touchStartDist;
+        zoom.value = Math.max(0.30, Math.min(2.5, initialZoom * factor));
+    }
+}
+
+function handleTouchEnd() {
+    isDragging.value = false;
+    touchStartDist = 0;
+}
+
+// Fullscreen Robusto
 function toggleFullscreen() {
     if (!containerRef.value) return;
 
@@ -254,57 +311,60 @@ function toggleFullscreen() {
     } else {
         isFullscreen.value = true;
         if (containerRef.value.requestFullscreen) {
-            containerRef.value.requestFullscreen().catch(() => {
-                // Fallback visual en dispositivos móviles que no admitan fullscreen nativo
-            });
+            containerRef.value.requestFullscreen().catch(() => {});
         }
     }
+    setTimeout(centerGraph, 150);
 }
 
 function onFullscreenChange() {
     if (!document.fullscreenElement && isFullscreen.value) {
         isFullscreen.value = false;
     }
+    setTimeout(centerGraph, 150);
 }
 
 onMounted(() => {
     document.addEventListener('fullscreenchange', onFullscreenChange);
+    window.addEventListener('resize', centerGraph);
+    setTimeout(centerGraph, 100);
 });
 
 onUnmounted(() => {
     document.removeEventListener('fullscreenchange', onFullscreenChange);
+    window.removeEventListener('resize', centerGraph);
 });
 </script>
 
 <template>
     <div
         ref="containerRef"
-        class="relative w-full select-none flex flex-col transition-all duration-300 shadow-sm overflow-hidden bg-slate-50"
+        class="relative w-full select-none flex flex-col transition-all duration-300 shadow-sm overflow-hidden bg-slate-50 touch-none"
         :class="isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen rounded-none border-none' : 'h-[76vh] rounded-3xl border border-slate-200/90'"
     >
         <!-- Header Flotante del Mapa Mental -->
-        <div class="absolute top-4 left-4 z-20 flex items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="w-3.5 h-3.5 rounded-full" :style="{ backgroundColor: course.color || '#4f46e5' }" />
-            <div>
-                <h3 class="text-sm font-bold text-slate-900 leading-tight">
-                    Mapa Mental: {{ course.name }}
+        <div class="absolute top-3 left-3 z-20 flex items-center gap-2.5 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-2xl border border-slate-200 shadow-sm max-w-[50%] sm:max-w-none">
+            <div class="w-3 h-3 rounded-full shrink-0" :style="{ backgroundColor: course.color || '#4f46e5' }" />
+            <div class="truncate">
+                <h3 class="text-xs sm:text-sm font-bold text-slate-900 leading-tight truncate">
+                    {{ course.name }}
                 </h3>
-                <span class="text-[11px] text-slate-500 font-medium">
-                    {{ chunks.length }} Conceptos estructurados en ramas interactivas
+                <span class="text-[10px] text-slate-500 font-medium hidden sm:inline">
+                    {{ chunks.length }} Conceptos
                 </span>
             </div>
         </div>
 
         <!-- Controles Flotantes: Expandir Todo, Zoom y Pantalla Completa Real -->
-        <div class="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="absolute top-3 right-3 z-20 flex items-center gap-1 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200 shadow-sm">
             <!-- Botón Expandir / Contraer Todo -->
             <button
                 type="button"
-                class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-1"
+                class="px-2 py-1 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors flex items-center gap-1"
                 @click="toggleExpandAll"
             >
                 <Eye class="w-3.5 h-3.5 text-indigo-600" />
-                <span>{{ areAllExpanded ? 'Contraer Todo' : 'Ver Mapa Completo' }}</span>
+                <span class="hidden sm:inline">{{ areAllExpanded ? 'Contraer Todo' : 'Ver Mapa Completo' }}</span>
             </button>
 
             <span class="h-4 w-px bg-slate-200 mx-0.5" />
@@ -312,30 +372,30 @@ onUnmounted(() => {
             <!-- Controles Zoom -->
             <button
                 type="button"
-                class="p-1.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                class="p-1 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
                 title="Acercar"
-                @click="zoom = Math.min(2.2, zoom * 1.15)"
+                @click="zoom = Math.min(2.5, zoom * 1.15)"
             >
-                <ZoomIn class="w-4 h-4" />
+                <ZoomIn class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
-            <span class="text-[11px] font-bold text-slate-600 px-1 select-none">
+            <span class="text-[10px] sm:text-[11px] font-bold text-slate-600 px-0.5 sm:px-1 select-none">
                 {{ Math.round(zoom * 100) }}%
             </span>
             <button
                 type="button"
-                class="p-1.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                class="p-1 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
                 title="Alejar"
-                @click="zoom = Math.max(0.35, zoom / 1.15)"
+                @click="zoom = Math.max(0.30, zoom / 1.15)"
             >
-                <ZoomOut class="w-4 h-4" />
+                <ZoomOut class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
             <button
                 type="button"
-                class="p-1.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                class="p-1 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
                 title="Centrar Vista"
                 @click="resetView"
             >
-                <Compass class="w-4 h-4 text-indigo-600" />
+                <Compass class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
             </button>
 
             <span class="h-4 w-px bg-slate-200 mx-0.5" />
@@ -343,12 +403,12 @@ onUnmounted(() => {
             <!-- Pantalla Completa Nativa -->
             <button
                 type="button"
-                class="p-1.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                class="p-1 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
                 :title="isFullscreen ? 'Salir de Pantalla Completa' : 'Pantalla Completa Real'"
                 @click="toggleFullscreen"
             >
-                <Minimize2 v-if="isFullscreen" class="w-4 h-4 text-indigo-600" />
-                <Maximize2 v-else class="w-4 h-4" />
+                <Minimize2 v-if="isFullscreen" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
+                <Maximize2 v-else class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
         </div>
 
@@ -373,15 +433,19 @@ onUnmounted(() => {
             </button>
         </div>
 
-        <!-- ── LIENZO SVG DEL MAPA MENTAL EXPANDIBLE ───────────────────────── -->
+        <!-- ── LIENZO SVG DEL MAPA MENTAL EXPANDIBLE CON SOPORTE TÁCTIL ────── -->
         <svg
             v-else
-            class="w-full h-full cursor-grab active:cursor-grabbing bg-slate-50/70"
+            class="w-full h-full cursor-grab active:cursor-grabbing bg-slate-50/70 touch-none"
             @mousedown="handleMouseDown"
             @mousemove="handleMouseMove"
             @mouseup="handleMouseUp"
             @mouseleave="handleMouseUp"
             @wheel="handleWheel"
+            @touchstart="handleTouchStart"
+            @touchmove="handleTouchMove"
+            @touchend="handleTouchEnd"
+            @touchcancel="handleTouchEnd"
         >
             <!-- Patrón de fondo sutil -->
             <defs>
