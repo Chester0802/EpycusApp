@@ -330,6 +330,9 @@ const concepts = [
 // Comparativa Objetiva de Características Técnicas con Apps Populares
 const comparisonFeatures = [
     { name: 'Diagnóstico Científico EPA al Iniciar (+50 XP)', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
+    { name: 'Segundo Cerebro 3D & Constelación Neuronal (Three.js)', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
+    { name: 'Mapas Mentales Dinámicos por Asignatura con IA', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
+    { name: 'Deck Chunks & Active Recall Inteligente con Flashcards', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
     { name: 'Ficha de Personaje RPG con Pentágono Radar (5 Atributos)', epycus: true, notion: false, habitica: false, forest: false, ticktick: false, focustodo: false, todoist: false },
     { name: 'Calendario & Time-Blocking 24h con Rutinas del Día', epycus: true, notion: false, habitica: false, forest: false, ticktick: true, focustodo: false, todoist: false },
     { name: 'Temporizador Pomodoro con Música YouTube / Lo-Fi', epycus: true, notion: false, habitica: false, forest: true, ticktick: false, focustodo: true, todoist: false },
@@ -387,7 +390,8 @@ const faqs = [
 const activeModuleFilter = ref('all');
 
 const moduleCategories = [
-    { id: 'all', label: 'Todos los Módulos', count: 16, icon: 'layout-grid' },
+    { id: 'all', label: 'Todos los Módulos', count: 19, icon: 'layout-grid' },
+    { id: 'learning', label: 'Aprendizaje & IA', count: 3, icon: 'brain' },
     { id: 'productivity', label: 'Productividad', count: 5, icon: 'zap' },
     { id: 'organization', label: 'Organización', count: 2, icon: 'calendar' },
     { id: 'gamification', label: 'Gamificación', count: 5, icon: 'trophy' },
@@ -396,6 +400,48 @@ const moduleCategories = [
 ];
 
 const systemModules = [
+    {
+        id: 'second_brain_3d',
+        name: 'Segundo Cerebro 3D & Constelación Neuronal',
+        category: 'learning',
+        categoryLabel: 'Aprendizaje & IA',
+        badgeColor: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
+        image: '/assets/screenshots/pc_dashboard.png',
+        icon: 'brain',
+        screenReaderTitle: 'Captura de pantalla del Segundo Cerebro 3D de Epycus',
+        screenReaderDesc: 'Grafo 3D interactivo en Three.js que muestra constelaciones neuronales conectando cursos universitarios con conceptos clave y porcentajes de dominio.',
+        tagline: 'Constelación Holográfica 3D de tus Asignaturas',
+        description: 'Visualiza la totalidad de tu conocimiento universitario en un canvas 3D interactivo. Conecta cada curso con sus cápsulas de aprendizaje, evalúa tu nivel de dominio y accede a tus notas con un solo clic.',
+        features: ['Galaxia 3D Interactiva con Three.js', 'Constelaciones Curso-Concepto', 'Pantalla Completa 100% Móvil'],
+    },
+    {
+        id: 'mindmap_learning',
+        name: 'Mapas Mentales por Asignatura',
+        category: 'learning',
+        categoryLabel: 'Aprendizaje & IA',
+        badgeColor: 'bg-teal-500/15 text-teal-400 border-teal-500/30',
+        image: '/assets/screenshots/pc_apuntes.png',
+        icon: 'share-2',
+        screenReaderTitle: 'Captura de pantalla de los Mapas Mentales Generados por IA de Epycus',
+        screenReaderDesc: 'Mapa mental estructurado en ramas temáticas claras y balanceadas generado automáticamente desde los apuntes del estudiante.',
+        tagline: 'Estructuración Visual Automática con IA',
+        description: 'Convierte tus notas de clase en mapas conceptuales hermosos y navegables. Organizados en ramas temáticas con zoom, paneo interactivo y pantalla completa responsive.',
+        features: ['Ramas Temáticas Balanceadas', 'Cero Alucinación (Fiel a tus Notas)', 'Zoom, Paneo y Fullscreen Móvil'],
+    },
+    {
+        id: 'active_recall_deck',
+        name: 'Deck Chunks & Active Recall con IA',
+        category: 'learning',
+        categoryLabel: 'Aprendizaje & IA',
+        badgeColor: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+        image: '/assets/screenshots/pc_dashboard.png',
+        icon: 'layers',
+        screenReaderTitle: 'Captura de pantalla del Deck de Chunks y Active Recall con IA de Epycus',
+        screenReaderDesc: 'Tarjetas de estudio con método Feynman, preguntas de evocación activa y evaluación inmediata asistida por IA.',
+        tagline: 'Repetición Espaciada y Método Feynman',
+        description: 'Aprende y memoriza de verdad mediante preguntas de evocación activa (Active Recall) y flashcards interactivas que miden tu nivel de dominio por concepto y se integran con Google Notebook.',
+        features: ['Flashcards 3D de Altura Fija', 'Evaluador Neuronal de Respuestas', 'Acceso Directo a Gemini Notebook'],
+    },
     {
         id: 'dashboard',
         name: 'Dashboard & Ficha de Personaje',
