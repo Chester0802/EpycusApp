@@ -375,25 +375,57 @@ function createTextSprite3D(message, color = '#6366f1', isParent = false) {
     const maxLen = isParent ? 26 : 20;
     const raw = (message || '').trim();
     const cleanText = raw.length > maxLen ? raw.substring(0, maxLen - 2) + '…' : raw;
-    
-    const sprite = new SpriteText(cleanText);
-    sprite.color = '#ffffff';
-    sprite.textHeight = isParent ? 5.2 : 3.6;
-    sprite.backgroundColor = isParent ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.88)';
-    sprite.borderColor = isParent ? color : 'rgba(148, 163, 184, 0.5)';
-    sprite.borderWidth = isParent ? 1.4 : 0.9;
-    sprite.borderRadius = 4;
-    sprite.padding = [3, 7];
-    sprite.fontFace = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    sprite.fontWeight = isParent ? 'bold' : '600';
 
-    // Desactivar depthTest para que la malla de la esfera nunca recorte ni haga z-fighting con el texto
-    if (sprite.material) {
-        sprite.material.depthTest = false;
-        sprite.material.depthWrite = false;
-        sprite.material.transparent = true;
-    }
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
 
+    ctx.clearRect(0, 0, 512, 128);
+
+    // Píldora con esquinas redondeadas exactas y limpias (arcTo W3C estándar)
+    const x = 20, y = 20, w = 472, h = 88, r = 24;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h);
+    ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+
+    ctx.fillStyle = isParent ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.88)';
+    ctx.fill();
+
+    ctx.strokeStyle = isParent ? color : 'rgba(148, 163, 184, 0.5)';
+    ctx.lineWidth = isParent ? 4 : 2;
+    ctx.stroke();
+
+    // Texto limpio y centrado sin deformaciones
+    ctx.font = isParent ? 'bold 34px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' : '600 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(cleanText, 256, 64);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false;
+    texture.needsUpdate = true;
+
+    const material = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false
+    });
+
+    const sprite = new THREE.Sprite(material);
+    sprite.scale.set(isParent ? 42 : 30, isParent ? 10.5 : 7.5, 1);
     return sprite;
 }
 
