@@ -264,9 +264,9 @@ function init3DGraph() {
             group.add(halo);
         }
 
-        // Sprite de Texto flotante
-        const textSprite = createTextSprite3D(node.label, '#ffffff');
-        textSprite.position.set(0, nodeRadius + 12, 0);
+        // Sprite de Texto flotante en píldora holográfica
+        const textSprite = createTextSprite3D(node.label, resolveColor(node.color), isParent);
+        textSprite.position.set(0, nodeRadius + (isParent ? 14 : 9), 0);
         group.add(textSprite);
 
         return group;
@@ -370,25 +370,64 @@ function addCosmicOrbTo3DScene() {
     animateCosmic();
 }
 
-function createTextSprite3D(message, color) {
+function createTextSprite3D(message, color = '#6366f1', isParent = false) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = 512 * dpr;
-    canvas.height = 96 * dpr;
+    const dpr = 2; // DPR fijo optimizado para nitidez sin artefactos
+    
+    // Limitar longitud para evitar texto apretado
+    const maxLen = isParent ? 30 : 22;
+    const cleanText = message.length > maxLen ? message.substring(0, maxLen - 2) + '…' : message;
+    
+    canvas.width = 320 * dpr;
+    canvas.height = 70 * dpr;
     ctx.scale(dpr, dpr);
-    ctx.font = 'bold 32px Inter, sans-serif';
-    ctx.fillStyle = color;
+    
+    // Dibujar píldora oscura con borde temático
+    const w = 310;
+    const h = 48;
+    const x = 5;
+    const y = 11;
+    const r = 12;
+    
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    
+    ctx.fillStyle = isParent ? 'rgba(15, 23, 42, 0.92)' : 'rgba(15, 23, 42, 0.85)';
+    ctx.fill();
+    
+    ctx.strokeStyle = isParent ? color : 'rgba(148, 163, 184, 0.4)';
+    ctx.lineWidth = isParent ? 2 : 1;
+    ctx.stroke();
+    
+    // Texto nítido sin sombras difusas que causen rayas
+    ctx.font = isParent ? 'bold 18px Inter, system-ui, sans-serif' : '600 15px Inter, system-ui, sans-serif';
+    ctx.fillStyle = isParent ? '#ffffff' : '#f8fafc';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.shadowColor = '#000000';
-    ctx.shadowBlur = 8;
-    ctx.fillText(message, 256, 48);
+    ctx.fillText(cleanText, 160, 35);
 
     const texture = new THREE.CanvasTexture(canvas);
-    const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    
+    const spriteMaterial = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: true,
+        depthWrite: false
+    });
     const sprite = new THREE.Sprite(spriteMaterial);
-    sprite.scale.set(55, 12, 1);
+    sprite.scale.set(isParent ? 42 : 30, isParent ? 9.5 : 6.8, 1);
     return sprite;
 }
 

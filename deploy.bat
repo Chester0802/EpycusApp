@@ -17,7 +17,7 @@ echo [3/4] Subiendo paquetes a Hostinger...
 "C:\Program Files\PuTTY\pscp.exe" -batch -hostkey "SHA256:5NPmo7Lsf5dX4VteyZJK2tpslJ3r/zQxyZbWxhjS5+k" -P 65002 -pw "Marco123:)" build.zip u897008619@46.202.145.111:/home/u897008619/domains/epycus.es/public_html/app/public/build.zip
 
 echo [4/4] Extrayendo, fijando permisos y optimizando cache en Hostinger...
-"C:\Program Files\PuTTY\plink.exe" -batch -hostkey "SHA256:5NPmo7Lsf5dX4VteyZJK2tpslJ3r/zQxyZbWxhjS5+k" -P 65002 -pw "Marco123:)" u897008619@46.202.145.111 "cd /home/u897008619/domains/epycus.es/public_html/app && unzip -o backend.zip && mkdir -p public/build && cd public/build && unzip -o ../build.zip && cd ../.. && chmod -R 755 /home/u897008619/domains/epycus.es/public_html/app && chmod -R 775 /home/u897008619/domains/epycus.es/public_html/app/storage && chmod -R 775 /home/u897008619/domains/epycus.es/public_html/app/bootstrap/cache && php artisan migrate --force && php artisan optimize:clear"
+"C:\Program Files\PuTTY\plink.exe" -batch -hostkey "SHA256:5NPmo7Lsf5dX4VteyZJK2tpslJ3r/zQxyZbWxhjS5+k" -P 65002 -pw "Marco123:)" u897008619@46.202.145.111 "cd /home/u897008619/domains/epycus.es/public_html/app && unzip -o backend.zip && mkdir -p public/build && cd public/build && unzip -o ../build.zip && cd ../.. && rm -f bootstrap/cache/*.php && chmod -R 755 /home/u897008619/domains/epycus.es/public_html/app && chmod -R 775 /home/u897008619/domains/epycus.es/public_html/app/storage && chmod -R 775 /home/u897008619/domains/epycus.es/public_html/app/bootstrap/cache && php artisan migrate --force && php artisan optimize:clear"
 
 echo.
 echo ========================================================
