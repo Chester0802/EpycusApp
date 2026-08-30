@@ -99,6 +99,15 @@ final class GoogleAuthController extends Controller
                 return redirect()->route('login')->with('error', 'Google no retornó un correo electrónico válido.');
             }
 
+            // Si el usuario ya está autenticado en la sesión, vinculamos su Google ID directamente
+            if (Auth::check()) {
+                $loggedInUser = Auth::user();
+                if ($loggedInUser instanceof UserModel) {
+                    $loggedInUser->update(['google_id' => $googleId]);
+                    return redirect()->route('profile.edit')->with('success', 'Tu cuenta de Google ha sido vinculada exitosamente.');
+                }
+            }
+
             $user = UserModel::where('email', $email)
                 ->when(! empty($googleId), fn ($q) => $q->orWhere('google_id', $googleId))
                 ->first();
@@ -135,7 +144,7 @@ final class GoogleAuthController extends Controller
                     // Preferencias e inicio de gamificación
                     UserPreferencesModel::create([
                         'user_id' => $user->id,
-                        'surface_mode' => 'glass',
+                        'surface_mode' => 'neumorphism',
                     ]);
 
                     UserProgressModel::create([

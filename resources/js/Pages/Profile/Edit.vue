@@ -10,9 +10,12 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import AvatarCustomizer from '@/Components/AvatarCustomizer.vue';
 import StudentIdCard from '@/Components/ui/StudentIdCard.vue';
 import HerosPathMap from '@/Components/ui/HerosPathMap.vue';
-import AppIcon from '@/Components/AppIcon.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import { ShieldCheck, Trophy, Sparkles, CheckCircle2, Lock } from '@lucide/vue';
+
+const page = usePage();
+const currentUser = computed(() => page.props.auth?.user);
+const isGoogleAccount = computed(() => Boolean(currentUser.value?.google_id));
 
 const props = defineProps({
     mustVerifyEmail: {
@@ -333,7 +336,7 @@ const filteredAchievements = computed(() => {
 
             <!-- Contenido Pestaña 4: Ajustes de Cuenta -->
             <div v-else-if="activeTab === 'settings'" class="space-y-6">
-                <!-- Información Académica -->
+                <!-- Información Académica (Siempre visible) -->
                 <BaseCard class="p-6">
                     <UpdateAcademicInformationForm
                         :initial-career="profileData.career"
@@ -345,20 +348,78 @@ const filteredAchievements = computed(() => {
                     />
                 </BaseCard>
 
-                <!-- Información Personal y Alias -->
-                <BaseCard class="p-6">
-                    <UpdateProfileInformationForm
-                        :must-verify-email="mustVerifyEmail"
-                        :status="status"
-                    />
+                <!-- USUARIOS CON CUENTA GOOGLE: Panel Informativo de Seguridad -->
+                <BaseCard v-if="isGoogleAccount" class="p-6">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-sunken border border-border">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-content-primary">Cuenta vinculada con Google</h3>
+                                <p class="text-xs text-content-secondary">Tu autenticación y seguridad están gestionadas por Google.</p>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl bg-surface-sunken p-4 border border-border text-xs text-content-secondary space-y-1.5">
+                            <p class="text-content-primary font-semibold">
+                                Correo: <span class="font-normal text-content-secondary">{{ currentUser?.email }}</span>
+                            </p>
+                            <p class="text-content-muted leading-relaxed">
+                                Tu nombre, correo y contraseña están protegidos por tu cuenta de Google. No necesitas administrar contraseñas en Epycus.
+                            </p>
+                        </div>
+                    </div>
                 </BaseCard>
 
-                <!-- Seguridad y Contraseña -->
-                <BaseCard class="p-6">
-                    <UpdatePasswordForm />
-                </BaseCard>
+                <!-- USUARIOS CON CUENTA MANUAL: Vincular con Google + Actualizar Información + Actualizar Contraseña -->
+                <template v-else>
+                    <!-- Tarjeta para vincular con Google -->
+                    <BaseCard class="p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div class="space-y-1">
+                                <h3 class="text-base font-bold text-content-primary">
+                                    Vincular cuenta con Google
+                                </h3>
+                                <p class="text-xs text-content-secondary">
+                                    Conecta tu cuenta para iniciar sesión en 1 solo clic.
+                                </p>
+                            </div>
+                            <a
+                                :href="route('auth.google')"
+                                class="inline-flex min-h-[44px] items-center justify-center gap-2.5 rounded-xl border border-border-interactive bg-surface-raised px-4 py-2 text-xs font-bold text-content-primary shadow-sm hover:bg-surface hover:border-primary-strong transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong cursor-pointer whitespace-nowrap"
+                            >
+                                <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                </svg>
+                                <span>Vincular con Google</span>
+                            </a>
+                        </div>
+                    </BaseCard>
 
-                <!-- Eliminar Cuenta -->
+                    <!-- Información Personal y Alias -->
+                    <BaseCard class="p-6">
+                        <UpdateProfileInformationForm
+                            :must-verify-email="mustVerifyEmail"
+                            :status="status"
+                        />
+                    </BaseCard>
+
+                    <!-- Seguridad y Contraseña -->
+                    <BaseCard class="p-6">
+                        <UpdatePasswordForm />
+                    </BaseCard>
+                </template>
+
+                <!-- Eliminar Cuenta (Siempre visible) -->
                 <BaseCard class="p-6 border-danger/40">
                     <DeleteUserForm />
                 </BaseCard>
