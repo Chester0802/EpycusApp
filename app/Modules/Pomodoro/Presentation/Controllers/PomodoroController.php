@@ -66,6 +66,7 @@ final class PomodoroController extends Controller
             return [
                 'id' => $m->id,
                 'title' => $m->title,
+                'mission_type' => $m->mission_type ?? 'academic',
                 'difficulty' => $m->difficulty,
                 'priority' => $m->priority,
                 'eisenhower_quadrant' => $m->eisenhower_quadrant ?? 'q2',
@@ -111,6 +112,8 @@ final class PomodoroController extends Controller
             'planned_minutes' => 'required|integer|min:15|max:50',
             'mission_id' => 'nullable|integer',
             'study_group_session_id' => 'nullable|integer',
+            'context_type' => 'nullable|string|max:30',
+            'context_id' => 'nullable|integer',
         ]);
 
         $session = $this->startPomodoro->execute(
@@ -118,6 +121,8 @@ final class PomodoroController extends Controller
             plannedMinutes: (int) $validated['planned_minutes'],
             missionId: isset($validated['mission_id']) ? (int) $validated['mission_id'] : null,
             studyGroupSessionId: isset($validated['study_group_session_id']) ? (int) $validated['study_group_session_id'] : null,
+            contextType: $validated['context_type'] ?? null,
+            contextId: isset($validated['context_id']) ? (int) $validated['context_id'] : null,
         );
 
         return response()->json($this->serializeSession($session));
@@ -169,6 +174,8 @@ final class PomodoroController extends Controller
             'id' => $session->id,
             'planned_minutes' => $session->planned_minutes,
             'mission_id' => $session->mission_id,
+            'context_type' => $session->context_type,
+            'context_id' => $session->context_id,
             'started_at' => $session->started_at->setTimezone('America/Lima')->toIso8601String(),
             'paused_at' => $session->paused_at?->setTimezone('America/Lima')->toIso8601String(),
             'total_paused_seconds' => $session->total_paused_seconds,

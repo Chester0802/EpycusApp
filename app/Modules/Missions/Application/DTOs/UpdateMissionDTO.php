@@ -14,6 +14,11 @@ final readonly class UpdateMissionDTO
         public string $difficulty,
         public string $priority,
         public ?string $dueDate,
+        public ?string $missionType = null,
+        public ?int $projectPhaseId = null,
+        public ?string $plannedDate = null,
+        public ?string $plannedStart = null,
+        public ?string $plannedEnd = null,
         public ?string $eisenhowerQuadrant = null,
         public ?int $courseId = null,
     ) {}

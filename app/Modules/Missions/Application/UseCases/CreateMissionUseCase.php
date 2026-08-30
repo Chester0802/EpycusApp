@@ -22,12 +22,17 @@ final class CreateMissionUseCase
         $mission = $this->repository->create([
             'user_id' => $dto->userId,
             'course_id' => $dto->courseId,
+            'mission_type' => $dto->missionType,
+            'project_phase_id' => $dto->projectPhaseId,
             'title' => $dto->title,
             'description' => $dto->description,
             'difficulty' => $dto->difficulty,
             'priority' => $dto->priority,
             'eisenhower_quadrant' => $dto->eisenhowerQuadrant ?? 'q2',
             'due_date' => $dto->dueDate,
+            'planned_date' => $dto->plannedDate,
+            'planned_start' => $dto->plannedStart,
+            'planned_end' => $dto->plannedEnd,
         ]);
 
         foreach ($dto->subtasks as $i => $title) {

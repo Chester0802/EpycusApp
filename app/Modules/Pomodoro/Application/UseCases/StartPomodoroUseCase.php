@@ -20,7 +20,7 @@ final class StartPomodoroUseCase
         private Dispatcher $events,
     ) {}
 
-    public function execute(int $userId, int $plannedMinutes, ?int $missionId = null, ?int $studyGroupSessionId = null): PomodoroSessionModel
+    public function execute(int $userId, int $plannedMinutes, ?int $missionId = null, ?int $studyGroupSessionId = null, ?string $contextType = null, ?int $contextId = null): PomodoroSessionModel
     {
         $resolved = $this->resolveStale->execute($userId);
 
@@ -32,6 +32,8 @@ final class StartPomodoroUseCase
             'user_id' => $userId,
             'mission_id' => $missionId,
             'study_group_session_id' => $studyGroupSessionId,
+            'context_type' => $contextType,
+            'context_id' => $contextId,
             'planned_minutes' => $plannedMinutes,
             'started_at' => Carbon::now(),
             'status' => SessionState::RUNNING,

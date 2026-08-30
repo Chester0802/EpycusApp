@@ -262,7 +262,7 @@ function handleBreakFinished() {
 
 // ── Acciones de Usuario ─────────────────────────────────────────────────────
 
-export async function startFocus(plannedMinutes, missionId = null, missionTitle = null, studyGroupSessionId = null) {
+export async function startFocus(plannedMinutes, missionId = null, missionTitle = null, studyGroupSessionId = null, contextType = null, contextId = null) {
     if (busy.value) return;
     busy.value = true;
     try {
@@ -277,6 +277,8 @@ export async function startFocus(plannedMinutes, missionId = null, missionTitle 
                 planned_minutes: plannedMinutes,
                 mission_id: missionId,
                 study_group_session_id: studyGroupSessionId,
+                context_type: contextType,
+                context_id: contextId,
             }),
         });
 

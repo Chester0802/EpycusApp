@@ -119,8 +119,8 @@ Misión "Implementar API REST"
 
 ## 3. Módulo Cursos — Nodo Central
 
-### 📊 Estado Actual
-`CourseModel` ya existe con `name`, `color`, `starts_at`, `ends_at`. Los cursos se crean desde el Módulo Calendario. Falta el módulo propio de cursos y campos adicionales.
+### 📊 Estado Actual — ✅ COMPLETADO
+`CourseModel` extendido, migraciones y controladores creados. Interfaz UI (Hub Académico en `Courses/Index.vue` y `Courses/Show.vue`) implementada en el menú lateral.
 
 ### 🏗️ Migración y estructura
 
@@ -142,9 +142,9 @@ ALTER TABLE courses
 
 ## 4. Gestión de Proyectos por Curso (ABP)
 
-### 📊 Contexto
+### 📊 Contexto — ✅ COMPLETADO
 
-El ABP es estándar en universidades latinoamericanas. El proyecto es **opcional por curso** — no todos los cursos lo tienen. Un proyecto tiene fases, y cada fase tiene tareas (misiones).
+El módulo de Proyectos ABP ya está implementado integrando el diseño del Kanban de Misiones en un solo tablero unificado por fases. El proyecto es opcional por curso y tiene fases diferenciadas por colores.
 
 ### ✅ Viabilidad — Alta
 
@@ -229,13 +229,19 @@ ALTER TABLE courses ADD COLUMN period_id BIGINT UNSIGNED NULL;
 
 ## 6. Sílabo PDF con Visor
 
-Laravel `Storage` + `<iframe>` nativo. Sin dependencias. Alternativa premium: `pdfjs-dist` (~350 KB) con búsqueda interna y zoom.
+### 📊 Estado Actual — ✅ COMPLETADO
+
+Implementado en `Courses/Show.vue` bajo la pestaña Sílabo. Usa `SyllabusViewer.vue` que permite la subida de un PDF y su visualización usando un `iframe` nativo para rendimiento óptimo.
 
 ---
 
 ## 7. Simulador de Notas y Calculadora Predictiva
 
-**Sin default en nota mínima** — el estudiante define la suya:
+### 📊 Estado Actual — ✅ COMPLETADO
+
+Implementado en `GradeSimulator.vue`. Funciona mediante `computed` properties de Vue para ser instantáneo:
+- **Nota Actual**: Promedio de lo ya evaluado.
+- **Predictor**: Si el estudiante configuró una nota mínima, se le indica matemáticamente cuánto necesita obtener en el porcentaje restante del curso.
 
 ```sql
 CREATE TABLE grade_evaluations (
@@ -405,9 +411,19 @@ CREATE TABLE skills (
 
 ## 16. Pomodoro como Motor de Control de Tiempo Universal
 
-### 📊 Estado Actual
+### 📊 Estado Actual — ✅ COMPLETADO
 
-`pomodoro_sessions` ya tiene `mission_id` y `focus_minutes`. Le faltan 2 columnas para el contexto polimórfico.
+Implementado. Anteriormente, el Pomodoro solo se asociaba a Misiones. Ahora, el `PomodoroController` y `PomodoroSessionModel` soportan polimorfismo mediante `context_type` y `context_id`.
+
+Se agregó un selector en `Pomodoro/Index.vue` para que el estudiante indique en qué se enfocará:
+- Libre
+- Misión Académica
+- Proyecto
+- Lectura
+- Habilidad
+- Personal/Hábitos
+
+Se creó el endpoint `GET /api/focus-report` que agrega los minutos de enfoque y los muestra en una UI en el Dashboard de Pomodoro, pintando barras de progreso según el porcentaje de tiempo dedicado a cada contexto.
 
 ### 🏗️ Migración mínima
 
@@ -670,13 +686,13 @@ gantt
 
 | # | Feature | Viabilidad | Nueva tabla/campo | Reutiliza |
 |:--|:--------|:----------:|:-----------------:|:---------:|
-| 1 | Misiones Kanban + Eisenhower visual | ✅ Alta | Campo `mission_type` en `missions` | `eisenhower_quadrant` ya existe |
-| 2 | Tipos de tarea (académica, trabajo, personal) | ✅ Alta | Campo `mission_type` | `MissionModel`, `CalendarController` |
-| 3 | Módulo Cursos independiente | ✅ Alta | Campos en `courses` | `CourseModel` ya existe |
-| 4 | Gestión de Proyectos ABP + Canvas | ✅ Alta | `course_projects`, `project_phases` | `MissionModel`, `StudyGroups` |
-| 5 | Periodo Académico | ✅ Alta | `academic_periods` | `users.cycle` |
-| 6 | Sílabo PDF | ✅ Alta | Campo `syllabus_path` | Laravel `Storage` |
-| 7 | Simulador de Notas | ✅ Alta | `grade_evaluations` | Vue `computed` |
+| 1 | Misiones Kanban + Eisenhower visual | ✅ Completado | Campo `mission_type` en `missions` | `eisenhower_quadrant` ya existe |
+| 2 | Tipos de tarea (académica, trabajo, personal) | ✅ Completado | Campo `mission_type` | `MissionModel`, `CalendarController` |
+| 3 | Módulo Cursos independiente | ✅ Completado | Campos en `courses` | `CourseModel` ya existe |
+| 4 | Gestión de Proyectos ABP + Canvas | ✅ Completado | `course_projects`, `project_phases` | `MissionModel`, `StudyGroups` |
+| 5 | Periodo Académico | ✅ Completado | `academic_periods` | `users.cycle` |
+| 6 | Sílabo PDF | ✅ Completado | Campo `syllabus_path` | Laravel `Storage` |
+| 7 | Simulador de Notas | ✅ Completado | `grade_evaluations` | Vue `computed` |
 | 8 | Imágenes arrastrables | ✅ Media | JSON del bloque | Editor de apuntes |
 | 9 | Flashcards + Leitner | ✅ Alta | `flashcards`, `flashcard_reviews` | `user_knowledge_graphs` |
 | 10 | Simulacro con IA | ✅ Alta | — | `AiAssistant`, `ai_quotas` |
@@ -685,7 +701,7 @@ gantt
 | 13 | Avatar en Canvas | ✅ Alta | — | `CharacterStatsCalculator` |
 | 14 | Módulo Lecturas | ✅ Alta | `readings`, `reading_tags` | Editor de apuntes, hábitos |
 | 15 | Módulo Habilidades | ✅ Alta | `skills`, `skill_logs` | Hábitos, misiones, flashcards |
-| 16 | Pomodoro Universal | ✅ Alta | 2 campos en `pomodoro_sessions` | `PomodoroSessionModel` |
+| 16 | Pomodoro Universal | ✅ Completado | `pomodoro_sessions.context_type` | Asociar a cualquier módulo |
 | 17 | Calendario Total + Eventos Personales | ✅ Alta | `personal_events` | `CalendarController` |
 | 18 | Tienda + Entretenimiento (reseñas) | ✅ Alta | 5 campos en `reward_redemptions` | `ShopController`, `custom_rewards` |
 | 19 | Personaje como espejo | ✅ Alta | — | `CharacterStatsCalculator` extendido |

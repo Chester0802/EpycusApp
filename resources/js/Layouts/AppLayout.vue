@@ -23,7 +23,7 @@ const navSections = [
         items: [
             { label: 'Inicio', routeName: 'dashboard', icon: 'home' },
             { label: 'Calendario', routeName: 'calendar.index', icon: 'calendar' },
-            { label: 'Aprendizaje', routeName: 'learning.index', icon: 'brain', matchRoutes: ['learning.*'] },
+            { label: 'Cursos', routeName: 'courses.index', icon: 'book', matchRoutes: ['courses.*'] },
             { label: 'Misiones', routeName: 'missions.index', icon: 'missions' },
             { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro' },
         ],
@@ -65,7 +65,6 @@ const mobileBottomNavItems = [
 
 const mobileDrawerItems = [
     { label: 'Mi Perfil & Logros', routeName: 'profile.edit', icon: 'user', desc: 'Avatar, XP y Medallas' },
-    { label: 'Zona de Aprendizaje', routeName: 'learning.index', icon: 'brain', desc: 'Chunks, Active Recall & Grafo' },
     { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro', desc: 'Temporizador de estudio' },
     { label: 'Bienestar & Hábitos', routeName: 'habits.index', icon: 'habits', desc: 'Rutinas, diario y salud' },
     { label: 'Finanzas', routeName: 'finance.index', icon: 'finance', desc: 'Presupuesto y ahorro' },

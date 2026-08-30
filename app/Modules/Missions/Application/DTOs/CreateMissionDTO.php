@@ -15,6 +15,11 @@ final readonly class CreateMissionDTO
         public ?string $dueDate,
         /** @var array<int, string> */
         public array $subtasks,
+        public string $missionType = 'academic',
+        public ?int $projectPhaseId = null,
+        public ?string $plannedDate = null,
+        public ?string $plannedStart = null,
+        public ?string $plannedEnd = null,
         public ?string $eisenhowerQuadrant = 'q2',
         public ?int $courseId = null,
     ) {}

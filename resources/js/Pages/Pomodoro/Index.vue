@@ -51,6 +51,12 @@ const subtaskBusy = ref({});
 
 function selectMission(id) {
     selectedMissionId.value = selectedMissionId.value === id ? null : id;
+    if (selectedMissionId.value) {
+        const m = props.missions.find(x => x.id === id);
+        if (m) {
+            selectedContextType.value = m.mission_type === 'academic' ? 'mission' : m.mission_type;
+        }
+    }
 }
 
 function toggleExpandMission(id) {
@@ -144,10 +150,31 @@ const goalMinutesInput = ref(0);
 const hasGoal = computed(() => goalMinutesInput.value > 0);
 const goalJustCompleted = ref(false);
 
+const CONTEXT_OPTIONS = [
+    { value: 'free', label: 'Enfoque Libre' },
+    { value: 'mission', label: 'Misión Académica / Curso' },
+    { value: 'work', label: 'Trabajo / Tareas' },
+    { value: 'reading', label: 'Lectura' },
+    { value: 'skill', label: 'Desarrollo de Habilidad' },
+    { value: 'personal', label: 'Desarrollo Personal / Hábito' }
+];
+const selectedContextType = ref('free');
+
 const todayIso = new Date().toISOString().slice(0, 10);
 const goalStorageKey = computed(
     () => `epycus:pomodoro:goal:${page.props.auth?.user?.id ?? 'anon'}:${todayIso}`,
 );
+
+const filteredMissions = computed(() => {
+    if (selectedContextType.value === 'mission') {
+        return props.missions.filter(m => m.mission_type === 'academic');
+    } else if (selectedContextType.value === 'work') {
+        return props.missions.filter(m => m.mission_type === 'work');
+    } else if (selectedContextType.value === 'personal') {
+        return props.missions.filter(m => m.mission_type === 'personal');
+    }
+    return [];
+});
 
 watch(goalMinutesInput, (value) => {
     if (value > 0) localStorage.setItem(goalStorageKey.value, String(value));
@@ -215,10 +242,15 @@ async function startSession() {
     toast.value = null;
     try {
         const selectedMission = props.missions.find((m) => m.id === selectedMissionId.value);
+        let missionIdParam = selectedContextType.value === 'mission' || selectedContextType.value === 'work' || selectedContextType.value === 'personal' ? selectedMissionId.value : null;
+
         await startFocus(
             plannedMinutesInput.value,
-            selectedMissionId.value,
+            missionIdParam,
             selectedMission ? selectedMission.title : null,
+            null,
+            selectedContextType.value,
+            missionIdParam
         );
     } catch (e) {
         toast.value = e.message || 'No se pudo iniciar la sesión.';
@@ -393,8 +425,24 @@ onMounted(() => {
         }
     }
 
+    fetchMonthlyReport();
+
     syncWithInertiaProps(props.activeSession);
 });
+
+const monthlyReport = ref(null);
+async function fetchMonthlyReport() {
+    try {
+        const res = await fetch(route('pomodoro.report.index'), {
+            headers: { Accept: 'application/json' }
+        });
+        if (res.ok) {
+            monthlyReport.value = await res.json();
+        }
+    } catch {
+        // Silencioso
+    }
+}
 
 watch(
     () => props.activeSession,
@@ -630,7 +678,18 @@ watch(
                                 :options="breakDurationOptions"
                             />
                         </div>
-                        <p class="mx-auto mt-2 max-w-md text-xs text-content-muted">
+                        
+                        <div class="mx-auto grid max-w-md mt-3">
+                            <BaseSelect
+                                id="context_type"
+                                v-model="selectedContextType"
+                                label="¿En qué te vas a enfocar?"
+                                compact
+                                :options="CONTEXT_OPTIONS"
+                            />
+                        </div>
+
+                        <p class="mx-auto mt-3 max-w-md text-xs text-content-muted">
                             {{ breakHint }}
                         </p>
                         <BaseButton class="mt-4" :disabled="busy" @click="startSession">
@@ -747,6 +806,29 @@ watch(
                     </div>
                 </BaseCard>
 
+                <BaseCard v-if="monthlyReport" class="mb-6">
+                    <h2 class="mb-4 font-display text-lg text-content-primary">
+                        Reporte de Enfoque Mensual
+                    </h2>
+                    <p class="text-sm text-content-secondary mb-4">
+                        Desglose de tus {{ formatMinutesLabel(monthlyReport.total_minutes) }} de foco total este mes:
+                    </p>
+                    <div class="space-y-3">
+                        <div v-for="(minutes, type) in monthlyReport.breakdown" :key="type">
+                            <div v-if="minutes > 0" class="flex items-center justify-between text-sm mb-1">
+                                <span class="capitalize text-content-primary font-medium">{{ CONTEXT_OPTIONS.find(c => c.value === type)?.label || type }}</span>
+                                <span class="text-content-secondary font-bold">{{ formatMinutesLabel(minutes) }}</span>
+                            </div>
+                            <div v-if="minutes > 0" class="h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
+                                <div class="h-full rounded-full bg-primary-strong" :style="{ width: Math.max(2, Math.round((minutes / monthlyReport.total_minutes) * 100)) + '%' }"></div>
+                            </div>
+                        </div>
+                        <div v-if="monthlyReport.total_minutes === 0" class="text-center py-4 text-content-muted text-sm">
+                            Aún no hay datos suficientes este mes.
+                        </div>
+                    </div>
+                </BaseCard>
+
                 <BaseCard>
                     <h2 class="mb-4 font-display text-lg text-content-primary">Hoy</h2>
                     <p v-if="todaySessions.length === 0" class="text-sm text-content-secondary">
@@ -783,15 +865,17 @@ watch(
             </div>
 
             <!-- Panel lateral de misiones activas -->
-            <div class="mt-6 shrink-0 lg:mt-0 lg:w-80">
+            <div v-if="filteredMissions.length > 0 || ['mission', 'work', 'personal'].includes(selectedContextType)" class="mt-6 shrink-0 lg:mt-0 lg:w-80">
                 <BaseCard>
-                    <h2 class="mb-3 font-display text-lg text-content-primary">Misiones activas</h2>
-                    <p v-if="missions.length === 0" class="text-sm text-content-secondary">
-                        No hay misiones activas.
+                    <h2 class="mb-3 font-display text-lg text-content-primary">
+                        {{ selectedContextType === 'mission' ? 'Misiones Académicas' : (selectedContextType === 'work' ? 'Tareas de Trabajo' : 'Desarrollo Personal') }}
+                    </h2>
+                    <p v-if="filteredMissions.length === 0" class="text-sm text-content-secondary">
+                        No hay tareas activas para este contexto.
                     </p>
                     <div v-else class="space-y-2">
                         <div
-                            v-for="m in missions"
+                            v-for="m in filteredMissions"
                             :key="m.id"
                             class="rounded-lg border"
                             :class="

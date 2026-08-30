@@ -114,11 +114,33 @@ const eisenhowerConfig = {
     },
 };
 
-// Filtro Reactivo de Cursos
+const missionTypeOptions = [
+    { value: 'academic', label: 'Académica' },
+    { value: 'work', label: 'Trabajo' },
+    { value: 'personal', label: 'Personal' },
+    { value: 'project', label: 'Proyecto' },
+];
+
+const missionTypeConfig = {
+    academic: { icon: 'book', label: 'Académica', class: 'text-primary-strong bg-primary-strong/10 border border-primary-strong/20' },
+    work: { icon: 'briefcase', label: 'Trabajo', class: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20' },
+    personal: { icon: 'user', label: 'Personal', class: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' },
+    project: { icon: 'trello', label: 'Proyecto', class: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border border-indigo-500/20' },
+};
+
+const selectedTypeFilter = ref('all');
+
+// Filtro Reactivo de Cursos y Tipos
 const filteredMissions = computed(() => {
-    if (selectedCourseFilter.value === 'all') return props.missions;
-    if (selectedCourseFilter.value === 'none') return props.missions.filter((m) => !m.course_id);
-    return props.missions.filter((m) => String(m.course_id) === String(selectedCourseFilter.value));
+    let result = props.missions;
+    
+    if (selectedTypeFilter.value !== 'all') {
+        result = result.filter((m) => m.mission_type === selectedTypeFilter.value);
+    }
+    
+    if (selectedCourseFilter.value === 'all') return result;
+    if (selectedCourseFilter.value === 'none') return result.filter((m) => !m.course_id);
+    return result.filter((m) => String(m.course_id) === String(selectedCourseFilter.value));
 });
 
 const overdueCount = computed(() => filteredMissions.value.filter((m) => m.is_overdue).length);
@@ -186,22 +208,30 @@ const kanbanInReview = computed(() =>
 const createForm = useForm({
     title: '',
     description: '',
+    mission_type: 'academic',
     difficulty: 'medium',
     priority: 'normal',
     course_id: '',
     eisenhower_quadrant: 'q2',
     due_date: '',
+    planned_date: '',
+    planned_start: '',
+    planned_end: '',
     subtasks: [''],
 });
 
 const editForm = useForm({
     title: '',
     description: '',
+    mission_type: 'academic',
     difficulty: 'medium',
     priority: 'normal',
     course_id: '',
     eisenhower_quadrant: 'q2',
     due_date: '',
+    planned_date: '',
+    planned_start: '',
+    planned_end: '',
 });
 
 function addSubtaskField() {
@@ -251,11 +281,15 @@ function openEditModal(mission) {
     editingMission.value = mission;
     editForm.title = mission.title;
     editForm.description = mission.description || '';
+    editForm.mission_type = mission.mission_type || 'academic';
     editForm.difficulty = mission.difficulty;
     editForm.priority = mission.priority;
     editForm.course_id = mission.course_id ? String(mission.course_id) : '';
     editForm.eisenhower_quadrant = mission.eisenhower_quadrant || 'q2';
     editForm.due_date = mission.due_date || '';
+    editForm.planned_date = mission.planned_date || '';
+    editForm.planned_start = mission.planned_start || '';
+    editForm.planned_end = mission.planned_end || '';
     showEditModal.value = true;
 }
 
@@ -478,6 +512,29 @@ function goToMission(id) {
                         </BaseButton>
                     </div>
                 </header>
+                
+                <!-- Filtros Rápidos por Tipo de Misión -->
+                <div class="mt-4 pt-4 border-t border-border-interactive flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    <button
+                        type="button"
+                        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer"
+                        :class="selectedTypeFilter === 'all' ? 'bg-primary-strong/10 border-primary-strong text-primary-strong' : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'"
+                        @click="selectedTypeFilter = 'all'"
+                    >
+                        Todas
+                    </button>
+                    <button
+                        v-for="type in missionTypeOptions"
+                        :key="type.value"
+                        type="button"
+                        class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer"
+                        :class="selectedTypeFilter === type.value ? missionTypeConfig[type.value].class + ' ring-1' : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'"
+                        @click="selectedTypeFilter = type.value"
+                    >
+                        <AppIcon :name="missionTypeConfig[type.value].icon" :size="12" />
+                        {{ type.label }}
+                    </button>
+                </div>
             </BaseCard>
 
             <!-- Banner Pedagógico de la Matriz de Eisenhower y Flujo Kanban -->
@@ -1002,35 +1059,41 @@ function goToMission(id) {
                                     {{ m.description }}
                                 </p>
 
-                                <!-- Subtareas interactivas -->
+                                <!-- Lista de Pasos (Subtareas) -->
                                 <div class="mt-2.5 pt-2 border-t border-current/15 space-y-1.5">
-                                    <div class="flex items-center justify-between text-[10px] font-semibold opacity-80">
-                                        <span>Subtareas ({{ m.subtask_done }}/{{ m.subtask_count }})</span>
-                                        <span v-if="m.due_date">📅 {{ m.due_date }}</span>
+                                    <div class="flex flex-col gap-1 text-[10px] font-bold">
+                                        <div class="flex justify-between">
+                                            <span>Pasos ({{ m.subtask_done }}/{{ m.subtask_count }})</span>
+                                            <span v-if="m.due_date">📅 {{ m.due_date }}</span>
+                                        </div>
+                                        <div class="h-1 w-full rounded-full bg-current/15 overflow-hidden">
+                                            <div class="h-full bg-primary-strong transition-all duration-300" :style="{ width: m.subtask_count > 0 ? (m.subtask_done / m.subtask_count) * 100 + '%' : '0%' }"></div>
+                                        </div>
                                     </div>
-                                    <div v-if="m.subtasks && m.subtasks.length > 0" class="space-y-1">
-                                        <div
-                                            v-for="s in m.subtasks"
+                                    <div v-if="m.subtasks && m.subtasks.length > 0" class="space-y-1 mt-1">
+                                        <label
+                                            v-for="(s, sIdx) in m.subtasks"
                                             :key="s.id"
-                                            class="flex items-center gap-1.5 text-xs"
+                                            class="flex items-start gap-1.5 text-[11px] hover:bg-current/5 p-1 rounded transition cursor-pointer"
                                         >
+                                            <span class="font-bold opacity-50 shrink-0 mt-0.5">{{ sIdx + 1 }}.</span>
                                             <input
                                                 type="checkbox"
                                                 :checked="s.is_completed"
-                                                class="h-3.5 w-3.5 shrink-0 accent-primary cursor-pointer"
+                                                class="h-3.5 w-3.5 shrink-0 accent-primary mt-0.5 cursor-pointer"
                                                 @change="toggleSubtask(m.id, s.id)"
                                             />
-                                            <span :class="s.is_completed ? 'line-through opacity-60' : 'font-medium'" class="truncate">
+                                            <span :class="s.is_completed ? 'line-through opacity-50' : 'font-medium'" class="flex-1 min-w-0 break-words leading-tight mt-0.5">
                                                 {{ s.title }}
                                             </span>
-                                        </div>
+                                        </label>
                                     </div>
                                     <!-- Input rápido para agregar subtarea -->
                                     <div class="flex items-center gap-1 pt-1">
                                         <input
                                             v-model="addSubtaskTitles[m.id]"
-                                            class="min-w-0 flex-1 rounded border border-current/20 bg-surface/70 px-1.5 py-0.5 text-[11px] outline-none placeholder:text-content-muted focus:border-primary"
-                                            placeholder="+ Añadir paso..."
+                                            class="min-w-0 flex-1 rounded border border-current/20 bg-surface/70 px-2 py-1 text-[11px] outline-none placeholder:text-content-muted focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all"
+                                            placeholder="+ Añadir nuevo paso..."
                                             @keyup.enter="addSubtask(m.id)"
                                         />
                                     </div>
@@ -1117,42 +1180,41 @@ function goToMission(id) {
                                     </span>
                                 </div>
 
-                                <!-- Barra de progreso de subtareas -->
-                                <div class="mt-2 space-y-1">
-                                    <div class="flex justify-between text-[10px] font-bold">
-                                        <span>Avance</span>
-                                        <span>{{ m.subtask_done }}/{{ m.subtask_count }} pasos</span>
+                                <!-- Lista de Pasos (Subtareas) -->
+                                <div class="mt-2.5 pt-2 border-t border-current/15 space-y-1.5">
+                                    <div class="flex flex-col gap-1 text-[10px] font-bold">
+                                        <div class="flex justify-between">
+                                            <span>Pasos ({{ m.subtask_done }}/{{ m.subtask_count }})</span>
+                                            <span v-if="m.due_date">📅 {{ m.due_date }}</span>
+                                        </div>
+                                        <div class="h-1.5 w-full rounded-full bg-current/15 overflow-hidden">
+                                            <div class="h-full bg-primary-strong transition-all duration-300" :style="{ width: m.subtask_count > 0 ? (m.subtask_done / m.subtask_count) * 100 + '%' : '0%' }"></div>
+                                        </div>
                                     </div>
-                                    <div class="h-1.5 w-full rounded-full bg-current/15 overflow-hidden">
-                                        <div
-                                            class="h-full bg-primary-strong transition-all duration-300"
-                                            :style="{ width: `${m.subtask_count > 0 ? (m.subtask_done / m.subtask_count) * 100 : 0}%` }"
-                                        ></div>
+                                    <div v-if="m.subtasks && m.subtasks.length > 0" class="space-y-1 mt-1">
+                                        <label
+                                            v-for="(s, sIdx) in m.subtasks"
+                                            :key="s.id"
+                                            class="flex items-start gap-1.5 text-[11px] hover:bg-current/5 p-1 rounded transition cursor-pointer"
+                                        >
+                                            <span class="font-bold opacity-50 shrink-0 mt-0.5">{{ sIdx + 1 }}.</span>
+                                            <input
+                                                type="checkbox"
+                                                :checked="s.is_completed"
+                                                class="h-3.5 w-3.5 shrink-0 accent-primary mt-0.5 cursor-pointer"
+                                                @change="toggleSubtask(m.id, s.id)"
+                                            />
+                                            <span :class="s.is_completed ? 'line-through opacity-50' : 'font-medium'" class="flex-1 min-w-0 break-words leading-tight mt-0.5">
+                                                {{ s.title }}
+                                            </span>
+                                        </label>
                                     </div>
-                                </div>
-
-                                <!-- Subtareas interactivas -->
-                                <div v-if="m.subtasks && m.subtasks.length > 0" class="mt-2.5 space-y-1">
-                                    <div
-                                        v-for="s in m.subtasks"
-                                        :key="s.id"
-                                        class="flex items-center gap-1.5 text-xs"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            :checked="s.is_completed"
-                                            class="h-3.5 w-3.5 shrink-0 accent-primary cursor-pointer"
-                                            @change="toggleSubtask(m.id, s.id)"
-                                        />
-                                        <span :class="s.is_completed ? 'line-through opacity-60' : 'font-medium'" class="truncate">
-                                            {{ s.title }}
-                                        </span>
-                                    </div>
+                                    <!-- Input rápido para agregar subtarea -->
                                     <div class="flex items-center gap-1 pt-1">
                                         <input
                                             v-model="addSubtaskTitles[m.id]"
-                                            class="min-w-0 flex-1 rounded border border-current/20 bg-surface/70 px-1.5 py-0.5 text-[11px] outline-none placeholder:text-content-muted focus:border-primary"
-                                            placeholder="+ Añadir paso..."
+                                            class="min-w-0 flex-1 rounded border border-current/20 bg-surface/70 px-2 py-1 text-[11px] outline-none placeholder:text-content-muted focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all"
+                                            placeholder="+ Añadir nuevo paso..."
                                             @keyup.enter="addSubtask(m.id)"
                                         />
                                     </div>
@@ -1599,20 +1661,31 @@ function goToMission(id) {
                     placeholder="Detalles clave para resolverla..."
                 />
 
-                <!-- Selector de Asignatura / Curso -->
-                <div>
-                    <label class="block text-xs font-semibold text-content-secondary mb-1">
-                        📚 Asignatura / Curso (opcional)
-                    </label>
-                    <select
-                        v-model="createForm.course_id"
-                        class="w-full rounded-xl border border-border-interactive bg-surface px-3 py-2 text-xs font-semibold text-content-primary outline-none shadow-xs focus:border-primary-strong cursor-pointer"
-                    >
-                        <option value="">(Sin asignar / General o Personal)</option>
-                        <option v-for="c in courses" :key="c.id" :value="c.id">
-                            {{ c.name }} {{ c.code ? `(${c.code})` : '' }}
-                        </option>
-                    </select>
+                <!-- Selector de Tipo de Misión -->
+                <div class="grid grid-cols-2 gap-4">
+                    <BaseSelect
+                        id="create-type"
+                        v-model="createForm.mission_type"
+                        label="Tipo de Misión"
+                        :options="missionTypeOptions"
+                        required
+                    />
+                    
+                    <!-- Selector de Asignatura / Curso -->
+                    <div>
+                        <label class="block text-xs font-semibold text-content-secondary mb-1">
+                            📚 Asignatura / Curso
+                        </label>
+                        <select
+                            v-model="createForm.course_id"
+                            class="w-full rounded-xl border border-border-interactive bg-surface px-3 py-2 text-xs font-semibold text-content-primary outline-none shadow-xs focus:border-primary-strong cursor-pointer"
+                        >
+                            <option value="">(Sin asignar)</option>
+                            <option v-for="c in courses" :key="c.id" :value="c.id">
+                                {{ c.name }} {{ c.code ? `(${c.code})` : '' }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Selector Visual de Cuadrante Eisenhower -->
@@ -1694,12 +1767,35 @@ function goToMission(id) {
                     />
                 </div>
 
-                <BaseInput
-                    id="create-due"
-                    v-model="createForm.due_date"
-                    label="Fecha límite (opcional)"
-                    type="date"
-                />
+                <div class="grid grid-cols-2 gap-4">
+                    <BaseInput
+                        id="create-due"
+                        v-model="createForm.due_date"
+                        label="Fecha límite"
+                        type="date"
+                    />
+                    <BaseInput
+                        id="create-planned-date"
+                        v-model="createForm.planned_date"
+                        label="Fecha planificada"
+                        type="date"
+                    />
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <BaseInput
+                        id="create-planned-start"
+                        v-model="createForm.planned_start"
+                        label="Hora de inicio planificada"
+                        type="time"
+                    />
+                    <BaseInput
+                        id="create-planned-end"
+                        v-model="createForm.planned_end"
+                        label="Hora de fin planificada"
+                        type="time"
+                    />
+                </div>
 
                 <fieldset>
                     <legend class="mb-2 text-xs font-semibold text-content-secondary">
@@ -1762,20 +1858,30 @@ function goToMission(id) {
                 />
                 <BaseInput id="edit-desc" v-model="editForm.description" label="Descripción" />
 
-                <!-- Selector de Asignatura en Edición -->
-                <div>
-                    <label class="block text-xs font-semibold text-content-secondary mb-1">
-                        📚 Asignatura / Curso (opcional)
-                    </label>
-                    <select
-                        v-model="editForm.course_id"
-                        class="w-full rounded-xl border border-border-interactive bg-surface px-3 py-2 text-xs font-semibold text-content-primary outline-none shadow-xs focus:border-primary-strong cursor-pointer"
-                    >
-                        <option value="">(Sin asignar / General o Personal)</option>
-                        <option v-for="c in courses" :key="c.id" :value="c.id">
-                            {{ c.name }} {{ c.code ? `(${c.code})` : '' }}
-                        </option>
-                    </select>
+                <!-- Selector de Tipo de Misión y Asignatura -->
+                <div class="grid grid-cols-2 gap-4">
+                    <BaseSelect
+                        id="edit-type"
+                        v-model="editForm.mission_type"
+                        label="Tipo de Misión"
+                        :options="missionTypeOptions"
+                        required
+                    />
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-content-secondary mb-1">
+                            📚 Asignatura / Curso
+                        </label>
+                        <select
+                            v-model="editForm.course_id"
+                            class="w-full rounded-xl border border-border-interactive bg-surface px-3 py-2 text-xs font-semibold text-content-primary outline-none shadow-xs focus:border-primary-strong cursor-pointer"
+                        >
+                            <option value="">(Sin asignar)</option>
+                            <option v-for="c in courses" :key="c.id" :value="c.id">
+                                {{ c.name }} {{ c.code ? `(${c.code})` : '' }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Selector de Cuadrante en Edición -->
@@ -1850,12 +1956,35 @@ function goToMission(id) {
                     />
                 </div>
 
-                <BaseInput
-                    id="edit-due"
-                    v-model="editForm.due_date"
-                    label="Fecha de vencimiento"
-                    type="date"
-                />
+                <div class="grid grid-cols-2 gap-4">
+                    <BaseInput
+                        id="edit-due"
+                        v-model="editForm.due_date"
+                        label="Fecha de vencimiento"
+                        type="date"
+                    />
+                    <BaseInput
+                        id="edit-planned-date"
+                        v-model="editForm.planned_date"
+                        label="Fecha planificada"
+                        type="date"
+                    />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <BaseInput
+                        id="edit-planned-start"
+                        v-model="editForm.planned_start"
+                        label="Hora de inicio planificada"
+                        type="time"
+                    />
+                    <BaseInput
+                        id="edit-planned-end"
+                        v-model="editForm.planned_end"
+                        label="Hora de fin planificada"
+                        type="time"
+                    />
+                </div>
 
                 <div class="flex justify-end gap-3 pt-2">
                     <BaseButton variant="ghost" type="button" @click="closeEditModal">Cancelar</BaseButton>

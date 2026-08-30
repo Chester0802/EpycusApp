@@ -5,6 +5,9 @@ declare(strict_types=1);
 use App\Modules\Calendar\Presentation\Controllers\CalendarController;
 use App\Modules\Calendar\Presentation\Controllers\KnowledgeGraphController;
 use App\Modules\Calendar\Presentation\Controllers\NoteImageController;
+use App\Modules\Calendar\Presentation\Controllers\CoursesController;
+use App\Modules\Calendar\Presentation\Controllers\CourseProjectsController;
+use App\Modules\Calendar\Presentation\Controllers\CourseGradesController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])->group(function () {
@@ -16,10 +19,24 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/api/calendar/knowledge-graph/generate', [KnowledgeGraphController::class, 'generate'])->name('calendar.knowledge-graph.generate');
     Route::post('/api/calendar/knowledge-graph/positions', [KnowledgeGraphController::class, 'savePositions'])->name('calendar.knowledge-graph.positions');
 
-    // Cursos
+    // Cursos (Antiguos endpoints del Calendario)
     Route::post('/calendar/courses', [CalendarController::class, 'storeCourse'])->name('calendar.courses.store');
     Route::put('/calendar/courses/{id}', [CalendarController::class, 'updateCourse'])->name('calendar.courses.update');
     Route::delete('/calendar/courses/{id}', [CalendarController::class, 'destroyCourse'])->name('calendar.courses.destroy');
+
+    // Cursos Hub (Fase 2)
+    Route::get('/courses', [CoursesController::class, 'index'])->name('courses.index');
+    Route::get('/courses/{id}', [CoursesController::class, 'show'])->name('courses.show');
+    Route::post('/courses/{id}/syllabus', [CoursesController::class, 'uploadSyllabus'])->name('courses.syllabus.upload');
+    Route::delete('/courses/{id}/syllabus', [CoursesController::class, 'deleteSyllabus'])->name('courses.syllabus.delete');
+    
+    // Proyectos de Curso (Fase 4)
+    Route::post('/courses/{courseId}/projects', [CourseProjectsController::class, 'store'])->name('course.projects.store');
+
+    // Notas de Curso (Fase 3)
+    Route::post('/courses/{course}/grades', [CourseGradesController::class, 'store'])->name('course.grades.store');
+    Route::put('/courses/{course}/grades/{grade}', [CourseGradesController::class, 'update'])->name('course.grades.update');
+    Route::delete('/courses/{course}/grades/{grade}', [CourseGradesController::class, 'destroy'])->name('course.grades.destroy');
 
     // Apuntes
     Route::get('/calendar/courses/{courseId}/note', [CalendarController::class, 'showNote'])->name('calendar.notes.show');
