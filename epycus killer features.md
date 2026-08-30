@@ -173,6 +173,7 @@ CREATE TABLE project_phases (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     project_id BIGINT UNSIGNED NOT NULL,
     title VARCHAR(120) NOT NULL,     -- "Fase 1: Propuesta", "Fase 2: Desarrollo"
+    color VARCHAR(30) DEFAULT 'blue',-- Color distintivo de la fase
     due_date DATE NULL,
     sort_order TINYINT UNSIGNED DEFAULT 0,
     is_completed BOOLEAN DEFAULT FALSE,
@@ -180,27 +181,27 @@ CREATE TABLE project_phases (
 ) ENGINE=InnoDB;
 ```
 
-**Vista del proyecto — Reutilización directa del Tablero Kanban de Misiones:**
+**Vista del proyecto — Tablero Kanban Unificado con Fases por Color:**
 
-Cada fase del proyecto actúa como un agrupador de misiones. El estudiante ve el mismo tablero interactivo (Lista de Misiones / Post-it → En Proceso → En Revisión → Terminado):
+En lugar de cambiar de pestaña por cada fase, **un solo tablero Kanban muestra todas las misiones del proyecto**. Cada misión / post-it lleva la etiqueta y cinta de color de su fase correspondiente.
 
 ```
 🏗️ Proyecto Final — Sistemas Distribuidos
-   Estado: En Progreso · Peso: 30% de la nota final · Entrega: 15 Nov 2026
+   Estado: En Progreso · Peso: 30% · Entrega: 15 Nov 2026 · 🍅 12.5 hrs Pomodoro
 
-   [Fase 1: Propuesta ✅] [▶ Fase 2: Backend (Activa)] [Fase 3: Sustentación 📅]
+   Filtros: [🔵 Todas las Fases] [Fase 1: Propuesta (Azul)] [Fase 2: Backend (Verde)] [Fase 3: Sustentación (Naranja)]
 
-   ┌─────────────────┬──────────────────┬─────────────────┬────────────────┐
-   │ Lista (Post-it) │   ⚡ En Proceso   │  🔍 En Revisión  │  ✅ Terminado   │
-   ├─────────────────┼──────────────────┼─────────────────┼────────────────┤
-   │ ⬜ API usuarios │ 🔄 Setup Node.js │                 │ ✅ Propuesta   │
-   │ ⬜ Migraciones  │                  │                 │ ✅ Diagrama ER │
-   └─────────────────┴──────────────────┴─────────────────┴────────────────┘
+   ┌───────────────────────────┬───────────────────────────┬───────────────────────────┬───────────────────────────┐
+   │     Lista de Misiones     │        ⚡ En Proceso       │       🔍 En Revisión      │        ✅ Terminado       │
+   ├───────────────────────────┼───────────────────────────┼───────────────────────────┼───────────────────────────┤
+   │ 🟩 [Fase 2] API usuarios  │ 🟩 [Fase 2] Setup Node.js │                           │ 🟦 [Fase 1] Propuesta PDF │
+   │ 🟧 [Fase 3] Slides demo   │                           │                           │ 🟦 [Fase 1] Diagrama ER   │
+   └───────────────────────────┴───────────────────────────┴───────────────────────────┴───────────────────────────┘
 
    Progreso del Proyecto: ████████░░░░  55%
 ```
 
-> **Ventaja de implementación:** Cero componentes visuales nuevos. Se usa el mismo `<MissionsBoard />` pasando `:projectPhaseId="selectedPhase.id"`.
+> **Ventaja:** El estudiante tiene la visión panorámica de todo el proyecto en una sola pantalla, diferenciando el estado de cada fase a través de su código cromático.
 
 ---
 
