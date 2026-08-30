@@ -141,16 +141,15 @@
                         document.documentElement.style.display = 'none';
                     }
                 }
-                var theme = 'dark', surface = 'neumorphism', palette = 'kawaii';
+                var theme = 'light', surface = 'neumorphism', palette = 'nube';
                 try {
                     if (window.localStorage) {
-                        theme = localStorage.getItem('epycus.theme')
-                            || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                        theme = localStorage.getItem('epycus.theme') || 'light';
                         surface = localStorage.getItem('epycus.surface') || 'neumorphism';
-                        palette = localStorage.getItem('epycus.palette') || 'kawaii';
+                        palette = localStorage.getItem('epycus.palette') || 'nube';
                     }
                 } catch (e) {
-                    theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                    theme = 'light';
                 }
                 document.documentElement.setAttribute('data-theme', theme);
                 document.documentElement.setAttribute('data-surface', surface);

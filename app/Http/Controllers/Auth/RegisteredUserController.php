@@ -28,11 +28,21 @@ final class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.UserModel::class,
-            'alias' => 'required|string|max:40|unique:'.UserModel::class.',alias',
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.UserModel::class],
+            'alias' => ['required', 'string', 'max:40', 'unique:'.UserModel::class.',alias'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'terms_accepted' => ['sometimes', 'accepted'],
+        ], [
+            'name.required' => 'Por favor, ingresa tu nombre completo.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Ingresa un correo electrónico con formato válido.',
+            'email.unique' => 'Este correo electrónico ya está registrado.',
+            'alias.required' => 'El alias público es obligatorio para el ranking.',
+            'alias.unique' => 'Este alias ya está en uso. Prueba generar uno nuevo.',
+            'password.required' => 'Debes ingresar una contraseña.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'terms_accepted.accepted' => 'Debes aceptar los Términos y Condiciones para continuar.',
         ]);
 
         $dto = new RegisterUserDTO(

@@ -16,7 +16,7 @@ import { usePage, router } from '@inertiajs/vue3';
  */
 const theme = ref(document.documentElement.getAttribute('data-theme') || 'light');
 const surface = ref(document.documentElement.getAttribute('data-surface') || 'neumorphism');
-const palette = ref(document.documentElement.getAttribute('data-palette') || 'kawaii');
+const palette = ref(document.documentElement.getAttribute('data-palette') || 'nube');
 
 function safeSet(key, value) {
     try {

@@ -34,7 +34,7 @@ useTheme();
 
         <div
             class="mx-auto flex w-full max-w-5xl flex-col gap-8 transition-all"
-            :class="{ 'lg:flex-row lg:items-center lg:gap-12 lg:max-w-6xl': $slots.heroImage }"
+            :class="{ 'lg:flex-row lg:items-center lg:gap-12 lg:max-w-6xl xl:max-w-7xl': $slots.heroImage }"
         >
             <div
                 v-if="$slots.heroImage"
@@ -45,7 +45,7 @@ useTheme();
 
             <div class="flex flex-1 flex-col items-center justify-center">
                 <!-- Logo + nombre del producto -->
-                <div class="mb-8 flex flex-col items-center gap-3">
+                <div class="mb-6 flex flex-col items-center gap-2.5">
                     <Link
                         :href="route('login')"
                         class="flex items-center gap-3 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
@@ -60,7 +60,7 @@ useTheme();
                 </div>
 
                 <!-- Panel principal con el formulario -->
-                <div class="panel-raised w-full max-w-md rounded-2xl px-8 py-8 sm:px-10">
+                <div class="panel-raised w-full max-w-lg rounded-2xl px-6 py-7 sm:px-9 sm:py-8">
                     <slot />
                 </div>
 
