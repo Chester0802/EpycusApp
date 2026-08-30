@@ -29,12 +29,16 @@
 
 ---
 
-## 1. Módulo Misiones (Tareas) — Rediseño con Eisenhower + Kanban
+## 1. Módulo Misiones (Tareas) — Eisenhower + Kanban + Cronograma
 
-### 📊 Estado Actual — Hallazgo clave
+### 📊 Estado Actual — Hallazgo clave: Ya está implementado
 
-La Matriz de Eisenhower **ya está implementada** en `missions.eisenhower_quadrant` con valores `q1`, `q2`, `q3`, `q4` y el `ChangeQuadrantUseCase`. Lo que falta es solo la **vista Kanban** del módulo. El campo `course_id` ya existe pero no hay `mission_type` para diferenciar tareas académicas, de trabajo o personales.
+El módulo Misiones ya tiene **las 3 vistas completamente funcionales** en la rama `2.0`:
+- **Matriz Eisenhower** — 4 cuadrantes Q1/Q2/Q3/Q4 con `ChangeQuadrantUseCase`
+- **Tablero Kanban** — columnas: Lista de Misiones → En Proceso → En Revisión → Terminado
+- **Cronograma / Lista** — vista filtrada con subtareas, Pomodoro inline, etc.
 
+Lo que **YA existe** en DB:
 ```
 missions
   id, user_id, course_id, title, description
@@ -42,14 +46,16 @@ missions
   priority: baja | normal | alta
   eisenhower_quadrant: q1 | q2 | q3 | q4   ← YA EXISTE
   due_date, completed_at, is_overdue, xp_awarded
-  → HasMany: subtasks
+  → HasMany: subtasks (con sort_order y completed_at)
 ```
 
-### ✅ Viabilidad — Muy Alta (Eisenhower ya está, solo falta Kanban)
+### ✅ Viabilidad — Muy Alta
+
+El único trabajo pendiente es añadir `mission_type` para categorizar las tareas (académica, trabajo, personal, proyecto) y vincularlas con fases de proyecto. Las 3 vistas ya existen y el canvas de proyectos reutilizará exactamente el mismo componente Kanban.
 
 ### 🏗️ Propuesta de Implementación
 
-**Migración — Tipo de misión y canvas de proyecto:**
+**Migración mínima — solo 3 campos nuevos:**
 ```sql
 ALTER TABLE missions
   ADD COLUMN mission_type ENUM('academic', 'work', 'personal', 'project') DEFAULT 'academic' AFTER course_id,
@@ -62,45 +68,17 @@ ALTER TABLE missions ADD CONSTRAINT fk_missions_phase
   FOREIGN KEY (project_phase_id) REFERENCES project_phases(id) ON DELETE SET NULL;
 ```
 
-**Las 4 vistas del Módulo Misiones:**
+**Lo que cambia en la UI:**
+- Filtro por tipo en la barra superior: `[Todas] [Académicas] [Trabajo] [Personal] [Proyecto]`
+- Al crear misión: selector de tipo + opción de vincular a curso o fase de proyecto
+- El Kanban y la Matriz ya funcionan tal cual para cualquier tipo de misión
 
-| Vista | Descripción | Estado |
-|:------|:------------|:------:|
-| **Lista** | Tarjetas agrupadas por prioridad | Ya existe |
-| **Eisenhower** | 4 cuadrantes Q1/Q2/Q3/Q4 | Lógica lista, falta UI |
-| **Kanban** | Columnas: Pendiente → En Progreso → Completada | Por implementar |
-| **Canvas Proyecto** | Vista de fases del proyecto con misiones anidadas | Por implementar |
-
-**Vista Kanban (sin librerías externas — Vue + CSS Grid):**
-```
-┌────────────────┬────────────────┬────────────────┐
-│   Pendiente    │  En Progreso   │   Completadas  │
-│   (Q2 + Q3)   │   (Q1 activas) │               │
-├────────────────┼────────────────┼────────────────┤
-│ 📝 Parcial BD  │ 🔄 Proyecto API│ ✅ Lab Química │
-│ 📝 Leer cap 5  │                │ ✅ Tarea Física│
-│ + Añadir tarea │                │               │
-└────────────────┴────────────────┴────────────────┘
-```
-
-**Vista Eisenhower (rediseñada con colores):**
-```
-             URGENTE          NO URGENTE
-           ┌──────────────┬──────────────┐
-IMPORTANTE │ Q1 🔴 Hacer  │ Q2 🔵 Planif│
-           │ ahora        │ con calma   │
-           ├──────────────┼──────────────┤
-NO IMPORT. │ Q3 🟡 Delegar│ Q4 ⬜ Elim. │
-           │ o posponer   │ si es posible│
-           └──────────────┴──────────────┘
-```
-
-**Relación completa de una Misión:**
+**Relación completa de una Misión (con los campos nuevos):**
 ```
 Misión "Implementar API REST"
   ├── mission_type: 'project'
-  ├── course_id: 5 (Sistemas Distribuidos)  ← opcional
-  ├── project_phase_id: 12 (Fase 2: Backend) ← opcional
+  ├── course_id: 5 (Sistemas Distribuidos)    ← opcional
+  ├── project_phase_id: 12 (Fase 2: Backend)  ← opcional
   ├── eisenhower_quadrant: 'q1'
   ├── subtasks:
   │     ├── [✅] Setup del servidor Node.js
@@ -108,6 +86,7 @@ Misión "Implementar API REST"
   │     └── [⬜] Tests de integración
   └── Pomodoro vinculado: 🍅 45 min de foco hoy
 ```
+
 
 ---
 
@@ -165,9 +144,11 @@ ALTER TABLE courses
 
 ### 📊 Contexto
 
-El ABP es estándar en universidades latinoamericanas. El proyecto es **opcional por curso** — no todos los cursos lo tienen. Un proyecto tiene fases, y cada fase tiene tareas (misiones). El Canvas es una vista visual de esas fases.
+El ABP es estándar en universidades latinoamericanas. El proyecto es **opcional por curso** — no todos los cursos lo tienen. Un proyecto tiene fases, y cada fase tiene tareas (misiones).
 
 ### ✅ Viabilidad — Alta
+
+Reutiliza `missions` (las tareas son misiones normales con `project_phase_id`) y las **vistas Kanban+Matriz+Cronograma ya implementadas** del módulo Misiones. El canvas del proyecto **usa exactamente el mismo componente** del módulo Misiones, filtrado por `project_phase_id`. No se necesita nada nuevo en el front-end para la vista del canvas.
 
 **Tablas:**
 ```sql
@@ -199,31 +180,27 @@ CREATE TABLE project_phases (
 ) ENGINE=InnoDB;
 ```
 
-**Vista del proyecto — 3 opciones de interfaz:**
+**Vista del proyecto — Reutilización directa del Tablero Kanban de Misiones:**
 
-| Versión | Vista | Complejidad |
-|:--------|:-----:|:-----------:|
-| **v1** | Lista de fases con misiones anidadas | Baja |
-| **v1.5** | Kanban por fase (drag-and-drop) | Media |
-| **v2** | Canvas visual — nodos de fases conectados | Alta |
+Cada fase del proyecto actúa como un agrupador de misiones. El estudiante ve el mismo tablero interactivo (Lista de Misiones / Post-it → En Proceso → En Revisión → Terminado):
 
-**Canvas Visual (v2) — concepto:**
 ```
-┌─────────────────────────────────────────────┐
-│  🏗️ Proyecto Final — Sistemas Distribuidos   │
-│                                              │
-│  [Fase 1: Propuesta] ──→ [Fase 2: Backend]  │
-│       ✅ Completada           ⏳ En curso    │
-│       3/3 tareas              2/5 tareas     │
-│                    ↓                         │
-│             [Fase 3: Sustentación]           │
-│                  📅 15 Nov                  │
-│                  0/3 tareas                  │
-│                                              │
-│  Progreso total: ████████░░░░  55%           │
-│  Peso en nota: 30%   Rúbrica: ver detalle   │
-└─────────────────────────────────────────────┘
+🏗️ Proyecto Final — Sistemas Distribuidos
+   Estado: En Progreso · Peso: 30% de la nota final · Entrega: 15 Nov 2026
+
+   [Fase 1: Propuesta ✅] [▶ Fase 2: Backend (Activa)] [Fase 3: Sustentación 📅]
+
+   ┌─────────────────┬──────────────────┬─────────────────┬────────────────┐
+   │ Lista (Post-it) │   ⚡ En Proceso   │  🔍 En Revisión  │  ✅ Terminado   │
+   ├─────────────────┼──────────────────┼─────────────────┼────────────────┤
+   │ ⬜ API usuarios │ 🔄 Setup Node.js │                 │ ✅ Propuesta   │
+   │ ⬜ Migraciones  │                  │                 │ ✅ Diagrama ER │
+   └─────────────────┴──────────────────┴─────────────────┴────────────────┘
+
+   Progreso del Proyecto: ████████░░░░  55%
 ```
+
+> **Ventaja de implementación:** Cero componentes visuales nuevos. Se usa el mismo `<MissionsBoard />` pasando `:projectPhaseId="selectedPhase.id"`.
 
 ---
 
@@ -648,8 +625,10 @@ flashcard_reviews (dominio >80%)    →  🧩 Retención Cognitiva
 | 20.3 | **Alertas Académicas** | Job nocturno: detecta si el promedio proyectado cae bajo la nota mínima |
 | 20.4 | **Leitner Diario** | Recomienda las 30 flashcards con `next_review_at <= hoy` por caja |
 | 20.5 | **Hora Pico** | Cruza `habit_completions + pomodoro_sessions` → *"Tus mejores horas son a las 9:00"* |
-| 20.6 | **Cumpleaños** | Detecta `personal_events.type = 'birthday'` de los próximos 7 días y envía notificación |
-| 20.7 | **Endpoint Unificado** | `GET /api/unified-day` → clases + misiones + hábitos + eventos + flashcards pendientes |
+| 20.6 | **Endpoint Unificado** | `GET /api/unified-day` → clases + misiones + hábitos + eventos + flashcards pendientes |
+
+> **Cumpleaños y eventos personales:** No requieren automatización. El estudiante los revisa visualmente en el calendario mensual. Los eventos con `type = 'birthday'` aparecen destacados en el calendario con un icono propio — sin jobs ni notificaciones push.
+
 
 ---
 
