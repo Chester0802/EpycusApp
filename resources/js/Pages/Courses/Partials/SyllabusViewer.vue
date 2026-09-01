@@ -16,6 +16,7 @@ const props = defineProps({
 const fileInput = ref(null);
 const isUploading = ref(false);
 const isFullscreen = ref(false);
+const viewerMode = ref('native'); // 'native' | 'universal'
 
 const form = useForm({
     syllabus: null,
@@ -26,6 +27,16 @@ const syllabusUrl = computed(() => {
         return `/storage/${props.course.syllabus_path}`;
     }
     return null;
+});
+
+const fullSyllabusUrl = computed(() => {
+    if (!syllabusUrl.value) return '';
+    return typeof window !== 'undefined' ? (window.location.origin + syllabusUrl.value) : syllabusUrl.value;
+});
+
+const universalViewerUrl = computed(() => {
+    if (!fullSyllabusUrl.value) return '';
+    return `https://docs.google.com/viewer?url=${encodeURIComponent(fullSyllabusUrl.value)}&embedded=true`;
 });
 
 function handleFileChange(event) {
@@ -78,16 +89,41 @@ function deleteSyllabus() {
             v-if="syllabusUrl"
             :class="[
                 isFullscreen
-                    ? 'fixed inset-0 z-50 bg-surface flex flex-col p-4'
+                    ? 'fixed inset-0 z-50 bg-surface flex flex-col p-3 sm:p-5'
                     : 'flex-1 flex flex-col overflow-hidden bg-surface rounded-2xl border border-border shadow-sm'
             ]"
         >
             <div class="flex items-center justify-between p-3 sm:p-4 border-b border-border bg-surface-raised flex-wrap gap-2">
-                <h3 class="font-bold text-content-primary flex items-center gap-2 text-sm sm:text-base">
+                <div class="flex items-center gap-2.5">
                     <FileText :size="18" class="text-primary-strong" />
-                    <span>Sílabo: <strong>{{ course.name }}</strong></span>
-                </h3>
+                    <h3 class="font-bold text-content-primary text-xs sm:text-sm">
+                        Previsualización: <strong>{{ course.name }}</strong>
+                    </h3>
+                </div>
+
                 <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <!-- Selector de Modo de Previsualización -->
+                    <div class="flex items-center bg-surface p-0.5 rounded-xl border border-border text-[11px] font-bold">
+                        <button
+                            type="button"
+                            class="px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+                            :class="viewerMode === 'native' ? 'bg-primary-strong text-white shadow-xs' : 'text-content-secondary hover:text-content-primary'"
+                            @click="viewerMode = 'native'"
+                            title="Previsualización Nativa en Navegador"
+                        >
+                            Nativo
+                        </button>
+                        <button
+                            type="button"
+                            class="px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+                            :class="viewerMode === 'universal' ? 'bg-primary-strong text-white shadow-xs' : 'text-content-secondary hover:text-content-primary'"
+                            @click="viewerMode = 'universal'"
+                            title="Previsualización Universal (Recomendado para móviles)"
+                        >
+                            Universal
+                        </button>
+                    </div>
+
                     <button
                         type="button"
                         class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-surface hover:bg-surface-sunken text-content-primary transition border border-border flex items-center gap-1.5 cursor-pointer"
@@ -96,17 +132,17 @@ function deleteSyllabus() {
                     >
                         <Minimize2 v-if="isFullscreen" :size="14" />
                         <Maximize2 v-else :size="14" />
-                        <span>{{ isFullscreen ? 'Salir' : 'Pantalla Completa' }}</span>
+                        <span class="hidden sm:inline">{{ isFullscreen ? 'Salir' : 'Pantalla Completa' }}</span>
                     </button>
 
                     <a
                         :href="syllabusUrl"
                         target="_blank"
                         class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-surface hover:bg-surface-sunken text-content-primary transition border border-border flex items-center gap-1.5"
-                        title="Abrir en visor nativo de nueva pestaña para zoom libre"
+                        title="Abrir PDF en pestaña nueva"
                     >
                         <ExternalLink :size="14" />
-                        <span class="hidden sm:inline">Nueva pestaña</span>
+                        <span class="hidden sm:inline">Pestaña</span>
                     </a>
 
                     <a
@@ -125,13 +161,44 @@ function deleteSyllabus() {
                 </div>
             </div>
 
-            <!-- Visor iframe Maximizado -->
-            <div class="flex-1 bg-surface-sunken relative min-h-[500px]">
-                <iframe
-                    :src="syllabusUrl"
-                    class="w-full h-full min-h-[75vh] sm:min-h-[82vh] border-none rounded-b-2xl"
-                    title="Visor de Sílabo"
-                ></iframe>
+            <!-- Área de Previsualización -->
+            <div class="flex-1 bg-surface-sunken relative min-h-[550px] flex flex-col">
+                <!-- Modo Nativo con fallback a object/embed -->
+                <template v-if="viewerMode === 'native'">
+                    <object
+                        :data="syllabusUrl"
+                        type="application/pdf"
+                        class="w-full flex-1 min-h-[75vh] sm:min-h-[82vh] rounded-b-2xl bg-white"
+                    >
+                        <iframe
+                            :src="syllabusUrl"
+                            class="w-full flex-1 min-h-[75vh] sm:min-h-[82vh] border-none rounded-b-2xl bg-white"
+                            title="Previsualización de Sílabo"
+                        >
+                            <div class="p-8 text-center flex flex-col items-center justify-center h-full">
+                                <p class="text-content-secondary text-sm mb-3">
+                                    Tu navegador no soporta la vista integrada de PDFs.
+                                </p>
+                                <button
+                                    type="button"
+                                    class="px-4 py-2 rounded-xl bg-primary-strong text-white text-xs font-bold"
+                                    @click="viewerMode = 'universal'"
+                                >
+                                    Activar Visor Universal
+                                </button>
+                            </div>
+                        </iframe>
+                    </object>
+                </template>
+
+                <!-- Modo Universal (Google Docs PDF embed para móviles y cualquier navegador) -->
+                <template v-else>
+                    <iframe
+                        :src="universalViewerUrl"
+                        class="w-full flex-1 min-h-[75vh] sm:min-h-[82vh] border-none rounded-b-2xl bg-white"
+                        title="Previsualización Universal de Sílabo"
+                    ></iframe>
+                </template>
             </div>
         </div>
 

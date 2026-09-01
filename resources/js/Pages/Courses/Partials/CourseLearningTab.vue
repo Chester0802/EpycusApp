@@ -11,7 +11,9 @@ import {
     Layers,
     BookOpen,
     HelpCircle,
-    Loader2
+    Loader2,
+    Sparkles,
+    Network
 } from '@lucide/vue';
 
 const props = defineProps({
@@ -223,7 +225,8 @@ function getMasteryColor(mastery) {
                         :class="viewMode === 'flashcards' ? 'bg-surface text-primary-strong shadow-sm' : 'text-content-secondary hover:text-content-primary'"
                         @click="viewMode = 'flashcards'; updateViewMode('flashcards')"
                     >
-                        <span>🃏 Flashcards</span>
+                        <Sparkles class="w-3.5 h-3.5" />
+                        <span>Flashcards</span>
                     </button>
                     <button
                         type="button"
@@ -231,7 +234,8 @@ function getMasteryColor(mastery) {
                         :class="viewMode === 'chunks' ? 'bg-surface text-primary-strong shadow-sm' : 'text-content-secondary hover:text-content-primary'"
                         @click="viewMode = 'chunks'; updateViewMode('chunks')"
                     >
-                        <span>🧩 Chunks</span>
+                        <Layers class="w-3.5 h-3.5" />
+                        <span>Chunks</span>
                     </button>
                     <button
                         type="button"
@@ -239,7 +243,8 @@ function getMasteryColor(mastery) {
                         :class="viewMode === 'mindmap' ? 'bg-surface text-primary-strong shadow-sm' : 'text-content-secondary hover:text-content-primary'"
                         @click="viewMode = 'mindmap'; updateViewMode('mindmap')"
                     >
-                        <span>🗺️ Mapa Mental</span>
+                        <Network class="w-3.5 h-3.5" />
+                        <span>Mapa Mental</span>
                     </button>
                     <button
                         type="button"
@@ -247,7 +252,8 @@ function getMasteryColor(mastery) {
                         :class="viewMode === 'graph' ? 'bg-surface text-primary-strong shadow-sm' : 'text-content-secondary hover:text-content-primary'"
                         @click="viewMode = 'graph'; updateViewMode('graph')"
                     >
-                        <span>🧠 Grafo 3D</span>
+                        <Brain class="w-3.5 h-3.5" />
+                        <span>Grafo 3D</span>
                     </button>
                 </div>
                 

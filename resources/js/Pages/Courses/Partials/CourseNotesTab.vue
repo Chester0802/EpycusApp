@@ -59,70 +59,73 @@ const canvasEl       = ref(null);
 const uploadingImage = ref(false);
 const cameraError    = ref('');
 
-// ── Visor de Imagen Interactivo (Zoom & Pan) ───────────────────────────────
-const zoomImage      = ref(null);
-const zoomScale      = ref(1);
-const zoomPosition   = ref({ x: 0, y: 0 });
-const isDragging     = ref(false);
-const dragStart      = ref({ x: 0, y: 0 });
-
-function openImageZoom(src) {
-    zoomImage.value = src;
-    zoomScale.value = 1;
-    zoomPosition.value = { x: 0, y: 0 };
-}
-
-function closeImageZoom() {
-    zoomImage.value = null;
-}
-
-function zoomIn() {
-    zoomScale.value = Math.min(Math.round((zoomScale.value + 0.25) * 100) / 100, 4);
-}
-
-function zoomOut() {
-    zoomScale.value = Math.max(Math.round((zoomScale.value - 0.25) * 100) / 100, 0.5);
-}
-
-function resetZoom() {
-    zoomScale.value = 1;
-    zoomPosition.value = { x: 0, y: 0 };
-}
+// ── Control Directo de Imagen en Apuntes (Alinear, Aumentar / Disminuir Tamaño) ──
+const selectedImgEl    = ref(null);
+const selectedImgWidth = ref(100);
 
 function handleEditorClick(e) {
-    if (e.target && e.target.tagName === 'IMG') {
-        openImageZoom(e.target.src);
-    }
-}
+    if (e && e.target && e.target.tagName === 'IMG') {
+        if (selectedImgEl.value && selectedImgEl.value !== e.target) {
+            selectedImgEl.value.classList.remove('note-selected-img');
+        }
+        selectedImgEl.value = e.target;
+        selectedImgEl.value.classList.add('note-selected-img');
 
-function onDragStart(e) {
-    isDragging.value = true;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    dragStart.value = { x: clientX - zoomPosition.value.x, y: clientY - zoomPosition.value.y };
-}
-
-function onDragMove(e) {
-    if (!isDragging.value) return;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    zoomPosition.value = {
-        x: clientX - dragStart.value.x,
-        y: clientY - dragStart.value.y,
-    };
-}
-
-function onDragEnd() {
-    isDragging.value = false;
-}
-
-function onWheel(e) {
-    e.preventDefault();
-    if (e.deltaY < 0) {
-        zoomIn();
+        const currentStyleWidth = selectedImgEl.value.style.width;
+        if (currentStyleWidth && currentStyleWidth.endsWith('%')) {
+            selectedImgWidth.value = parseInt(currentStyleWidth, 10);
+        } else if (selectedImgEl.value.getAttribute('width')) {
+            selectedImgWidth.value = parseInt(selectedImgEl.value.getAttribute('width'), 10);
+        } else {
+            selectedImgWidth.value = 100;
+        }
     } else {
-        zoomOut();
+        if (selectedImgEl.value) {
+            selectedImgEl.value.classList.remove('note-selected-img');
+            selectedImgEl.value = null;
+        }
     }
+}
+
+function resizeSelectedImg(percent) {
+    if (!selectedImgEl.value) return;
+    const clamped = Math.max(15, Math.min(100, percent));
+    selectedImgWidth.value = clamped;
+    selectedImgEl.value.style.width = `${clamped}%`;
+    selectedImgEl.value.style.maxWidth = '100%';
+    selectedImgEl.value.style.height = 'auto';
+    syncBlocks();
+    triggerAutoSave();
+}
+
+function adjustImgSize(delta) {
+    if (!selectedImgEl.value) return;
+    resizeSelectedImg(selectedImgWidth.value + delta);
+}
+
+function alignSelectedImg(align) {
+    if (!selectedImgEl.value) return;
+    selectedImgEl.value.style.display = 'block';
+    if (align === 'left') {
+        selectedImgEl.value.style.marginLeft = '0';
+        selectedImgEl.value.style.marginRight = 'auto';
+    } else if (align === 'center') {
+        selectedImgEl.value.style.marginLeft = 'auto';
+        selectedImgEl.value.style.marginRight = 'auto';
+    } else if (align === 'right') {
+        selectedImgEl.value.style.marginLeft = 'auto';
+        selectedImgEl.value.style.marginRight = '0';
+    }
+    syncBlocks();
+    triggerAutoSave();
+}
+
+function deleteSelectedImg() {
+    if (!selectedImgEl.value) return;
+    selectedImgEl.value.remove();
+    selectedImgEl.value = null;
+    syncBlocks();
+    triggerAutoSave();
 }
 
 let autoSaveTimer = null;
@@ -1076,7 +1079,120 @@ onBeforeUnmount(() => {
                                 </div>
 
                                 <!-- Editor -->
-                                <div class="note-editor-area">
+                                <div class="note-editor-area relative">
+                                    <!-- Barra Flotante de Edición Directa de Imagen en Apunte -->
+                                    <div
+                                        v-if="selectedImgEl"
+                                        class="sticky top-0 z-20 mx-auto w-fit max-w-full bg-surface-raised/95 backdrop-blur-md border border-primary-strong/40 rounded-2xl shadow-xl p-2 flex items-center flex-wrap gap-2 text-xs text-content-primary mb-3 animate-fade-in"
+                                    >
+                                        <!-- Tamaño Presets -->
+                                        <div class="flex items-center gap-1 bg-surface-sunken p-1 rounded-xl border border-border">
+                                            <button
+                                                type="button"
+                                                class="px-2 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                                                :class="selectedImgWidth <= 30 ? 'bg-primary-strong text-white' : 'hover:bg-surface text-content-secondary'"
+                                                @click="resizeSelectedImg(25)"
+                                            >
+                                                25%
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="px-2 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                                                :class="selectedImgWidth > 30 && selectedImgWidth <= 60 ? 'bg-primary-strong text-white' : 'hover:bg-surface text-content-secondary'"
+                                                @click="resizeSelectedImg(50)"
+                                            >
+                                                50%
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="px-2 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                                                :class="selectedImgWidth > 60 && selectedImgWidth <= 85 ? 'bg-primary-strong text-white' : 'hover:bg-surface text-content-secondary'"
+                                                @click="resizeSelectedImg(75)"
+                                            >
+                                                75%
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="px-2 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                                                :class="selectedImgWidth > 85 ? 'bg-primary-strong text-white' : 'hover:bg-surface text-content-secondary'"
+                                                @click="resizeSelectedImg(100)"
+                                            >
+                                                100%
+                                            </button>
+                                        </div>
+
+                                        <!-- Ajuste Fino (+ / -) -->
+                                        <div class="flex items-center gap-0.5 bg-surface-sunken p-1 rounded-xl border border-border">
+                                            <button
+                                                type="button"
+                                                class="p-1 rounded-lg hover:bg-surface text-content-secondary hover:text-content-primary transition cursor-pointer"
+                                                title="Reducir tamaño (-10%)"
+                                                @click="adjustImgSize(-10)"
+                                            >
+                                                <ZoomOut :size="14" />
+                                            </button>
+                                            <span class="px-1.5 text-[11px] font-bold text-primary-strong min-w-[36px] text-center">
+                                                {{ selectedImgWidth }}%
+                                            </span>
+                                            <button
+                                                type="button"
+                                                class="p-1 rounded-lg hover:bg-surface text-content-secondary hover:text-content-primary transition cursor-pointer"
+                                                title="Aumentar tamaño (+10%)"
+                                                @click="adjustImgSize(10)"
+                                            >
+                                                <ZoomIn :size="14" />
+                                            </button>
+                                        </div>
+
+                                        <!-- Alineación / Posición de la Imagen en el Apunte -->
+                                        <div class="flex items-center gap-0.5 bg-surface-sunken p-1 rounded-xl border border-border">
+                                            <button
+                                                type="button"
+                                                class="px-2 py-1 rounded-lg text-xs font-semibold hover:bg-surface text-content-secondary hover:text-content-primary transition cursor-pointer"
+                                                title="Alinear a la izquierda"
+                                                @click="alignSelectedImg('left')"
+                                            >
+                                                ◀ Izq
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="px-2 py-1 rounded-lg text-xs font-semibold hover:bg-surface text-content-secondary hover:text-content-primary transition cursor-pointer"
+                                                title="Centrar en el apunte"
+                                                @click="alignSelectedImg('center')"
+                                            >
+                                                ⏺ Centro
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="px-2 py-1 rounded-lg text-xs font-semibold hover:bg-surface text-content-secondary hover:text-content-primary transition cursor-pointer"
+                                                title="Alinear a la derecha"
+                                                @click="alignSelectedImg('right')"
+                                            >
+                                                Der ▶
+                                            </button>
+                                        </div>
+
+                                        <!-- Botón Eliminar Imagen -->
+                                        <button
+                                            type="button"
+                                            class="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 transition cursor-pointer"
+                                            title="Eliminar imagen del apunte"
+                                            @click="deleteSelectedImg"
+                                        >
+                                            <Trash2 :size="14" />
+                                        </button>
+                                        
+                                        <!-- Botón Deseleccionar -->
+                                        <button
+                                            type="button"
+                                            class="p-1.5 rounded-xl hover:bg-surface text-content-muted hover:text-content-primary transition cursor-pointer"
+                                            title="Listo"
+                                            @click="handleEditorClick({ target: null })"
+                                        >
+                                            <X :size="14" />
+                                        </button>
+                                    </div>
+
                                     <!-- Botón flotante para restaurar registros si está oculto -->
                                     <button
                                         v-if="!showEntriesSidebar && entries.length > 1"
@@ -1088,6 +1204,7 @@ onBeforeUnmount(() => {
                                         <PanelLeft :size="13" class="text-primary-strong" />
                                         <span>Mostrar Registros ({{ entries.length }})</span>
                                     </button>
+
                                     <!-- Vacío -->
                                     <div v-if="entries.length === 0" class="note-empty">
                                         <NotebookText :size="48" class="note-empty-icon" />
@@ -1144,79 +1261,6 @@ onBeforeUnmount(() => {
                                         <X :size="15" /> Cancelar
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Modal Interactivo de Zoom & Pan de Imagen -->
-                        <div
-                            v-if="zoomImage"
-                            class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-between p-3 sm:p-6 select-none"
-                            @click.self="closeImageZoom"
-                        >
-                            <!-- Barra superior del visor -->
-                            <div class="w-full flex items-center justify-between text-white z-10">
-                                <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs font-semibold backdrop-blur-sm border border-white/10">
-                                    <span>🔍 Escala: <strong>{{ Math.round(zoomScale * 100) }}%</strong></span>
-                                    <span class="text-white/60 hidden sm:inline">· Arrastra para mover la imagen</span>
-                                </div>
-                                <button
-                                    type="button"
-                                    class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
-                                    title="Cerrar visor"
-                                    @click="closeImageZoom"
-                                >
-                                    <X :size="20" />
-                                </button>
-                            </div>
-
-                            <!-- Área interactiva de la imagen -->
-                            <div
-                                class="flex-1 w-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing touch-none my-2"
-                                @mousedown="onDragStart"
-                                @mousemove="onDragMove"
-                                @mouseup="onDragEnd"
-                                @mouseleave="onDragEnd"
-                                @touchstart="onDragStart"
-                                @touchmove="onDragMove"
-                                @touchend="onDragEnd"
-                                @wheel="onWheel"
-                            >
-                                <img
-                                    :src="zoomImage"
-                                    alt="Visor de imagen de apunte"
-                                    class="max-w-full max-h-[75vh] object-contain transition-transform duration-75 pointer-events-none rounded-xl shadow-2xl"
-                                    :style="{
-                                        transform: `translate(${zoomPosition.x}px, ${zoomPosition.y}px) scale(${zoomScale})`,
-                                    }"
-                                />
-                            </div>
-
-                            <!-- Controles inferiores de Zoom -->
-                            <div class="flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 text-white z-10 shadow-2xl">
-                                <button
-                                    type="button"
-                                    class="p-2 rounded-xl hover:bg-white/20 transition cursor-pointer flex items-center justify-center"
-                                    title="Reducir (-)"
-                                    @click="zoomOut"
-                                >
-                                    <ZoomOut :size="18" />
-                                </button>
-                                <button
-                                    type="button"
-                                    class="px-3 py-1 text-xs font-bold rounded-lg hover:bg-white/20 transition cursor-pointer"
-                                    title="Restablecer tamaño normal"
-                                    @click="resetZoom"
-                                >
-                                    100%
-                                </button>
-                                <button
-                                    type="button"
-                                    class="p-2 rounded-xl hover:bg-white/20 transition cursor-pointer flex items-center justify-center"
-                                    title="Aumentar (+)"
-                                    @click="zoomIn"
-                                >
-                                    <ZoomIn :size="18" />
-                                </button>
                             </div>
                         </div>
 
@@ -1546,18 +1590,22 @@ onBeforeUnmount(() => {
 .note-editor :deep(ul)     { list-style-type: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
 .note-editor :deep(ol)     { list-style-type: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
 .note-editor :deep(li)     { margin: 0.15rem 0; }
-.note-editor :deep(img)    {
+.note-editor :deep(img) {
     max-width: 100%;
     border-radius: 12px;
     margin: 1rem 0;
     display: block;
     border: 1px solid rgba(255,255,255,0.15);
-    cursor: zoom-in;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, outline 0.15s ease;
 }
 .note-editor :deep(img:hover) {
-    transform: scale(1.01);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+.note-editor :deep(img.note-selected-img) {
+    outline: 3px solid var(--color-primary-strong, #6366f1) !important;
+    outline-offset: 4px;
+    box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.25), 0 10px 25px rgba(0,0,0,0.35) !important;
 }
 
 .note-camera-overlay {
