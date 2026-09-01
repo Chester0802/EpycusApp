@@ -55,6 +55,21 @@ const categoryBadges = {
     other: 'bg-surface-raised text-content-muted border border-border',
 };
 
+const categoriesList = [
+    { key: 'all', label: '⚡ Todas' },
+    { key: 'technical', label: '💻 Técnicas' },
+    { key: 'soft', label: '🗣️ Blandas' },
+    { key: 'language', label: '🌍 Idiomas' },
+    { key: 'creative', label: '🎨 Creativas' },
+    { key: 'physical', label: '🏃 Físicas' },
+    { key: 'other', label: '✨ Otras' },
+];
+
+function getCategoryCount(key) {
+    if (key === 'all') return props.skills.length;
+    return props.skills.filter((s) => s.category === key).length;
+}
+
 const levelTitles = [
     'Principiante',
     'Iniciado',
@@ -225,7 +240,7 @@ function deleteSkill(skillId) {
                     </div>
 
                     <BaseButton variant="primary" @click="openCreateModal">
-                        <AppIcon name="plus" :size="16" /> + Nueva Habilidad
+                        <AppIcon name="plus" :size="16" /> Nueva Habilidad
                     </BaseButton>
                 </div>
             </BaseCard>
@@ -253,52 +268,20 @@ function deleteSkill(skillId) {
             <!-- Filtros por Categoría -->
             <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
                 <button
+                    v-for="cat in categoriesList"
+                    :key="cat.key"
                     type="button"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border shrink-0"
-                    :class="activeCategory === 'all' ? 'bg-primary-strong text-on-primary-strong border-primary-strong shadow-xs' : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'"
-                    @click="activeCategory === 'all'"
+                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border shrink-0 flex items-center gap-1.5"
+                    :class="activeCategory === cat.key ? 'bg-primary-strong text-on-primary-strong border-primary-strong shadow-xs' : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'"
+                    @click="activeCategory = cat.key"
                 >
-                    ⚡ Todas ({{ skills.length }})
-                </button>
-                <button
-                    type="button"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border shrink-0"
-                    :class="activeCategory === 'technical' ? 'bg-primary-strong text-on-primary-strong border-primary-strong shadow-xs' : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'"
-                    @click="activeCategory === 'technical'"
-                >
-                    💻 Técnicas
-                </button>
-                <button
-                    type="button"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border shrink-0"
-                    :class="activeCategory === 'soft' ? 'bg-primary-strong text-on-primary-strong border-primary-strong shadow-xs' : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'"
-                    @click="activeCategory === 'soft'"
-                >
-                    🗣️ Blandas
-                </button>
-                <button
-                    type="button"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border shrink-0"
-                    :class="activeCategory === 'language' ? 'bg-primary-strong text-on-primary-strong border-primary-strong shadow-xs' : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'"
-                    @click="activeCategory === 'language'"
-                >
-                    🌍 Idiomas
-                </button>
-                <button
-                    type="button"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border shrink-0"
-                    :class="activeCategory === 'creative' ? 'bg-primary-strong text-on-primary-strong border-primary-strong shadow-xs' : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'"
-                    @click="activeCategory === 'creative'"
-                >
-                    🎨 Creativas
-                </button>
-                <button
-                    type="button"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border shrink-0"
-                    :class="activeCategory === 'physical' ? 'bg-primary-strong text-on-primary-strong border-primary-strong shadow-xs' : 'bg-surface border-border-interactive text-content-secondary hover:bg-surface-raised'"
-                    @click="activeCategory === 'physical'"
-                >
-                    🏃 Físicas
+                    <span>{{ cat.label }}</span>
+                    <span
+                        class="px-1.5 py-0.2 rounded-md text-[10px]"
+                        :class="activeCategory === cat.key ? 'bg-white/20 text-white font-black' : 'bg-surface-raised text-content-muted'"
+                    >
+                        {{ getCategoryCount(cat.key) }}
+                    </span>
                 </button>
             </div>
 

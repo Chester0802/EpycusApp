@@ -246,7 +246,7 @@ function deleteReading(readingId) {
                     </div>
 
                     <BaseButton variant="primary" @click="openCreateModal">
-                        <AppIcon name="plus" :size="16" /> + Nueva Lectura
+                        <AppIcon name="plus" :size="16" /> Nueva Lectura
                     </BaseButton>
                 </div>
             </BaseCard>

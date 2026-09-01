@@ -72,7 +72,6 @@ const mobileBottomNavItems = [
 
 const mobileDrawerItems = [
     { label: 'Mi Perfil & Logros', routeName: 'gamification.index', icon: 'user', desc: 'Avatar, XP y Medallas' },
-    { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro', desc: 'Temporizador de estudio' },
     { label: 'Cursos', routeName: 'courses.index', icon: 'book', desc: 'Asignaturas, sílabos y apuntes' },
     { label: 'Lecturas', routeName: 'readings.index', icon: 'readings', desc: 'Libros, artículos y biblioteca' },
     { label: 'Habilidades', routeName: 'skills.index', icon: 'skills', desc: 'Árbol de destrezas y práctica' },
