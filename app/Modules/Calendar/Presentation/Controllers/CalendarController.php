@@ -94,6 +94,28 @@ final class CalendarController extends Controller
             ])
             ->toArray();
 
+        // Cargar eventos personales del mes
+        $personalEvents = \App\Modules\Calendar\Infrastructure\Models\PersonalEventModel::forUser($userId)
+            ->inMonth($year, $month)
+            ->get()
+            ->map(fn ($e) => [
+                'id' => $e->id,
+                'title' => $e->title,
+                'description' => $e->description,
+                'type' => $e->type,
+                'event_date' => $e->event_date->toDateString(),
+                'start_time' => $e->start_time ? substr((string) $e->start_time, 0, 5) : null,
+                'end_time' => $e->end_time ? substr((string) $e->end_time, 0, 5) : null,
+                'is_recurring' => (bool) $e->is_recurring,
+                'color' => $e->color ?? 'primary',
+            ])
+            ->toArray();
+
+        $eventsByDate = [];
+        foreach ($personalEvents as $pe) {
+            $eventsByDate[$pe['event_date']][] = $pe;
+        }
+
         // Cargar plan diario integrado
         $plan = $this->getPlan->execute($userId, is_string($selectedDate) ? $selectedDate : null);
 
@@ -104,6 +126,8 @@ final class CalendarController extends Controller
             'selectedDate'   => $selectedDate,
             'holidays'       => $holidays,
             'missionsByDate' => $missionsByDate,
+            'eventsByDate'   => $eventsByDate,
+            'personalEvents' => $personalEvents,
             'examDates'      => $examDates,
             'courses'        => $courses,
             'plan'           => $plan,
@@ -119,58 +143,7 @@ final class CalendarController extends Controller
         ]);
     }
 
-    // ── Cursos ────────────────────────────────────────────────────────────────
-
-    public function storeCourse(Request $request): RedirectResponse
-    {
-        $userId = (int) Auth::id();
-
-        $validated = $request->validate([
-            'name'                       => ['required', 'string', 'max:120'],
-            'color'                      => ['nullable', 'string', 'in:primary,accent,success,warning,secondary'],
-            'starts_at'                  => ['nullable', 'date'],
-            'ends_at'                    => ['nullable', 'date', 'after_or_equal:starts_at'],
-            'sessions'                   => ['required', 'array', 'min:1', 'max:7'],
-            'sessions.*.day_of_week'     => ['required', 'integer', 'between:1,7'],
-            'sessions.*.start_time'      => ['required', 'date_format:H:i'],
-            'sessions.*.end_time'        => ['required', 'date_format:H:i', 'after:sessions.*.start_time'],
-            'sessions.*.classroom'       => ['nullable', 'string', 'max:60'],
-        ]);
-
-        $this->calendar->createCourse($userId, $validated);
-
-        return back()->with('success', 'Curso registrado correctamente.');
-    }
-
-    public function updateCourse(Request $request, int $id): RedirectResponse
-    {
-        $userId = (int) Auth::id();
-
-        $validated = $request->validate([
-            'name'                       => ['required', 'string', 'max:120'],
-            'color'                      => ['nullable', 'string', 'in:primary,accent,success,warning,secondary'],
-            'starts_at'                  => ['nullable', 'date'],
-            'ends_at'                    => ['nullable', 'date', 'after_or_equal:starts_at'],
-            'sessions'                   => ['required', 'array', 'min:1', 'max:7'],
-            'sessions.*.day_of_week'     => ['required', 'integer', 'between:1,7'],
-            'sessions.*.start_time'      => ['required', 'date_format:H:i'],
-            'sessions.*.end_time'        => ['required', 'date_format:H:i', 'after:sessions.*.start_time'],
-            'sessions.*.classroom'       => ['nullable', 'string', 'max:60'],
-        ]);
-
-        $this->calendar->updateCourse($userId, $id, $validated);
-
-        return back()->with('success', 'Curso actualizado correctamente.');
-    }
-
-    public function destroyCourse(int $id): RedirectResponse
-    {
-        $userId = (int) Auth::id();
-
-        $this->calendar->deleteCourse($userId, $id);
-
-        return back()->with('success', 'Curso eliminado.');
-    }
+    // ── Cursos migrados a CoursesController ──────────────────────────────────────
 
     // ── Apuntes ───────────────────────────────────────────────────────────────
 
@@ -282,6 +255,7 @@ final class CalendarController extends Controller
             'scheduled_time' => 'nullable|string|max:10',
             'estimated_minutes' => 'nullable|integer|min:1|max:480',
             'notes' => 'nullable|string|max:500',
+            'linked_mission_id' => 'nullable|integer|exists:missions,id',
         ]);
 
         $userId = (int) Auth::id();

@@ -1,11 +1,12 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { ref, computed, watch, onMounted } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import BaseCard from '@/Components/ui/BaseCard.vue';
 import BaseButton from '@/Components/ui/BaseButton.vue';
 import BaseSelect from '@/Components/ui/BaseSelect.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
+import AppIcon from '@/Components/AppIcon.vue';
 import { usePomodoroState } from '@/Composables/usePomodoroState';
 
 const props = defineProps({
@@ -18,6 +19,9 @@ const props = defineProps({
     avatarGender: { type: String, default: 'm' },
     progress: { type: Object, default: () => ({ phase: 1 }) },
     missions: { type: Array, default: () => [] },
+    courses: { type: Array, default: () => [] },
+    readings: { type: Array, default: () => [] },
+    skills: { type: Array, default: () => [] },
 });
 
 const page = usePage();
@@ -36,7 +40,6 @@ const {
     pause,
     resume,
     completeFocus,
-    startBreak,
     skipBreak,
     abandon,
     syncWithInertiaProps,
@@ -45,18 +48,67 @@ const {
 const onBreak = computed(() => mode.value === 'break');
 const onBreakIsLong = computed(() => breakInfo.value.isLong);
 
+// Context selection & focus targets
+const selectedContextType = ref('free');
 const selectedMissionId = ref(null);
+const selectedCourseId = ref(null);
+const selectedReadingId = ref(null);
+const selectedSkillId = ref(null);
+
+const missionFilterTab = ref('all'); // 'all' | 'academic' | 'work' | 'personal'
 const expandedMissionId = ref(null);
 const subtaskBusy = ref({});
 
+const CONTEXT_OPTIONS = [
+    { value: 'free', label: '⚡ Enfoque Libre' },
+    { value: 'mission', label: '🎯 Misiones / Entregables' },
+    { value: 'course', label: '🎓 Cursos / Asignaturas' },
+    { value: 'reading', label: '📚 Lecturas / Biblioteca' },
+    { value: 'skill', label: '⚡ Habilidades / Destrezas' },
+    { value: 'work', label: '💼 Trabajo / Laboral' },
+    { value: 'personal', label: '🌱 Hábitos / Desarrollo Personal' }
+];
+
 function selectMission(id) {
-    selectedMissionId.value = selectedMissionId.value === id ? null : id;
-    if (selectedMissionId.value) {
-        const m = props.missions.find(x => x.id === id);
-        if (m) {
-            selectedContextType.value = m.mission_type === 'academic' ? 'mission' : m.mission_type;
-        }
+    if (selectedMissionId.value === id) {
+        selectedMissionId.value = null;
+        expandedMissionId.value = null;
+    } else {
+        selectedMissionId.value = id;
+        expandedMissionId.value = id;
+        // Reset others
+        selectedCourseId.value = null;
+        selectedReadingId.value = null;
+        selectedSkillId.value = null;
     }
+}
+
+function selectCourse(id) {
+    selectedCourseId.value = selectedCourseId.value === id ? null : id;
+    selectedMissionId.value = null;
+    selectedReadingId.value = null;
+    selectedSkillId.value = null;
+}
+
+function selectReading(id) {
+    selectedReadingId.value = selectedReadingId.value === id ? null : id;
+    selectedMissionId.value = null;
+    selectedCourseId.value = null;
+    selectedSkillId.value = null;
+}
+
+function selectSkill(id) {
+    selectedSkillId.value = selectedSkillId.value === id ? null : id;
+    selectedMissionId.value = null;
+    selectedCourseId.value = null;
+    selectedReadingId.value = null;
+}
+
+function clearTarget() {
+    selectedMissionId.value = null;
+    selectedCourseId.value = null;
+    selectedReadingId.value = null;
+    selectedSkillId.value = null;
 }
 
 function toggleExpandMission(id) {
@@ -123,8 +175,6 @@ watch(plannedMinutesInput, () => {
     }
 });
 
-const longBreakMinutes = computed(() => Math.min(30, Math.max(15, breakMinutesInput.value * 3)));
-
 function formatMinutesLabel(totalMinutes) {
     const min = Math.max(0, Math.round(totalMinutes));
     if (min < 60) return `${min} min`;
@@ -150,30 +200,43 @@ const goalMinutesInput = ref(0);
 const hasGoal = computed(() => goalMinutesInput.value > 0);
 const goalJustCompleted = ref(false);
 
-const CONTEXT_OPTIONS = [
-    { value: 'free', label: 'Enfoque Libre' },
-    { value: 'mission', label: 'Misión Académica / Curso' },
-    { value: 'work', label: 'Trabajo / Tareas' },
-    { value: 'reading', label: 'Lectura' },
-    { value: 'skill', label: 'Desarrollo de Habilidad' },
-    { value: 'personal', label: 'Desarrollo Personal / Hábito' }
-];
-const selectedContextType = ref('free');
-
 const todayIso = new Date().toISOString().slice(0, 10);
 const goalStorageKey = computed(
     () => `epycus:pomodoro:goal:${page.props.auth?.user?.id ?? 'anon'}:${todayIso}`,
 );
 
 const filteredMissions = computed(() => {
-    if (selectedContextType.value === 'mission') {
-        return props.missions.filter(m => m.mission_type === 'academic');
-    } else if (selectedContextType.value === 'work') {
+    if (selectedContextType.value === 'work') {
         return props.missions.filter(m => m.mission_type === 'work');
-    } else if (selectedContextType.value === 'personal') {
+    }
+    if (selectedContextType.value === 'personal') {
         return props.missions.filter(m => m.mission_type === 'personal');
     }
-    return [];
+    if (selectedContextType.value === 'mission') {
+        if (missionFilterTab.value === 'all') return props.missions;
+        return props.missions.filter(m => m.mission_type === missionFilterTab.value);
+    }
+    return props.missions;
+});
+
+const activeTargetInfo = computed(() => {
+    if (selectedMissionId.value) {
+        const m = props.missions.find(x => x.id === selectedMissionId.value);
+        if (m) return { type: 'mission', label: m.title, subtext: `${m.subtask_done}/${m.subtask_count} subtareas`, icon: 'target' };
+    }
+    if (selectedCourseId.value) {
+        const c = props.courses.find(x => x.id === selectedCourseId.value);
+        if (c) return { type: 'course', label: c.name, subtext: c.professor ? `Prof. ${c.professor}` : 'Asignatura', icon: 'graduation-cap' };
+    }
+    if (selectedReadingId.value) {
+        const r = props.readings.find(x => x.id === selectedReadingId.value);
+        if (r) return { type: 'reading', label: r.title, subtext: `Pág. ${r.current_page}/${r.total_pages}`, icon: 'book-open' };
+    }
+    if (selectedSkillId.value) {
+        const s = props.skills.find(x => x.id === selectedSkillId.value);
+        if (s) return { type: 'skill', label: s.name, subtext: `Nivel ${s.current_level} (${s.category})`, icon: 'zap' };
+    }
+    return null;
 });
 
 watch(goalMinutesInput, (value) => {
@@ -208,16 +271,6 @@ const exceedsDailyXpCap = computed(
     () => hasGoal.value && todayCompletedCount.value + projectedSessionsForGoal.value > 8,
 );
 
-function formatTime(totalSec) {
-    const m = Math.floor(totalSec / 60)
-        .toString()
-        .padStart(2, '0');
-    const s = Math.floor(totalSec % 60)
-        .toString()
-        .padStart(2, '0');
-    return `${m}:${s}`;
-}
-
 const timeLabel = computed(() => formattedTime.value);
 
 function statusLabel(status) {
@@ -241,16 +294,49 @@ async function startSession() {
     goalJustCompleted.value = false;
     toast.value = null;
     try {
-        const selectedMission = props.missions.find((m) => m.id === selectedMissionId.value);
-        let missionIdParam = selectedContextType.value === 'mission' || selectedContextType.value === 'work' || selectedContextType.value === 'personal' ? selectedMissionId.value : null;
+        let missionIdParam = null;
+        let missionTitleParam = null;
+        let contextTypeParam = selectedContextType.value !== 'free' ? selectedContextType.value : null;
+        let contextIdParam = null;
+
+        if (selectedContextType.value === 'mission' || selectedContextType.value === 'work' || selectedContextType.value === 'personal') {
+            if (selectedMissionId.value) {
+                const m = props.missions.find(x => x.id === selectedMissionId.value);
+                missionIdParam = selectedMissionId.value;
+                missionTitleParam = m ? m.title : null;
+                contextTypeParam = m ? (m.mission_type === 'academic' ? 'mission' : m.mission_type) : 'mission';
+                contextIdParam = selectedMissionId.value;
+            }
+        } else if (selectedContextType.value === 'course') {
+            if (selectedCourseId.value) {
+                const c = props.courses.find(x => x.id === selectedCourseId.value);
+                missionTitleParam = c ? `Curso: ${c.name}` : null;
+                contextTypeParam = 'course';
+                contextIdParam = selectedCourseId.value;
+            }
+        } else if (selectedContextType.value === 'reading') {
+            if (selectedReadingId.value) {
+                const r = props.readings.find(x => x.id === selectedReadingId.value);
+                missionTitleParam = r ? `Lectura: ${r.title}` : null;
+                contextTypeParam = 'reading';
+                contextIdParam = selectedReadingId.value;
+            }
+        } else if (selectedContextType.value === 'skill') {
+            if (selectedSkillId.value) {
+                const s = props.skills.find(x => x.id === selectedSkillId.value);
+                missionTitleParam = s ? `Habilidad: ${s.name}` : null;
+                contextTypeParam = 'skill';
+                contextIdParam = selectedSkillId.value;
+            }
+        }
 
         await startFocus(
             plannedMinutesInput.value,
             missionIdParam,
-            selectedMission ? selectedMission.title : null,
+            missionTitleParam,
             null,
-            selectedContextType.value,
-            missionIdParam
+            contextTypeParam,
+            contextIdParam
         );
     } catch (e) {
         toast.value = e.message || 'No se pudo iniciar la sesión.';
@@ -289,31 +375,26 @@ const musicPlaylistStorageKey = computed(
     () => `epycus:pomodoro:music-playlist:${page.props.auth?.user?.id ?? 'anon'}`,
 );
 const playlistEmbedUrl = computed(() => activeEmbedUrl.value);
-const isCustomPlaylist = computed(() => activeEmbedUrl.value !== DEFAULT_EMBED_URL);
 
 function parseYouTubeUrl(input) {
     if (!input) return null;
     const trimmed = input.trim();
     if (!trimmed) return null;
 
-    const iframeSrcMatch = trimmed.match(/src=["'](https?:\/\/(?:www\.)?youtube(?:-nocookie)?\.com\/embed\/[^"']+)["']/i);
-    if (iframeSrcMatch) return iframeSrcMatch[1];
-
     try {
-        const urlStr = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-        const url = new URL(urlStr);
-        const hostname = url.hostname.toLowerCase().replace(/^www\./, '').replace(/^m\./, '').replace(/^music\./, '');
-
-        if (hostname === 'youtube.com' || hostname === 'youtube-nocookie.com' || hostname === 'youtu.be') {
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+            const url = new URL(trimmed);
+            const videoId = url.searchParams.get('v');
             const listId = url.searchParams.get('list');
-            if (hostname === 'youtu.be') {
-                const videoId = url.pathname.slice(1).split('/')[0].split('?')[0];
-                if (listId && videoId) return `https://www.youtube-nocookie.com/embed/${videoId}?list=${listId}`;
-                if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}`;
-                if (listId) return `https://www.youtube-nocookie.com/embed/videoseries?list=${listId}`;
+
+            if (url.hostname.includes('youtu.be')) {
+                const id = url.pathname.slice(1);
+                if (id) {
+                    if (listId) return `https://www.youtube-nocookie.com/embed/${id}?list=${listId}`;
+                    return `https://www.youtube-nocookie.com/embed/${id}`;
+                }
             }
 
-            const videoId = url.searchParams.get('v');
             if (url.pathname.includes('/watch') && videoId) {
                 if (listId) return `https://www.youtube-nocookie.com/embed/${videoId}?list=${listId}`;
                 return `https://www.youtube-nocookie.com/embed/${videoId}`;
@@ -351,12 +432,6 @@ function parseYouTubeUrl(input) {
         return `https://www.youtube-nocookie.com/embed/${trimmed}`;
     }
 
-    const listMatch = trimmed.match(/[?&]list=([a-zA-Z0-9_-]+)/);
-    if (listMatch) return `https://www.youtube-nocookie.com/embed/videoseries?list=${listMatch[1]}`;
-
-    const vMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-    if (vMatch) return `https://www.youtube-nocookie.com/embed/${vMatch[1]}`;
-
     return null;
 }
 
@@ -382,33 +457,25 @@ function stopMusic() {
     musicVisible.value = false;
 }
 
-watch(selectedMissionId, (val) => {
-    const url = new URL(window.location.href);
-    if (val) {
-        url.searchParams.set('mission_id', String(val));
-    } else {
-        url.searchParams.delete('mission_id');
-    }
-    history.replaceState({}, '', url);
-});
-
 onMounted(() => {
     const params = new URLSearchParams(window.location.search);
-    const missionId = params.get('mission_id');
+    const missionId = params.get('mission_id') || params.get('mission');
+    const courseId = params.get('course_id') || params.get('course');
+    const readingId = params.get('reading_id') || params.get('reading');
+    const skillId = params.get('skill_id') || params.get('skill');
+
     if (missionId) {
-        selectedMissionId.value = Number(missionId);
-        expandedMissionId.value = Number(missionId);
-    } else {
-        const taskParam = params.get('task');
-        if (taskParam && Array.isArray(props.missions)) {
-            const found = props.missions.find((m) =>
-                m.title?.toLowerCase().includes(taskParam.toLowerCase()),
-            );
-            if (found) {
-                selectedMissionId.value = found.id;
-                expandedMissionId.value = found.id;
-            }
-        }
+        selectedContextType.value = 'mission';
+        selectMission(Number(missionId));
+    } else if (courseId) {
+        selectedContextType.value = 'course';
+        selectCourse(Number(courseId));
+    } else if (readingId) {
+        selectedContextType.value = 'reading';
+        selectReading(Number(readingId));
+    } else if (skillId) {
+        selectedContextType.value = 'skill';
+        selectSkill(Number(skillId));
     }
 
     const savedGoal = Number(localStorage.getItem(goalStorageKey.value));
@@ -426,7 +493,6 @@ onMounted(() => {
     }
 
     fetchMonthlyReport();
-
     syncWithInertiaProps(props.activeSession);
 });
 
@@ -454,495 +520,698 @@ watch(
 </script>
 
 <template>
-    <Head title="Pomodoro" />
+    <Head title="Pomodoro & Enfoque" />
 
     <AppLayout>
-        <div class="lg:flex lg:gap-6">
-            <div class="min-w-0 flex-1">
-                <BaseCard class="mb-8">
-                    <header class="flex items-center gap-4">
-                        <div
-                            class="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border-interactive bg-surface-raised/40 p-2 shadow-sm"
-                        >
-                            <img
-                                src="/assets/gifs/pomodoro.gif"
-                                alt="Temporizador Pomodoro"
-                                class="h-full w-full object-contain"
-                            />
-                        </div>
-                        <div>
-                            <h1
-                                class="font-display text-3xl font-bold tracking-tight text-content-primary"
+        <template #header>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="font-bold text-xl text-content-primary leading-tight flex items-center gap-2">
+                        <span>🍅</span> Pomodoro & Enfoque
+                    </h2>
+                </div>
+                <div v-if="activeTargetInfo" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary-strong">
+                    <AppIcon :name="activeTargetInfo.icon" :size="14" />
+                    <span>{{ activeTargetInfo.label }}</span>
+                    <button type="button" @click="clearTarget" class="ml-1 text-content-muted hover:text-danger cursor-pointer" title="Quitar selección">✕</button>
+                </div>
+            </div>
+        </template>
+
+        <div class="py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <!-- Header Card Principal con GIF Animado -->
+                <BaseCard class="p-6 border-border-interactive mb-6">
+                    <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="flex h-20 w-20 sm:h-24 sm:w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border-interactive bg-surface-raised/40 p-2 shadow-sm"
                             >
-                                Pomodoro
-                            </h1>
-                            <p class="mt-1 text-sm text-content-secondary">
-                                Sesiones de enfoque cronometradas.
-                            </p>
+                                <img
+                                    src="/assets/gifs/pomodoro.gif"
+                                    alt="Pomodoro & Enfoque"
+                                    class="h-full w-full object-contain"
+                                />
+                            </div>
+                            <div>
+                                <h1 class="font-display text-2xl sm:text-3xl font-bold tracking-tight text-content-primary flex items-center gap-2">
+                                    Pomodoro & Enfoque 🍅
+                                </h1>
+                                <p class="mt-1 text-sm text-content-secondary max-w-xl">
+                                    Estructura tus bloques de concentración profunda, vincula tus cursos, lecturas y misiones, y mantén tu racha activa.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Métricas Rápidas en Header -->
+                        <div class="flex items-center gap-3 bg-surface-raised/40 p-3 rounded-xl border border-border-interactive/50 shrink-0">
+                            <div class="text-center px-3 border-r border-border">
+                                <p class="text-[10px] text-content-muted font-bold uppercase tracking-wider">Hoy</p>
+                                <p class="text-lg font-black text-primary-strong">{{ formatMinutesLabel(totalFocusMinutesToday) }}</p>
+                            </div>
+                            <div class="text-center px-3">
+                                <p class="text-[10px] text-content-muted font-bold uppercase tracking-wider">Ciclos</p>
+                                <p class="text-lg font-black text-success">{{ todayCompletedCount }}</p>
+                            </div>
                         </div>
                     </header>
                 </BaseCard>
 
-                <div
-                    v-if="toast"
-                    class="mb-6 rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-on-accent"
-                    role="status"
-                >
-                    {{ toast }}
+                <div v-if="toast" class="mb-4 rounded-xl bg-primary/10 p-4 border border-primary/20 text-sm text-primary-strong flex items-center justify-between">
+                    <span>{{ toast }}</span>
+                    <button type="button" @click="toast = null" class="font-bold text-xs">✕</button>
                 </div>
 
-                <!-- Barra de meta del día -->
-                <BaseCard v-if="hasGoal" class="mb-6">
-                    <div class="flex items-center justify-between gap-2 text-sm">
-                        <span class="font-semibold text-content-primary">
-                            Meta de hoy: {{ formatMinutesLabel(totalFocusMinutesToday) }} /
-                            {{ formatMinutesLabel(goalMinutesInput) }}
-                        </span>
-                        <span class="text-xs text-content-secondary"
-                            >Ciclo {{ todayCompletedCount + 1 }}</span
-                        >
-                    </div>
-                    <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
-                        <div
-                            class="h-full rounded-full bg-primary-strong transition-[width] duration-500"
-                            :style="{ width: goalProgressPercent + '%' }"
-                        />
-                    </div>
-                    <p v-if="exceedsDailyXpCap" class="mt-2 text-xs text-content-muted">
-                        Con {{ plannedMinutesInput }} min de foco vas a necesitar ~{{
-                            projectedSessionsForGoal
-                        }}
-                        sesiones para llegar a la meta — el sistema solo da XP a las primeras 8 del
-                        día, el resto sigue contando para tu progreso pero sin XP extra.
-                    </p>
-                </BaseCard>
-
-                <BaseCard class="mb-6 text-center">
-                    <template v-if="session || onBreak">
-                        <div class="relative mx-auto" style="width: 144px; height: 144px">
-                            <svg viewBox="0 0 200 200" class="h-full w-full -rotate-90">
-                                <circle
-                                    cx="100"
-                                    cy="100"
-                                    :r="CIRCLE_RADIUS"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="14"
-                                    class="text-surface-sunken"
-                                />
-                                <circle
-                                    cx="100"
-                                    cy="100"
-                                    :r="CIRCLE_RADIUS"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="14"
-                                    stroke-linecap="round"
-                                    class="transition-[stroke-dashoffset] duration-1000 ease-linear"
-                                    :class="onBreak ? 'text-success' : 'text-primary-strong'"
-                                    :stroke-dasharray="CIRCLE_CIRCUMFERENCE"
-                                    :stroke-dashoffset="onBreak ? breakDashOffset : dashOffset"
-                                />
-                            </svg>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                <p class="font-display text-2xl tabular-nums text-content-primary">
-                                    {{ onBreak ? formattedTime : timeLabel }}
-                                </p>
-                                <p class="mt-1 text-xs text-content-secondary">
-                                    {{
-                                        onBreak
-                                            ? onBreakIsLong
-                                                ? 'Descanso largo'
-                                                : 'Descanso'
-                                            : isPaused
-                                              ? 'En pausa'
-                                              : 'En foco'
-                                    }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <template v-if="onBreak">
-                            <p class="mt-4 text-sm text-content-secondary">
-                                {{
-                                    onBreakIsLong
-                                        ? 'Descanso largo: llevas 4 ciclos seguidos, tomate el tiempo completo.'
-                                        : 'Estírate, toma agua. Ya vuelves al foco.'
-                                }}
-                            </p>
-                            <div class="mt-6 flex justify-center gap-3">
-                                <BaseButton variant="ghost" :disabled="busy" @click="skipBreak">
-                                    Saltar descanso
-                                </BaseButton>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <p class="mt-4 text-sm text-content-secondary">
-                                {{ session?.planned_minutes || 25 }} min planificados
-                            </p>
-                            <div class="mt-6 flex justify-center gap-3">
-                                <BaseButton
-                                    v-if="!isPaused"
-                                    variant="ghost"
-                                    :disabled="busy"
-                                    @click="callAction('pause')"
-                                >
-                                    Pausar
-                                </BaseButton>
-                                <BaseButton v-else :disabled="busy" @click="callAction('resume')">
-                                    Reanudar
-                                </BaseButton>
-                                <BaseButton
-                                    variant="danger"
-                                    :disabled="busy"
-                                    @click="callAction('abandon')"
-                                >
-                                    Abandonar
-                                </BaseButton>
-                            </div>
-                        </template>
-                    </template>
-
-                    <template v-else-if="goalJustCompleted">
-                        <div class="py-6 px-4 rounded-3xl bg-gradient-to-br from-amber-200/40 via-amber-100/20 to-orange-100/40 border border-amber-300/30 relative overflow-hidden shadow-inner">
-                            <!-- Sparkles effect -->
-                            <div class="absolute -top-4 -left-4 text-4xl animate-bounce" style="animation-duration: 2s">✨</div>
-                            <div class="absolute -bottom-4 -right-4 text-4xl animate-bounce" style="animation-duration: 2.5s; animation-delay: 0.5s">🎊</div>
-                            <div class="absolute top-1/2 left-4 text-2xl animate-pulse">🌟</div>
-                            <div class="absolute top-1/3 right-4 text-2xl animate-pulse" style="animation-delay: 0.3s">🎉</div>
-                            
-                            <p class="font-display text-3xl font-black text-amber-600 drop-shadow-sm mb-1 animate-pulse">
-                                ¡META CUMPLIDA! 🏆
-                            </p>
-                            <p class="mt-2 text-base text-amber-800 font-medium max-w-md mx-auto">
-                                ¡Increíble! Completaste {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco en
-                                {{ todayCompletedCount }} ciclos hoy.
-                            </p>
-                            <div class="mt-8 flex flex-wrap justify-center gap-3 relative z-10">
-                                <BaseButton :disabled="busy" @click="continueStudying" class="shadow-lg shadow-amber-500/30 hover:scale-105 transition-transform">
-                                    Seguir estudiando (+{{ plannedMinutesInput }} min)
-                                </BaseButton>
-                                <BaseButton variant="ghost" :disabled="busy" @click="chooseAnotherGoal" class="text-amber-700 hover:bg-amber-500/10 hover:scale-105 transition-transform">
-                                    Aumentar meta diaria
-                                </BaseButton>
-                            </div>
-                        </div>
-                    </template>
-
-                    <template v-else-if="breakJustFinished">
-                        <div class="py-2">
-                            <div class="mb-3 inline-flex items-center gap-2 rounded-full bg-success/15 px-3.5 py-1 text-xs font-bold text-success shadow-sm">
-                                ☕ Descanso finalizado
-                            </div>
-                            <p class="font-display text-2xl font-bold text-content-primary">
-                                ¿Listo para tu siguiente bloque de foco?
-                            </p>
-                            <p class="mt-2 text-sm text-content-secondary max-w-md mx-auto leading-relaxed">
-                                Llevas {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco completados hoy (Ciclo {{ todayCompletedCount }} listo). Inicia el siguiente ciclo cuando estés preparado o ajusta tus metas.
-                            </p>
-                            <div class="mt-6 flex flex-wrap justify-center gap-3">
-                                <BaseButton :disabled="busy" @click="startSession">
-                                    ▶ Iniciar Siguiente Bloque ({{ plannedMinutesInput }} min)
-                                </BaseButton>
-                                <BaseButton variant="ghost" :disabled="busy" @click="breakJustFinished = false">
-                                    ⚙️ Ajustar tiempos o meta
-                                </BaseButton>
-                            </div>
-                        </div>
-                    </template>
-
-                    <template v-else>
-                        <p class="mb-4 text-content-secondary">
-                            Elige cuánto tiempo de foco y de descanso.
-                        </p>
-                        <div class="mx-auto grid max-w-md grid-cols-3 gap-2 sm:gap-3">
-                            <BaseSelect
-                                id="goal_minutes"
-                                v-model.number="goalMinutesInput"
-                                label="Meta"
-                                compact
-                                :options="GOAL_OPTIONS"
-                            />
-                            <BaseSelect
-                                id="planned_minutes"
-                                v-model.number="plannedMinutesInput"
-                                label="Foco"
-                                compact
-                                :options="durationOptions"
-                            />
-                            <BaseSelect
-                                id="break_minutes"
-                                v-model.number="breakMinutesInput"
-                                label="Descanso"
-                                compact
-                                :options="breakDurationOptions"
-                            />
-                        </div>
+                <div class="flex flex-col lg:flex-row gap-6">
+                    
+                    <!-- Columna Principal: Timer y Métricas -->
+                    <div class="flex-1 min-w-0">
                         
-                        <div class="mx-auto grid max-w-md mt-3">
-                            <BaseSelect
-                                id="context_type"
-                                v-model="selectedContextType"
-                                label="¿En qué te vas a enfocar?"
-                                compact
-                                :options="CONTEXT_OPTIONS"
-                            />
-                        </div>
-
-                        <p class="mx-auto mt-3 max-w-md text-xs text-content-muted">
-                            {{ breakHint }}
-                        </p>
-                        <BaseButton class="mt-4" :disabled="busy" @click="startSession">
-                            Iniciar Pomodoro
-                        </BaseButton>
-                    </template>
-                </BaseCard>
-
-                <BaseCard class="mb-6">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <h2 class="font-display text-lg text-content-primary">
-                                Música para enfocarte
-                            </h2>
-                            <p class="text-xs text-content-secondary">
-                                Video o playlist de YouTube. Totalmente opcional.
-                            </p>
-                        </div>
-                        <BaseButton
-                            v-if="!musicVisible"
-                            variant="secondary"
-                            @click="musicVisible = true"
-                        >
-                            🎵 Activar música
-                        </BaseButton>
-                        <BaseButton v-else variant="ghost" @click="stopMusic">
-                            Detener música
-                        </BaseButton>
-                    </div>
-
-                    <div v-if="musicVisible" class="mt-4">
-                        <p class="mb-2 text-xs text-content-muted">
-                            Esto carga el reproductor de YouTube dentro de la página. Puedes usar cualquier video individual, directo, Shorts o playlist personalizada.
-                        </p>
-                        <div class="aspect-video w-full overflow-hidden rounded-lg">
-                            <iframe
-                                :src="playlistEmbedUrl"
-                                class="h-full w-full"
-                                title="Reproductor de música de YouTube"
-                                allow="
-                                    accelerometer;
-                                    autoplay;
-                                    clipboard-write;
-                                    encrypted-media;
-                                    gyroscope;
-                                    picture-in-picture;
-                                "
-                                allowfullscreen
-                                referrerpolicy="strict-origin-when-cross-origin"
-                            ></iframe>
-                        </div>
-
-                        <div class="mt-3 flex flex-wrap items-end gap-2">
-                            <div class="min-w-[240px] flex-1">
-                                <BaseInput
-                                    id="custom_playlist"
-                                    v-model="customPlaylistInput"
-                                    label="¿Deseas tu propio video o playlist de YouTube?"
-                                    placeholder="Pega el enlace de un video o playlist de YouTube"
-                                    :error="musicError"
-                                />
-                            </div>
-                            <BaseButton variant="ghost" @click="useCustomPlaylist">
-                                Usar este enlace
-                            </BaseButton>
-                            <BaseButton
-                                v-if="isCustomPlaylist"
-                                variant="ghost"
-                                @click="resetToDefaultPlaylist"
-                            >
-                                Restaurar por defecto
-                            </BaseButton>
-                        </div>
-                    </div>
-                </BaseCard>
-
-                <BaseCard class="mb-6">
-                    <h2 class="mb-4 font-display text-lg text-content-primary">
-                        Estadísticas (últimos 7 días)
-                    </h2>
-                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                        <div>
-                            <p class="text-xs uppercase tracking-wide text-content-muted">
-                                Completadas
-                            </p>
-                            <p class="font-display text-2xl text-content-primary">
-                                {{ stats.sessionsCompleted }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-xs uppercase tracking-wide text-content-muted">
-                                Tasa de finalización
-                            </p>
-                            <p class="font-display text-2xl text-content-primary">
-                                {{ stats.completionRate }}%
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-xs uppercase tracking-wide text-content-muted">
-                                Minutos de foco
-                            </p>
-                            <p class="font-display text-2xl text-content-primary">
-                                {{ stats.focusMinutesTotal }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-xs uppercase tracking-wide text-content-muted">
-                                Iniciadas
-                            </p>
-                            <p class="font-display text-2xl text-content-primary">
-                                {{ stats.sessionsStarted }}
-                            </p>
-                        </div>
-                    </div>
-                </BaseCard>
-
-                <BaseCard v-if="monthlyReport" class="mb-6">
-                    <h2 class="mb-4 font-display text-lg text-content-primary">
-                        Reporte de Enfoque Mensual
-                    </h2>
-                    <p class="text-sm text-content-secondary mb-4">
-                        Desglose de tus {{ formatMinutesLabel(monthlyReport.total_minutes) }} de foco total este mes:
-                    </p>
-                    <div class="space-y-3">
-                        <div v-for="(minutes, type) in monthlyReport.breakdown" :key="type">
-                            <div v-if="minutes > 0" class="flex items-center justify-between text-sm mb-1">
-                                <span class="capitalize text-content-primary font-medium">{{ CONTEXT_OPTIONS.find(c => c.value === type)?.label || type }}</span>
-                                <span class="text-content-secondary font-bold">{{ formatMinutesLabel(minutes) }}</span>
-                            </div>
-                            <div v-if="minutes > 0" class="h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
-                                <div class="h-full rounded-full bg-primary-strong" :style="{ width: Math.max(2, Math.round((minutes / monthlyReport.total_minutes) * 100)) + '%' }"></div>
-                            </div>
-                        </div>
-                        <div v-if="monthlyReport.total_minutes === 0" class="text-center py-4 text-content-muted text-sm">
-                            Aún no hay datos suficientes este mes.
-                        </div>
-                    </div>
-                </BaseCard>
-
-                <BaseCard>
-                    <h2 class="mb-4 font-display text-lg text-content-primary">Hoy</h2>
-                    <p v-if="todaySessions.length === 0" class="text-sm text-content-secondary">
-                        Todavía no hiciste ningún Pomodoro hoy.
-                    </p>
-                    <ul v-else class="divide-y divide-border">
-                        <li
-                            v-for="s in todaySessions"
-                            :key="s.id"
-                            class="flex items-center justify-between py-2 text-sm"
-                        >
-                            <span class="text-content-secondary">{{
-                                new Date(s.started_at).toLocaleTimeString('es-PE', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                })
-                            }}</span>
-                            <span class="text-content-primary"
-                                >{{ s.focus_minutes ?? s.planned_minutes }} min</span
-                            >
-                            <span
-                                class="rounded-full px-2 py-0.5 text-xs font-semibold"
-                                :class="
-                                    s.status === 'completed'
-                                        ? 'bg-success text-on-accent'
-                                        : 'bg-surface-sunken text-content-muted'
-                                "
-                            >
-                                {{ statusLabel(s.status) }}
-                            </span>
-                        </li>
-                    </ul>
-                </BaseCard>
-            </div>
-
-            <!-- Panel lateral de misiones activas -->
-            <div v-if="filteredMissions.length > 0 || ['mission', 'work', 'personal'].includes(selectedContextType)" class="mt-6 shrink-0 lg:mt-0 lg:w-80">
-                <BaseCard>
-                    <h2 class="mb-3 font-display text-lg text-content-primary">
-                        {{ selectedContextType === 'mission' ? 'Misiones Académicas' : (selectedContextType === 'work' ? 'Tareas de Trabajo' : 'Desarrollo Personal') }}
-                    </h2>
-                    <p v-if="filteredMissions.length === 0" class="text-sm text-content-secondary">
-                        No hay tareas activas para este contexto.
-                    </p>
-                    <div v-else class="space-y-2">
-                        <div
-                            v-for="m in filteredMissions"
-                            :key="m.id"
-                            class="rounded-lg border"
-                            :class="
-                                selectedMissionId === m.id
-                                    ? 'border-primary-strong'
-                                    : 'border-border'
-                            "
-                        >
-                            <div class="flex items-center justify-between p-3">
-                                <button
-                                    type="button"
-                                    class="min-w-0 flex-1 text-left text-sm font-semibold text-content-primary"
-                                    @click="selectMission(m.id)"
-                                >
-                                    {{ m.title }}
-                                </button>
-                                <div class="flex items-center gap-2">
-                                    <span
-                                        v-if="m.subtask_count > 0"
-                                        class="text-xs text-content-muted"
-                                    >
-                                        {{ m.subtask_done }}/{{ m.subtask_count }}
-                                    </span>
-                                    <button
-                                        v-if="m.subtask_count > 0"
-                                        type="button"
-                                        class="text-xs text-content-secondary hover:text-content-primary"
-                                        @click="toggleExpandMission(m.id)"
-                                    >
-                                        {{ expandedMissionId === m.id ? '▲' : '▼' }}
-                                    </button>
+                        <!-- Banner de Objetivo Seleccionado -->
+                        <div v-if="activeTargetInfo" class="mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-primary/15 via-primary/5 to-transparent border border-primary/25 flex items-center justify-between gap-3 shadow-sm">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-9 h-9 rounded-xl bg-primary-strong text-white flex items-center justify-center shrink-0 shadow">
+                                    <AppIcon :name="activeTargetInfo.icon" :size="18" />
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] font-black uppercase tracking-wider text-primary-strong">
+                                            {{ activeTargetInfo.type === 'mission' ? 'Misión Activa' : (activeTargetInfo.type === 'course' ? 'Curso Activo' : (activeTargetInfo.type === 'reading' ? 'Lectura Activa' : 'Destreza Activa')) }}
+                                        </span>
+                                    </div>
+                                    <h4 class="text-sm font-bold text-content-primary truncate">{{ activeTargetInfo.label }}</h4>
+                                    <p class="text-xs text-content-secondary font-medium">{{ activeTargetInfo.subtext }}</p>
                                 </div>
                             </div>
-
-                            <!-- Subtareas desplegables -->
-                            <div
-                                v-if="expandedMissionId === m.id && m.subtasks.length > 0"
-                                class="border-t border-border bg-surface-sunken px-3 py-2"
+                            <button
+                                type="button"
+                                @click="clearTarget"
+                                class="shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold text-content-muted hover:text-danger hover:bg-danger/10 transition cursor-pointer"
                             >
-                                <ul class="space-y-1.5">
-                                    <li
-                                        v-for="sub in m.subtasks"
-                                        :key="sub.id"
-                                        class="flex items-center gap-2 text-xs"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            :checked="sub.is_completed"
-                                            :disabled="subtaskBusy[sub.id]"
-                                            class="h-3.5 w-3.5 rounded border-border text-primary-strong focus:ring-primary-strong"
-                                            @change="toggleSubtask(m.id, sub)"
-                                        />
-                                        <span
-                                            :class="
-                                                sub.is_completed
-                                                    ? 'text-content-muted line-through'
-                                                    : 'text-content-primary'
-                                            "
-                                        >
-                                            {{ sub.title }}
-                                        </span>
-                                    </li>
-                                </ul>
+                                Cambiar
+                            </button>
+                        </div>
+
+                        <!-- Card de Meta Diaria -->
+                        <BaseCard v-if="hasGoal" class="mb-6">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="font-semibold text-content-primary">
+                                    Meta de hoy: {{ formatMinutesLabel(totalFocusMinutesToday) }} / {{ formatMinutesLabel(goalMinutesInput) }}
+                                </span>
+                                <span class="text-xs text-content-secondary font-bold">
+                                    Ciclo {{ todayCompletedCount + 1 }}
+                                </span>
                             </div>
+                            <div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-surface-sunken">
+                                <div
+                                    class="h-full rounded-full bg-primary-strong transition-[width] duration-500"
+                                    :style="{ width: goalProgressPercent + '%' }"
+                                />
+                            </div>
+                            <p v-if="exceedsDailyXpCap" class="mt-2 text-xs text-content-muted">
+                                Con {{ plannedMinutesInput }} min de foco vas a necesitar ~{{ projectedSessionsForGoal }} sesiones para llegar a la meta.
+                            </p>
+                        </BaseCard>
+
+                        <!-- Card del Temporizador -->
+                        <BaseCard class="mb-6 text-center py-6">
+                            <template v-if="session || onBreak">
+                                <div class="relative mx-auto my-4" style="width: 170px; height: 170px">
+                                    <svg viewBox="0 0 200 200" class="h-full w-full -rotate-90">
+                                        <circle
+                                            cx="100"
+                                            cy="100"
+                                            :r="CIRCLE_RADIUS"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="14"
+                                            class="text-surface-sunken"
+                                        />
+                                        <circle
+                                            cx="100"
+                                            cy="100"
+                                            :r="CIRCLE_RADIUS"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="14"
+                                            stroke-linecap="round"
+                                            class="transition-[stroke-dashoffset] duration-1000 ease-linear"
+                                            :class="onBreak ? 'text-success' : 'text-primary-strong'"
+                                            :stroke-dasharray="CIRCLE_CIRCUMFERENCE"
+                                            :stroke-dashoffset="onBreak ? breakDashOffset : dashOffset"
+                                        />
+                                    </svg>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                        <p class="font-display text-3xl font-black tabular-nums text-content-primary">
+                                            {{ onBreak ? formattedTime : timeLabel }}
+                                        </p>
+                                        <p class="mt-1 text-xs font-bold uppercase tracking-wider" :class="onBreak ? 'text-success' : 'text-primary-strong'">
+                                            {{
+                                                onBreak
+                                                    ? onBreakIsLong
+                                                        ? 'Descanso largo'
+                                                        : 'Descanso'
+                                                    : isPaused
+                                                      ? 'En pausa'
+                                                      : 'En foco'
+                                            }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <template v-if="onBreak">
+                                    <p class="mt-4 text-sm text-content-secondary">
+                                        {{
+                                            onBreakIsLong
+                                                ? 'Descanso largo: llevas 4 ciclos seguidos, tomate el tiempo completo.'
+                                                : 'Estírate, toma agua. Ya vuelves al foco.'
+                                        }}
+                                    </p>
+                                    <div class="mt-6 flex justify-center gap-3">
+                                        <BaseButton variant="ghost" :disabled="busy" @click="skipBreak">
+                                            Saltar descanso
+                                        </BaseButton>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <p class="mt-2 text-sm text-content-secondary font-medium">
+                                        {{ session?.planned_minutes || 25 }} min planificados
+                                        <span v-if="activeTargetInfo" class="font-bold text-content-primary"> · {{ activeTargetInfo.label }}</span>
+                                    </p>
+                                    <div class="mt-6 flex justify-center gap-3 flex-wrap">
+                                        <BaseButton
+                                            v-if="!isPaused"
+                                            variant="ghost"
+                                            :disabled="busy"
+                                            @click="callAction('pause')"
+                                        >
+                                            ⏸ Pausar
+                                        </BaseButton>
+                                        <BaseButton v-else :disabled="busy" @click="callAction('resume')">
+                                            ▶ Reanudar
+                                        </BaseButton>
+                                        <BaseButton
+                                            variant="ghost"
+                                            class="text-danger hover:bg-danger/10"
+                                            :disabled="busy"
+                                            @click="callAction('abandon')"
+                                        >
+                                            ✕ Abandonar
+                                        </BaseButton>
+                                        <BaseButton
+                                            variant="primary"
+                                            :disabled="busy"
+                                            @click="callAction('complete')"
+                                        >
+                                            ✓ Terminar Bloque
+                                        </BaseButton>
+                                    </div>
+                                </template>
+                            </template>
+
+                            <template v-else-if="goalJustCompleted">
+                                <div class="py-4">
+                                    <div class="text-4xl mb-2">🎉</div>
+                                    <h3 class="font-display text-2xl font-black text-content-primary">
+                                        ¡Meta diaria cumplida!
+                                    </h3>
+                                    <p class="mt-2 text-sm text-content-secondary max-w-md mx-auto">
+                                        Completaste {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco en {{ todayCompletedCount }} ciclos hoy.
+                                    </p>
+                                    <div class="mt-6 flex justify-center gap-3">
+                                        <BaseButton :disabled="busy" @click="continueStudying">
+                                            Seguir estudiando (+{{ plannedMinutesInput }} min)
+                                        </BaseButton>
+                                        <BaseButton variant="ghost" :disabled="busy" @click="chooseAnotherGoal">
+                                            Aumentar meta
+                                        </BaseButton>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template v-else-if="breakJustFinished">
+                                <div class="py-4">
+                                    <div class="mb-3 inline-flex items-center gap-2 rounded-full bg-success/15 px-3.5 py-1 text-xs font-bold text-success">
+                                        ☕ Descanso finalizado
+                                    </div>
+                                    <h3 class="font-display text-2xl font-bold text-content-primary">
+                                        ¿Listo para tu siguiente bloque?
+                                    </h3>
+                                    <p class="mt-2 text-sm text-content-secondary max-w-md mx-auto">
+                                        Llevas {{ formatMinutesLabel(totalFocusMinutesToday) }} de foco completados hoy.
+                                    </p>
+                                    <div class="mt-6 flex justify-center gap-3">
+                                        <BaseButton :disabled="busy" @click="startSession">
+                                            ▶ Iniciar Siguiente Bloque ({{ plannedMinutesInput }} min)
+                                        </BaseButton>
+                                        <BaseButton variant="ghost" :disabled="busy" @click="breakJustFinished = false">
+                                            ⚙️ Ajustar tiempos
+                                        </BaseButton>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template v-else>
+                                <p class="mb-4 text-sm font-semibold text-content-secondary">
+                                    Configura los minutos de foco y descanso para tu sesión:
+                                </p>
+                                <div class="mx-auto grid max-w-md grid-cols-3 gap-2 sm:gap-3">
+                                    <BaseSelect
+                                        id="goal_minutes"
+                                        v-model.number="goalMinutesInput"
+                                        label="Meta"
+                                        compact
+                                        :options="GOAL_OPTIONS"
+                                    />
+                                    <BaseSelect
+                                        id="planned_minutes"
+                                        v-model.number="plannedMinutesInput"
+                                        label="Foco"
+                                        compact
+                                        :options="durationOptions"
+                                    />
+                                    <BaseSelect
+                                        id="break_minutes"
+                                        v-model.number="breakMinutesInput"
+                                        label="Descanso"
+                                        compact
+                                        :options="breakDurationOptions"
+                                    />
+                                </div>
+                                
+                                <div class="mx-auto grid max-w-md mt-3">
+                                    <BaseSelect
+                                        id="context_type"
+                                        v-model="selectedContextType"
+                                        label="Categoría / Módulo a enfocar"
+                                        compact
+                                        :options="CONTEXT_OPTIONS"
+                                    />
+                                </div>
+
+                                <p class="mx-auto mt-3 max-w-md text-xs text-content-muted">
+                                    {{ breakHint }}
+                                </p>
+
+                                <div class="mt-6">
+                                    <BaseButton size="lg" class="shadow-lg shadow-primary/25 px-8" :disabled="busy" @click="startSession">
+                                        🍅 Iniciar Pomodoro
+                                    </BaseButton>
+                                </div>
+                            </template>
+                        </BaseCard>
+
+                        <!-- Música Lo-Fi -->
+                        <BaseCard class="mb-6">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                    <h3 class="font-bold text-sm text-content-primary">
+                                        🎵 Música para concentrarte
+                                    </h3>
+                                    <p class="text-xs text-content-secondary">
+                                        Reproductor YouTube integrado para música ambiental o Lo-Fi.
+                                    </p>
+                                </div>
+                                <BaseButton
+                                    v-if="!musicVisible"
+                                    variant="secondary"
+                                    size="sm"
+                                    @click="musicVisible = true"
+                                >
+                                    🎵 Activar música
+                                </BaseButton>
+                                <BaseButton v-else variant="ghost" size="sm" @click="stopMusic">
+                                    Detener música
+                                </BaseButton>
+                            </div>
+
+                            <div v-if="musicVisible" class="mt-4">
+                                <div class="aspect-video w-full overflow-hidden rounded-xl bg-surface-sunken">
+                                    <iframe
+                                        :src="playlistEmbedUrl"
+                                        class="h-full w-full"
+                                        title="Reproductor de música"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen
+                                    ></iframe>
+                                </div>
+
+                                <div class="mt-3 flex flex-wrap items-end gap-2">
+                                    <div class="min-w-[200px] flex-1">
+                                        <BaseInput
+                                            id="custom_playlist"
+                                            v-model="customPlaylistInput"
+                                            placeholder="Pega link o ID de YouTube..."
+                                            compact
+                                        />
+                                    </div>
+                                    <BaseButton size="sm" @click="useCustomPlaylist">Guardar</BaseButton>
+                                    <BaseButton size="sm" variant="ghost" @click="resetToDefaultPlaylist">Restaurar</BaseButton>
+                                </div>
+                                <p v-if="musicError" class="text-xs text-danger mt-1">{{ musicError }}</p>
+                            </div>
+                        </BaseCard>
+
+                        <!-- Estadísticas y Reporte -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                            <BaseCard class="p-4 text-center">
+                                <p class="text-[10px] font-bold uppercase tracking-wide text-content-muted">Completadas</p>
+                                <p class="font-display text-2xl font-black text-content-primary mt-1">{{ stats.sessionsCompleted }}</p>
+                            </BaseCard>
+                            <BaseCard class="p-4 text-center">
+                                <p class="text-[10px] font-bold uppercase tracking-wide text-content-muted">Efectividad</p>
+                                <p class="font-display text-2xl font-black text-primary-strong mt-1">{{ stats.completionRate }}%</p>
+                            </BaseCard>
+                            <BaseCard class="p-4 text-center">
+                                <p class="text-[10px] font-bold uppercase tracking-wide text-content-muted">Minutos Foco</p>
+                                <p class="font-display text-2xl font-black text-content-primary mt-1">{{ stats.focusMinutesTotal }}</p>
+                            </BaseCard>
+                            <BaseCard class="p-4 text-center">
+                                <p class="text-[10px] font-bold uppercase tracking-wide text-content-muted">Iniciadas</p>
+                                <p class="font-display text-2xl font-black text-content-secondary mt-1">{{ stats.sessionsStarted }}</p>
+                            </BaseCard>
                         </div>
                     </div>
-                </BaseCard>
+
+                    <!-- Columna Lateral: Cuadros de Contexto (Misiones, Cursos, Lecturas, Habilidades) -->
+                    <div class="w-full lg:w-96 shrink-0 space-y-6">
+                        
+                        <!-- 🎯 CUADRO DE MISIONES -->
+                        <BaseCard v-if="['mission', 'work', 'personal', 'free'].includes(selectedContextType)">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold text-sm text-content-primary flex items-center gap-2">
+                                    <span>🎯</span> Misiones Activas ({{ missions.length }})
+                                </h3>
+                                <Link :href="route('missions.index')" class="text-xs font-bold text-primary-strong hover:underline">
+                                    Ver todas →
+                                </Link>
+                            </div>
+
+                            <!-- Pestañas de filtrado de misiones -->
+                            <div class="flex items-center gap-1 mb-3 overflow-x-auto pb-1 text-xs">
+                                <button
+                                    type="button"
+                                    class="px-2.5 py-1 rounded-lg font-bold transition cursor-pointer"
+                                    :class="missionFilterTab === 'all' ? 'bg-primary-strong text-white' : 'bg-surface-raised text-content-secondary hover:text-content-primary'"
+                                    @click="missionFilterTab = 'all'"
+                                >
+                                    Todas ({{ missions.length }})
+                                </button>
+                                <button
+                                    type="button"
+                                    class="px-2.5 py-1 rounded-lg font-bold transition cursor-pointer"
+                                    :class="missionFilterTab === 'academic' ? 'bg-primary-strong text-white' : 'bg-surface-raised text-content-secondary hover:text-content-primary'"
+                                    @click="missionFilterTab = 'academic'"
+                                >
+                                    Académicas ({{ missions.filter(m => m.mission_type === 'academic').length }})
+                                </button>
+                                <button
+                                    type="button"
+                                    class="px-2.5 py-1 rounded-lg font-bold transition cursor-pointer"
+                                    :class="missionFilterTab === 'work' ? 'bg-primary-strong text-white' : 'bg-surface-raised text-content-secondary hover:text-content-primary'"
+                                    @click="missionFilterTab = 'work'"
+                                >
+                                    Trabajo ({{ missions.filter(m => m.mission_type === 'work').length }})
+                                </button>
+                                <button
+                                    type="button"
+                                    class="px-2.5 py-1 rounded-lg font-bold transition cursor-pointer"
+                                    :class="missionFilterTab === 'personal' ? 'bg-primary-strong text-white' : 'bg-surface-raised text-content-secondary hover:text-content-primary'"
+                                    @click="missionFilterTab = 'personal'"
+                                >
+                                    Personal ({{ missions.filter(m => m.mission_type === 'personal').length }})
+                                </button>
+                            </div>
+
+                            <div v-if="filteredMissions.length === 0" class="text-center py-6 text-xs text-content-muted">
+                                No hay misiones registradas en esta categoría.
+                            </div>
+
+                            <div v-else class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                                <div
+                                    v-for="m in filteredMissions"
+                                    :key="m.id"
+                                    class="rounded-xl border transition-all cursor-pointer overflow-hidden"
+                                    :class="
+                                        selectedMissionId === m.id
+                                            ? 'border-primary-strong bg-primary/5 ring-1 ring-primary-strong'
+                                            : 'border-border bg-surface hover:border-primary/50'
+                                    "
+                                    @click="selectMission(m.id)"
+                                >
+                                    <div class="p-3 flex items-start gap-2.5">
+                                        <div 
+                                            class="w-4 h-4 rounded-full border-2 mt-0.5 flex items-center justify-center shrink-0 transition"
+                                            :class="selectedMissionId === m.id ? 'border-primary-strong bg-primary-strong' : 'border-content-muted'"
+                                        >
+                                            <div v-if="selectedMissionId === m.id" class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                        </div>
+
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center justify-between gap-1">
+                                                <span class="text-xs font-bold text-content-primary truncate" :class="selectedMissionId === m.id ? 'text-primary-strong' : ''">
+                                                    {{ m.title }}
+                                                </span>
+                                                <span v-if="m.subtask_count > 0" class="text-[10px] font-bold text-content-muted shrink-0">
+                                                    {{ m.subtask_done }}/{{ m.subtask_count }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                                <span v-if="m.priority === 'high'" class="px-1.5 py-0.2 text-[9px] font-bold rounded bg-danger/15 text-danger">
+                                                    🔴 Alta
+                                                </span>
+                                                <span v-if="m.eisenhower_quadrant" class="px-1.5 py-0.2 text-[9px] font-bold rounded bg-surface-raised text-content-secondary uppercase">
+                                                    {{ m.eisenhower_quadrant }}
+                                                </span>
+                                                <span v-if="m.due_date" class="px-1.5 py-0.2 text-[9px] font-medium rounded text-content-muted">
+                                                    📅 {{ m.due_date }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Subtareas interactivas -->
+                                    <div
+                                        v-if="expandedMissionId === m.id && m.subtasks && m.subtasks.length > 0"
+                                        class="border-t border-border bg-surface-sunken px-3 py-2 space-y-1.5"
+                                        @click.stop
+                                    >
+                                        <div
+                                            v-for="sub in m.subtasks"
+                                            :key="sub.id"
+                                            class="flex items-center gap-2 text-xs"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                :checked="sub.is_completed"
+                                                :disabled="subtaskBusy[sub.id]"
+                                                class="h-3.5 w-3.5 rounded border-border text-primary-strong focus:ring-primary-strong cursor-pointer"
+                                                @change="toggleSubtask(m.id, sub)"
+                                            />
+                                            <span
+                                                :class="
+                                                    sub.is_completed
+                                                        ? 'text-content-muted line-through'
+                                                        : 'text-content-primary'
+                                                "
+                                            >
+                                                {{ sub.title }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </BaseCard>
+
+                        <!-- 🎓 CUADRO DE CURSOS -->
+                        <BaseCard v-if="['course', 'free'].includes(selectedContextType)">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold text-sm text-content-primary flex items-center gap-2">
+                                    <span>🎓</span> Cursos & Asignaturas ({{ courses.length }})
+                                </h3>
+                                <Link :href="route('courses.index')" class="text-xs font-bold text-primary-strong hover:underline">
+                                    Hub Cursos →
+                                </Link>
+                            </div>
+
+                            <div v-if="courses.length === 0" class="text-center py-6 text-xs text-content-muted">
+                                No tienes cursos registrados aún.
+                            </div>
+
+                            <div v-else class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                                <div
+                                    v-for="c in courses"
+                                    :key="c.id"
+                                    class="p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3"
+                                    :class="
+                                        selectedCourseId === c.id
+                                            ? 'border-primary-strong bg-primary/5 ring-1 ring-primary-strong'
+                                            : 'border-border bg-surface hover:border-primary/50'
+                                    "
+                                    @click="selectCourse(c.id)"
+                                >
+                                    <div 
+                                        class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition"
+                                        :class="selectedCourseId === c.id ? 'border-primary-strong bg-primary-strong' : 'border-content-muted'"
+                                    >
+                                        <div v-if="selectedCourseId === c.id" class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                    </div>
+
+                                    <div 
+                                        class="w-7 h-7 rounded-lg text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-sm"
+                                        :style="{ backgroundColor: c.color || '#3b82f6' }"
+                                    >
+                                        {{ c.name.substring(0, 2).toUpperCase() }}
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-xs font-bold text-content-primary truncate">{{ c.name }}</h4>
+                                        <p class="text-[10px] text-content-secondary truncate">
+                                            {{ c.professor ? `👨‍🏫 ${c.professor}` : 'Sin profesor' }}
+                                        </p>
+                                    </div>
+
+                                    <span v-if="c.credits" class="text-[10px] font-bold text-primary-strong shrink-0 px-2 py-0.5 rounded bg-primary/10">
+                                        {{ c.credits }} cr.
+                                    </span>
+                                </div>
+                            </div>
+                        </BaseCard>
+
+                        <!-- 📚 CUADRO DE LECTURAS -->
+                        <BaseCard v-if="['reading', 'free'].includes(selectedContextType)">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold text-sm text-content-primary flex items-center gap-2">
+                                    <span>📚</span> Lecturas en Curso ({{ readings.length }})
+                                </h3>
+                                <Link :href="route('readings.index')" class="text-xs font-bold text-primary-strong hover:underline">
+                                    Biblioteca →
+                                </Link>
+                            </div>
+
+                            <div v-if="readings.length === 0" class="text-center py-6 text-xs text-content-muted">
+                                No tienes libros en curso.
+                            </div>
+
+                            <div v-else class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                                <div
+                                    v-for="r in readings"
+                                    :key="r.id"
+                                    class="p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3"
+                                    :class="
+                                        selectedReadingId === r.id
+                                            ? 'border-primary-strong bg-primary/5 ring-1 ring-primary-strong'
+                                            : 'border-border bg-surface hover:border-primary/50'
+                                    "
+                                    @click="selectReading(r.id)"
+                                >
+                                    <div 
+                                        class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition"
+                                        :class="selectedReadingId === r.id ? 'border-primary-strong bg-primary-strong' : 'border-content-muted'"
+                                    >
+                                        <div v-if="selectedReadingId === r.id" class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-xs font-bold text-content-primary truncate">{{ r.title }}</h4>
+                                        <p class="text-[10px] text-content-secondary truncate">{{ r.author || 'Autor desconocido' }}</p>
+                                        
+                                        <div class="mt-1.5 flex items-center gap-2">
+                                            <div class="flex-1 h-1.5 bg-surface-sunken rounded-full overflow-hidden">
+                                                <div 
+                                                    class="h-full bg-indigo-500 rounded-full"
+                                                    :style="{ width: Math.min(100, Math.round((r.current_page / (r.total_pages || 1)) * 100)) + '%' }"
+                                                ></div>
+                                            </div>
+                                            <span class="text-[10px] font-semibold text-content-muted shrink-0">
+                                                {{ r.current_page }}/{{ r.total_pages }} pág.
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </BaseCard>
+
+                        <!-- ⚡ CUADRO DE HABILIDADES -->
+                        <BaseCard v-if="['skill', 'free'].includes(selectedContextType)">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold text-sm text-content-primary flex items-center gap-2">
+                                    <span>⚡</span> Destrezas & Habilidades ({{ skills.length }})
+                                </h3>
+                                <Link :href="route('skills.index')" class="text-xs font-bold text-primary-strong hover:underline">
+                                    Árbol →
+                                </Link>
+                            </div>
+
+                            <div v-if="skills.length === 0" class="text-center py-6 text-xs text-content-muted">
+                                No has creado habilidades aún.
+                            </div>
+
+                            <div v-else class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                                <div
+                                    v-for="s in skills"
+                                    :key="s.id"
+                                    class="p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3"
+                                    :class="
+                                        selectedSkillId === s.id
+                                            ? 'border-primary-strong bg-primary/5 ring-1 ring-primary-strong'
+                                            : 'border-border bg-surface hover:border-primary/50'
+                                    "
+                                    @click="selectSkill(s.id)"
+                                >
+                                    <div 
+                                        class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition"
+                                        :class="selectedSkillId === s.id ? 'border-primary-strong bg-primary-strong' : 'border-content-muted'"
+                                    >
+                                        <div v-if="selectedSkillId === s.id" class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-1">
+                                            <h4 class="text-xs font-bold text-content-primary truncate">{{ s.name }}</h4>
+                                            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-600 shrink-0">
+                                                Niv. {{ s.current_level }}
+                                            </span>
+                                        </div>
+                                        <p class="text-[10px] text-content-secondary mt-0.5 capitalize">{{ s.category }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </BaseCard>
+
+                        <!-- Historial de Pomodoros de Hoy -->
+                        <BaseCard>
+                            <h3 class="font-bold text-sm text-content-primary mb-3 flex items-center gap-2">
+                                <span>📋</span> Ciclos Completados Hoy
+                            </h3>
+                            <p v-if="todaySessions.length === 0" class="text-xs text-content-secondary">
+                                Todavía no has realizado ninguna sesión hoy.
+                            </p>
+                            <ul v-else class="divide-y divide-border text-xs">
+                                <li
+                                    v-for="s in todaySessions"
+                                    :key="s.id"
+                                    class="flex items-center justify-between py-2"
+                                >
+                                    <span class="text-content-secondary">
+                                        {{ new Date(s.started_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) }}
+                                    </span>
+                                    <span class="text-content-primary font-semibold">
+                                        {{ s.focus_minutes ?? s.planned_minutes }} min
+                                    </span>
+                                    <span
+                                        class="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                                        :class="s.status === 'completed' ? 'bg-success/15 text-success' : 'bg-surface-sunken text-content-muted'"
+                                    >
+                                        {{ statusLabel(s.status) }}
+                                    </span>
+                                </li>
+                            </ul>
+                        </BaseCard>
+                    </div>
+                </div>
             </div>
         </div>
     </AppLayout>

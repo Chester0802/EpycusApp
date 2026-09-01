@@ -363,7 +363,7 @@ onUnmounted(() => {
             <div class="flex-1 flex items-center justify-center w-full min-h-0">
                 <div
                     ref="sceneRef"
-                    class="relative w-full max-w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-[2816/1536] min-h-[530px] sm:min-h-[580px] max-h-[calc(100vh-6.5rem)] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-border-interactive select-none touch-none bg-slate-950/90 mx-auto"
+                    class="relative w-full max-w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-[2816/1536] min-h-[530px] sm:min-h-[580px] max-h-[calc(100vh-6.5rem)] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-border-interactive select-none touch-none bg-surface mx-auto"
                     @pointermove="handleAvatarPointerMove"
                     @pointerup="handleAvatarPointerUp"
                     @pointerleave="handleAvatarPointerUp"

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Learning\Infrastructure\Providers;
+namespace App\Modules\Readings\Infrastructure\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
-final class LearningServiceProvider extends ServiceProvider
+final class ReadingsServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {

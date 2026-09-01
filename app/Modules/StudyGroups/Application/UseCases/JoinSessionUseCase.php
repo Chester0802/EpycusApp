@@ -36,8 +36,7 @@ final readonly class JoinSessionUseCase
                     // Ya está aquí dentro (idempotente)
                     return $this->mapper->toSessionArray($session);
                 }
-                // Si es un fantasma en otra sala, lo retiramos
-                $this->repository->removeParticipant($active->id, $userId, now()->toDateTimeString());
+                throw new AlreadyInSessionException($userId);
             }
         }
 

@@ -14,7 +14,7 @@ import CourseDistributionChart from '@/Components/ui/CourseDistributionChart.vue
 import PeakHoursChart from '@/Components/ui/PeakHoursChart.vue';
 import WellbeingTrendChart from '@/Components/ui/WellbeingTrendChart.vue';
 import VillainDamageHistoryChart from '@/Components/ui/VillainDamageHistoryChart.vue';
-
+import { NotebookText } from '@lucide/vue';
 import DonutChart from '@/Components/ui/DonutChart.vue';
 import RadialProgressRing from '@/Components/ui/RadialProgressRing.vue';
 
@@ -157,7 +157,7 @@ function habitsBarHeight(count) {
                 </BaseCard>
 
                 <BaseCard class="p-4 text-center space-y-1">
-                    <AppIcon name="zap" :size="28" class="mx-auto text-warning" />
+                    <AppIcon name="zap" :size="28" class="mx-auto text-amber-500" />
                     <p class="font-display text-2xl font-bold text-content-primary">
                         {{ stats.todayHabitsDone }}
                     </p>
@@ -165,7 +165,7 @@ function habitsBarHeight(count) {
                 </BaseCard>
 
                 <BaseCard class="p-4 text-center space-y-1">
-                    <AppIcon name="clipboard" :size="28" class="mx-auto text-accent" />
+                    <AppIcon name="clipboard" :size="28" class="mx-auto text-primary-strong" />
                     <p class="font-display text-2xl font-bold text-content-primary">
                         {{ stats.pendingMissions }}
                     </p>
@@ -181,6 +181,26 @@ function habitsBarHeight(count) {
                 </BaseCard>
             </div>
 
+            <!-- Acceso Rápido a Bloc de Apuntes -->
+            <BaseCard class="p-5 flex items-center justify-between bg-gradient-to-r from-surface-raised to-primary/5 border border-primary/20 relative overflow-hidden">
+                <div class="relative z-10 flex items-center gap-4">
+                    <div class="bg-primary/20 p-3 rounded-full text-primary-strong">
+                        <NotebookText :size="24" />
+                    </div>
+                    <div>
+                        <h2 class="font-display font-bold text-lg text-content-primary">Bloc de Apuntes Centralizado</h2>
+                        <p class="text-sm text-content-secondary">Accede rápidamente a tus apuntes de clase organizados por curso, con soporte para pantalla dividida.</p>
+                    </div>
+                </div>
+                <Link :href="route('notes.index')" class="relative z-10">
+                    <BaseButton variant="primary" class="font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow">
+                        Abrir Apuntes
+                    </BaseButton>
+                </Link>
+                <!-- Decorative background elements -->
+                <div class="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-primary/10 to-transparent pointer-events-none"></div>
+            </BaseCard>
+
             <!-- Gráfico 1: Mapa de Calor de Consistencia Diaria (60 Días) -->
             <ActivityHeatmap
                 v-if="analytics && analytics.heatmap"
@@ -195,7 +215,7 @@ function habitsBarHeight(count) {
                         <h2
                             class="font-display text-base font-bold text-content-primary flex items-center gap-2"
                         >
-                            <AppIcon name="clipboard" :size="18" class="text-accent" />
+                            <AppIcon name="clipboard" :size="18" class="text-primary-strong" />
                             Estado de Misiones
                         </h2>
                         <p class="text-xs text-content-secondary">Distribución por estado actual</p>
@@ -215,7 +235,7 @@ function habitsBarHeight(count) {
                         <h2
                             class="font-display text-base font-bold text-content-primary flex items-center gap-2"
                         >
-                            <AppIcon name="zap" :size="18" class="text-warning" />
+                            <AppIcon name="zap" :size="18" class="text-amber-500" />
                             Adherencia a Hábitos Hoy
                         </h2>
                         <p class="text-xs text-content-secondary">Porcentaje del objetivo diario</p>

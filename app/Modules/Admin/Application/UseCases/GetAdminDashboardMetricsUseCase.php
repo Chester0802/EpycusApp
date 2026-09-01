@@ -9,34 +9,64 @@ use Illuminate\Support\Facades\DB;
 
 final class GetAdminDashboardMetricsUseCase
 {
+    public function __construct(
+        private readonly GetAdminDropoutUseCase $getDropout,
+    ) {}
+
     /**
      * @return array<string, mixed>
      */
     public function execute(): array
     {
-        $today = Carbon::now()->toDateString();
-        $threeDaysAgo = Carbon::now()->subDays(3)->toDateString();
+        $todayLima = Carbon::now('America/Lima')->toDateString();
+        $todayStartTimestamp = Carbon::now('America/Lima')->startOfDay()->timestamp;
 
-        // 1. Usuarios activos hoy
-        $activeUsersToday = DB::table('users')
-            ->whereDate('updated_at', $today)
-            ->count();
+        // 1. Usuarios activos hoy (cualquier actividad hoy en Lima)
+        $activeUserIds = collect();
+
+        $sessionUserIds = DB::table('sessions')
+            ->whereNotNull('user_id')
+            ->where('last_activity', '>=', $todayStartTimestamp)
+            ->pluck('user_id');
+        $activeUserIds = $activeUserIds->merge($sessionUserIds);
+
+        $habitUserIds = DB::table('habit_completions')
+            ->join('habits', 'habits.id', '=', 'habit_completions.habit_id')
+            ->where('habit_completions.completed_for', $todayLima)
+            ->pluck('habits.user_id');
+        $activeUserIds = $activeUserIds->merge($habitUserIds);
+
+        $pomodoroUserIds = DB::table('pomodoro_sessions')
+            ->whereDate('started_at', $todayLima)
+            ->pluck('user_id');
+        $activeUserIds = $activeUserIds->merge($pomodoroUserIds);
+
+        $journalUserIds = DB::table('journal_entries')
+            ->where('date', $todayLima)
+            ->pluck('user_id');
+        $activeUserIds = $activeUserIds->merge($journalUserIds);
+
+        $xpUserIds = DB::table('xp_transactions')
+            ->whereDate('created_at', $todayLima)
+            ->pluck('user_id');
+        $activeUserIds = $activeUserIds->merge($xpUserIds);
+
+        $studentIds = DB::table('users')->where('role', 'student')->pluck('id')->all();
+        $activeUsersToday = $activeUserIds->unique()->filter(fn ($id) => in_array($id, $studentIds))->count();
 
         $totalParticipants = DB::table('participants')->count();
 
         // 2. Sesiones Pomodoro y Minutos de Foco
         $pomodoroQuery = DB::table('pomodoro_sessions')->where('status', 'completed');
         $totalPomodoros = $pomodoroQuery->count();
-        $totalFocusMinutes = (int) $pomodoroQuery->sum('planned_minutes');
+        $totalFocusMinutes = (int) $pomodoroQuery->sum(DB::raw('COALESCE(focus_minutes, planned_minutes)'));
 
         // 3. Hábitos completados en total
         $totalHabitsDone = DB::table('habit_completions')->count();
 
-        // 4. Participantes en riesgo de deserción (3+ días sin actividad)
-        $dropoutCount = DB::table('users')
-            ->where('role', 'student')
-            ->whereDate('updated_at', '<=', $threeDaysAgo)
-            ->count();
+        // 4. Participantes en riesgo de deserción (3+ días sin actividad real)
+        $dropoutList = $this->getDropout->execute();
+        $dropoutCount = count($dropoutList);
 
         // 5. Adherencia media (porcentaje promedio de hábitos diarios completados)
         $avgStreak = (float) (DB::table('user_progress')->avg('current_streak') ?? 0);

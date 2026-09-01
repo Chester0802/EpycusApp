@@ -160,10 +160,10 @@ const yearOptions = Array.from({ length: 5 }, (_, i) => 2026 + i);
                         <div class="flex items-center gap-1">
                             <span
                                 v-if="cell.day" class="text-xs font-semibold"
-                                :class="cell.isToday ? 'text-primary' : 'text-content-secondary'"
+                                :class="cell.isToday ? 'text-primary-strong' : 'text-content-secondary'"
                             >{{ cell.day }}</span>
-                            <span v-if="cell.holiday" class="rounded bg-danger/10 px-1 text-[9px] text-danger inline-flex items-center" title="Feriado"><AppIcon name="leaf" :size="9" /></span>
-                            <span v-if="cell.isExam" class="rounded bg-warning/20 px-1 text-[9px] text-warning inline-flex items-center" title="Exámenes"><AppIcon name="book-open" :size="9" /></span>
+                            <span v-if="cell.holiday" class="rounded bg-danger/10 px-1 text-[9px] text-danger-text inline-flex items-center" title="Feriado"><AppIcon name="leaf" :size="9" /></span>
+                            <span v-if="cell.isExam" class="rounded bg-amber-500/15 border border-amber-500/30 px-1 text-[9px] text-amber-700 dark:text-amber-300 font-bold inline-flex items-center" title="Exámenes"><AppIcon name="book-open" :size="9" /></span>
                         </div>
                         <div v-if="cell.moodEmoji" class="mt-2 text-center">
                             <span class="text-2xl" :title="`${cell.moodLabel} (${cell.moodScore}/5)`">{{ cell.moodEmoji }}</span>
@@ -173,8 +173,8 @@ const yearOptions = Array.from({ length: 5 }, (_, i) => 2026 + i);
             </BaseCard>
 
             <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-content-muted">
-                <span class="flex items-center gap-1"><span class="rounded bg-danger/10 px-1 text-[9px] text-danger inline-flex items-center"><AppIcon name="leaf" :size="9" /></span> Feriado</span>
-                <span class="flex items-center gap-1"><span class="rounded bg-warning/20 px-1 text-[9px] text-warning inline-flex items-center"><AppIcon name="book-open" :size="9" /></span> Semana de exámenes</span>
+                <span class="flex items-center gap-1"><span class="rounded bg-danger/10 px-1 text-[9px] text-danger-text inline-flex items-center"><AppIcon name="leaf" :size="9" /></span> Feriado</span>
+                <span class="flex items-center gap-1"><span class="rounded bg-amber-500/15 border border-amber-500/30 px-1 text-[9px] text-amber-700 dark:text-amber-300 font-bold inline-flex items-center"><AppIcon name="book-open" :size="9" /></span> Semana de exámenes</span>
             </div>
 
             <BaseCard v-if="healthTip" class="mt-6 border-l-4 border-l-primary-strong p-4">

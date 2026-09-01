@@ -32,6 +32,8 @@ final class UpdateHabitUseCase
             'icon' => $dto->icon,
             'time_of_day' => $dto->timeOfDay,
             'cue_trigger' => $dto->cueTrigger,
+            'habit_type' => $dto->habitType,
+            'max_per_week' => $dto->maxPerWeek,
         ]);
 
         $this->events->dispatch(new HabitUpdated(

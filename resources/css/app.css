@@ -382,68 +382,75 @@
         --color-backdrop: color-mix(in oklch, black 60%, transparent);
     }
 
+    /*
+     * Paleta "Mono" — Estilo clásico blanco y negro moderno (ChatGPT / Claude / Linear).
+     * Claro: Fondo blanco puro (#ffffff / #f9fafb), texto carbón profundo (#111827),
+     * primario negro sólido con texto blanco.
+     * Oscuro: Fondo obsidiana profundo (#09090b / #121214), texto blanco nítido (#f5f5f5),
+     * primario blanco puro con texto negro.
+     */
     [data-palette='mono'][data-theme='light'] {
-        --color-bg: #e8ecf2;
-        --color-surface: #e8ecf2;
-        --color-surface-raised: #f2f5f9;
-        --color-surface-sunken: #dde1e8;
+        --color-bg: #f9fafb;
+        --color-surface: #ffffff;
+        --color-surface-raised: #f3f4f6;
+        --color-surface-sunken: #e5e7eb;
 
-        --color-content-primary: #1c212e;
-        --color-content-secondary: #545b6b;
-        --color-content-muted: #8a92a1;
+        --color-content-primary: #09090b;
+        --color-content-secondary: #52525b;
+        --color-content-muted: #71717a;
 
-        --color-primary: #bac2d0;
-        --color-primary-strong: #4f5b70;
-        --color-secondary: #cfd5e0;
-        --color-accent: #c5ccd8;
+        --color-primary: #18181b;
+        --color-primary-strong: #000000;
+        --color-secondary: #e4e4e7;
+        --color-accent: #f4f4f5;
 
-        --color-on-primary: var(--color-content-primary);
+        --color-on-primary: #ffffff;
         --color-on-primary-strong: #ffffff;
-        --color-on-accent: var(--color-content-primary);
+        --color-on-accent: #09090b;
 
-        --color-success: #6dbe8a;
-        --color-warning: #e0b04a;
-        --color-danger: #e07a7a;
-        --color-danger-text: #b02a2a;
+        --color-success: #10b981;
+        --color-warning: #f59e0b;
+        --color-danger: #ef4444;
+        --color-danger-text: #dc2626;
 
-        --color-border: #d3d8e2;
-        --color-border-strong: #bac2d0;
-        --color-border-interactive: #7a879c;
+        --color-border: #e4e4e7;
+        --color-border-strong: #d4d4d8;
+        --color-border-interactive: #52525b;
 
-        --shadow-md: 0 4px 12px color-mix(in oklch, var(--color-content-primary) 10%, transparent);
-        --color-backdrop: color-mix(in oklch, var(--color-content-primary) 45%, transparent);
+        --shadow-md: 0 4px 12px color-mix(in oklch, black 8%, transparent);
+        --color-backdrop: color-mix(in oklch, black 40%, transparent);
     }
 
     [data-palette='mono'][data-theme='dark'] {
-        --color-bg: #1e232a;
-        --color-surface: #1e232a;
-        --color-surface-raised: #292f38;
-        --color-surface-sunken: #15191f;
+        --color-bg: #09090b;
+        --color-surface: #121214;
+        --color-surface-raised: #1c1c1f;
+        --color-surface-sunken: #000000;
 
-        --color-content-primary: #e2e6ec;
-        --color-content-secondary: #98a0ae;
-        --color-content-muted: #636b7a;
+        --color-content-primary: #f5f5f5;
+        --color-content-secondary: #a1a1aa;
+        --color-content-muted: #71717a;
 
-        --color-primary: #353c47;
-        --color-primary-strong: #6b7b90;
-        --color-secondary: #2c323d;
-        --color-accent: #262c35;
+        --color-primary: #f4f4f5;
+        --color-primary-strong: #ffffff;
+        --color-secondary: #27272a;
+        --color-accent: #18181b;
 
-        --color-on-primary: var(--color-content-primary);
-        --color-on-primary-strong: var(--color-content-primary);
-        --color-on-accent: var(--color-content-primary);
+        --color-on-primary: #09090b;
+        --color-on-primary-strong: #000000;
+        --color-on-accent: #f5f5f5;
 
-        --color-success: #5abf80;
-        --color-warning: #e0b04a;
-        --color-danger: #f06a6a;
+        --color-success: #34d399;
+        --color-warning: #fbbf24;
+        --color-danger: #f87171;
         --color-danger-text: var(--color-danger);
 
-        --color-border: #2d343e;
-        --color-border-strong: #3e4652;
-        --color-border-interactive: #6a7a90;
+        --color-border: #27272a;
+        --color-border-strong: #3f3f46;
+        --color-border-interactive: #a1a1aa;
 
-        --shadow-md: 0 4px 16px color-mix(in oklch, black 40%, transparent);
-        --color-backdrop: color-mix(in oklch, black 60%, transparent);
+        --shadow-md: 0 4px 16px color-mix(in oklch, black 60%, transparent);
+        --color-backdrop: color-mix(in oklch, black 70%, transparent);
     }
 
     /*

@@ -522,20 +522,20 @@ onUnmounted(() => {
     <div
         v-if="show"
         ref="containerRef"
-        class="relative w-full select-none flex flex-col transition-all duration-300 shadow-2xl animate-fade-in bg-slate-950 overflow-hidden"
-        :class="isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen rounded-none border-none' : 'h-[78vh] rounded-3xl border border-slate-800'"
+        class="relative w-full select-none flex flex-col transition-all duration-300 shadow-2xl animate-fade-in bg-surface overflow-hidden"
+        :class="isFullscreen ? 'fixed inset-0 z-50 w-screen h-screen rounded-none border-none' : 'h-[78vh] rounded-3xl border border-border'"
     >
         <!-- Barra Superior Header 3D -->
-        <div class="flex items-center justify-between px-4 sm:px-6 py-3 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 z-20 shrink-0">
+        <div class="flex items-center justify-between px-4 sm:px-6 py-3 bg-surface-raised/95 backdrop-blur-md border-b border-border z-20 shrink-0">
             <div class="flex items-center gap-3">
-                <div class="p-2 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400">
+                <div class="p-2 rounded-xl bg-primary/15 border border-primary-strong/30 text-primary-strong">
                     <Brain class="w-5 h-5" />
                 </div>
                 <div>
-                    <h2 class="text-sm sm:text-base font-black text-white leading-none">
+                    <h2 class="text-sm sm:text-base font-black text-content-primary leading-none">
                         Segundo Cerebro 3D
                     </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">
+                    <p class="text-xs text-content-secondary mt-0.5">
                         Tú Segundo cerebro • Constelaciones de Nodos Padre (Cursos) y Chunks
                     </p>
                 </div>
@@ -544,11 +544,11 @@ onUnmounted(() => {
             <!-- Filtro de Asignaturas & Acciones -->
             <div class="flex items-center gap-2">
                 <!-- Selector de Cursos -->
-                <div class="hidden sm:flex items-center gap-1 bg-slate-800/80 p-0.5 rounded-xl border border-slate-700/60 overflow-x-auto max-w-xs">
+                <div class="hidden sm:flex items-center gap-1 bg-surface-sunken p-0.5 rounded-xl border border-border overflow-x-auto max-w-xs">
                     <button
                         type="button"
                         class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all shrink-0"
-                        :class="selectedCourseId === null ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'"
+                        :class="selectedCourseId === null ? 'bg-primary-strong text-on-primary-strong shadow-sm' : 'text-content-secondary hover:text-content-primary'"
                         @click="selectedCourseId = null"
                     >
                         Todos
@@ -558,10 +558,10 @@ onUnmounted(() => {
                         :key="c.id"
                         type="button"
                         class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1.5"
-                        :class="selectedCourseId === c.id ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'"
+                        :class="selectedCourseId === c.id ? 'bg-primary-strong text-on-primary-strong shadow-sm' : 'text-content-secondary hover:text-content-primary'"
                         @click="selectedCourseId = c.id"
                     >
-                        <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: c.color || '#6366f1' }" />
+                        <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: c.color || 'var(--color-primary-strong)' }" />
                         <span class="truncate max-w-[80px]">{{ c.name }}</span>
                     </button>
                 </div>
@@ -570,21 +570,21 @@ onUnmounted(() => {
                 <button
                     type="button"
                     class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all"
-                    :class="livePulseActive ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300' : 'bg-slate-800 border-slate-700 text-slate-400'"
+                    :class="livePulseActive ? 'bg-primary/15 border-primary-strong/40 text-primary-strong' : 'bg-surface border-border text-content-secondary'"
                     @click="livePulseActive = !livePulseActive"
                 >
-                    <Activity class="w-3.5 h-3.5" :class="livePulseActive ? 'animate-pulse text-indigo-400' : ''" />
+                    <Activity class="w-3.5 h-3.5" :class="livePulseActive ? 'animate-pulse text-primary-strong' : ''" />
                     <span class="hidden md:inline">{{ livePulseActive ? 'Sinapsis Activa' : 'Pausada' }}</span>
                 </button>
 
                 <!-- Botón Pantalla Completa -->
                 <button
                     type="button"
-                    class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors border border-slate-700/60"
+                    class="p-2 rounded-xl text-content-secondary hover:text-content-primary hover:bg-surface-raised transition-colors border border-border"
                     :title="isFullscreen ? 'Salir de Pantalla Completa' : 'Pantalla Completa'"
                     @click="toggleFullscreen"
                 >
-                    <Minimize2 v-if="isFullscreen" class="w-4 h-4 text-indigo-400" />
+                    <Minimize2 v-if="isFullscreen" class="w-4 h-4 text-primary-strong" />
                     <Maximize2 v-else class="w-4 h-4" />
                 </button>
             </div>
@@ -594,10 +594,10 @@ onUnmounted(() => {
         <div ref="graph3DContainer" class="w-full h-full relative" />
 
         <!-- Leyenda Inferior -->
-        <div class="absolute bottom-4 right-4 z-20 hidden sm:flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-slate-800 text-xs text-slate-400 shadow-xl">
+        <div class="absolute bottom-4 right-4 z-20 hidden sm:flex items-center gap-3 px-4 py-2 rounded-2xl bg-surface-raised/90 backdrop-blur-md border border-border text-xs text-content-secondary shadow-xl">
             <span>💡 <strong>W, A, S, D</strong> orbitar • <strong>+ / -</strong> zoom • <strong>Arrastra</strong> explorar 3D</span>
-            <span class="text-slate-700">|</span>
-            <span class="text-emerald-400 font-bold">{{ simulationNodes.length }} Nodos en órbita</span>
+            <span class="text-content-muted">|</span>
+            <span class="text-primary-strong font-bold">{{ simulationNodes.length }} Nodos en órbita</span>
         </div>
     </div>
 </template>

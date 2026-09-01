@@ -7,7 +7,6 @@ import BaseCard from '@/Components/ui/BaseCard.vue';
 import BaseModal from '@/Components/ui/BaseModal.vue';
 import BaseInput from '@/Components/ui/BaseInput.vue';
 import BaseSelect from '@/Components/ui/BaseSelect.vue';
-import NoteEditorModal from '@/Components/Calendar/NoteEditorModal.vue';
 import { triggerConfetti, triggerHapticVibration } from '@/utils/celebration';
 import {
     BookOpen,
@@ -23,6 +22,8 @@ import {
 
 const props = defineProps({
     missionsByDate: { type: Object, default: () => ({}) },
+    eventsByDate:   { type: Object, default: () => ({}) },
+    personalEvents: { type: Array,  default: () => [] },
     holidays:       { type: Object, default: () => ({}) },
     examDates:      { type: Object, default: () => ({}) },
     courses:        { type: Array,  default: () => [] },
@@ -52,9 +53,9 @@ function formatTime12h(timeStr) {
     return `${String(h12).padStart(2, '0')}:${m} ${period}`;
 }
 
-const today        = new Date(props.todayDate);
-const currentMonth = today.getMonth() + 1;
-const currentYear  = today.getFullYear();
+const [ty, tm, td] = (props.todayDate || '').split('-').map(Number);
+const currentMonth = tm || (new Date().getMonth() + 1);
+const currentYear  = ty || new Date().getFullYear();
 
 const daysInMonth    = computed(() => new Date(props.year, props.month, 0).getDate());
 const firstDayOfWeek = computed(() => {
@@ -103,11 +104,13 @@ const calendarDays = computed(() => {
             date:        dateStr,
             holiday,
             missions:    dateStr && props.missionsByDate[dateStr] ? props.missionsByDate[dateStr] : [],
+            personalEvents: dateStr && props.eventsByDate[dateStr] ? props.eventsByDate[dateStr] : [],
             sessions:    daySessions,
             isToday:     dateStr === props.todayDate,
             isPast:      dateStr !== null && dateStr < props.todayDate,
             hasActivity: dateStr && (
                 (props.missionsByDate[dateStr]?.length ?? 0) > 0
+                || (props.eventsByDate[dateStr]?.length ?? 0) > 0
                 || holiday
                 || daySessions.length > 0
             ),
@@ -116,8 +119,75 @@ const calendarDays = computed(() => {
     return days;
 });
 
+const layerFilters = ref({
+    classes: true,
+    missions: true,
+    personal: true,
+});
+
+const monthSummaryStats = computed(() => {
+    let classes = 0;
+    let missions = 0;
+    let personal = 0;
+    for (const d of calendarDays.value) {
+        if (d.day) {
+            classes += d.sessions?.length || 0;
+            missions += d.missions?.length || 0;
+            personal += d.personalEvents?.length || 0;
+        }
+    }
+    return { classes, missions, personal };
+});
+
+function openAddEventOnDate(dateStr) {
+    if (!dateStr) return;
+    eventForm.event_date = dateStr;
+    showPersonalEventModal.value = true;
+}
+
+const showPersonalEventModal = ref(false);
+const eventForm = useForm({
+    title: '',
+    description: '',
+    type: 'birthday',
+    event_date: props.todayDate,
+    start_time: '',
+    end_time: '',
+    color: 'primary',
+});
+
+const eventTypeIcons = {
+    birthday: '🎂',
+    appointment: '🩺',
+    meeting: '👥',
+    work: '💼',
+    social: '🥂',
+    reminder: '⏰',
+    other: '📌',
+};
+
+async function createPersonalEvent() {
+    if (!eventForm.title || !eventForm.event_date) return;
+    try {
+        await axios.post(route('calendar.personal-events.store'), eventForm.data());
+        showPersonalEventModal.value = false;
+        eventForm.reset();
+        router.reload({ preserveScroll: true });
+    } catch (e) {
+        alert('Error al crear evento: ' + (e.response?.data?.message || e.message));
+    }
+}
+
 function goToMonth(m, y) {
-    router.get(route('calendar.index', { month: m, year: y, date: selectedDay.value }), { preserveScroll: true });
+    router.get(
+        route('calendar.index', {
+            month: m,
+            year: y,
+            date: selectedDay.value,
+            view: calendarViewMode.value,
+        }),
+        { preserveScroll: true, preserveState: true }
+    );
 }
 function prevMonth() {
     const m = props.month === 1 ? 12 : props.month - 1;
@@ -129,7 +199,10 @@ function nextMonth() {
     const y = props.month === 12 ? props.year + 1 : props.year;
     goToMonth(m, y);
 }
-function goToToday() { goToMonth(currentMonth, currentYear); }
+function goToToday() {
+    selectDay(props.todayDate);
+    goToMonth(currentMonth, currentYear);
+}
 
 const showMonthPicker = ref(false);
 const pickerMonth     = ref(props.month);
@@ -148,16 +221,16 @@ function applyMonthPicker() {
 const yearOptions = Array.from({ length: 5 }, (_, i) => 2026 + i);
 
 const difficultyStyles = {
-    easy:   'bg-success/20 text-success',
-    medium: 'bg-accent/20 text-accent',
-    hard:   'bg-danger/20 text-danger',
+    easy:   'bg-success/15 text-content-primary border border-success/40',
+    medium: 'bg-primary/15 text-content-primary border border-primary/40',
+    hard:   'bg-danger/15 text-danger-text border border-danger/40',
 };
 
 const scheduleColorStyles = {
-    primary:   'bg-primary/10 text-primary-strong border-primary/30',
-    accent:    'bg-accent/20 text-accent border-accent/30',
-    success:   'bg-success/20 text-success border-success/30',
-    warning:   'bg-warning/20 text-warning border-warning/30',
+    primary:   'bg-primary/10 text-content-primary border-primary/40',
+    accent:    'bg-secondary/15 text-content-primary border-secondary/40',
+    success:   'bg-success/15 text-content-primary border-success/40',
+    warning:   'bg-warning/15 text-content-primary border-warning/40',
     secondary: 'bg-surface-raised text-content-secondary border-border',
 };
 
@@ -168,6 +241,7 @@ const editingCourseId   = ref(null);
 
 const courseForm = useForm({
     name:      '',
+    professor: '',
     color:     'primary',
     starts_at: '',
     ends_at:   '',
@@ -179,6 +253,7 @@ function openCreateCourseForm() {
     courseForm.reset();
     courseForm.clearErrors();
     courseForm.name = '';
+    courseForm.professor = '';
     courseForm.color = 'primary';
     courseForm.starts_at = '';
     courseForm.ends_at = '';
@@ -190,6 +265,7 @@ function openEditCourseForm(course) {
     editingCourseId.value = course.id;
     courseForm.clearErrors();
     courseForm.name = course.name;
+    courseForm.professor = course.professor || '';
     courseForm.color = course.color || 'primary';
     courseForm.starts_at = course.starts_at || '';
     courseForm.ends_at = course.ends_at || '';
@@ -241,46 +317,46 @@ function deleteCourse(id) {
 }
 
 // ── Apuntes Oficiales ───────────────────────────────────────────────────────
-const showNoteModal  = ref(false);
-const selectedCourse = ref(null);
-
 function openNote(courseId) {
-    const course = props.courses.find(c => c.id === courseId);
-    if (!course) return;
-    selectedCourse.value = course;
-    showNoteModal.value  = true;
-
-    // Sincronizar parámetro en la URL para que persista ante recargas (F5)
-    if (typeof window !== 'undefined' && window.history) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('note', String(courseId));
-        window.history.replaceState({}, '', url.toString());
-    }
-}
-
-function closeNote() {
-    showNoteModal.value = false;
-    selectedCourse.value = null;
-
-    // Remover parámetro de la URL
-    if (typeof window !== 'undefined' && window.history) {
-        const url = new URL(window.location.href);
-        url.searchParams.delete('note');
-        url.searchParams.delete('course_id');
-        window.history.replaceState({}, '', url.toString());
-    }
+    router.visit(route('notes.index', { course_id: courseId }));
 }
 
 // ── Selección de Día & Modo de Vista ────────────────────────────────────────
+const getInitialViewMode = () => {
+    if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewFromUrl = urlParams.get('view');
+        if (viewFromUrl === 'grid' || viewFromUrl === 'timeblocking') {
+            return viewFromUrl;
+        }
+        const savedView = localStorage.getItem('epycus_calendar_view');
+        if (savedView === 'grid' || savedView === 'timeblocking') {
+            return savedView;
+        }
+    }
+    return 'timeblocking';
+};
+
 const selectedDay = ref(props.selectedDate || props.todayDate);
-const calendarViewMode = ref('timeblocking'); // 'grid' | 'timeblocking'
+const calendarViewMode = ref(getInitialViewMode()); // 'grid' | 'timeblocking'
+
+function setCalendarViewMode(mode) {
+    calendarViewMode.value = mode;
+    if (typeof window !== 'undefined') {
+        try {
+            localStorage.setItem('epycus_calendar_view', mode);
+            const url = new URL(window.location.href);
+            url.searchParams.set('view', mode);
+            window.history.replaceState({}, '', url.toString());
+        } catch (e) {}
+    }
+}
 
 onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('view') === 'grid') {
-        calendarViewMode.value = 'grid';
-    } else if (urlParams.get('view') === 'timeblocking') {
-        calendarViewMode.value = 'timeblocking';
+    const viewParam = urlParams.get('view');
+    if (viewParam === 'grid' || viewParam === 'timeblocking') {
+        calendarViewMode.value = viewParam;
     }
 
     // Auto-abrir apunte si viene en la URL (?note=ID o ?course_id=ID)
@@ -298,10 +374,18 @@ onMounted(() => {
 function selectDay(dateStr) {
     if (dateStr) {
         selectedDay.value = dateStr;
-        router.visit(route('calendar.index', { date: dateStr, month: props.month, year: props.year }), {
-            preserveScroll: true,
-            preserveState: true,
-        });
+        router.visit(
+            route('calendar.index', {
+                date: dateStr,
+                month: props.month,
+                year: props.year,
+                view: calendarViewMode.value,
+            }),
+            {
+                preserveScroll: true,
+                preserveState: true,
+            }
+        );
     }
 }
 
@@ -325,10 +409,13 @@ function formatSelectedDayHeader(dateStr) {
 }
 
 function changePlanDate(deltaDays) {
-    const d = new Date(selectedDay.value);
-    d.setDate(d.getDate() + deltaDays);
-    const newDateStr = d.toISOString().split('T')[0];
-    selectDay(newDateStr);
+    if (!selectedDay.value) return;
+    const [y, m, d] = selectedDay.value.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d + deltaDays);
+    const ny = dateObj.getFullYear();
+    const nm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const nd = String(dateObj.getDate()).padStart(2, '0');
+    selectDay(`${ny}-${nm}-${nd}`);
 }
 
 // ── Time-Blocking 24h Helpers ──────────────────────────────────────────────
@@ -401,7 +488,7 @@ const routineForm = ref({
 const categories = [
     { value: 'salud', label: '🌿 Salud y Bienestar' },
     { value: 'estudio', label: '📚 Estudio y Clases' },
-    { value: 'personal', label: '✨ Cuidado Personal' },
+    { value: 'personal', label: 'Cuidado Personal' },
     { value: 'trabajo', label: '💼 Trabajo y Proyectos' },
     { value: 'general', label: '📌 General' },
 ];
@@ -666,13 +753,21 @@ function goToPomodoro(item) {
                     </div>
 
                     <div class="flex items-center gap-2 flex-wrap">
+                        <BaseButton
+                            variant="secondary"
+                            size="sm"
+                            @click="showPersonalEventModal = true"
+                        >
+                            <span>🎂</span> + Evento Personal
+                        </BaseButton>
+
                         <!-- Toggle de Vistas: Mensual vs Time-Blocking -->
                         <div class="flex rounded-xl bg-surface-sunken p-1 border border-border">
                             <button
                                 type="button"
                                 class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all"
                                 :class="calendarViewMode === 'timeblocking' ? 'bg-primary-strong text-on-primary-strong shadow-sm' : 'text-content-secondary hover:text-content-primary'"
-                                @click="calendarViewMode = 'timeblocking'"
+                                @click="setCalendarViewMode('timeblocking')"
                             >
                                 ⏱️ Time-Blocking (24h)
                             </button>
@@ -680,16 +775,11 @@ function goToPomodoro(item) {
                                 type="button"
                                 class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all"
                                 :class="calendarViewMode === 'grid' ? 'bg-primary-strong text-on-primary-strong shadow-sm' : 'text-content-secondary hover:text-content-primary'"
-                                @click="calendarViewMode = 'grid'"
+                                @click="setCalendarViewMode('grid')"
                             >
                                 📅 Vista Mensual
                             </button>
                         </div>
-
-                        <BaseButton variant="secondary" size="sm" @click="showCourseModal = true">
-                            <BookOpen :size="15" />
-                            Mis Cursos
-                        </BaseButton>
                     </div>
                 </header>
             </BaseCard>
@@ -719,7 +809,7 @@ function goToPomodoro(item) {
                                 class="px-3 py-1.5 rounded-xl border border-border bg-surface text-content-primary hover:bg-surface-raised text-xs font-semibold transition-all"
                                 @click="changePlanDate(-1)"
                             >
-                                ◀ Ayer
+                                Ayer
                             </button>
                             <button
                                 type="button"
@@ -736,7 +826,7 @@ function goToPomodoro(item) {
                                 class="px-3 py-1.5 rounded-xl border border-border bg-surface text-content-primary hover:bg-surface-raised text-xs font-semibold transition-all"
                                 @click="changePlanDate(1)"
                             >
-                                Mañana ▶
+                                Mañana
                             </button>
 
                             <button
@@ -766,21 +856,21 @@ function goToPomodoro(item) {
                     </BaseCard>
 
                     <div class="bg-success/15 border border-success/30 p-4 rounded-2xl flex flex-col justify-between">
-                        <span class="text-xs font-semibold text-success">✅ Hechas</span>
-                        <div class="font-display text-2xl font-bold text-success mt-1">{{ plan.stats.done }}</div>
-                        <span class="text-[11px] text-success/80">+{{ plan.stats.done * 15 }} XP ganados</span>
+                        <span class="text-xs font-semibold text-content-primary">✅ Hechas</span>
+                        <div class="font-display text-2xl font-bold text-content-primary mt-1">{{ plan.stats.done }}</div>
+                        <span class="text-[11px] text-content-secondary">+{{ plan.stats.done * 15 }} XP ganados</span>
                     </div>
 
                     <div class="bg-warning/15 border border-warning/30 p-4 rounded-2xl flex flex-col justify-between">
-                        <span class="text-xs font-semibold text-warning">⏳ Postergadas</span>
-                        <div class="font-display text-2xl font-bold text-warning mt-1">{{ plan.stats.postponed }}</div>
-                        <span class="text-[11px] text-warning/80">movidas de bloque</span>
+                        <span class="text-xs font-semibold text-content-primary">⏳ Postergadas</span>
+                        <div class="font-display text-2xl font-bold text-content-primary mt-1">{{ plan.stats.postponed }}</div>
+                        <span class="text-[11px] text-content-secondary">movidas de bloque</span>
                     </div>
 
                     <div class="bg-danger/15 border border-danger/30 p-4 rounded-2xl flex flex-col justify-between">
                         <span class="text-xs font-semibold text-danger-text">❌ Saltadas</span>
                         <div class="font-display text-2xl font-bold text-danger-text mt-1">{{ plan.stats.skipped }}</div>
-                        <span class="text-[11px] text-danger-text/80">con registro</span>
+                        <span class="text-[11px] text-content-secondary">con registro</span>
                     </div>
 
                     <BaseCard class="col-span-2 md:col-span-1 p-4 flex flex-col justify-between">
@@ -797,9 +887,6 @@ function goToPomodoro(item) {
                 <!-- Banner cuando el día está limpio (0 actividades) -->
                 <BaseCard v-if="plan.stats.total === 0" class="p-6 text-center border-dashed border-border/80">
                     <div class="max-w-md mx-auto space-y-3">
-                        <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary-strong flex items-center justify-center text-2xl mx-auto shadow-sm">
-                            ✨
-                        </div>
                         <h3 class="font-display font-bold text-lg text-content-primary">
                             Tu día está libre y limpio
                         </h3>
@@ -826,7 +913,7 @@ function goToPomodoro(item) {
                             <button
                                 v-else
                                 type="button"
-                                class="px-4 py-2 rounded-xl bg-surface-raised border border-border text-accent hover:bg-surface text-xs font-bold transition-all flex items-center gap-1.5"
+                                class="px-4 py-2 rounded-xl bg-surface-raised border border-border text-primary-strong hover:bg-surface text-xs font-bold transition-all flex items-center gap-1.5"
                                 :disabled="isProcessing"
                                 @click="loadRecommendedTemplates"
                             >
@@ -961,7 +1048,7 @@ function goToPomodoro(item) {
                                         v-if="getHourSlotData(hour).isFree"
                                         class="flex items-center justify-between text-[11px] text-content-muted"
                                     >
-                                        <span class="opacity-60">✨ Libre</span>
+                                        <span class="opacity-60">Libre</span>
                                         <a
                                             :href="route('pomodoro.index')"
                                             class="text-[10px] px-1.5 py-0.5 rounded bg-surface-raised border border-border text-primary-strong opacity-0 group-hover:opacity-100 transition-opacity font-bold"
@@ -1299,105 +1386,356 @@ function goToPomodoro(item) {
             </div>
 
             <!-- ═══════════════════════════════════════════════════════════════ -->
-            <!-- VISTA 2: CUADRÍCULA MENSUAL TRADICIONAL                         -->
+            <!-- VISTA 2: CUADRÍCULA MENSUAL MEJORADA (GLASS & NEU CARDS)         -->
             <!-- ═══════════════════════════════════════════════════════════════ -->
             <div v-else class="space-y-6">
-                <BaseCard class="p-4">
-                    <div class="mb-4 flex items-center justify-between">
-                        <button type="button" class="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm text-content-secondary hover:bg-surface-raised" @click="prevMonth">
-                            <ChevronLeft :size="16" />
-                            {{ month === 1 ? monthNames[11] : monthNames[month - 2] }}
-                        </button>
-                        <button type="button" class="font-display text-xl text-content-primary hover:text-primary-strong" @click="openMonthPicker">
-                            {{ monthNames[month - 1] }} {{ year }}
-                        </button>
-                        <div class="flex items-center gap-2">
-                            <button v-if="month !== currentMonth || year !== currentYear" type="button" class="rounded-lg px-2 py-1 text-xs text-content-muted hover:bg-surface-raised hover:text-content-primary" @click="goToToday">Hoy</button>
-                            <button type="button" class="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm text-content-secondary hover:bg-surface-raised" @click="nextMonth">
-                                {{ month === 12 ? monthNames[0] : monthNames[month] }}
-                                <ChevronRight :size="16" />
+                <!-- Barra de Navegación del Mes & Filtros -->
+                <BaseCard class="p-5">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <!-- Navegación de Meses -->
+                        <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                            <div class="flex items-center rounded-xl bg-surface-sunken p-1 border border-border">
+                                <button
+                                    type="button"
+                                    class="p-2 rounded-lg text-content-secondary hover:text-content-primary hover:bg-surface transition-all active:scale-95"
+                                    title="Mes anterior"
+                                    @click="prevMonth"
+                                >
+                                    <ChevronLeft :size="18" />
+                                </button>
+                                <button
+                                    type="button"
+                                    class="px-3.5 py-1.5 rounded-lg font-display text-base sm:text-lg font-bold text-content-primary hover:text-primary-strong transition-colors flex items-center gap-1.5"
+                                    @click="openMonthPicker"
+                                >
+                                    <span>📅</span>
+                                    <span>{{ monthNames[month - 1] }} {{ year }}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="p-2 rounded-lg text-content-secondary hover:text-content-primary hover:bg-surface transition-all active:scale-95"
+                                    title="Mes siguiente"
+                                    @click="nextMonth"
+                                >
+                                    <ChevronRight :size="18" />
+                                </button>
+                            </div>
+
+                            <button
+                                v-if="month !== currentMonth || year !== currentYear"
+                                type="button"
+                                class="px-3 py-1.5 rounded-xl border border-primary-strong/40 bg-primary/10 text-primary-strong text-xs font-bold hover:bg-primary/20 transition-all flex items-center gap-1.5 shadow-sm"
+                                @click="goToToday"
+                            >
+                                <span class="h-2 w-2 rounded-full bg-primary-strong animate-pulse"></span>
+                                Ir a Hoy
+                            </button>
+                        </div>
+
+                        <!-- Filtros de Capas Rápidos -->
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs font-semibold text-content-muted hidden sm:inline">Ver:</span>
+                            <button
+                                type="button"
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border"
+                                :class="layerFilters.classes ? 'bg-primary/15 border-primary-strong/40 text-primary-strong shadow-xs' : 'bg-surface border-border text-content-muted hover:text-content-secondary'"
+                                @click="layerFilters.classes = !layerFilters.classes"
+                            >
+                                <span>🎒</span> Clases
+                            </button>
+                            <button
+                                type="button"
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border"
+                                :class="layerFilters.missions ? 'bg-success/15 border-success/40 text-success shadow-xs' : 'bg-surface border-border text-content-muted hover:text-content-secondary'"
+                                @click="layerFilters.missions = !layerFilters.missions"
+                            >
+                                <span>🎯</span> Misiones
+                            </button>
+                            <button
+                                type="button"
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border"
+                                :class="layerFilters.personal ? 'bg-primary/15 border-primary-strong/40 text-primary-strong shadow-xs' : 'bg-surface border-border text-content-muted hover:text-content-secondary'"
+                                @click="layerFilters.personal = !layerFilters.personal"
+                            >
+                                <span>🎂</span> Eventos
+                            </button>
+
+                            <button
+                                type="button"
+                                class="px-3.5 py-1.5 rounded-xl bg-primary-strong text-on-primary-strong text-xs font-bold shadow-sm hover:opacity-90 transition-all flex items-center gap-1 ml-auto lg:ml-0"
+                                @click="openAddEventOnDate(selectedDay || todayDate)"
+                            >
+                                <span>➕</span> Evento
                             </button>
                         </div>
                     </div>
 
-                    <div v-if="showMonthPicker" class="mb-4 flex items-center gap-3 rounded-lg bg-surface-raised p-3">
-                        <select v-model="pickerMonth" class="rounded-lg border-border bg-surface px-3 py-1.5 text-sm outline-none">
+                    <!-- Selector emergente de Mes / Año -->
+                    <div v-if="showMonthPicker" class="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-surface-sunken p-4 border border-border">
+                        <span class="text-xs font-bold text-content-primary">Seleccionar período:</span>
+                        <select v-model="pickerMonth" class="rounded-xl border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-content-primary outline-none focus:ring-2 focus:ring-primary-strong">
                             <option v-for="(name, i) in monthNames" :key="i" :value="i + 1">{{ name }}</option>
                         </select>
-                        <select v-model="pickerYear" class="rounded-lg border-border bg-surface px-3 py-1.5 text-sm outline-none">
+                        <select v-model="pickerYear" class="rounded-xl border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-content-primary outline-none focus:ring-2 focus:ring-primary-strong">
                             <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}</option>
                         </select>
-                        <BaseButton variant="primary" @click="applyMonthPicker">Ir</BaseButton>
-                        <button type="button" class="text-sm text-content-muted hover:text-content-primary" @click="showMonthPicker = false">Cancelar</button>
+                        <BaseButton variant="primary" size="sm" @click="applyMonthPicker">Aplicar</BaseButton>
+                        <button type="button" class="text-xs text-content-muted hover:text-content-primary transition-colors" @click="showMonthPicker = false">Cancelar</button>
                     </div>
 
-                    <div class="grid grid-cols-7 gap-1 overflow-hidden rounded-xl bg-surface-sunken/40 p-1 sm:gap-px sm:bg-transparent sm:p-0">
-                        <div v-for="d in ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do']" :key="d" class="bg-surface-sunken p-1.5 text-center text-[11px] font-bold text-content-muted sm:p-2 sm:text-xs">{{ d }}</div>
+                    <!-- Mini resumen de actividades del mes -->
+                    <div class="mt-4 pt-3 border-t border-border flex items-center gap-3 sm:gap-6 flex-wrap text-xs text-content-secondary">
+                        <div class="flex items-center gap-1.5">
+                            <span class="p-1 rounded-md bg-primary/15 text-primary-strong font-bold">🎒</span>
+                            <span><strong>{{ monthSummaryStats.classes }}</strong> clases programadas</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="p-1 rounded-md bg-success/15 text-content-primary font-bold">🎯</span>
+                            <span><strong>{{ monthSummaryStats.missions }}</strong> misiones / entregables</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="p-1 rounded-md bg-primary/15 text-primary-strong font-bold">🎂</span>
+                            <span><strong>{{ monthSummaryStats.personal }}</strong> eventos personales</span>
+                        </div>
+                    </div>
+                </BaseCard>
+
+                <!-- Cuadrícula Mensual Principal -->
+                <BaseCard class="p-3 sm:p-5 overflow-hidden">
+                    <!-- Cabecera de Días de la Semana -->
+                    <div class="grid grid-cols-7 gap-1.5 sm:gap-2 mb-2">
                         <div
-                            v-for="(cell, i) in calendarDays" :key="i"
-                            class="relative flex flex-col justify-between rounded-lg bg-surface p-1 transition cursor-pointer sm:min-h-[110px] sm:rounded-none sm:p-2"
-                            :class="{
-                                'ring-2 ring-primary bg-primary/10': cell.date && cell.date === selectedDay,
-                                'opacity-35': cell.isPast && !cell.hasActivity && cell.date !== selectedDay,
-                                'hover:bg-surface-raised': cell.date,
-                                'pointer-events-none opacity-20': !cell.date,
-                            }"
+                            v-for="(d, idx) in ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM']"
+                            :key="d"
+                            class="py-2 text-center text-[11px] sm:text-xs font-extrabold tracking-wider rounded-xl transition-colors"
+                            :class="idx >= 5 ? 'bg-primary/10 text-primary-strong' : 'bg-surface-sunken/80 text-content-secondary'"
+                        >
+                            {{ d }}
+                        </div>
+                    </div>
+
+                    <!-- Grilla de Celdas de Días -->
+                    <div class="grid grid-cols-7 gap-1.5 sm:gap-2">
+                        <div
+                            v-for="(cell, i) in calendarDays"
+                            :key="i"
+                            class="group relative flex flex-col justify-between rounded-xl sm:rounded-2xl border p-1.5 sm:p-2.5 transition-all duration-200 cursor-pointer min-h-[85px] sm:min-h-[135px]"
+                            :class="[
+                                cell.date ? 'bg-surface hover:bg-surface-raised hover:shadow-md hover:border-primary-strong/40' : 'bg-surface-sunken/20 border-transparent pointer-events-none opacity-20',
+                                cell.date && cell.date === selectedDay ? 'ring-2 ring-primary-strong bg-primary/5 border-primary-strong/50 shadow-sm' : 'border-border/70',
+                                cell.isPast && !cell.hasActivity && cell.date !== selectedDay ? 'opacity-40 hover:opacity-100' : ''
+                            ]"
                             @click="selectDay(cell.date)"
                         >
-                            <div class="flex items-center justify-between sm:justify-start sm:gap-1">
-                                <span
-                                    v-if="cell.day" class="text-xs font-bold leading-none sm:text-sm"
-                                    :class="cell.isToday ? 'text-primary' : (cell.date === selectedDay ? 'text-primary font-extrabold' : (cell.isPast ? 'text-content-muted' : 'text-content-secondary'))"
-                                >{{ cell.day }}</span>
-                                <span v-if="cell.holiday" class="rounded bg-danger/15 px-1 py-0.2 text-[8px] font-bold text-danger sm:text-[9px]" title="Feriado Oficial">F</span>
+                            <!-- Cabecera de la celda: Número de día + Feriado + Botón rápido "+" -->
+                            <div class="flex items-center justify-between gap-1">
+                                <div class="flex items-center gap-1.5">
+                                    <!-- Número del Día -->
+                                    <div
+                                        v-if="cell.day"
+                                        class="flex items-center justify-center text-xs sm:text-sm font-bold transition-all"
+                                        :class="[
+                                            cell.isToday
+                                                ? 'h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-primary-strong text-on-primary-strong font-black shadow-md ring-2 ring-primary/40'
+                                                : (cell.date === selectedDay ? 'text-primary-strong font-black text-sm sm:text-base' : (cell.isPast ? 'text-content-muted' : 'text-content-primary'))
+                                        ]"
+                                    >
+                                        {{ cell.day }}
+                                    </div>
+
+                                    <!-- Tag Feriado Oficial -->
+                                    <span
+                                        v-if="cell.holiday"
+                                        class="rounded-lg bg-danger/15 border border-danger/30 px-1.5 py-0.5 text-[9px] font-extrabold text-danger-text truncate max-w-[70px] sm:max-w-[100px]"
+                                        :title="cell.holiday.name"
+                                    >
+                                        🎉 {{ cell.holiday.name }}
+                                    </span>
+                                </div>
+
+                                <!-- Botón "+" al hacer hover en escritorio -->
+                                <button
+                                    v-if="cell.date"
+                                    type="button"
+                                    class="hidden sm:flex h-5 w-5 items-center justify-center rounded-md bg-surface-sunken text-content-muted hover:text-primary-strong hover:bg-primary/20 opacity-0 group-hover:opacity-100 transition-all text-xs font-bold"
+                                    title="Añadir evento a este día"
+                                    @click.stop="openAddEventOnDate(cell.date)"
+                                >
+                                    +
+                                </button>
                             </div>
 
-                            <!-- Indicadores Móvil -->
+                            <!-- Indicadores Compactos para Móviles -->
                             <div class="mt-1 flex items-center justify-center gap-1 sm:hidden">
-                                <span v-if="cell.holiday" class="h-1.5 w-1.5 rounded-full bg-danger" title="Feriado"></span>
+                                <span v-if="cell.holiday" class="h-1.5 w-1.5 rounded-full bg-danger"></span>
                                 <span
                                     v-for="s in cell.sessions.slice(0, 2)"
-                                    :key="s.id"
+                                    :key="'ms-' + s.id"
                                     class="h-1.5 w-1.5 rounded-full"
-                                    :class="s.color === 'accent' ? 'bg-accent' : (s.color === 'success' ? 'bg-success' : (s.color === 'warning' ? 'bg-warning' : 'bg-primary'))"
+                                    :class="s.color === 'accent' ? 'bg-secondary' : (s.color === 'success' ? 'bg-success' : (s.color === 'warning' ? 'bg-warning' : 'bg-primary-strong'))"
                                 ></span>
-                                <span v-if="cell.sessions.length > 2" class="text-[7px] font-bold text-content-muted">+{{ cell.sessions.length - 2 }}</span>
-                                <span v-if="cell.missions.length > 0" class="h-1.5 w-1.5 rounded-full bg-success/80"></span>
+                                <span v-if="cell.missions.length > 0" class="h-1.5 w-1.5 rounded-full bg-success"></span>
+                                <span v-if="cell.personalEvents.length > 0" class="h-1.5 w-1.5 rounded-full bg-primary-strong"></span>
                             </div>
 
-                            <!-- Escritorio -->
-                            <div class="hidden sm:block">
-                                <div v-if="cell.holiday" class="mt-0.5 truncate text-[9px] font-medium leading-tight text-danger" :title="cell.holiday.name">{{ cell.holiday.name }}</div>
-
-                                <div v-if="cell.sessions.length > 0" class="mt-1 space-y-0.5">
+                            <!-- Contenido Completo para Pantallas Medianas / Grandes -->
+                            <div class="hidden sm:flex flex-col gap-1 mt-1.5 overflow-hidden">
+                                <!-- Clases Universitarias -->
+                                <template v-if="layerFilters.classes && cell.sessions.length > 0">
                                     <button
-                                        v-for="s in cell.sessions"
-                                        :key="s.id"
+                                        v-for="s in cell.sessions.slice(0, 2)"
+                                        :key="'cs-' + s.id"
                                         type="button"
-                                        class="flex w-full items-center gap-1 truncate rounded border px-1 py-0.5 text-left text-[9px] font-medium leading-tight transition hover:opacity-80"
+                                        class="flex w-full items-center gap-1.5 truncate rounded-lg border px-1.5 py-1 text-left text-[10px] font-semibold leading-tight transition-all hover:brightness-105 shadow-2xs"
                                         :class="scheduleColorStyles[s.color] || scheduleColorStyles.primary"
                                         :title="`${s.course_name} (${formatTime12h(s.start_time)} - ${formatTime12h(s.end_time)})`"
                                         @click.stop="openNote(s.course_id)"
                                     >
-                                        <BookOpen :size="9" class="shrink-0" />
+                                        <BookOpen :size="10" class="shrink-0" />
                                         <span class="truncate">{{ formatTime12h(s.start_time) }} {{ s.course_name }}</span>
                                     </button>
-                                </div>
+                                </template>
 
-                                <div v-if="cell.missions.length > 0" class="mt-1 space-y-0.5">
+                                <!-- Misiones / Entregables -->
+                                <template v-if="layerFilters.missions && cell.missions.length > 0">
                                     <a
-                                        v-for="m in cell.missions" :key="m.id"
+                                        v-for="m in cell.missions.slice(0, 2)"
+                                        :key="'cm-' + m.id"
                                         :href="route('missions.show', { id: m.id })"
-                                        class="flex items-center gap-0.5 truncate rounded px-1 py-0.5 text-[10px] leading-tight transition hover:opacity-80"
-                                        :class="m.is_completed ? 'text-content-muted line-through' : (difficultyStyles[m.difficulty] || 'text-content-muted')"
+                                        class="flex items-center gap-1 truncate rounded-lg px-1.5 py-1 text-[10px] font-medium leading-tight transition-all hover:opacity-85 border border-border bg-surface-raised"
+                                        :class="m.is_completed ? 'text-content-muted line-through opacity-60' : 'text-content-primary'"
                                         :title="m.title"
                                         @click.stop
                                     >
-                                        <Target :size="9" class="shrink-0" />
+                                        <Target :size="10" class="shrink-0 text-success" />
                                         <span class="truncate">{{ m.title }}</span>
                                     </a>
+                                </template>
+
+                                <!-- Eventos Personales -->
+                                <template v-if="layerFilters.personal && cell.personalEvents.length > 0">
+                                    <div
+                                        v-for="e in cell.personalEvents.slice(0, 1)"
+                                        :key="'pe-' + e.id"
+                                        class="flex items-center gap-1 truncate rounded-lg border border-border bg-surface-raised px-1.5 py-1 text-left text-[10px] font-bold text-content-primary truncate"
+                                        :title="`${e.title} (${e.start_time ? formatTime12h(e.start_time) : 'Todo el día'})`"
+                                    >
+                                        <span>{{ eventTypeIcons[e.type] || '📌' }}</span>
+                                        <span class="truncate">{{ e.title }}</span>
+                                    </div>
+                                </template>
+
+                                <!-- Contador de elementos adicionales (+X más) -->
+                                <div
+                                    v-if="(cell.sessions.length + cell.missions.length + cell.personalEvents.length) > 3"
+                                    class="text-[9px] font-bold text-content-muted px-1 py-0.5 rounded-md bg-surface-sunken self-start"
+                                >
+                                    +{{ (cell.sessions.length + cell.missions.length + cell.personalEvents.length) - 3 }} más
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </BaseCard>
+
+                <!-- Panel Inspector del Día Seleccionado (Al hacer clic en cualquier día) -->
+                <BaseCard v-if="selectedDayData" class="p-5 border-l-4 border-l-primary-strong">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+                        <div class="flex items-center gap-3">
+                            <span class="p-2.5 rounded-2xl bg-primary/15 text-primary-strong text-xl font-bold">📌</span>
+                            <div>
+                                <h3 class="font-display text-lg sm:text-xl font-bold text-content-primary capitalize">
+                                    {{ formatSelectedDayHeader(selectedDay) }}
+                                </h3>
+                                <p class="text-xs text-content-secondary mt-0.5">
+                                    Resumen de clases, tareas y eventos programados para este día
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button
+                                type="button"
+                                class="px-4 py-2 rounded-xl bg-primary-strong text-on-primary-strong text-xs font-bold shadow-sm hover:opacity-90 transition-all flex items-center gap-1.5"
+                                @click="setCalendarViewMode('timeblocking')"
+                            >
+                                <span>⏱️</span> Ver Time-Blocking 24h
+                            </button>
+                            <button
+                                type="button"
+                                class="px-3.5 py-2 rounded-xl bg-surface-raised border border-border text-content-primary hover:bg-surface text-xs font-bold transition-all flex items-center gap-1.5"
+                                @click="openAddEventOnDate(selectedDay)"
+                            >
+                                <span>🎂</span> + Evento
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Columnas de Detalle del Día -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                        <!-- Clases del Día -->
+                        <div class="p-3.5 rounded-2xl bg-surface-raised border border-border">
+                            <h4 class="font-bold text-xs text-content-primary flex items-center gap-1.5 mb-2.5">
+                                <span>🎒</span> Clases Universitarias ({{ selectedDayData.sessions.length }})
+                            </h4>
+                            <div v-if="selectedDayData.sessions.length > 0" class="space-y-2">
+                                <div
+                                    v-for="s in selectedDayData.sessions"
+                                    :key="'ds-' + s.id"
+                                    class="p-2.5 rounded-xl border bg-surface flex flex-col gap-1 shadow-2xs"
+                                    :class="scheduleColorStyles[s.color] || scheduleColorStyles.primary"
+                                >
+                                    <div class="flex items-center justify-between text-xs font-bold">
+                                        <span>{{ s.course_name }}</span>
+                                        <span class="text-[11px] font-mono">{{ formatTime12h(s.start_time) }} - {{ formatTime12h(s.end_time) }}</span>
+                                    </div>
+                                    <span v-if="s.classroom" class="text-[11px] text-content-secondary">📍 Aula / Sala: {{ s.classroom }}</span>
+                                </div>
+                            </div>
+                            <p v-else class="text-xs text-content-muted italic">Sin clases programadas este día.</p>
+                        </div>
+
+                        <!-- Misiones del Día -->
+                        <div class="p-3.5 rounded-2xl bg-surface-raised border border-border">
+                            <h4 class="font-bold text-xs text-content-primary flex items-center gap-1.5 mb-2.5">
+                                <span>🎯</span> Misiones / Tareas ({{ selectedDayData.missions.length }})
+                            </h4>
+                            <div v-if="selectedDayData.missions.length > 0" class="space-y-2">
+                                <a
+                                    v-for="m in selectedDayData.missions"
+                                    :key="'dm-' + m.id"
+                                    :href="route('missions.show', { id: m.id })"
+                                    class="p-2.5 rounded-xl border border-border bg-surface flex items-center justify-between text-xs hover:border-primary-strong transition-all shadow-2xs block"
+                                >
+                                    <span :class="m.is_completed ? 'line-through text-content-muted' : 'font-semibold text-content-primary'">{{ m.title }}</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-md" :class="difficultyStyles[m.difficulty] || 'bg-surface-sunken text-content-secondary'">
+                                        {{ m.difficulty }}
+                                    </span>
+                                </a>
+                            </div>
+                            <p v-else class="text-xs text-content-muted italic">No hay entregas pendientes para este día.</p>
+                        </div>
+
+                        <!-- Eventos Personales del Día -->
+                        <div class="p-3.5 rounded-2xl bg-surface-raised border border-border">
+                            <h4 class="font-bold text-xs text-content-primary flex items-center gap-1.5 mb-2.5">
+                                <span>🎂</span> Eventos Personales ({{ selectedDayData.personalEvents.length }})
+                            </h4>
+                            <div v-if="selectedDayData.personalEvents.length > 0" class="space-y-2">
+                                <div
+                                    v-for="e in selectedDayData.personalEvents"
+                                    :key="'de-' + e.id"
+                                    class="p-2.5 rounded-xl border border-border bg-surface flex flex-col gap-0.5 shadow-2xs"
+                                >
+                                    <div class="flex items-center gap-1.5 text-xs font-bold text-content-primary">
+                                        <span>{{ eventTypeIcons[e.type] || '📌' }}</span>
+                                        <span>{{ e.title }}</span>
+                                    </div>
+                                    <span v-if="e.start_time" class="text-[11px] text-content-secondary font-mono">
+                                        ⏰ {{ formatTime12h(e.start_time) }} {{ e.end_time ? '- ' + formatTime12h(e.end_time) : '' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <p v-else class="text-xs text-content-muted italic">Sin eventos personales agendados.</p>
                         </div>
                     </div>
                 </BaseCard>
@@ -1678,6 +2016,10 @@ function goToPomodoro(item) {
                         <BaseInput v-model="courseForm.name" placeholder="Ej. Cálculo Multivariable" required />
                     </div>
                     <div>
+                        <label class="block text-xs font-bold text-content-secondary mb-1">Profesor / Docente (Opcional)</label>
+                        <BaseInput v-model="courseForm.professor" placeholder="Ej. Juan Pérez" />
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-content-secondary mb-1">Color de identificación</label>
                         <BaseSelect v-model="courseForm.color" :options="[
                             { value: 'primary', label: 'Primario' },
@@ -1737,12 +2079,55 @@ function goToPomodoro(item) {
             </form>
         </BaseModal>
 
-        <!-- Modal de Apuntes -->
-        <NoteEditorModal
-            :show="showNoteModal"
-            :course="selectedCourse"
-            @close="closeNote"
-            @openKnowledgeGraph="showNoteModal = false; router.visit(route('learning.index'))"
-        />
+        <!-- Modal de Evento Personal (Fase 4) -->
+        <BaseModal :show="showPersonalEventModal" title="Nuevo Evento Personal o Cita" @close="showPersonalEventModal = false">
+            <form class="space-y-4" @submit.prevent="createPersonalEvent">
+                <div>
+                    <label class="block text-xs font-bold text-content-primary mb-1">Título del Evento</label>
+                    <BaseInput v-model="eventForm.title" placeholder="Ej: Cumpleaños de Ana / Cita Médica / Entrevista laboral" required />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-content-primary mb-1">Tipo de Evento</label>
+                        <select v-model="eventForm.type" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2 text-content-primary outline-none">
+                            <option value="birthday">🎂 Cumpleaños</option>
+                            <option value="appointment">🩺 Cita Médica / Trámite</option>
+                            <option value="meeting">👥 Reunión / Grupo</option>
+                            <option value="work">💼 Trabajo / Freelance</option>
+                            <option value="social">🥂 Salida / Evento Social</option>
+                            <option value="reminder">⏰ Recordatorio</option>
+                            <option value="other">📌 Otro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-content-primary mb-1">Fecha</label>
+                        <input type="date" v-model="eventForm.event_date" required class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2 text-content-primary outline-none" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-content-primary mb-1">Hora Inicio (Opcional)</label>
+                        <input type="time" v-model="eventForm.start_time" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2 text-content-primary outline-none" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-content-primary mb-1">Hora Fin (Opcional)</label>
+                        <input type="time" v-model="eventForm.end_time" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2 text-content-primary outline-none" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-content-primary mb-1">Descripción / Notas (Opcional)</label>
+                    <textarea v-model="eventForm.description" rows="2" placeholder="Detalles, lugar, enlace..." class="w-full text-xs rounded-xl border border-border bg-surface-sunken p-3 text-content-primary outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-border">
+                    <BaseButton variant="secondary" type="button" @click="showPersonalEventModal = false">Cancelar</BaseButton>
+                    <BaseButton variant="primary" type="submit">Guardar Evento</BaseButton>
+                </div>
+            </form>
+        </BaseModal>
+
     </AppLayout>
 </template>

@@ -168,8 +168,8 @@ function goBack() {
                     <div>
                         <h1 class="font-display text-2xl text-content-primary">{{ displayDate }}</h1>
                         <div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
-                            <span v-if="isHoliday" class="rounded bg-danger/10 px-2 py-0.5 text-danger">🏖 {{ holidayName }}</span>
-                            <span v-if="isExam" class="rounded bg-warning/20 px-2 py-0.5 text-warning">📝 Semana de exámenes</span>
+                            <span v-if="isHoliday" class="rounded bg-danger/10 px-2 py-0.5 text-danger-text font-bold">🏖 {{ holidayName }}</span>
+                            <span v-if="isExam" class="rounded bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-amber-700 dark:text-amber-300 font-bold">📝 Semana de exámenes</span>
                             <span v-if="avgMoodInfo" class="text-content-muted">Ánimo promedio: {{ avgMoodInfo.emoji }} {{ avgMoodInfo.label }} ({{ avgScore }}/5)</span>
                         </div>
                     </div>
@@ -328,7 +328,7 @@ function goBack() {
                         <button type="button" class="text-xs text-content-muted hover:text-content-primary" @click="openEdit(entry)"><AppIcon name="pencil" :size="12" /></button>
                     </div>
                     <div v-if="entry.energy || entry.stress || entry.sleep_hours || entry.physical_activity" class="mt-2 flex flex-wrap gap-2">
-                        <span v-if="entry.energy" class="rounded-full bg-accent/10 px-2 py-0.5 text-xs text-accent">Energía: {{ entry.energy }}/5</span>
+                        <span v-if="entry.energy" class="rounded-full bg-surface-raised border border-border px-2 py-0.5 text-xs text-content-primary font-semibold">Energía: {{ entry.energy }}/5</span>
                         <span v-if="entry.stress" class="rounded-full bg-danger/10 px-2 py-0.5 text-xs text-danger">Estrés: {{ entry.stress }}/5</span>
                         <span v-if="entry.sleep_hours" class="rounded-full bg-surface-sunken px-2 py-0.5 text-xs text-content-muted inline-flex items-center gap-1"><AppIcon name="bed" :size="10" /> {{ entry.sleep_hours }} h</span>
                         <span v-if="entry.physical_activity" class="rounded-full bg-success/10 px-2 py-0.5 text-xs text-success inline-flex items-center gap-1"><AppIcon name="activity" :size="10" /> {{ entry.physical_activity.type }} {{ entry.physical_activity.duration }} min</span>

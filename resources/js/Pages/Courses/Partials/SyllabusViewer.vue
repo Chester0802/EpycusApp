@@ -90,8 +90,8 @@ function deleteSyllabus() {
                 </div>
             </div>
             <!-- Visor iframe -->
-            <div class="flex-1 bg-surface-sunken min-h-[500px]">
-                <iframe :src="syllabusUrl" class="w-full h-full border-none" title="Visor de Sílabo"></iframe>
+            <div class="flex-1 bg-surface-sunken">
+                <iframe :src="syllabusUrl" class="w-full h-[70vh] border-none" title="Visor de Sílabo"></iframe>
             </div>
         </BaseCard>
 

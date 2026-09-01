@@ -10,12 +10,13 @@ use App\Modules\Fitness\Infrastructure\Providers\FitnessServiceProvider;
 use App\Modules\Gamification\Infrastructure\Providers\GamificationServiceProvider;
 use App\Modules\Habits\Infrastructure\Providers\HabitsServiceProvider;
 use App\Modules\Identity\Infrastructure\Providers\IdentityServiceProvider;
-use App\Modules\Learning\Infrastructure\Providers\LearningServiceProvider;
 use App\Modules\Missions\Infrastructure\Providers\MissionsServiceProvider;
 use App\Modules\Motivation\Infrastructure\Providers\MotivationServiceProvider;
 use App\Modules\Pomodoro\Infrastructure\Providers\PomodoroServiceProvider;
 use App\Modules\Ranking\Infrastructure\Providers\RankingServiceProvider;
 use App\Modules\Shop\Infrastructure\Providers\ShopServiceProvider;
+use App\Modules\Readings\Infrastructure\Providers\ReadingsServiceProvider;
+use App\Modules\Skills\Infrastructure\Providers\SkillsServiceProvider;
 use App\Modules\StudyGroups\Infrastructure\Providers\StudyGroupsServiceProvider;
 use App\Modules\Telemetry\Infrastructure\Providers\TelemetryServiceProvider;
 use App\Modules\Villains\Infrastructure\Providers\VillainsServiceProvider;
@@ -35,7 +36,6 @@ return [
     HabitsServiceProvider::class,
     MissionsServiceProvider::class,
     CalendarServiceProvider::class,
-    LearningServiceProvider::class,
     PomodoroServiceProvider::class,
     WellbeingServiceProvider::class,
     StudyGroupsServiceProvider::class,
@@ -46,4 +46,6 @@ return [
     AdminServiceProvider::class,
     AchievementsServiceProvider::class,
     GamificationServiceProvider::class,
+    ReadingsServiceProvider::class,
+    SkillsServiceProvider::class,
 ];

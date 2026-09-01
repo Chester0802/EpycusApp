@@ -26,6 +26,8 @@ import {
     RotateCcw,
     Trash2,
     Network,
+    PanelLeft,
+    ChevronLeft,
 } from '@lucide/vue';
 
 const props = defineProps({
@@ -42,6 +44,7 @@ const saveSuccess    = ref(false);
 const autoSaveStatus = ref('saved'); // 'saved' | 'saving' | 'unsaved' | 'error'
 const noteId         = ref(null);
 const entries        = ref([]);
+const showEntriesSidebar = ref(true);
 const images         = ref([]);
 const activeEntryId  = ref(null);
 const cameraStream   = ref(null);
@@ -987,6 +990,17 @@ onBeforeUnmount(() => {
                                 </button>
                                 <Loader2 v-if="uploadingImage" :size="15" class="animate-spin text-content-muted" />
                                 <div class="toolbar-sep"></div>
+                                <button
+                                    v-if="entries.length > 1"
+                                    type="button"
+                                    class="toolbar-btn"
+                                    :class="{ 'active': showEntriesSidebar }"
+                                    :title="showEntriesSidebar ? 'Ocultar panel de registros' : 'Mostrar panel de registros'"
+                                    @click="showEntriesSidebar = !showEntriesSidebar"
+                                >
+                                    <PanelLeft :size="15" />
+                                    <span class="text-xs hidden md:inline">{{ showEntriesSidebar ? 'Ocultar Registros' : 'Ver Registros' }} ({{ entries.length }})</span>
+                                </button>
                                 <button type="button" class="toolbar-btn-entry" @click="addEntry">
                                     <CalendarPlus :size="15" /> Nuevo registro
                                 </button>
@@ -1003,9 +1017,19 @@ onBeforeUnmount(() => {
 
                             <!-- Body -->
                             <div class="note-body">
-                                <!-- Sidebar -->
-                                <div v-if="entries.length > 1" class="note-entries-sidebar">
-                                    <p class="sidebar-title">Registros ({{ entries.length }})</p>
+                                <!-- Sidebar de Registros Colapsable -->
+                                <div v-if="entries.length > 1 && showEntriesSidebar" class="note-entries-sidebar">
+                                    <div class="flex items-center justify-between px-1 pb-1 mb-1 border-b border-border/50">
+                                        <p class="sidebar-title !p-0 !border-0 !m-0">Registros ({{ entries.length }})</p>
+                                        <button
+                                            type="button"
+                                            class="text-content-muted hover:text-content-primary p-1 rounded hover:bg-surface transition-colors"
+                                            title="Ocultar panel de registros"
+                                            @click="showEntriesSidebar = false"
+                                        >
+                                            <ChevronLeft :size="13" />
+                                        </button>
+                                    </div>
                                     <button
                                         v-for="entry in [...entries].reverse()"
                                         :key="entry.id"
@@ -1020,6 +1044,17 @@ onBeforeUnmount(() => {
 
                                 <!-- Editor -->
                                 <div class="note-editor-area">
+                                    <!-- Botón flotante para restaurar registros si está oculto -->
+                                    <button
+                                        v-if="!showEntriesSidebar && entries.length > 1"
+                                        type="button"
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-surface-raised border border-border text-content-secondary hover:text-content-primary hover:border-primary-strong/40 transition mb-3 w-fit shadow-xs font-semibold"
+                                        title="Mostrar panel de registros"
+                                        @click="showEntriesSidebar = true"
+                                    >
+                                        <PanelLeft :size="13" class="text-primary-strong" />
+                                        <span>Mostrar Registros ({{ entries.length }})</span>
+                                    </button>
                                     <!-- Vacío -->
                                     <div v-if="entries.length === 0" class="note-empty">
                                         <NotebookText :size="48" class="note-empty-icon" />
@@ -1199,15 +1234,15 @@ onBeforeUnmount(() => {
 .note-modal-panel {
     position: fixed; top: 0; right: 0; bottom: 0;
     width: 100%; max-width: 800px;
-    background: var(--color-surface, #1a1a2e);
-    border-left: 1px solid var(--color-border, rgba(255,255,255,0.08));
+    background: var(--color-surface);
+    border-left: 1px solid var(--color-border);
     display: flex; flex-direction: column; overflow: hidden;
-    box-shadow: -8px 0 40px rgba(0,0,0,0.4);
+    box-shadow: -8px 0 40px rgba(0,0,0,0.3);
 }
 .note-modal-header {
     display: flex; flex-direction: column;
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.08));
+    border-bottom: 1px solid var(--color-border);
     gap: 0.75rem; flex-shrink: 0;
 }
 @media (min-width: 640px) {
@@ -1223,29 +1258,29 @@ onBeforeUnmount(() => {
 .note-header-left  { display: flex; align-items: flex-start; gap: 0.75rem; min-width: 0; flex: 1; }
 .note-header-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; flex-shrink: 0; justify-content: flex-end; }
 .note-course-dot   { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
-.color-dot-primary   { background: var(--color-primary,   #e879f9); }
-.color-dot-accent    { background: var(--color-accent,    #a855f7); }
-.color-dot-success   { background: var(--color-success,   #22c55e); }
-.color-dot-warning   { background: var(--color-warning,   #f59e0b); }
-.color-dot-secondary { background: var(--color-content-muted, #6b7280); }
+.color-dot-primary   { background: var(--color-primary); }
+.color-dot-accent    { background: var(--color-accent); }
+.color-dot-success   { background: var(--color-success); }
+.color-dot-warning   { background: var(--color-warning); }
+.color-dot-secondary { background: var(--color-content-muted); }
 .note-course-title {
     font-size: 1.05rem; font-weight: 700;
-    color: var(--color-content-primary, #f1f5f9);
+    color: var(--color-content-primary);
     margin: 0; display: flex; align-items: center;
 }
 .note-course-sessions { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-top: 0.25rem; }
 .note-session-badge {
-    font-size: 0.68rem; background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
-    padding: 0.1rem 0.45rem; color: var(--color-content-secondary, #94a3b8);
+    font-size: 0.68rem; background: var(--color-surface-sunken);
+    border: 1px solid var(--color-border); border-radius: 6px;
+    padding: 0.1rem 0.45rem; color: var(--color-content-secondary);
 }
 .note-close-btn {
     display: flex; align-items: center; justify-content: center;
     width: 32px; height: 32px; border-radius: 8px; border: none;
-    background: transparent; color: var(--color-content-muted, #6b7280);
+    background: transparent; color: var(--color-content-muted);
     cursor: pointer; transition: background 0.15s, color 0.15s; flex-shrink: 0;
 }
-.note-close-btn:hover { background: rgba(255,255,255,0.06); color: var(--color-content-primary); }
+.note-close-btn:hover { background: var(--color-surface-sunken); color: var(--color-content-primary); }
 .note-btn {
     display: inline-flex; align-items: center; gap: 0.35rem;
     padding: 0.4rem 0.75rem; border-radius: 8px;
@@ -1255,75 +1290,75 @@ onBeforeUnmount(() => {
 .note-btn:disabled { opacity: 0.5; pointer-events: none; }
 .note-btn:active   { transform: scale(0.97); }
 .note-btn-primary  {
-    background: linear-gradient(135deg, var(--color-primary, #e879f9), var(--color-accent, #a855f7));
-    color: #fff;
+    background: var(--color-primary-strong);
+    color: var(--color-on-primary-strong);
 }
 .note-btn-primary:hover { opacity: 0.88; }
 .note-btn-secondary {
-    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
-    color: var(--color-content-secondary, #94a3b8);
+    background: var(--color-surface-raised); border: 1px solid var(--color-border);
+    color: var(--color-content-secondary);
 }
-.note-btn-secondary:hover { background: rgba(255,255,255,0.12); }
+.note-btn-secondary:hover { background: var(--color-surface-sunken); color: var(--color-content-primary); }
 .note-loading {
     display: flex; align-items: center; justify-content: center;
-    gap: 0.75rem; flex: 1; color: var(--color-content-muted, #6b7280); font-size: 0.9rem;
+    gap: 0.75rem; flex: 1; color: var(--color-content-muted); font-size: 0.9rem;
 }
 .animate-spin { animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .note-toolbar {
     display: flex; align-items: center; gap: 0.25rem;
     padding: 0.5rem 1rem; flex-wrap: wrap; flex-shrink: 0;
-    border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.08));
-    background: var(--color-surface-sunken, rgba(0,0,0,0.2));
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface-sunken);
     overflow-x: auto;
 }
 .toolbar-btn {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 32px; height: 32px; padding: 0 0.4rem; border-radius: 6px;
-    border: none; background: transparent; color: var(--color-content-secondary, #94a3b8);
+    border: none; background: transparent; color: var(--color-content-secondary);
     cursor: pointer; transition: background 0.12s, color 0.12s;
 }
-.toolbar-btn:hover { background: rgba(255,255,255,0.08); color: var(--color-content-primary, #f1f5f9); }
+.toolbar-btn:hover { background: var(--color-surface-raised); color: var(--color-content-primary); }
 .color-red              { color: #ef4444 !important; }
 .color-blue             { color: #3b82f6 !important; }
 .color-green            { color: #22c55e !important; }
 .color-yellow           { color: #eab308 !important; }
 .color-highlight-yellow { color: #facc15 !important; }
 .color-highlight-green  { color: #4ade80 !important; }
-.toolbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 0.25rem; flex-shrink: 0; }
+.toolbar-sep { width: 1px; height: 20px; background: var(--color-border); margin: 0 0.25rem; flex-shrink: 0; }
 .toolbar-btn-entry {
     display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem;
     padding: 0.3rem 0.75rem; border-radius: 6px; cursor: pointer;
-    background: rgba(232,121,249,0.1); color: var(--color-primary, #e879f9);
-    border: 1px solid rgba(232,121,249,0.25); transition: background 0.12s;
+    background: var(--color-surface-raised); color: var(--color-primary-strong);
+    border: 1px solid var(--color-border); transition: background 0.12s;
 }
-.toolbar-btn-entry:hover { background: rgba(232,121,249,0.2); }
+.toolbar-btn-entry:hover { background: var(--color-surface-sunken); }
 .camera-error-bar {
     display: flex; align-items: center; gap: 0.5rem;
     padding: 0.6rem 1.25rem;
     background: rgba(239,68,68,0.1); border-bottom: 1px solid rgba(239,68,68,0.2);
-    color: #fca5a5; font-size: 0.8rem; flex-shrink: 0;
+    color: var(--color-danger-text); font-size: 0.8rem; flex-shrink: 0;
 }
 .note-body { display: flex; flex: 1; overflow: hidden; }
 .note-entries-sidebar {
     width: 180px; flex-shrink: 0; overflow-y: auto; padding: 0.75rem 0.5rem;
     display: flex; flex-direction: column; gap: 0.25rem;
-    border-right: 1px solid var(--color-border, rgba(255,255,255,0.08));
-    background: var(--color-surface-sunken, rgba(0,0,0,0.15));
+    border-right: 1px solid var(--color-border);
+    background: var(--color-surface-sunken);
 }
 .sidebar-title {
     font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--color-content-muted, #6b7280);
+    letter-spacing: 0.08em; color: var(--color-content-muted);
     padding: 0 0.5rem 0.5rem;
-    border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 0.25rem;
+    border-bottom: 1px solid var(--color-border); margin-bottom: 0.25rem;
 }
 .sidebar-entry-btn {
     width: 100%; text-align: left; padding: 0.4rem 0.5rem; border-radius: 6px;
-    border: none; background: transparent; color: var(--color-content-secondary, #94a3b8);
+    border: none; background: transparent; color: var(--color-content-secondary);
     font-size: 0.7rem; cursor: pointer; transition: background 0.12s, color 0.12s; word-break: break-word;
 }
-.sidebar-entry-btn:hover  { background: rgba(255,255,255,0.06); }
-.sidebar-entry-btn.active { background: rgba(232,121,249,0.12); color: var(--color-primary, #e879f9); font-weight: 600; }
+.sidebar-entry-btn:hover  { background: var(--color-surface-raised); color: var(--color-content-primary); }
+.sidebar-entry-btn.active { background: var(--color-surface-raised); color: var(--color-primary-strong); font-weight: 700; border-left: 2px solid var(--color-primary-strong); }
 .note-editor-area { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; }
 
 @media (max-width: 640px) {

@@ -29,6 +29,13 @@ const navSections = [
         ],
     },
     {
+        title: 'Aprendizaje',
+        items: [
+            { label: 'Lecturas', routeName: 'readings.index', icon: 'readings', matchRoutes: ['readings.*'] },
+            { label: 'Habilidades', routeName: 'skills.index', icon: 'skills', matchRoutes: ['skills.*'] },
+        ],
+    },
+    {
         title: 'Vida & Salud',
         items: [
             { label: 'Bienestar & Hábitos', routeName: 'habits.index', icon: 'habits', matchRoutes: ['habits.index', 'wellbeing.index', 'wellbeing.day', 'fitness.index'] },
@@ -48,7 +55,7 @@ const navSections = [
     {
         title: 'Cuenta',
         items: [
-            { label: 'Perfil & Logros', routeName: 'profile.edit', icon: 'user' },
+            { label: 'Perfil & Logros', routeName: 'gamification.index', icon: 'user' },
             { label: 'Ajustes', routeName: 'settings.edit', icon: 'settings' },
         ],
     },
@@ -64,8 +71,11 @@ const mobileBottomNavItems = [
 ];
 
 const mobileDrawerItems = [
-    { label: 'Mi Perfil & Logros', routeName: 'profile.edit', icon: 'user', desc: 'Avatar, XP y Medallas' },
+    { label: 'Mi Perfil & Logros', routeName: 'gamification.index', icon: 'user', desc: 'Avatar, XP y Medallas' },
     { label: 'Pomodoro', routeName: 'pomodoro.index', icon: 'pomodoro', desc: 'Temporizador de estudio' },
+    { label: 'Cursos', routeName: 'courses.index', icon: 'book', desc: 'Asignaturas, sílabos y apuntes' },
+    { label: 'Lecturas', routeName: 'readings.index', icon: 'readings', desc: 'Libros, artículos y biblioteca' },
+    { label: 'Habilidades', routeName: 'skills.index', icon: 'skills', desc: 'Árbol de destrezas y práctica' },
     { label: 'Bienestar & Hábitos', routeName: 'habits.index', icon: 'habits', desc: 'Rutinas, diario y salud' },
     { label: 'Finanzas', routeName: 'finance.index', icon: 'finance', desc: 'Presupuesto y ahorro' },
     { label: 'Tienda', routeName: 'shop.index', icon: 'shop', desc: 'Canje de recompensas' },
@@ -112,14 +122,18 @@ function navigate(routeName) {
 const flashMessage = computed(() => page.props.flash?.success ?? null);
 const flashError = computed(() => page.props.flash?.error ?? null);
 const flashWarning = computed(() => page.props.flash?.warning ?? null);
+const flashXp = computed(() => page.props.flash?.xp_awarded ?? null);
 const toastMessage = ref(null);
 const toastType = ref('success');
 
 import { watch } from 'vue';
 watch(
-    [flashMessage, flashError, flashWarning],
-    ([newSuccess, newError, newWarning]) => {
-        if (newError) {
+    [flashMessage, flashError, flashWarning, flashXp],
+    ([newSuccess, newError, newWarning, newXp]) => {
+        if (newXp > 0) {
+            toastMessage.value = `¡+${newXp} XP obtenidos!`;
+            toastType.value = 'xp';
+        } else if (newError) {
             toastMessage.value = newError;
             toastType.value = 'error';
         } else if (newWarning) {
@@ -170,13 +184,15 @@ if (typeof window !== 'undefined') {
                         ? 'border-danger/30 bg-danger/15 text-danger-text'
                         : toastType === 'warning'
                           ? 'border-warning/40 bg-warning/20 text-content-primary'
+                          : toastType === 'xp'
+                          ? 'border-accent/40 bg-accent/20 text-accent font-bold'
                           : 'border-primary-strong/40 bg-surface-raised/95 text-content-primary shadow-primary-strong/10',
                 ]"
                 role="alert"
             >
                 <div class="flex items-center gap-3">
                     <span class="text-xl shrink-0">{{
-                        toastType === 'error' ? '⚠️' : toastType === 'warning' ? '⚡' : '🎉'
+                        toastType === 'error' ? '⚠️' : toastType === 'warning' ? '⚡' : toastType === 'xp' ? '⭐' : '🎉'
                     }}</span>
                     <div class="text-sm font-semibold leading-snug">
                         {{ toastMessage }}

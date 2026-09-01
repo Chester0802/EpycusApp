@@ -27,6 +27,8 @@ final class CreateHabitUseCase
             'icon' => $dto->icon,
             'time_of_day' => $dto->timeOfDay,
             'cue_trigger' => $dto->cueTrigger,
+            'habit_type' => $dto->habitType,
+            'max_per_week' => $dto->maxPerWeek,
             'is_active' => true,
         ]);
 

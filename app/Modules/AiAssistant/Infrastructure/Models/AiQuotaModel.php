@@ -20,4 +20,17 @@ final class AiQuotaModel extends Model
         'date' => 'date:Y-m-d',
         'used_count' => 'integer',
     ];
+
+    public static function recordUsage(int $userId, ?string $feature = null): self
+    {
+        $today = \Carbon\Carbon::now('America/Lima')->toDateString();
+        $record = self::firstOrCreate(
+            ['user_id' => $userId, 'date' => $today],
+            ['used_count' => 0]
+        );
+        $record->increment('used_count');
+
+        return $record;
+    }
 }
+

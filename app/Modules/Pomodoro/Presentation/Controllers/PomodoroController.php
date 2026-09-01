@@ -85,6 +85,39 @@ final class PomodoroController extends Controller
             ];
         })->values()->all();
 
+        $courses = \App\Modules\Calendar\Infrastructure\Models\CourseModel::where('user_id', $userId)
+            ->get()
+            ->map(fn ($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+                'color' => $c->color ?? '#3b82f6',
+                'professor' => $c->professor,
+                'credits' => $c->credits,
+            ]);
+
+        $readings = \App\Modules\Readings\Infrastructure\Models\ReadingModel::forUser($userId)
+            ->whereIn('status', ['reading', 'want_to_read'])
+            ->get()
+            ->map(fn ($r) => [
+                'id' => $r->id,
+                'title' => $r->title,
+                'author' => $r->author,
+                'current_page' => $r->current_page,
+                'total_pages' => $r->total_pages,
+                'status' => $r->status,
+            ]);
+
+        $skills = \App\Modules\Skills\Infrastructure\Models\SkillModel::forUser($userId)
+            ->get()
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'name' => $s->name,
+                'category' => $s->category,
+                'current_level' => $s->current_level,
+                'current_xp' => $s->current_xp,
+                'target_xp' => $s->target_xp,
+            ]);
+
         return Inertia::render('Pomodoro/Index', [
             'activeSession' => $resolved->session ? $this->serializeSession($resolved->session) : null,
             'autoCompletedFocusMinutes' => $resolved->autoCompletedFocusMinutes,
@@ -101,8 +134,10 @@ final class PomodoroController extends Controller
             'progress' => [
                 'phase' => $this->progress->getPhaseFor($userId),
             ],
-            // Misiones activas para el panel lateral
             'missions' => $missionsData,
+            'courses' => $courses,
+            'readings' => $readings,
+            'skills' => $skills,
         ]);
     }
 

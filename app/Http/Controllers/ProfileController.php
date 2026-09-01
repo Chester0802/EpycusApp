@@ -124,6 +124,10 @@ class ProfileController extends Controller
             $validated['avatar_style'] = \App\Modules\Identity\Domain\ValueObjects\Career::avatarStyle($validated['career']);
         }
 
+        if (empty($validated['email'])) {
+            unset($validated['email']);
+        }
+
         $user->fill($validated);
 
         if ($user->isDirty('email')) {

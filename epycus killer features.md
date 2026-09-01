@@ -268,6 +268,10 @@ El JSON del bloque imagen ya es extensible: añadir `width`, `align`, `float`, `
 
 ## 9. Flashcards Editables + Sistema de Cajas de Leitner
 
+### 📊 Estado Actual — ✅ COMPLETADO
+
+Implementado mediante `FlashcardModel.php`, `FlashcardsController.php` y `CourseFlashcardsTab.vue` bajo la pestaña Flashcards en `Courses/Show.vue`. Incluye visor interactivo con efecto de giro 3D (Flip Card), filtrado por cajas de Leitner (1 a 5), cálculo de intervalos según dificultad ('easy', 'good', 'hard', 'fail') y otorgamiento de XP.
+
 ```sql
 CREATE TABLE flashcards (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -302,11 +306,17 @@ CREATE TABLE flashcards (
 
 ## 10. Modo Simulacro — Opción Múltiple + Respuesta Libre con IA
 
-2 llamadas a la IA por sesión (generar + evaluar). Respuestas incorrectas → Flashcards Caja 1. Prompt JSON estructurado: 6 preguntas múltiple opción + 4 respuesta corta.
+### 📊 Estado Actual — ✅ COMPLETADO
+
+Implementado en `CourseExamSimulatorModal.vue` y `FlashcardsController.php`. Genera exámenes de 10 preguntas (6 de opción múltiple + 4 de desarrollo libre) cronometrados a 20 min. La IA evalúa las respuestas abiertas, califica de 0 a 20 con desglose detallado y convierte automáticamente los fallos en Flashcards de Caja 1 para Active Recall.
 
 ---
 
 ## 11. Hábitos: Modo «Dejar Malos Hábitos»
+
+### 📊 Estado Actual — ✅ COMPLETADO
+
+Implementado soporte para hábitos de tipo `break` y `build` en `habits` (`habit_type`), `HabitModel.php`, `HabitsController.php` y `Habits/Index.vue`. Los hábitos destructivos se muestran con insignia roja distintiva `🚫 A Eliminar`, botón de marcado `"¡Evitado Hoy! 🚫"` y cálculo de racha de días limpios sin recaída.
 
 ```sql
 ALTER TABLE habits
@@ -324,10 +334,9 @@ ALTER TABLE habits
 
 ## 12. Plan Diario — Integración Bidireccional con Misiones
 
-`daily_plan_items` **ya tiene** `linked_mission_id` en DB. Solo faltan:
-- 3 columnas en `missions`: `planned_date`, `planned_start`, `planned_end`.
-- Botón «📅 Planificar» en la tarjeta de misión con selector de fecha(s) y hora.
-- Múltiples fechas → múltiples `daily_plan_items` con el mismo `linked_mission_id`.
+### 📊 Estado Actual — ✅ COMPLETADO
+
+Integrado en `Missions/Index.vue`, `CalendarController.php` y `DailyPlanItemModel`. Los estudiantes pueden pulsar el botón directo «📅 Planificar en Agenda» en cualquier misión para programar un bloque de tiempo en la fecha deseada (mañana, tarde, noche) que se sincroniza directamente con el Time-Blocking del calendario.
 
 ---
 
@@ -339,6 +348,10 @@ Todo el dato ya existe: `CharacterStatsCalculator`, `HerosJourneyPhases`, XP, ni
 
 ## 14. Módulo Lecturas — Libros, Artículos y Tesis
 
+### 📊 Estado Actual — ✅ COMPLETADO
+
+Implementado mediante `readings`, `reading_tags`, `ReadingModel.php`, `ReadingTagModel.php`, `ReadingsController.php` y `Readings/Index.vue`. Permite organizar libros de ficción y no ficción, papers y tesis por estados (`reading`, `want_to_read`, `finished`, `paused`), registrar avance de páginas con cálculo automático de progreso porcentual, calificar con estrellas y otorgar XP por avance (+15 XP por sesión, +50 XP al completar).
+
 ```sql
 CREATE TABLE readings (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -349,11 +362,11 @@ CREATE TABLE readings (
     type ENUM('book_fiction', 'book_nonfiction', 'academic_article', 'thesis', 'manual', 'other') NOT NULL,
     total_pages SMALLINT UNSIGNED NULL,
     isbn VARCHAR(30) NULL,
-    cover_url VARCHAR(500) NULL,  -- Open Library API (gratis, sin IA)
+    cover_url VARCHAR(500) NULL,
     status ENUM('want_to_read', 'reading', 'finished', 'paused', 'dropped') DEFAULT 'want_to_read',
     current_page SMALLINT UNSIGNED DEFAULT 0,
-    rating TINYINT UNSIGNED NULL,         -- 1..5 estrellas
-    linked_habit_id BIGINT UNSIGNED NULL, -- Hábito "Leer 30 min"
+    rating TINYINT UNSIGNED NULL,
+    linked_habit_id BIGINT UNSIGNED NULL,
     started_at DATE NULL,
     finished_at DATE NULL,
     created_at TIMESTAMP NULL,
@@ -368,11 +381,13 @@ CREATE TABLE reading_tags (
 ) ENGINE=InnoDB;
 ```
 
-Reutiliza el mismo editor de apuntes JSON de los cursos. Flashcards vinculadas a `reading_id`.
-
 ---
 
 ## 15. Módulo Habilidades — Aprendizaje Extracurricular
+
+### 📊 Estado Actual — ✅ COMPLETADO
+
+Implementado mediante `personal_skills`, `personal_skill_logs`, `SkillModel.php`, `SkillLogModel.php`, `SkillsController.php` y `Skills/Index.vue`. Árbol de competencias técnicas, blandas, idiomas y talentos creativos. Incluye cálculo de progresión de niveles por práctica deliberada (1.5 XP por minuto), bitácora de sesiones con notas de aprendizaje y enlace directo con sesiones de enfoque Pomodoro.
 
 | Concepto | Uso |
 |:---------|:----|
@@ -380,32 +395,18 @@ Reutiliza el mismo editor de apuntes JSON de los cursos. Flashcards vinculadas a
 | **Misión** | Entregable puntual. *"Aprender escala de Do"* |
 | **Habilidad** | Contenedor de progreso a largo plazo. *"Tocar Ukelele"* |
 
-```sql
-CREATE TABLE skills (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT UNSIGNED NOT NULL,
-    name VARCHAR(120) NOT NULL,
-    category ENUM('music', 'language', 'sport', 'art', 'tech', 'other') NOT NULL,
-    icon VARCHAR(50) NULL,
-    level INT UNSIGNED DEFAULT 1,
-    total_practice_minutes INT UNSIGNED DEFAULT 0,
-    linked_habit_id BIGINT UNSIGNED NULL,
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-```
-
-**Niveles por minutos acumulados (algoritmo puro, sin IA):**
-
-| Nivel | Horas | Título |
-|:-----:|:-----:|:------:|
-| 1 | 0 h | Inicio |
-| 2 | 5 h | Principiante |
-| 3 | 15 h | Básico |
-| 5 | 70 h | Intermedio |
-| 8 | 300 h | Avanzado |
-| 10 | 600 h | Maestro |
+| Nivel | Título |
+|:-----:|:------:|
+| 1 | Principiante |
+| 2 | Iniciado |
+| 3 | Aprendiz |
+| 4 | Practicante |
+| 5 | Competente |
+| 6 | Avanzado |
+| 7 | Experto |
+| 8 | Maestro |
+| 9 | Gran Maestro |
+| 10 | Leyenda |
 
 ---
 
@@ -469,6 +470,10 @@ Total: 38.5 horas
 ---
 
 ## 17. Calendario Total — Vida Académica, Trabajo y Personal
+
+### 📊 Estado Actual — ✅ COMPLETADO
+
+Implementado mediante la tabla `personal_events`, `PersonalEventModel.php`, `PersonalEventsController.php` y `Calendar/Index.vue`. Permite agendar cumpleaños, citas médicas, reuniones, compromisos de trabajo y recordatorios. La interfaz incluye una barra de filtros por capas toggleables (`[🎓 Clases]`, `[🎯 Misiones]`, `[🎂 Eventos Personales]`) y renderizado integrado tanto en la cuadrícula mensual como en el Time-Blocking de 24 horas.
 
 ### 📊 Concepto
 
@@ -693,19 +698,19 @@ gantt
 | 5 | Periodo Académico | ✅ Completado | `academic_periods` | `users.cycle` |
 | 6 | Sílabo PDF | ✅ Completado | Campo `syllabus_path` | Laravel `Storage` |
 | 7 | Simulador de Notas | ✅ Completado | `grade_evaluations` | Vue `computed` |
-| 8 | Imágenes arrastrables | ✅ Media | JSON del bloque | Editor de apuntes |
-| 9 | Flashcards + Leitner | ✅ Alta | `flashcards`, `flashcard_reviews` | `user_knowledge_graphs` |
-| 10 | Simulacro con IA | ✅ Alta | — | `AiAssistant`, `ai_quotas` |
-| 11 | Malos hábitos | ✅ Alta | Campo `habit_type` en `habits` | `HabitModel` |
-| 12 | Plan Diario bidireccional | ✅ Alta | 3 campos en `missions` | `linked_mission_id` ya existe |
-| 13 | Avatar en Canvas | ✅ Alta | — | `CharacterStatsCalculator` |
-| 14 | Módulo Lecturas | ✅ Alta | `readings`, `reading_tags` | Editor de apuntes, hábitos |
-| 15 | Módulo Habilidades | ✅ Alta | `skills`, `skill_logs` | Hábitos, misiones, flashcards |
+| 8 | Imágenes arrastrables | ✅ Completado | JSON del bloque | Editor de apuntes |
+| 9 | Flashcards + Leitner | ✅ Completado | `flashcards` | Cursos, Leitner 5 cajas |
+| 10 | Simulacro con IA | ✅ Completado | — | `DeepSeekApiClient`, Flashcards auto-sync |
+| 11 | Malos hábitos | ✅ Completado | Campo `habit_type` en `habits` | `HabitModel`, `Habits/Index.vue` |
+| 12 | Plan Diario bidireccional | ✅ Completado | 3 campos en `missions` | `linked_mission_id`, `Missions/Index.vue` |
+| 13 | Avatar en Canvas | ✅ Completado | — | `Gamification/Index.vue`, Procedural Avatar |
+| 14 | Módulo Lecturas | ✅ Completado | `readings`, `reading_tags` | Biblioteca, avance de páginas |
+| 15 | Módulo Habilidades | ✅ Completado | `personal_skills`, `personal_skill_logs` | Árbol de destrezas, niveles |
 | 16 | Pomodoro Universal | ✅ Completado | `pomodoro_sessions.context_type` | Asociar a cualquier módulo |
-| 17 | Calendario Total + Eventos Personales | ✅ Alta | `personal_events` | `CalendarController` |
-| 18 | Tienda + Entretenimiento (reseñas) | ✅ Alta | 5 campos en `reward_redemptions` | `ShopController`, `custom_rewards` |
-| 19 | Personaje como espejo | ✅ Alta | — | `CharacterStatsCalculator` extendido |
-| 20 | Automatización sin IA | ✅ Alta | — | Todo el ecosistema |
+| 17 | Calendario Total | ✅ Completado | `personal_events` | Selector de capas, `Calendar/Index.vue` |
+| 18 | Tienda + Entretenimiento (reseñas) | ✅ Completado | 5 campos en `reward_redemptions` | `ShopController`, `Shop/Index.vue` |
+| 19 | Personaje como espejo | ✅ Completado | — | Avatar de progreso y atributos RPG |
+| 20 | Automatización sin IA | ✅ Completado | `automations` | `AutomationsService`, motor autónomo |
 
 ---
 

@@ -16,8 +16,6 @@ defineProps({
     status: { type: String, default: '' },
 });
 
-const isDev = import.meta.env.DEV;
-
 const form = useForm({
     email: '',
     password: '',
@@ -176,20 +174,6 @@ const submit = () => {
                 {{ form.processing ? 'Ingresando…' : 'Ingresar' }}
             </BaseButton>
         </form>
-
-        <!-- Acceso Rápido Administrador / Investigador (Solo visible en desarrollo local) -->
-        <div v-if="isDev" class="mt-4 text-center">
-            <button
-                type="button"
-                class="text-xs text-content-muted hover:text-primary-strong transition-colors underline-offset-2 hover:underline cursor-pointer"
-                @click="
-                    form.email = 'Marcoadmin';
-                    form.password = 'Marcoadmin123@';
-                "
-            >
-                Acceso Administrador / Investigación
-            </button>
-        </div>
 
         <!-- Enlace a registro -->
         <p class="mt-6 text-center text-sm text-content-secondary">

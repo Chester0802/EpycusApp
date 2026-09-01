@@ -145,7 +145,7 @@ const streakAuraClass = computed(() => {
                     </div>
 
                     <Link
-                        :href="route('profile.edit')"
+                        :href="route('gamification.index')"
                         class="inline-flex items-center gap-1.5 text-xs font-bold text-primary-strong hover:text-primary-strong/80 hover:underline transition cursor-pointer"
                     >
                         <span>🗺️ Ver mi Camino del Héroe (Fases 1–10)</span>

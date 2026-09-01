@@ -219,7 +219,7 @@ const filteredAchievements = computed(() => {
                         <span>{{ progress.currentLevelXp }} / {{ progress.nextLevelXpNeeded }} XP ({{ progress.levelProgressPercent }}%)</span>
                     </div>
                     <ProgressBar
-                        :current="progress.currentLevelXp"
+                        :value="progress.currentLevelXp"
                         :max="progress.nextLevelXpNeeded"
                         height="h-3"
                         color="bg-primary-strong"
@@ -311,7 +311,7 @@ const filteredAchievements = computed(() => {
                                 <h4 class="font-bold text-xs sm:text-sm text-content-primary leading-tight">
                                     {{ ach.name }}
                                 </h4>
-                                <span class="text-[10px] font-bold text-warning shrink-0">
+                                <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 shrink-0">
                                     ⚡ +{{ ach.xp_reward }} XP
                                 </span>
                             </div>
@@ -348,6 +348,14 @@ const filteredAchievements = computed(() => {
                     />
                 </BaseCard>
 
+                <!-- Información Personal y Alias (Siempre visible para todos los usuarios) -->
+                <BaseCard class="p-6">
+                    <UpdateProfileInformationForm
+                        :must-verify-email="mustVerifyEmail"
+                        :status="status"
+                    />
+                </BaseCard>
+
                 <!-- USUARIOS CON CUENTA GOOGLE: Panel Informativo de Seguridad -->
                 <BaseCard v-if="isGoogleAccount" class="p-6">
                     <div class="space-y-4">
@@ -371,13 +379,13 @@ const filteredAchievements = computed(() => {
                                 Correo: <span class="font-normal text-content-secondary">{{ currentUser?.email }}</span>
                             </p>
                             <p class="text-content-muted leading-relaxed">
-                                Tu nombre, correo y contraseña están protegidos por tu cuenta de Google. No necesitas administrar contraseñas en Epycus.
+                                Tu inicio de sesión y contraseña están protegidos por tu cuenta de Google. No necesitas administrar una contraseña local en Epycus.
                             </p>
                         </div>
                     </div>
                 </BaseCard>
 
-                <!-- USUARIOS CON CUENTA MANUAL: Vincular con Google + Actualizar Información + Actualizar Contraseña -->
+                <!-- USUARIOS CON CUENTA MANUAL: Vincular con Google + Actualizar Contraseña -->
                 <template v-else>
                     <!-- Tarjeta para vincular con Google -->
                     <BaseCard class="p-6">
@@ -403,14 +411,6 @@ const filteredAchievements = computed(() => {
                                 <span>Vincular con Google</span>
                             </a>
                         </div>
-                    </BaseCard>
-
-                    <!-- Información Personal y Alias -->
-                    <BaseCard class="p-6">
-                        <UpdateProfileInformationForm
-                            :must-verify-email="mustVerifyEmail"
-                            :status="status"
-                        />
                     </BaseCard>
 
                     <!-- Seguridad y Contraseña -->

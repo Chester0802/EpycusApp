@@ -46,7 +46,7 @@ final class SecurityHeaders
             "img-src 'self' data: https://*.googleusercontent.com https://*.gstatic.com; ".
             "font-src 'self' data:; ".
             "connect-src 'self' https://accounts.google.com https://api.deepseek.com{$viteOrigin}{$viteWs}; ".
-            'frame-src https://accounts.google.com https://www.youtube-nocookie.com; '.
+            "frame-src 'self' blob: https://accounts.google.com https://www.youtube-nocookie.com; ".
             "frame-ancestors 'none';"
         );
 

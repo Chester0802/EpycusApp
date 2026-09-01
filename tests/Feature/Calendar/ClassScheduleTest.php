@@ -17,9 +17,11 @@ final class ClassScheduleTest extends TestCase
         $user = UserModel::factory()->create();
 
         $response = $this->actingAs($user)->post('/calendar/courses', [
-            'name'  => 'Matemática Discreta',
-            'color' => 'primary',
-            'sessions' => [
+            'name'      => 'Matemática Discreta',
+            'color'     => 'primary',
+            'professor' => 'Dr. Alan Turing',
+            'credits'   => 4,
+            'sessions'  => [
                 [
                     'day_of_week' => 1,
                     'start_time'  => '08:00',
@@ -38,8 +40,10 @@ final class ClassScheduleTest extends TestCase
         $response->assertRedirect();
 
         $this->assertDatabaseHas('courses', [
-            'user_id' => $user->id,
-            'name'    => 'Matemática Discreta',
+            'user_id'   => $user->id,
+            'name'      => 'Matemática Discreta',
+            'professor' => 'Dr. Alan Turing',
+            'credits'   => 4,
         ]);
 
         $course = \DB::table('courses')->where('user_id', $user->id)->first();
@@ -62,9 +66,10 @@ final class ClassScheduleTest extends TestCase
         $user = UserModel::factory()->create();
 
         $this->actingAs($user)->post('/calendar/courses', [
-            'name'  => 'Física I',
-            'color' => 'accent',
-            'sessions' => [
+            'name'      => 'Física I',
+            'color'     => 'accent',
+            'credits'   => 3,
+            'sessions'  => [
                 ['day_of_week' => 2, 'start_time' => '10:00', 'end_time' => '12:00'],
             ],
         ]);
@@ -72,9 +77,11 @@ final class ClassScheduleTest extends TestCase
         $course = \DB::table('courses')->where('user_id', $user->id)->first();
 
         $updateResponse = $this->actingAs($user)->put("/calendar/courses/{$course->id}", [
-            'name'  => 'Física Avanzada',
-            'color' => 'success',
-            'sessions' => [
+            'name'      => 'Física Avanzada',
+            'color'     => 'success',
+            'professor' => 'Dra. Marie Curie',
+            'credits'   => 5,
+            'sessions'  => [
                 ['day_of_week' => 4, 'start_time' => '14:00', 'end_time' => '16:00', 'classroom' => 'Aula 202'],
             ],
         ]);
@@ -82,8 +89,10 @@ final class ClassScheduleTest extends TestCase
         $updateResponse->assertRedirect();
 
         $this->assertDatabaseHas('courses', [
-            'id'   => $course->id,
-            'name' => 'Física Avanzada',
+            'id'        => $course->id,
+            'name'      => 'Física Avanzada',
+            'professor' => 'Dra. Marie Curie',
+            'credits'   => 5,
         ]);
     }
 

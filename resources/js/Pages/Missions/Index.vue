@@ -29,9 +29,19 @@ const selectedCourseFilter = ref('all');
 const showGuide = ref(false);
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
+const showPlanModal = ref(false);
+const missionToPlan = ref(null);
 const showCompleted = ref(false);
 const editingMission = ref(null);
 const addSubtaskTitles = ref({});
+
+const quickPlanForm = useForm({
+    plan_date: props.todayDate,
+    time_block: 'morning',
+    scheduled_time: '09:00',
+    estimated_minutes: 60,
+    notes: '',
+});
 
 onMounted(() => {
     const saved = localStorage.getItem('epycus_missions_view');
@@ -84,7 +94,7 @@ const eisenhowerConfig = {
     },
     q2: {
         badge: 'Q2 (Planificar)',
-        bgBadge: 'bg-success/15 text-success border border-success/30 font-bold',
+        bgBadge: 'bg-emerald-600 text-white border border-emerald-700 font-bold',
         cardBorder: 'border-success/40',
         postitClass: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100 shadow-emerald-500/10',
         postitTape: 'bg-emerald-300/60 dark:bg-emerald-500/40 border-emerald-400/40',
@@ -94,7 +104,7 @@ const eisenhowerConfig = {
     },
     q3: {
         badge: 'Q3 (Minimizar)',
-        bgBadge: 'bg-warning/15 text-warning border border-warning/30 font-bold',
+        bgBadge: 'bg-amber-600 text-white border border-amber-700 font-bold',
         cardBorder: 'border-warning/40',
         postitClass: 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-950 dark:text-amber-100 shadow-amber-500/10',
         postitTape: 'bg-amber-300/60 dark:bg-amber-500/40 border-amber-400/40',
@@ -274,6 +284,35 @@ function submitCreate() {
             });
             closeCreateModal();
         },
+    });
+}
+
+function openPlanModal(mission) {
+    missionToPlan.value = mission;
+    quickPlanForm.plan_date = mission.planned_date || props.todayDate;
+    quickPlanForm.scheduled_time = mission.planned_start ? mission.planned_start.slice(0, 5) : '09:00';
+    quickPlanForm.notes = `Misión: ${mission.title}`;
+    showPlanModal.value = true;
+}
+
+function submitPlanMission() {
+    if (!missionToPlan.value) return;
+    
+    router.post(route('calendar.planner.items.store'), {
+        plan_date: quickPlanForm.plan_date,
+        title: missionToPlan.value.title,
+        category: missionToPlan.value.mission_type || 'academic',
+        time_block: quickPlanForm.time_block,
+        scheduled_time: quickPlanForm.scheduled_time,
+        estimated_minutes: quickPlanForm.estimated_minutes,
+        notes: quickPlanForm.notes,
+        linked_mission_id: missionToPlan.value.id,
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showPlanModal.value = false;
+            missionToPlan.value = null;
+        }
     });
 }
 
@@ -830,11 +869,11 @@ function goToMission(id) {
                     </BaseCard>
 
                     <!-- CUADRANTE 3: Urgente pero No Importante (Minimizar / Operativo) -->
-                    <BaseCard class="p-5 flex flex-col justify-between border-t-4 border-t-warning bg-surface/80">
+                    <BaseCard class="p-5 flex flex-col justify-between border-t-4 border-t-amber-500 bg-surface/80">
                         <div>
                             <div class="flex items-center justify-between pb-3 border-b border-border-interactive">
                                 <div class="flex items-center gap-2">
-                                    <div translate="no" class="notranslate flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning/10 text-warning font-bold text-sm">
+                                    <div translate="no" class="notranslate flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold text-sm">
                                         Q3
                                     </div>
                                     <div>
@@ -844,7 +883,7 @@ function goToMission(id) {
                                         <p class="text-[11px] text-content-secondary">Trámites rápidos, consultas operativas y coordinaciones.</p>
                                     </div>
                                 </div>
-                                <span class="rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-bold text-warning">
+                                <span class="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-300">
                                     {{ q3Missions.length }}
                                 </span>
                             </div>
@@ -857,7 +896,7 @@ function goToMission(id) {
                                     <div
                                         v-for="m in q3Missions"
                                         :key="m.id"
-                                        class="rounded-xl border border-border-interactive bg-surface-raised/60 p-3.5 shadow-xs transition hover:border-warning/40"
+                                        class="rounded-xl border border-border-interactive bg-surface-raised/60 p-3.5 shadow-xs transition hover:border-amber-500/40"
                                         :class="stateClass(m.state)"
                                     >
                                         <div class="flex items-start justify-between gap-3">
@@ -911,7 +950,7 @@ function goToMission(id) {
                             <span class="text-content-muted text-[11px]">⚡ Agrupar en bloques cortos</span>
                             <button
                                 type="button"
-                                class="font-semibold text-warning hover:underline flex items-center gap-1 cursor-pointer"
+                                class="font-semibold text-primary-strong hover:underline flex items-center gap-1 cursor-pointer"
                                 @click="openCreateModal('q3')"
                             >
                                 <span translate="no" class="notranslate">+ Agregar a Q3</span>
@@ -1481,6 +1520,14 @@ function goToMission(id) {
                                     <button
                                         type="button"
                                         class="rounded p-1 text-content-muted hover:text-primary-strong cursor-pointer"
+                                        title="Planificar en Agenda del Día"
+                                        @click="openPlanModal(m)"
+                                    >
+                                        <AppIcon name="calendar" :size="16" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="rounded p-1 text-content-muted hover:text-primary-strong cursor-pointer"
                                         title="Enfocarme con Pomodoro"
                                         @click="startPomodoro(m.id)"
                                     >
@@ -1991,6 +2038,62 @@ function goToMission(id) {
                     <BaseButton type="submit" :disabled="editForm.processing">
                         {{ editForm.processing ? 'Guardando…' : 'Guardar cambios' }}
                     </BaseButton>
+                </div>
+            </form>
+        </BaseModal>
+
+        <!-- MODAL: PLANIFICAR EN AGENDA (Fase 4 - Integración Bidireccional) -->
+        <BaseModal
+            :show="showPlanModal"
+            :title="`Planificar en Agenda: ${missionToPlan?.title || ''}`"
+            @close="showPlanModal = false"
+        >
+            <form class="space-y-4" @submit.prevent="submitPlanMission">
+                <div class="p-3 rounded-xl bg-surface-raised border border-border-interactive text-xs text-content-secondary">
+                    Agendarás un bloque de tiempo en tu <strong>Plan Diario / Time-Blocking</strong> para completar esta misión.
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <BaseInput
+                        id="plan-date"
+                        v-model="quickPlanForm.plan_date"
+                        label="Fecha a realizar"
+                        type="date"
+                        required
+                    />
+                    <BaseSelect
+                        id="plan-block"
+                        v-model="quickPlanForm.time_block"
+                        label="Bloque del Día"
+                        :options="[
+                            { value: 'morning', label: '🌅 Mañana (06:00 - 12:00)' },
+                            { value: 'afternoon', label: '☀️ Tarde (12:00 - 18:00)' },
+                            { value: 'night', label: '🌙 Noche (18:00 - 23:59)' },
+                            { value: 'anytime', label: '⚡ En cualquier momento' },
+                        ]"
+                    />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <BaseInput
+                        id="plan-time"
+                        v-model="quickPlanForm.scheduled_time"
+                        label="Hora sugerida (opcional)"
+                        type="time"
+                    />
+                    <BaseInput
+                        id="plan-est"
+                        v-model="quickPlanForm.estimated_minutes"
+                        label="Minutos estimados"
+                        type="number"
+                        min="5"
+                        max="360"
+                    />
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <BaseButton variant="ghost" type="button" @click="showPlanModal = false">Cancelar</BaseButton>
+                    <BaseButton type="submit" variant="primary">Agendar en Plan Diario 📅</BaseButton>
                 </div>
             </form>
         </BaseModal>

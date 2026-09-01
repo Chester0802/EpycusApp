@@ -12,5 +12,6 @@ final readonly class XpAwarded
         public string $sourceType,
         public bool $wasCapped,
         public int $newTotalXp,
+        public ?int $sourceId = null,
     ) {}
 }

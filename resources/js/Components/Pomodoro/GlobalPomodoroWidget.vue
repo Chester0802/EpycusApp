@@ -64,6 +64,29 @@ function goToPomodoro() {
     router.visit(route('pomodoro.index'));
 }
 
+function getClampedPos(x, y) {
+    if (typeof window === 'undefined') return { x: 16, y: 16 };
+    const isMobile = window.innerWidth < 768;
+    const width = pillEl.value ? pillEl.value.offsetWidth : 210;
+    const height = pillEl.value ? pillEl.value.offsetHeight : 54;
+    const bottomOffset = isMobile ? 84 : 24; // 84px reserva el espacio de la barra inferior móvil
+    const topOffset = isMobile ? 64 : 16;
+    
+    const maxX = Math.max(8, window.innerWidth - width - 8);
+    const maxY = Math.max(topOffset, window.innerHeight - height - bottomOffset);
+
+    return {
+        x: Math.max(8, Math.min(maxX, x)),
+        y: Math.max(topOffset, Math.min(maxY, y)),
+    };
+}
+
+function handleResize() {
+    if (pillPos.value.x !== null && pillPos.value.y !== null) {
+        pillPos.value = getClampedPos(pillPos.value.x, pillPos.value.y);
+    }
+}
+
 // ── Control de Arrastre (Drag and Drop) ─────────────────────────────────────
 function onPointerDown(e) {
     if (e.button !== undefined && e.button !== 0) return;
@@ -88,17 +111,7 @@ function onPointerMove(e) {
     const dx = e.clientX - dragStartPointer.x;
     const dy = e.clientY - dragStartPointer.y;
 
-    const el = pillEl.value;
-    const width = el ? el.offsetWidth : 210;
-    const height = el ? el.offsetHeight : 54;
-
-    const maxX = typeof window !== 'undefined' ? window.innerWidth - width - 8 : 1000;
-    const maxY = typeof window !== 'undefined' ? window.innerHeight - height - 8 : 1000;
-
-    const newX = Math.max(8, Math.min(maxX, dragStartPos.x + dx));
-    const newY = Math.max(8, Math.min(maxY, dragStartPos.y + dy));
-
-    pillPos.value = { x: newX, y: newY };
+    pillPos.value = getClampedPos(dragStartPos.x + dx, dragStartPos.y + dy);
 }
 
 function onPointerUp() {
@@ -132,19 +145,17 @@ watch(
 onMounted(() => {
     syncWithInertiaProps(activePomodoroProp.value);
 
-    // Cargar posición guardada del usuario
+    // Cargar posición guardada del usuario con validación para móviles
     try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-            const saved = localStorage.getItem('epycus_pomodoro_pill_pos');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if (parsed && typeof parsed.x === 'number' && typeof parsed.y === 'number') {
-                    const maxX = window.innerWidth - 220;
-                    const maxY = window.innerHeight - 60;
-                    pillPos.value = {
-                        x: Math.max(8, Math.min(maxX, parsed.x)),
-                        y: Math.max(8, Math.min(maxY, parsed.y)),
-                    };
+        if (typeof window !== 'undefined') {
+            window.addEventListener('resize', handleResize);
+            if (window.localStorage) {
+                const saved = localStorage.getItem('epycus_pomodoro_pill_pos');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+                        pillPos.value = getClampedPos(parsed.x, parsed.y);
+                    }
                 }
             }
         }
@@ -155,6 +166,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleResize);
         window.removeEventListener('pointermove', onPointerMove);
         window.removeEventListener('pointerup', onPointerUp);
     }
@@ -162,17 +174,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <!-- 1. Floating Pill Widget Totalmente Arrastrable -->
+    <!-- 1. Floating Pill Widget Totalmente Arrastrable con soporte móvil -->
     <div
         v-if="isVisible"
         ref="pillEl"
-        class="fixed z-[85] select-none touch-none transition-shadow"
+        class="fixed z-[95] select-none touch-none transition-shadow"
+        :class="[
+            isDragging ? 'cursor-grabbing shadow-2xl scale-[1.03]' : 'cursor-grab',
+            pillPos.x === null ? 'bottom-20 md:bottom-6 right-4 md:right-6' : ''
+        ]"
         :style="
             pillPos.x !== null
                 ? { left: `${pillPos.x}px`, top: `${pillPos.y}px`, right: 'auto', bottom: 'auto' }
-                : { right: '1.5rem', bottom: '1.5rem' }
+                : {}
         "
-        :class="isDragging ? 'cursor-grabbing shadow-2xl scale-[1.03]' : 'cursor-grab'"
         @pointerdown="onPointerDown"
     >
         <div

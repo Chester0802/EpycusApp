@@ -18,5 +18,7 @@ final readonly class UpdateHabitDTO
         public ?string $icon = null,
         public string $timeOfDay = 'anytime',
         public ?string $cueTrigger = null,
+        public string $habitType = 'build',
+        public ?int $maxPerWeek = null,
     ) {}
 }

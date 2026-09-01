@@ -125,4 +125,33 @@ final class ShopController extends Controller
             return back()->with('error', $e->getMessage());
         }
     }
+
+    public function reviewRedemption(Request $request, int $id): JsonResponse
+    {
+        $userId = (int) Auth::id();
+        $redemption = \App\Modules\Shop\Infrastructure\Models\RewardRedemptionModel::where('id', $id)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'review_text' => ['nullable', 'string', 'max:1000'],
+            'entertainment_title' => ['nullable', 'string', 'max:200'],
+            'entertainment_category' => ['nullable', 'in:series,movie,anime,videogame,book,other'],
+        ]);
+
+        $redemption->update([
+            'rating' => $validated['rating'],
+            'review_text' => $validated['review_text'] ?? null,
+            'entertainment_title' => $validated['entertainment_title'] ?? $redemption->entertainment_title,
+            'entertainment_category' => $validated['entertainment_category'] ?? $redemption->entertainment_category,
+            'status' => 'used',
+            'used_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => '¡Reseña guardada con éxito!',
+            'redemption' => $redemption,
+        ]);
+    }
 }

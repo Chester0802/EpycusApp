@@ -12,4 +12,5 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::put('/shop/rewards/{id}', [ShopController::class, 'updateReward'])->name('shop.rewards.update');
     Route::delete('/shop/rewards/{id}', [ShopController::class, 'destroyReward'])->name('shop.rewards.destroy');
     Route::patch('/shop/redemptions/{id}/used', [ShopController::class, 'markUsed'])->name('shop.redemptions.used');
+    Route::post('/api/shop/redemptions/{id}/review', [ShopController::class, 'reviewRedemption'])->name('shop.redemptions.review');
 });

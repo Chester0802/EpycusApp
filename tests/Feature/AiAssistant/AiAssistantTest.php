@@ -52,11 +52,31 @@ final class AiAssistantTest extends TestCase
         $user = UserModel::factory()->create();
 
         Http::fake([
+            'https://openrouter.ai/*' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'content' => '¡Hola! Te recomiendo dividir tu tarea en 3 pasos Pomodoro.',
+                        ],
+                    ],
+                ],
+            ], 200),
             'https://api.deepseek.com/*' => Http::response([
                 'choices' => [
                     [
                         'message' => [
                             'content' => '¡Hola! Te recomiendo dividir tu tarea en 3 pasos Pomodoro.',
+                        ],
+                    ],
+                ],
+            ], 200),
+            'https://generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                ['text' => '¡Hola! Te recomiendo dividir tu tarea en 3 pasos Pomodoro.'],
+                            ],
                         ],
                     ],
                 ],
@@ -85,7 +105,7 @@ final class AiAssistantTest extends TestCase
     public function test_exhausted_quota_blocks_consultation(): void
     {
         $user = UserModel::factory()->create();
-        $today = Carbon::now()->toDateString();
+        $today = Carbon::now('America/Lima')->toDateString();
 
         AiQuotaModel::create([
             'user_id' => $user->id,

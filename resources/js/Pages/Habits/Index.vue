@@ -170,6 +170,8 @@ const categoryMap = {
 const createForm = useForm({
     title: '',
     category: 'estudio',
+    habit_type: 'build',
+    max_per_week: null,
     frequency: { type: 'daily' },
     icon: 'zap',
     time_of_day: 'anytime',
@@ -179,6 +181,8 @@ const createForm = useForm({
 const editForm = useForm({
     title: '',
     category: 'estudio',
+    habit_type: 'build',
+    max_per_week: null,
     frequency: { type: 'daily' },
     icon: 'zap',
     time_of_day: 'anytime',
@@ -380,6 +384,8 @@ const openEditModal = (habit) => {
     editingHabit.value = habit;
     editForm.title = habit.title;
     editForm.category = habit.category;
+    editForm.habit_type = habit.habit_type || 'build';
+    editForm.max_per_week = habit.max_per_week || null;
     editForm.icon = habit.icon || 'zap';
     editForm.time_of_day = habit.time_of_day || 'anytime';
     editForm.cue_trigger = habit.cue_trigger || '';
@@ -685,17 +691,19 @@ const triggerXpToast = (msg) => {
                                     class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-xl transition-all cursor-pointer shadow-xs"
                                     :class="
                                         habit.is_completed_today
-                                            ? 'scale-105 border-success bg-success text-on-accent shadow-sm'
-                                            : 'border-border-interactive bg-surface-raised text-content-muted hover:border-primary hover:text-primary-strong'
+                                            ? (habit.habit_type === 'break' ? 'scale-105 border-danger bg-danger text-white shadow-sm' : 'scale-105 border-success bg-success text-on-accent shadow-sm')
+                                            : (habit.habit_type === 'break' ? 'border-border-interactive bg-surface-raised text-content-muted hover:border-danger hover:text-danger' : 'border-border-interactive bg-surface-raised text-content-muted hover:border-primary hover:text-primary-strong')
                                     "
-                                    title="Marcar completado hoy"
+                                    :title="habit.habit_type === 'break' ? (habit.is_completed_today ? '¡Evitado hoy con éxito!' : 'Marcar que hoy lo evitaste') : 'Marcar completado hoy'"
                                     @click="toggleHabit(habit)"
                                 >
+                                    <span v-if="habit.habit_type === 'break' && habit.is_completed_today" class="text-base font-bold">🚫</span>
                                     <AppIcon
-                                        v-if="habit.is_completed_today"
+                                        v-else-if="habit.is_completed_today"
                                         name="check"
                                         :size="20"
                                     />
+                                    <span v-else-if="habit.habit_type === 'break'" class="text-base opacity-70">🚫</span>
                                     <AppIcon v-else :name="habit.icon || 'zap'" :size="20" />
                                 </button>
 
@@ -708,11 +716,19 @@ const triggerXpToast = (msg) => {
                                             {{ habit.title }}
                                         </h3>
                                         <span
-                                            v-if="habit.streak > 0"
-                                            class="shrink-0 text-xs text-danger font-bold inline-flex items-center gap-0.5 bg-danger/10 px-2 py-0.5 rounded-full border border-danger/20"
-                                            title="Racha activa"
+                                            v-if="habit.habit_type === 'break'"
+                                            class="shrink-0 text-[10px] text-danger font-bold inline-flex items-center gap-1 bg-danger/10 px-2 py-0.5 rounded-full border border-danger/20"
                                         >
-                                            <AppIcon name="flame" :size="12" /> {{ habit.streak }} días
+                                            🚫 A Eliminar
+                                        </span>
+                                        <span
+                                            v-if="habit.streak > 0"
+                                            class="shrink-0 text-xs font-bold inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full border"
+                                            :class="habit.habit_type === 'break' ? 'text-success bg-success/10 border-success/20' : 'text-danger bg-danger/10 border-danger/20'"
+                                            :title="habit.habit_type === 'break' ? 'Días libre sin caer' : 'Racha activa'"
+                                        >
+                                            <AppIcon :name="habit.habit_type === 'break' ? 'shield' : 'flame'" :size="12" />
+                                            {{ habit.streak }} {{ habit.habit_type === 'break' ? 'días limpio' : 'días' }}
                                         </span>
                                     </div>
 
@@ -973,11 +989,37 @@ const triggerXpToast = (msg) => {
                 </div>
 
                 <form class="space-y-4" @submit.prevent="submitCreate">
+                    <!-- Selector: Construir vs Dejar Mal Hábito -->
+                    <div>
+                        <label class="block text-xs font-bold text-content-primary mb-1.5">Objetivo del Hábito</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                class="p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                                :class="createForm.habit_type === 'build' ? 'bg-success/15 border-success text-success' : 'border-border-interactive bg-surface text-content-secondary hover:bg-surface-raised'"
+                                @click="createForm.habit_type = 'build'"
+                            >
+                                <span>🟢</span> Construir Hábito
+                            </button>
+                            <button
+                                type="button"
+                                class="p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                                :class="createForm.habit_type === 'break' ? 'bg-danger/15 border-danger text-danger' : 'border-border-interactive bg-surface text-content-secondary hover:bg-surface-raised'"
+                                @click="createForm.habit_type = 'break'"
+                            >
+                                <span>🚫</span> Dejar Mal Hábito
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-content-muted mt-1">
+                            {{ createForm.habit_type === 'break' ? 'Registrarás cada día que logres evitar esta conducta para acumular tu racha de días limpios.' : 'Registrarás cada día que realices esta acción positiva.' }}
+                        </p>
+                    </div>
+
                     <BaseInput
                         id="create-title"
                         v-model="createForm.title"
                         label="Título del hábito"
-                        placeholder="Ej. Repaso activo de 20 min"
+                        :placeholder="createForm.habit_type === 'break' ? 'Ej. No fumar / Cero azúcar añadida / No procrastinar con el móvil' : 'Ej. Repaso activo de 20 min'"
                         :error="createForm.errors.title"
                         required
                     />
@@ -1090,6 +1132,29 @@ const triggerXpToast = (msg) => {
             @close="closeEditModal"
         >
             <form class="space-y-4" @submit.prevent="submitEdit">
+                <!-- Selector: Construir vs Dejar Mal Hábito -->
+                <div>
+                    <label class="block text-xs font-bold text-content-primary mb-1.5">Objetivo del Hábito</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            class="p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            :class="editForm.habit_type === 'build' ? 'bg-success/15 border-success text-success' : 'border-border-interactive bg-surface text-content-secondary hover:bg-surface-raised'"
+                            @click="editForm.habit_type = 'build'"
+                        >
+                            <span>🟢</span> Construir Hábito
+                        </button>
+                        <button
+                            type="button"
+                            class="p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            :class="editForm.habit_type === 'break' ? 'bg-danger/15 border-danger text-danger' : 'border-border-interactive bg-surface text-content-secondary hover:bg-surface-raised'"
+                            @click="editForm.habit_type = 'break'"
+                        >
+                            <span>🚫</span> Dejar Mal Hábito
+                        </button>
+                    </div>
+                </div>
+
                 <BaseInput
                     id="edit-title"
                     v-model="editForm.title"

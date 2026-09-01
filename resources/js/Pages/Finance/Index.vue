@@ -373,7 +373,7 @@ function deleteSavingsGoal(id) {
                                         :class="[
                                             'px-2 py-0.5 rounded-full text-[10px] font-black',
                                             b.status === 'red' ? 'bg-danger/20 text-danger-text' :
-                                            b.status === 'yellow' ? 'bg-warning/20 text-warning' :
+                                            b.status === 'yellow' ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300' :
                                             'bg-success/20 text-success'
                                         ]"
                                     >

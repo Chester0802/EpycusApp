@@ -280,7 +280,7 @@ const isToday = computed(() => {
                             class="px-3 py-1.5 rounded-xl border border-border bg-surface text-content-primary hover:bg-surface-raised text-xs font-semibold transition-all"
                             @click="changeDate(-1)"
                         >
-                            ◀ Ayer
+                            Ayer
                         </button>
                         <button
                             type="button"
@@ -297,7 +297,7 @@ const isToday = computed(() => {
                             class="px-3 py-1.5 rounded-xl border border-border bg-surface text-content-primary hover:bg-surface-raised text-xs font-semibold transition-all"
                             @click="changeDate(1)"
                         >
-                            Mañana ▶
+                            Mañana
                         </button>
 
                         <button
@@ -320,21 +320,21 @@ const isToday = computed(() => {
                 </BaseCard>
 
                 <div class="bg-success/15 border border-success/30 p-4 rounded-2xl flex flex-col justify-between">
-                    <span class="text-xs font-semibold text-success">✅ Hechas</span>
-                    <div class="font-display text-2xl font-bold text-success mt-1">{{ plan.stats.done }}</div>
-                    <span class="text-[11px] text-success/80">+{{ plan.stats.done * 15 }} XP ganados</span>
+                    <span class="text-xs font-semibold text-content-primary">✅ Hechas</span>
+                    <div class="font-display text-2xl font-bold text-content-primary mt-1">{{ plan.stats.done }}</div>
+                    <span class="text-[11px] text-content-secondary">+{{ plan.stats.done * 15 }} XP ganados</span>
                 </div>
 
                 <div class="bg-warning/15 border border-warning/30 p-4 rounded-2xl flex flex-col justify-between">
-                    <span class="text-xs font-semibold text-warning">⏳ Postergadas</span>
-                    <div class="font-display text-2xl font-bold text-warning mt-1">{{ plan.stats.postponed }}</div>
-                    <span class="text-[11px] text-warning/80">movidas de bloque</span>
+                    <span class="text-xs font-semibold text-content-primary">⏳ Postergadas</span>
+                    <div class="font-display text-2xl font-bold text-content-primary mt-1">{{ plan.stats.postponed }}</div>
+                    <span class="text-[11px] text-content-secondary">movidas de bloque</span>
                 </div>
 
                 <div class="bg-danger/15 border border-danger/30 p-4 rounded-2xl flex flex-col justify-between">
-                    <span class="text-xs font-semibold text-danger-text">❌ Saltadas</span>
-                    <div class="font-display text-2xl font-bold text-danger-text mt-1">{{ plan.stats.skipped }}</div>
-                    <span class="text-[11px] text-danger-text/80">con motivo</span>
+                    <span class="text-xs font-semibold text-content-primary">❌ Saltadas</span>
+                    <div class="font-display text-2xl font-bold text-content-primary mt-1">{{ plan.stats.skipped }}</div>
+                    <span class="text-[11px] text-content-secondary">con motivo</span>
                 </div>
 
                 <BaseCard class="col-span-2 md:col-span-1 p-4 flex flex-col justify-between">

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('name', 120);
             $table->string('color', 30)->default('primary');
+            $table->date('starts_at')->nullable();
+            $table->date('ends_at')->nullable();
             $table->timestamps();
 
             $table->index('user_id');

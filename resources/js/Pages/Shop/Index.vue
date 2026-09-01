@@ -28,7 +28,46 @@ const props = defineProps({
 
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
+const showReviewModal = ref(false);
+const selectedRedemptionForReview = ref(null);
 const isProcessing = ref(false);
+
+const reviewForm = ref({
+    rating: 5,
+    entertainment_title: '',
+    entertainment_category: 'movie',
+    review_text: '',
+});
+
+const entertainmentCategories = [
+    { value: 'movie', label: '🎬 Película' },
+    { value: 'series', label: '📺 Serie de TV' },
+    { value: 'anime', label: '🍙 Anime' },
+    { value: 'videogame', label: '🎮 Videojuego' },
+    { value: 'book', label: '📖 Libro de Ocio' },
+    { value: 'other', label: '✨ Otro Entretenimiento' },
+];
+
+function openReviewModal(redemption) {
+    selectedRedemptionForReview.value = redemption;
+    reviewForm.value.entertainment_title = redemption.entertainment_title || redemption.title;
+    reviewForm.value.entertainment_category = redemption.entertainment_category || 'movie';
+    reviewForm.value.rating = redemption.rating || 5;
+    reviewForm.value.review_text = redemption.review_text || '';
+    showReviewModal.value = true;
+}
+
+async function submitReview() {
+    if (!selectedRedemptionForReview.value) return;
+    try {
+        await axios.post(route('shop.redemptions.review', { id: selectedRedemptionForReview.value.id }), reviewForm.value);
+        showReviewModal.value = false;
+        triggerConfetti();
+        router.reload({ preserveScroll: true });
+    } catch (e) {
+        alert('Error al guardar reseña: ' + (e.response?.data?.message || e.message));
+    }
+}
 
 const rewardForm = ref({
     id: null,
@@ -189,7 +228,7 @@ function markAsUsed(redemptionId) {
                     <div class="text-right">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-content-muted block">Tu Saldo Disponible</span>
                         <div class="flex items-center gap-1.5 justify-end">
-                            <span class="font-display text-3xl font-black text-warning">{{ coins }}</span>
+                            <span class="font-display text-3xl font-black text-content-primary">{{ coins }}</span>
                             <span class="text-sm font-bold text-content-secondary">Monedas</span>
                         </div>
                     </div>
@@ -261,7 +300,7 @@ function markAsUsed(redemptionId) {
                         </div>
 
                         <div class="pt-3 border-t border-border/70 flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-1 text-warning font-bold text-sm">
+                            <div class="flex items-center gap-1 text-content-primary font-bold text-sm">
                                 <span>🪙</span>
                                 <span>{{ reward.cost_coins }}</span>
                             </div>
@@ -309,7 +348,7 @@ function markAsUsed(redemptionId) {
                             </span>
                         </div>
                         <div class="flex items-center justify-between text-[11px] text-content-muted pt-1">
-                            <span class="text-warning font-bold">🪙 {{ tpl.cost_coins }}</span>
+                            <span class="text-content-primary font-bold">🪙 {{ tpl.cost_coins }}</span>
                             <span class="text-primary-strong font-semibold">+ Añadir</span>
                         </div>
                     </button>
@@ -329,37 +368,47 @@ function markAsUsed(redemptionId) {
                     Aún no has canjeado ninguna recompensa. ¡Sigue acumulando monedas y date un gusto!
                 </div>
 
-                <div v-else class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                <div v-else class="space-y-2.5 max-h-96 overflow-y-auto pr-1">
                     <div
                         v-for="red in redemptions"
                         :key="red.id"
-                        class="flex items-center justify-between p-3.5 rounded-2xl bg-surface border border-border/80 text-xs"
+                        class="p-3.5 rounded-2xl bg-surface border border-border/80 text-xs flex flex-col gap-2"
                     >
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl">{{ red.icon }}</span>
-                            <div>
-                                <h4 class="font-bold text-sm text-content-primary">{{ red.title }}</h4>
-                                <span class="text-[11px] text-content-muted block">
-                                    Canjeado el {{ red.redeemed_at }} • Costo: 🪙 {{ red.cost_coins }} monedas
-                                </span>
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">{{ red.icon }}</span>
+                                <div>
+                                    <h4 class="font-bold text-sm text-content-primary">{{ red.title }}</h4>
+                                    <span class="text-[11px] text-content-muted block">
+                                        Canjeado el {{ red.redeemed_at }} • Costo: 🪙 {{ red.cost_coins }} monedas
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    class="px-3 py-1.5 rounded-xl bg-surface-raised border border-border text-content-primary font-bold text-xs shadow-sm hover:border-primary transition-all flex items-center gap-1 cursor-pointer"
+                                    @click="openReviewModal(red)"
+                                >
+                                    <span>🍿</span> {{ red.status === 'used' ? (red.rating ? 'Ver/Editar Reseña' : 'Escribir Reseña') : 'Disfrutar & Reseñar' }}
+                                </button>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2">
-                            <span
-                                v-if="red.status === 'used'"
-                                class="px-2.5 py-1 rounded-full bg-success/15 text-success font-bold text-[11px] flex items-center gap-1"
-                            >
-                                <CheckCircle :size="12" /> Disfrutado
-                            </span>
-                            <button
-                                v-else
-                                type="button"
-                                class="px-3 py-1.5 rounded-xl bg-success text-on-accent font-bold text-xs shadow-sm hover:opacity-90 transition-all active:scale-95 flex items-center gap-1"
-                                @click="markAsUsed(red.id)"
-                            >
-                                🥳 Marcar Disfrutado
-                            </button>
+                        <!-- Reseña del estudiante si existe -->
+                        <div v-if="red.review_text || red.rating" class="mt-1 p-2.5 rounded-xl bg-surface-sunken border border-border text-xs">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-bold text-content-primary">
+                                    {{ red.entertainment_title || red.title }}
+                                </span>
+                                <div class="flex text-amber-400 text-xs">
+                                    <span v-for="s in 5" :key="s">{{ s <= (red.rating || 5) ? '★' : '☆' }}</span>
+                                </div>
+                            </div>
+                            <p v-if="red.review_text" class="text-content-secondary italic">
+                                "{{ red.review_text }}"
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -412,6 +461,67 @@ function markAsUsed(redemptionId) {
                     <BaseButton variant="primary" type="submit" :disabled="isProcessing">
                         {{ rewardForm.id ? 'Guardar Cambios' : 'Crear Recompensa' }}
                     </BaseButton>
+                </div>
+            </form>
+        </BaseModal>
+
+        <!-- Modal: Reseña de Entretenimiento post-canje (Fase 6) -->
+        <BaseModal
+            :show="showReviewModal"
+            title="🍿 Reseña de Entretenimiento & Ocio"
+            @close="showReviewModal = false"
+        >
+            <form class="space-y-4" @submit.prevent="submitReview">
+                <div class="p-3 rounded-xl bg-surface-raised border border-border text-xs text-content-secondary">
+                    ¡Date tu gusto sin culpa! Cuéntanos qué viste o jugaste y califícalo para tu bitácora de ocio.
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <BaseInput
+                        id="review-title"
+                        v-model="reviewForm.entertainment_title"
+                        label="Título de la Obra"
+                        placeholder="Ej. Interstellar / Arcane / Elden Ring"
+                        required
+                    />
+                    <BaseSelect
+                        id="review-category"
+                        v-model="reviewForm.entertainment_category"
+                        label="Tipo"
+                        :options="entertainmentCategories"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-content-primary mb-1">Calificación (1 a 5 estrellas)</label>
+                    <div class="flex gap-2">
+                        <button
+                            v-for="s in 5"
+                            :key="s"
+                            type="button"
+                            class="text-2xl transition cursor-pointer"
+                            :class="reviewForm.rating >= s ? 'text-amber-400 scale-110' : 'text-content-muted'"
+                            @click="reviewForm.rating = s"
+                        >
+                            ★
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-content-primary mb-1">Tu Reseña / Opinión</label>
+                    <textarea
+                        v-model="reviewForm.review_text"
+                        rows="3"
+                        placeholder="¿Qué te pareció? ¿Valió la pena el descanso? Deja tus comentarios..."
+                        class="w-full text-xs rounded-xl border border-border bg-surface-sunken p-3 text-content-primary outline-none"
+                    ></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-border">
+                    <BaseButton variant="secondary" type="button" @click="showReviewModal = false">Cancelar</BaseButton>
+                    <BaseButton variant="primary" type="submit">Guardar Reseña 🍿</BaseButton>
                 </div>
             </form>
         </BaseModal>

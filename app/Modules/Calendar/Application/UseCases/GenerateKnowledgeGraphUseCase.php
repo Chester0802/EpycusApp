@@ -193,13 +193,13 @@ SYS;
             ['role' => 'user', 'content' => $userPrompt],
         ];
 
-        // 6. Invocación a DeepSeek API con fallback inteligente basado en el texto real
+        // 6. Invocación a DeepSeek API
         try {
             $rawResponse = $this->apiClient->chat($messages);
             $parsedData = $this->parseJsonSafely($rawResponse);
-        } catch (Exception $e) {
-            Log::warning("DeepSeek API error: {$e->getMessage()}. Usando motor de estructuración directa de apuntes.");
-            $parsedData = $this->generateHierarchyFromRealSections($coursesData);
+        } catch (\Throwable $e) {
+            Log::warning("IA no disponible para grafo de conocimiento: {$e->getMessage()}.");
+            throw new Exception('Los servidores están en mantenimiento. Disculpe.');
         }
 
         // 7. Normalizar y colorear nuevos nodos con IDs reales de base de datos
@@ -261,12 +261,7 @@ SYS;
         );
 
         // 9. Descontar 1 crédito de cuota de IA
-        $today = Carbon::now()->toDateString();
-        $quotaRecord = AiQuotaModel::firstOrCreate(
-            ['user_id' => $userId, 'date' => $today],
-            ['used_count' => 0]
-        );
-        $quotaRecord->increment('used_count');
+        AiQuotaModel::recordUsage($userId, 'knowledge_graph');
 
         $updatedQuota = $this->checkQuota->execute($userId);
 
@@ -363,82 +358,5 @@ SYS;
         }
 
         return $sections;
-    }
-
-    /**
-     * Fallback inteligente basado en las secciones reales de los apuntes
-     */
-    private function generateHierarchyFromRealSections(array $coursesData): array
-    {
-        $nodes = [];
-        $edges = [];
-
-        foreach ($coursesData as $c) {
-            $parentId = "course_{$c['id']}";
-            $nodes[] = [
-                'id' => $parentId,
-                'label' => $c['name'],
-                'is_parent' => true,
-                'course_id' => $c['id'],
-                'course_name' => $c['name'],
-                'category' => 'Asignatura',
-                'summary' => "Ecosistema de apuntes y conceptos de {$c['name']}.",
-                'importance' => 5,
-            ];
-
-            $sections = $c['sections'] ?? [];
-            if (empty($sections)) {
-                $sections = [
-                    ['title' => "Fundamentos de {$c['name']}", 'content' => "Conceptos base extraídos de tus notas oficiales."]
-                ];
-            }
-
-            // Distribuir en 3 ramas temáticas balanceadas
-            $branchThemes = [
-                'Conmutación & Tabla CAM',
-                'Direccionamiento & Protocolos',
-                'Arquitectura & Capa 3',
-            ];
-
-            foreach ($sections as $i => $sec) {
-                $childId = "chunk_c{$c['id']}_{$i}";
-                $title = $sec['title'];
-                $content = $sec['content'];
-                $branchCat = $branchThemes[$i % count($branchThemes)];
-
-                $nodes[] = [
-                    'id' => $childId,
-                    'label' => $title,
-                    'is_parent' => false,
-                    'course_id' => $c['id'],
-                    'course_name' => $c['name'],
-                    'category' => $branchCat,
-                    'summary' => mb_substr($content, 0, 140),
-                    'key_points' => [
-                        "Definición y principios según notas de clase",
-                        "Mecanismo de operación y aplicación práctica"
-                    ],
-                    'why_it_matters' => 'Concepto clave registrado en tus apuntes de la materia.',
-                    'importance' => 5,
-                    'mastery' => 70,
-                    'quiz_question' => "¿Cuál es el propósito y funcionamiento central de {$title}?",
-                    'quiz_answer' => mb_substr($content, 0, 200),
-                ];
-
-                $edges[] = [
-                    'source' => $parentId,
-                    'target' => $childId,
-                    'label' => 'contiene',
-                    'type' => 'hierarchy',
-                    'course_id' => $c['id'],
-                ];
-            }
-        }
-
-        return [
-            'nodes' => $nodes,
-            'edges' => $edges,
-            'global_insight' => 'Conocimiento estructurado directamente a partir de tus notas oficiales.',
-        ];
     }
 }

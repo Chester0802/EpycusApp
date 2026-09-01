@@ -96,11 +96,11 @@ const topThree = computed(() => props.ranking.slice(0, 3));
             <!-- Podio de los 3 Primeros Lugares -->
             <div v-if="topThree.length >= 3" class="grid grid-cols-3 gap-3 sm:gap-4 items-end pt-2">
                 <!-- 2do Lugar (Izquierda) -->
-                <BaseCard class="p-4 text-center border-t-4 border-t-slate-400 order-1 space-y-2">
+                <BaseCard class="p-4 text-center border-t-4 border-t-slate-400 dark:border-t-slate-500 order-1 space-y-2">
                     <div
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-400/20 text-slate-300 font-bold text-lg"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface-sunken border border-border text-content-primary font-bold text-lg"
                     >
-                        <AppIcon name="medal" :size="22" class="text-slate-400" />
+                        <AppIcon name="medal" :size="22" class="text-content-secondary" />
                     </div>
                     <p class="font-bold text-sm text-content-primary truncate">
                         {{ topThree[1].alias || topThree[1].name }}
@@ -113,12 +113,12 @@ const topThree = computed(() => props.ranking.slice(0, 3));
 
                 <!-- 1er Lugar (Centro, más alto) -->
                 <BaseCard
-                    class="p-5 text-center border-t-4 border-t-amber-400 order-2 space-y-2 -mt-4 shadow-lg"
+                    class="p-5 text-center border-t-4 border-t-amber-500 order-2 space-y-2 -mt-4 shadow-lg"
                 >
                     <div
-                        class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-400/20 text-amber-300 font-bold text-2xl"
+                        class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-2xl"
                     >
-                        <AppIcon name="trophy" :size="26" class="text-warning" />
+                        <AppIcon name="trophy" :size="26" class="text-amber-500" />
                     </div>
                     <p class="font-bold text-base text-content-primary truncate">
                         {{ topThree[0].alias || topThree[0].name }}
@@ -126,7 +126,7 @@ const topThree = computed(() => props.ranking.slice(0, 3));
                     <p class="text-xs text-content-muted">
                         Nivel {{ topThree[0].level }} · Fase {{ topThree[0].phase }}
                     </p>
-                    <p class="font-display font-bold text-amber-400 text-lg">
+                    <p class="font-display font-black text-amber-600 dark:text-amber-400 text-lg">
                         {{ topThree[0].total_xp }} XP
                     </p>
                 </BaseCard>
@@ -134,9 +134,9 @@ const topThree = computed(() => props.ranking.slice(0, 3));
                 <!-- 3er Lugar (Derecha) -->
                 <BaseCard class="p-4 text-center border-t-4 border-t-amber-700 order-3 space-y-2">
                     <div
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-amber-700/20 text-amber-600 font-bold text-lg"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-amber-700/15 border border-amber-700/30 text-amber-700 dark:text-amber-500 font-bold text-lg"
                     >
-                        <AppIcon name="award" :size="22" class="text-amber-600" />
+                        <AppIcon name="award" :size="22" class="text-amber-700 dark:text-amber-500" />
                     </div>
                     <p class="font-bold text-sm text-content-primary truncate">
                         {{ topThree[2].alias || topThree[2].name }}
@@ -176,23 +176,23 @@ const topThree = computed(() => props.ranking.slice(0, 3));
                             >
                                 <td class="px-4 py-3 text-center font-bold">
                                     <span v-if="user.rank === 1"
-                                        ><AppIcon
-                                            name="trophy"
-                                            :size="16"
-                                            class="text-warning inline"
-                                    /></span>
+                                         ><AppIcon
+                                             name="trophy"
+                                             :size="16"
+                                             class="text-amber-500 inline"
+                                     /></span>
                                     <span v-else-if="user.rank === 2"
-                                        ><AppIcon
-                                            name="medal"
-                                            :size="16"
-                                            class="text-slate-400 inline"
-                                    /></span>
+                                         ><AppIcon
+                                             name="medal"
+                                             :size="16"
+                                             class="text-content-secondary inline"
+                                     /></span>
                                     <span v-else-if="user.rank === 3"
-                                        ><AppIcon
-                                            name="award"
-                                            :size="16"
-                                            class="text-amber-600 inline"
-                                    /></span>
+                                         ><AppIcon
+                                             name="award"
+                                             :size="16"
+                                             class="text-amber-700 dark:text-amber-500 inline"
+                                     /></span>
                                     <span v-else>#{{ user.rank }}</span>
                                 </td>
 

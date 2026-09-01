@@ -27,10 +27,15 @@ final class RewardRedemptionModel extends Model
     protected $fillable = [
         'user_id',
         'reward_id',
+        'reward_type',
         'title',
+        'entertainment_title',
+        'entertainment_category',
         'cost_coins',
         'icon',
         'status',
+        'review_text',
+        'rating',
         'redeemed_at',
         'used_at',
     ];
@@ -41,6 +46,7 @@ final class RewardRedemptionModel extends Model
             'user_id' => 'integer',
             'reward_id' => 'integer',
             'cost_coins' => 'integer',
+            'rating' => 'integer',
             'redeemed_at' => 'datetime',
             'used_at' => 'datetime',
         ];

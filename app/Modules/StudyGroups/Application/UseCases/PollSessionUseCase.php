@@ -61,13 +61,16 @@ final readonly class PollSessionUseCase
             ->whereIn('status', [PomodoroState::RUNNING, PomodoroState::PAUSED])
             ->get();
 
-        $result['active_pomodoros'] = $activePomodoros->map(fn ($pom) => [
+        $pomodoroList = $activePomodoros->map(fn ($pom) => [
             'pomodoro_session_id' => $pom->id,
             'user_id' => $pom->user_id,
             'planned_minutes' => $pom->planned_minutes,
             'started_at' => $pom->started_at->toIso8601String(),
             'status' => $pom->status,
-        ])->all();
+        ])->values()->all();
+
+        $result['active_pomodoros'] = $pomodoroList;
+        $result['active_pomodoro'] = $pomodoroList[0] ?? null;
 
         return $result;
     }

@@ -87,8 +87,8 @@ const totalPomodoroMinutes = computed(() => {
 // UI helpers
 const difficultyConfig = {
     easy: { label: 'Fácil', class: 'bg-success/20 text-success' },
-    medium: { label: 'Media', class: 'bg-warning/20 text-warning' },
-    hard: { label: 'Difícil', class: 'bg-danger/20 text-danger' },
+    medium: { label: 'Media', class: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold' },
+    hard: { label: 'Difícil', class: 'bg-danger/20 text-danger-text' },
 };
 
 function goToMission(id) {
@@ -302,12 +302,12 @@ function goToMission(id) {
                 </div>
 
                 <!-- Columna 3: En Revisión -->
-                <div class="rounded-2xl bg-warning/10 border border-warning/30 p-3.5 flex flex-col min-h-[420px]">
-                    <div class="flex items-center justify-between pb-2.5 border-b border-warning/20 mb-3">
-                        <h2 class="font-bold text-xs text-warning flex items-center gap-1.5">
+                <div class="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-3.5 flex flex-col min-h-[420px]">
+                    <div class="flex items-center justify-between pb-2.5 border-b border-amber-500/20 mb-3">
+                        <h2 class="font-bold text-xs text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
                             🔍 En Revisión
                         </h2>
-                        <span class="rounded-full bg-warning/20 px-2 py-0.5 text-[11px] font-bold text-warning">{{ kanbanInReview.length }}</span>
+                        <span class="rounded-full bg-amber-500/20 px-2 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-300">{{ kanbanInReview.length }}</span>
                     </div>
                     
                     <div class="space-y-3 flex-1">

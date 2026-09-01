@@ -211,7 +211,7 @@ async function handleFocusFinished() {
     // Completar en el backend
     if (currentSess?.id) {
         try {
-            await fetch(route('pomodoro.complete', { id: currentSess.id }), {
+            const res = await fetch(route('pomodoro.complete', { id: currentSess.id }), {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -219,6 +219,17 @@ async function handleFocusFinished() {
                     'X-XSRF-TOKEN': csrfHeader(),
                 },
             });
+            if (!res.ok && res.status === 422) {
+                // Fallback si no llegó al 95%: abandonar limpiamente para persistir minutos de foco
+                await fetch(route('pomodoro.abandon', { id: currentSess.id }), {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-XSRF-TOKEN': csrfHeader(),
+                    },
+                });
+            }
         } catch {
             // Silencioso
         }
@@ -229,6 +240,23 @@ async function handleFocusFinished() {
 
     // Pasar automáticamente a descanso corto (o largo según ciclo)
     startBreak(5, false);
+}
+
+export async function completeFocus() {
+    const currentSess = session.value;
+    if (!currentSess?.id && mode.value !== 'focus') {
+        return;
+    }
+
+    const plannedSec = (currentSess?.planned_minutes || 25) * 60;
+    const elapsedSec = plannedSec - remainingSeconds.value;
+    const requiredSec = plannedSec * 0.95;
+
+    if (elapsedSec < requiredSec) {
+        await abandon();
+    } else {
+        await handleFocusFinished();
+    }
 }
 
 function handleBreakFinished() {

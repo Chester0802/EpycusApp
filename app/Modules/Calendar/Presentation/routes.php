@@ -8,10 +8,32 @@ use App\Modules\Calendar\Presentation\Controllers\NoteImageController;
 use App\Modules\Calendar\Presentation\Controllers\CoursesController;
 use App\Modules\Calendar\Presentation\Controllers\CourseProjectsController;
 use App\Modules\Calendar\Presentation\Controllers\CourseGradesController;
+use App\Modules\Calendar\Presentation\Controllers\CourseLearningController;
+use App\Modules\Calendar\Presentation\Controllers\FlashcardsController;
+use App\Modules\Calendar\Presentation\Controllers\NotesController;
+use App\Modules\Calendar\Presentation\Controllers\PersonalEventsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])->group(function () {
+    // Eventos Personales (Fase 4 - Calendario Total)
+    Route::post('/api/calendar/personal-events', [PersonalEventsController::class, 'store'])->name('calendar.personal-events.store');
+    Route::put('/api/calendar/personal-events/{id}', [PersonalEventsController::class, 'update'])->name('calendar.personal-events.update');
+    Route::delete('/api/calendar/personal-events/{id}', [PersonalEventsController::class, 'destroy'])->name('calendar.personal-events.destroy');
+
+    // Flashcards y Simulacro de Examen (Fase 3)
+    Route::get('/api/courses/{course}/flashcards', [FlashcardsController::class, 'index'])->name('courses.flashcards.index');
+    Route::post('/api/courses/{course}/flashcards', [FlashcardsController::class, 'store'])->name('courses.flashcards.store');
+    Route::put('/api/flashcards/{id}', [FlashcardsController::class, 'update'])->name('flashcards.update');
+    Route::delete('/api/flashcards/{id}', [FlashcardsController::class, 'destroy'])->name('flashcards.destroy');
+    Route::post('/api/flashcards/{id}/review', [FlashcardsController::class, 'review'])->name('flashcards.review');
+    Route::post('/api/courses/{course}/flashcards/generate-ai', [FlashcardsController::class, 'generateFromAi'])->name('courses.flashcards.generate-ai');
+    Route::post('/api/courses/{course}/mock-exam/generate', [FlashcardsController::class, 'generateMockExam'])->name('courses.mock-exam.generate');
+    Route::post('/api/courses/{course}/mock-exam/evaluate', [FlashcardsController::class, 'evaluateMockExam'])->name('courses.mock-exam.evaluate');
+
     // Calendario & Time-Blocking
+    // Vista principal de apuntes
+    Route::get('/notes', [NotesController::class, 'index'])->name('notes.index');
+
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
     // Grafo de Conocimiento (Segundo Cerebro Asistido por IA)
@@ -19,16 +41,21 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/api/calendar/knowledge-graph/generate', [KnowledgeGraphController::class, 'generate'])->name('calendar.knowledge-graph.generate');
     Route::post('/api/calendar/knowledge-graph/positions', [KnowledgeGraphController::class, 'savePositions'])->name('calendar.knowledge-graph.positions');
 
-    // Cursos (Antiguos endpoints del Calendario)
-    Route::post('/calendar/courses', [CalendarController::class, 'storeCourse'])->name('calendar.courses.store');
-    Route::put('/calendar/courses/{id}', [CalendarController::class, 'updateCourse'])->name('calendar.courses.update');
-    Route::delete('/calendar/courses/{id}', [CalendarController::class, 'destroyCourse'])->name('calendar.courses.destroy');
+    // Cursos (Antiguos endpoints del Calendario, ahora en CoursesController)
+    Route::post('/calendar/courses', [CoursesController::class, 'store'])->name('calendar.courses.store');
+    Route::put('/calendar/courses/{id}', [CoursesController::class, 'update'])->name('calendar.courses.update');
+    Route::delete('/calendar/courses/{id}', [CoursesController::class, 'destroy'])->name('calendar.courses.destroy');
 
     // Cursos Hub (Fase 2)
     Route::get('/courses', [CoursesController::class, 'index'])->name('courses.index');
     Route::get('/courses/{id}', [CoursesController::class, 'show'])->name('courses.show');
     Route::post('/courses/{id}/syllabus', [CoursesController::class, 'uploadSyllabus'])->name('courses.syllabus.upload');
     Route::delete('/courses/{id}/syllabus', [CoursesController::class, 'deleteSyllabus'])->name('courses.syllabus.delete');
+    
+    // Zona de Aprendizaje en Cursos (Fase 6)
+    Route::post('/api/courses/{course}/learning/generate-graph', [CourseLearningController::class, 'generateGraph'])->name('courses.learning.generate-graph');
+    Route::post('/api/courses/{course}/learning/chunk/mastery', [CourseLearningController::class, 'updateChunkMastery'])->name('courses.learning.chunk.mastery');
+    Route::post('/api/courses/{course}/learning/generate-mission', [CourseLearningController::class, 'generateMission'])->name('courses.learning.generate-mission');
     
     // Proyectos de Curso (Fase 4)
     Route::post('/courses/{courseId}/projects', [CourseProjectsController::class, 'store'])->name('course.projects.store');

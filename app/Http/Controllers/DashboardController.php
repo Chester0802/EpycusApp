@@ -130,6 +130,15 @@ class DashboardController extends Controller
 
         $totalMissionsCount = $completedMissionsCount + $overdueMissionsCount + $pendingMissionsCount;
 
+        $activeMissions = DB::table('missions')
+            ->where('user_id', $userId)
+            ->whereNull('completed_at')
+            ->whereNull('deleted_at')
+            ->orderByRaw('due_date IS NULL ASC')
+            ->orderBy('due_date', 'asc')
+            ->limit(5)
+            ->get();
+
         // 4. Adherencia de Hábitos
         $totalActiveHabits = DB::table('habits')
             ->where('user_id', $userId)
@@ -182,6 +191,7 @@ class DashboardController extends Controller
                 'completedMissions' => $completedMissionsCount,
                 'overdueMissions' => $overdueMissionsCount,
                 'totalMissions' => $totalMissionsCount,
+                'activeMissions' => $activeMissions,
                 'todayFocusMinutes' => $last7Days[$endDateStr]['focusMinutes'] ?? 0,
                 'todayHabitsDone' => $todayHabitsDone,
                 'totalActiveHabits' => $totalActiveHabits,

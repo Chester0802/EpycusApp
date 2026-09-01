@@ -132,16 +132,16 @@ const requiredAverageForTarget = computed(() => {
                     <span class="text-4xl font-black text-content-primary">{{ currentAverage }}</span>
                     <span class="text-sm font-semibold text-content-secondary">/ 20</span>
                 </div>
-                <div class="mt-1 text-xs font-medium" :class="currentAverage >= 14 ? 'text-success' : (currentAverage >= 10.5 ? 'text-warning' : 'text-danger')">
+                <div class="mt-1 text-xs font-medium" :class="currentAverage >= 14 ? 'text-success font-bold' : (currentAverage >= 10.5 ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-danger-text font-bold')">
                     Evaluado: {{ gradedWeight }}% del curso
                 </div>
             </BaseCard>
 
             <!-- Meta del Curso -->
-            <BaseCard class="p-5 flex flex-col justify-center border-l-4 border-l-indigo-500">
+            <BaseCard class="p-5 flex flex-col justify-center border-l-4 border-l-primary-strong">
                 <span class="text-xs font-bold text-content-muted uppercase tracking-wide">Meta del Curso</span>
                 <div class="mt-2 flex items-baseline gap-2">
-                    <span class="text-4xl font-black text-indigo-500">{{ targetGrade || '--' }}</span>
+                    <span class="text-4xl font-black text-primary-strong">{{ targetGrade || '--' }}</span>
                 </div>
                 <div class="mt-1 text-xs font-medium text-content-secondary">
                     Configurada en Detalles del Curso
@@ -149,17 +149,17 @@ const requiredAverageForTarget = computed(() => {
             </BaseCard>
 
             <!-- Predictor -->
-            <BaseCard class="p-5 flex flex-col justify-center border-l-4 border-l-warning">
+            <BaseCard class="p-5 flex flex-col justify-center border-l-4 border-l-amber-500">
                 <span class="text-xs font-bold text-content-muted uppercase tracking-wide">Necesitas Sacar (Promedio)</span>
                 <div v-if="targetGrade > 0 && remainingWeight > 0" class="mt-2">
-                    <div v-if="requiredAverageForTarget > 20" class="text-danger font-bold text-sm">
+                    <div v-if="requiredAverageForTarget > 20" class="text-danger-text font-bold text-sm">
                         ¡Matemáticamente imposible! Necesitas {{ requiredAverageForTarget }}.
                     </div>
                     <div v-else-if="requiredAverageForTarget <= 0" class="text-success font-bold text-sm flex items-center gap-1">
                         <AppIcon name="check-circle" :size="16" /> ¡Meta alcanzada!
                     </div>
                     <div v-else class="flex items-baseline gap-2">
-                        <span class="text-4xl font-black text-warning">{{ requiredAverageForTarget }}</span>
+                        <span class="text-4xl font-black text-content-primary">{{ requiredAverageForTarget }}</span>
                         <span class="text-xs font-semibold text-content-secondary">en el {{ remainingWeight }}% restante</span>
                     </div>
                 </div>
@@ -185,8 +185,8 @@ const requiredAverageForTarget = computed(() => {
             </div>
 
             <!-- Total Weight Warning -->
-            <div v-if="totalWeight !== 100 && evaluations.length > 0 && !isAdding && !editingId" class="mb-4 p-3 rounded-lg bg-warning/10 text-warning text-sm font-semibold flex items-center gap-2 border border-warning/20">
-                <AppIcon name="alert-triangle" :size="16" />
+            <div v-if="totalWeight !== 100 && evaluations.length > 0 && !isAdding && !editingId" class="mb-4 p-3 rounded-lg bg-amber-500/15 text-content-primary text-sm font-semibold flex items-center gap-2 border border-amber-500/30">
+                <AppIcon name="alert-triangle" :size="16" class="text-amber-500" />
                 La suma de los pesos es {{ totalWeight }}%. Debería ser 100%.
             </div>
 

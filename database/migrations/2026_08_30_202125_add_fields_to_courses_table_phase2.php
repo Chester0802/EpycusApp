@@ -27,6 +27,12 @@ return new class extends Migration
             if (!Schema::hasColumn('courses', 'min_pass_grade')) {
                 $table->decimal('min_pass_grade', 5, 2)->nullable();
             }
+            if (!Schema::hasColumn('courses', 'starts_at')) {
+                $table->date('starts_at')->nullable();
+            }
+            if (!Schema::hasColumn('courses', 'ends_at')) {
+                $table->date('ends_at')->nullable();
+            }
             if (!Schema::hasColumn('courses', 'syllabus_path')) {
                 $table->string('syllabus_path')->nullable();
             }

@@ -11,7 +11,7 @@ final class CheckQuotaUseCase
 {
     public function execute(int $userId): array
     {
-        $today = Carbon::now()->toDateString();
+        $today = Carbon::now('America/Lima')->toDateString();
         $maxQuota = (int) config('services.deepseek.quota', 5);
 
         $quotaRecord = AiQuotaModel::where('user_id', $userId)

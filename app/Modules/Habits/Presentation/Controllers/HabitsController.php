@@ -61,6 +61,8 @@ final class HabitsController extends Controller
                 'id' => $habit->id,
                 'title' => $habit->title,
                 'category' => $habit->category,
+                'habit_type' => $habit->habit_type ?? 'build',
+                'max_per_week' => $habit->max_per_week,
                 'frequency' => $habit->frequency,
                 'icon' => $habit->icon,
                 'time_of_day' => $habit->time_of_day ?? 'anytime',
@@ -83,6 +85,8 @@ final class HabitsController extends Controller
             'id' => $h->id,
             'title' => $h->title,
             'category' => $h->category,
+            'habit_type' => $h->habit_type ?? 'build',
+            'max_per_week' => $h->max_per_week,
             'frequency' => $h->frequency,
             'icon' => $h->icon,
             'time_of_day' => $h->time_of_day ?? 'anytime',
@@ -143,6 +147,8 @@ final class HabitsController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:120',
             'category' => 'required|in:estudio,sueno,ejercicio,alimentacion,otro',
+            'habit_type' => 'nullable|in:build,break',
+            'max_per_week' => 'nullable|integer|min:1|max:7',
             'frequency' => 'required|array',
             'icon' => 'nullable|string|max:40',
             'time_of_day' => 'nullable|in:morning,afternoon,night,anytime',
@@ -159,6 +165,8 @@ final class HabitsController extends Controller
             icon: $validated['icon'] ?? null,
             timeOfDay: $validated['time_of_day'] ?? 'anytime',
             cueTrigger: $validated['cue_trigger'] ?? null,
+            habitType: $validated['habit_type'] ?? 'build',
+            maxPerWeek: isset($validated['max_per_week']) ? (int) $validated['max_per_week'] : null,
         );
 
         $this->createHabit->execute($dto);
@@ -171,6 +179,8 @@ final class HabitsController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:120',
             'category' => 'required|in:estudio,sueno,ejercicio,alimentacion,otro',
+            'habit_type' => 'nullable|in:build,break',
+            'max_per_week' => 'nullable|integer|min:1|max:7',
             'frequency' => 'required|array',
             'icon' => 'nullable|string|max:40',
             'time_of_day' => 'nullable|in:morning,afternoon,night,anytime',
@@ -188,6 +198,8 @@ final class HabitsController extends Controller
             icon: $validated['icon'] ?? null,
             timeOfDay: $validated['time_of_day'] ?? 'anytime',
             cueTrigger: $validated['cue_trigger'] ?? null,
+            habitType: $validated['habit_type'] ?? 'build',
+            maxPerWeek: isset($validated['max_per_week']) ? (int) $validated['max_per_week'] : null,
         );
 
         try {

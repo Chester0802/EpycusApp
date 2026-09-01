@@ -54,6 +54,10 @@ defineProps({
             <path d="M3 9.5h18M8.5 2.5V6M15.5 2.5V6" />
             <path d="M8.5 13.5h.01M12 13.5h.01M15.5 13.5h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01" stroke-width="1.5" />
         </template>
+        <template v-else-if="name === 'book' || name === 'courses' || name === 'course' || name === 'book-open'">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+        </template>
         <template v-else-if="name === 'brain' || name === 'learning' || name === 'aprendizaje'">
             <path d="M12 18V5" />
             <path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" />
@@ -112,6 +116,15 @@ defineProps({
             <path d="m2 6 4-4" />
             <path d="m3 10 7-7" />
             <path d="m14 21 7-7" />
+        </template>
+        <template v-else-if="name === 'readings' || name === 'library'">
+            <path d="m16 6 4 14" />
+            <path d="M12 6v14" />
+            <path d="M8 8v12" />
+            <path d="M4 4v16" />
+        </template>
+        <template v-else-if="name === 'skills' || name === 'destrezas'">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
         </template>
         <template v-else-if="name === 'settings'">
             <path d="M4 7h10M18 7h2" />

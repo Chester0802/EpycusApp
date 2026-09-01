@@ -33,6 +33,8 @@ final class HabitModel extends Model
         'user_id',
         'title',
         'category',
+        'habit_type',
+        'max_per_week',
         'frequency',
         'icon',
         'time_of_day',
@@ -45,6 +47,7 @@ final class HabitModel extends Model
         return [
             'frequency' => 'array',
             'is_active' => 'boolean',
+            'max_per_week' => 'integer',
         ];
     }
 

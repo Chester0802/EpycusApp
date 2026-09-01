@@ -38,9 +38,27 @@ return [
     'deepseek' => [
         'api_key' => env('DEEPSEEK_API_KEY'),
         'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
-        'model' => env('DEEPSEEK_MODEL', 'deepseek-v4-flash'),
+        'model' => env('DEEPSEEK_MODEL', 'deepseek-chat'),
         'timeout' => (int) env('DEEPSEEK_TIMEOUT', 30),
         'quota' => (int) env('AI_DAILY_QUOTA', 5),
+    ],
+
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-1.5-flash'),
+        'timeout' => (int) env('GEMINI_TIMEOUT', 30),
+    ],
+
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+        'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+        'timeout' => (int) env('GROQ_TIMEOUT', 30),
+    ],
+
+    'openrouter' => [
+        'api_key' => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_MODEL', 'minimax/minimax-m3:free'),
+        'timeout' => (int) env('OPENROUTER_TIMEOUT', 45),
     ],
 
     'google' => [

@@ -186,13 +186,70 @@ final class AiContextBuilderService
             }
         }
 
+        // 10. Clases Universitarias Programadas para Hoy
+        $todayClassesContext = 'Sin clases programadas hoy';
+        if (Schema::hasTable('course_sessions') && Schema::hasTable('courses')) {
+            $dayOfWeekIso = Carbon::now('America/Lima')->dayOfWeekIso; // 1 (Lunes) a 7 (Domingo)
+            $todaySessions = DB::table('course_sessions')
+                ->join('courses', 'courses.id', '=', 'course_sessions.course_id')
+                ->where('courses.user_id', $userId)
+                ->where('course_sessions.day_of_week', $dayOfWeekIso)
+                ->orderBy('course_sessions.start_time')
+                ->get(['courses.name as course_name', 'course_sessions.start_time', 'course_sessions.end_time', 'course_sessions.classroom']);
+
+            if ($todaySessions->isNotEmpty()) {
+                $todayClassesContext = $todaySessions->map(function ($s) {
+                    $room = $s->classroom ? " (Aula: {$s->classroom})" : "";
+                    return "{$s->course_name} [{$s->start_time} - {$s->end_time}]{$room}";
+                })->implode(' | ');
+            }
+        }
+
+        // 11. Eventos Personales o Exámenes de Hoy
+        $todayEventsContext = 'Sin eventos personales hoy';
+        if (Schema::hasTable('personal_events')) {
+            $todayEvents = DB::table('personal_events')
+                ->where('user_id', $userId)
+                ->where('event_date', $today)
+                ->get(['title', 'type', 'start_time']);
+
+            if ($todayEvents->isNotEmpty()) {
+                $todayEventsContext = $todayEvents->map(function ($e) {
+                    $time = $e->start_time ? " a las {$e->start_time}" : "";
+                    return "{$e->title} ({$e->type}{$time})";
+                })->implode(' | ');
+            }
+        }
+
+        // 12. Próximas Evaluaciones del Semestre (Sílabo / Exámenes)
+        $evaluationsContext = 'Sin evaluaciones pendientes registradas';
+        if (Schema::hasTable('grade_evaluations') && Schema::hasTable('courses')) {
+            $upcomingEvals = DB::table('grade_evaluations')
+                ->join('courses', 'courses.id', '=', 'grade_evaluations.course_id')
+                ->where('courses.user_id', $userId)
+                ->whereNull('grade_evaluations.obtained_score')
+                ->orderBy('grade_evaluations.eval_date')
+                ->take(4)
+                ->get(['courses.name as course_name', 'grade_evaluations.name as eval_name', 'grade_evaluations.weight', 'grade_evaluations.eval_date']);
+
+            if ($upcomingEvals->isNotEmpty()) {
+                $evaluationsContext = $upcomingEvals->map(function ($ev) {
+                    $dateStr = $ev->eval_date ? " (Fecha: {$ev->eval_date})" : "";
+                    return "{$ev->course_name}: {$ev->eval_name} [Peso: {$ev->weight}%]{$dateStr}";
+                })->implode(' | ');
+            }
+        }
+
         return sprintf(
             "Contexto Integral del Estudiante (Anónimo y Privado):\n".
             "- Nivel actual: %d (Fase %d) | Racha activa: %d días | Monedas acumuladas: %d 🪙\n".
+            "- Horario de clases hoy: %s\n".
+            "- Eventos y compromisos hoy: %s\n".
             "- Hábitos completados hoy: %d\n".
             "- Plan Diario / Time-Blocking hoy: %s\n".
             "- Minutos de foco Pomodoro: %d min hoy (%d min últimos 7 días)\n".
-            "- Desglose de cursos activos: %s\n".
+            "- Cursos activos y minutos dedicados: %s\n".
+            "- Próximas evaluaciones del semestre: %s\n".
             "- Estado de Salud & Fitness: %d/8 vasos de agua hoy | %d min ejercicio últimos 7 días\n".
             "- Estado de Finanzas este mes: %s\n".
             "- Estado emocional reciente: Promedio %s / 5 (Etiquetas: %s)\n".
@@ -201,11 +258,14 @@ final class AiContextBuilderService
             $phase,
             $streak,
             $coins,
+            $todayClassesContext,
+            $todayEventsContext,
             $habitsDoneToday,
             $dayPlanContext,
             $focusMinutesToday,
             $focusMinutesWeek,
             $coursesContext,
+            $evaluationsContext,
             $hydrationGlasses,
             $workoutMinutesWeek,
             $financeContext,

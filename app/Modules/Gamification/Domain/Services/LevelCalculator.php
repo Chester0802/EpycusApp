@@ -57,6 +57,23 @@ final class LevelCalculator
     }
 
     /**
+     * Total de XP acumulado necesario para alcanzar el nivel `$level`.
+     */
+    public function xpForLevel(int $level): int
+    {
+        if ($level <= 1) {
+            return 0;
+        }
+
+        $total = 0;
+        for ($i = 1; $i < $level && $i <= $this->maxLevel; $i++) {
+            $total += $this->xpNeededToAdvanceFromLevel($i);
+        }
+
+        return $total;
+    }
+
+    /**
      * `fase = floor((nivel - 1) / levelsPerPhase) + 1` (docs/03-GAMIFICACION.md §8).
      */
     public function phaseForLevel(int $level): int

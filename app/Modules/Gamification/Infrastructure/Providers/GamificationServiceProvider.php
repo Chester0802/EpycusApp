@@ -9,7 +9,9 @@ use App\Modules\Gamification\Application\Listeners\AwardXpFromHabitListener;
 use App\Modules\Gamification\Application\Listeners\AwardXpFromPomodoroListener;
 use App\Modules\Gamification\Application\Listeners\AwardXpFromStudyGroupsListener;
 use App\Modules\Gamification\Application\Listeners\AwardXpFromVillainDefeatedListener;
+use App\Modules\Gamification\Application\Listeners\AwardSkillXpListener;
 use App\Modules\Gamification\Domain\Contracts\GamificationRepositoryInterface;
+use App\Modules\Gamification\Domain\Events\XpAwarded;
 use App\Modules\Gamification\Domain\Services\LevelCalculator;
 use App\Modules\Gamification\Infrastructure\Repositories\EloquentGamificationRepository;
 use App\Modules\Gamification\Infrastructure\Repositories\EloquentUserProgressReader;
@@ -44,6 +46,7 @@ final class GamificationServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../Migrations');
+        $this->loadRoutesFrom(__DIR__.'/../../Presentation/routes.php');
 
         // La única "cola de eventos" real de este proyecto: cada módulo se
         // suscribe a lo que le interesa de otro en su propio provider, no
@@ -58,5 +61,8 @@ final class GamificationServiceProvider extends ServiceProvider
         Event::listen(ParticipantJoined::class, AwardXpFromStudyGroupsListener::class);
         Event::listen(GroupMessageSent::class, AwardXpFromStudyGroupsListener::class);
         Event::listen(StudySessionCreated::class, AwardXpFromStudyGroupsListener::class);
+
+        // Fase 7: RPG Skills
+        Event::listen(XpAwarded::class, AwardSkillXpListener::class);
     }
 }

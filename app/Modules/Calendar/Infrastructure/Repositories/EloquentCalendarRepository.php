@@ -107,11 +107,15 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
     public function createCourse(int $userId, array $data): CourseModel
     {
         $course = CourseModel::query()->create([
-            'user_id'   => $userId,
-            'name'      => $data['name'],
-            'color'     => $data['color'] ?? 'primary',
-            'starts_at' => $data['starts_at'] ?? null,
-            'ends_at'   => $data['ends_at'] ?? null,
+            'user_id'        => $userId,
+            'name'           => $data['name'],
+            'color'          => $data['color'] ?? 'primary',
+            'starts_at'      => $data['starts_at'] ?? null,
+            'ends_at'        => $data['ends_at'] ?? null,
+            'professor'      => $data['professor'] ?? null,
+            'credits'        => isset($data['credits']) && $data['credits'] !== '' ? (int) $data['credits'] : null,
+            'target_grade'   => isset($data['target_grade']) && $data['target_grade'] !== '' ? (float) $data['target_grade'] : null,
+            'min_pass_grade' => isset($data['min_pass_grade']) && $data['min_pass_grade'] !== '' ? (float) $data['min_pass_grade'] : null,
         ]);
 
         foreach ($data['sessions'] as $session) {
@@ -135,10 +139,14 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
             ->firstOrFail();
 
         $course->update([
-            'name'      => $data['name'],
-            'color'     => $data['color'] ?? 'primary',
-            'starts_at' => $data['starts_at'] ?? null,
-            'ends_at'   => $data['ends_at'] ?? null,
+            'name'           => $data['name'],
+            'color'          => $data['color'] ?? 'primary',
+            'starts_at'      => $data['starts_at'] ?? null,
+            'ends_at'        => $data['ends_at'] ?? null,
+            'professor'      => $data['professor'] ?? null,
+            'credits'        => isset($data['credits']) && $data['credits'] !== '' ? (int) $data['credits'] : null,
+            'target_grade'   => isset($data['target_grade']) && $data['target_grade'] !== '' ? (float) $data['target_grade'] : null,
+            'min_pass_grade' => isset($data['min_pass_grade']) && $data['min_pass_grade'] !== '' ? (float) $data['min_pass_grade'] : null,
         ]);
 
         $course->sessions()->delete();
