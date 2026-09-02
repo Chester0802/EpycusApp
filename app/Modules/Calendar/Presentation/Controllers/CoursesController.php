@@ -37,7 +37,7 @@ final class CoursesController extends Controller
     {
         $userId = (int) $request->user()->id;
         $course = CourseModel::where('user_id', $userId)
-            ->with(['period', 'sessions', 'projects.phases.missions', 'gradeEvaluations'])
+            ->with(['period', 'sessions', 'projects.phases.missions.subtasks', 'missions.subtasks', 'gradeEvaluations'])
             ->findOrFail($id);
 
         $graph = UserKnowledgeGraphModel::where('user_id', $userId)->first();

@@ -48,6 +48,30 @@ onMounted(() => {
     if (saved === 'list' || saved === 'matrix' || saved === 'kanban') {
         viewMode.value = saved;
     }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('new_mission') || urlParams.get('create')) {
+        const courseId = urlParams.get('course_id');
+        const phaseId = urlParams.get('project_phase_id');
+        openCreateModal();
+        if (courseId) {
+            selectedCourseFilter.value = courseId;
+            createForm.course_id = courseId;
+        }
+        if (phaseId) {
+            createForm.project_phase_id = Number(phaseId);
+            createForm.mission_type = 'project';
+        }
+    }
+
+    const missionParam = urlParams.get('mission');
+    if (missionParam) {
+        const target = props.missions.find(m => String(m.id) === String(missionParam))
+            || props.completedMissions.find(m => String(m.id) === String(missionParam));
+        if (target) {
+            openDetailModal(target);
+        }
+    }
 });
 
 function setViewMode(mode) {
@@ -222,6 +246,7 @@ const createForm = useForm({
     difficulty: 'medium',
     priority: 'normal',
     course_id: '',
+    project_phase_id: '',
     eisenhower_quadrant: 'q2',
     due_date: '',
     planned_date: '',
@@ -237,11 +262,26 @@ const editForm = useForm({
     difficulty: 'medium',
     priority: 'normal',
     course_id: '',
+    project_phase_id: '',
     eisenhower_quadrant: 'q2',
     due_date: '',
     planned_date: '',
     planned_start: '',
     planned_end: '',
+});
+
+const createCoursePhases = computed(() => {
+    if (!createForm.course_id) return [];
+    const c = props.courses.find(course => String(course.id) === String(createForm.course_id));
+    if (!c || !c.projects) return [];
+    return c.projects.flatMap(p => p.phases || []);
+});
+
+const editCoursePhases = computed(() => {
+    if (!editForm.course_id) return [];
+    const c = props.courses.find(course => String(course.id) === String(editForm.course_id));
+    if (!c || !c.projects) return [];
+    return c.projects.flatMap(p => p.phases || []);
 });
 
 function addSubtaskField() {
@@ -260,6 +300,7 @@ function openCreateModal(initialQuadrant = 'q2') {
     createForm.reset();
     createForm.eisenhower_quadrant = initialQuadrant;
     createForm.course_id = selectedCourseFilter.value !== 'all' && selectedCourseFilter.value !== 'none' ? selectedCourseFilter.value : '';
+    createForm.project_phase_id = '';
     createForm.subtasks = [''];
     showCreateModal.value = true;
 }
@@ -324,6 +365,7 @@ function openEditModal(mission) {
     editForm.difficulty = mission.difficulty;
     editForm.priority = mission.priority;
     editForm.course_id = mission.course_id ? String(mission.course_id) : '';
+    editForm.project_phase_id = mission.project_phase_id ? Number(mission.project_phase_id) : '';
     editForm.eisenhower_quadrant = mission.eisenhower_quadrant || 'q2';
     editForm.due_date = mission.due_date || '';
     editForm.planned_date = mission.planned_date || '';
@@ -1733,6 +1775,22 @@ function goToMission(id) {
                             </option>
                         </select>
                     </div>
+
+                    <!-- Selector de Fase si el curso tiene proyecto -->
+                    <div v-if="createCoursePhases.length > 0" class="col-span-2">
+                        <label class="block text-xs font-semibold text-content-secondary mb-1">
+                            📁 Fase del Proyecto ABP (Opcional)
+                        </label>
+                        <select
+                            v-model="createForm.project_phase_id"
+                            class="w-full rounded-xl border border-border-interactive bg-surface px-3 py-2 text-xs font-semibold text-content-primary outline-none shadow-xs focus:border-primary-strong cursor-pointer"
+                        >
+                            <option value="">(Sin fase / General)</option>
+                            <option v-for="phase in createCoursePhases" :key="phase.id" :value="phase.id">
+                                {{ phase.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Selector Visual de Cuadrante Eisenhower -->
@@ -1926,6 +1984,22 @@ function goToMission(id) {
                             <option value="">(Sin asignar)</option>
                             <option v-for="c in courses" :key="c.id" :value="c.id">
                                 {{ c.name }} {{ c.code ? `(${c.code})` : '' }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Selector de Fase si el curso tiene proyecto -->
+                    <div v-if="editCoursePhases.length > 0" class="col-span-2">
+                        <label class="block text-xs font-semibold text-content-secondary mb-1">
+                            📁 Fase del Proyecto ABP (Opcional)
+                        </label>
+                        <select
+                            v-model="editForm.project_phase_id"
+                            class="w-full rounded-xl border border-border-interactive bg-surface px-3 py-2 text-xs font-semibold text-content-primary outline-none shadow-xs focus:border-primary-strong cursor-pointer"
+                        >
+                            <option value="">(Sin fase / General)</option>
+                            <option v-for="phase in editCoursePhases" :key="phase.id" :value="phase.id">
+                                {{ phase.name }}
                             </option>
                         </select>
                     </div>

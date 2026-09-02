@@ -59,6 +59,9 @@ Route::middleware(['web', 'auth'])->group(function () {
     
     // Proyectos de Curso (Fase 4)
     Route::post('/courses/{courseId}/projects', [CourseProjectsController::class, 'store'])->name('course.projects.store');
+    Route::post('/courses/{courseId}/projects/{projectId}/phases', [CourseProjectsController::class, 'storePhase'])->name('course.projects.phases.store');
+    Route::put('/courses/{courseId}/projects/{projectId}/phases/{phaseId}', [CourseProjectsController::class, 'updatePhase'])->name('course.projects.phases.update');
+    Route::delete('/courses/{courseId}/projects/{projectId}/phases/{phaseId}', [CourseProjectsController::class, 'destroyPhase'])->name('course.projects.phases.destroy');
 
     // Notas de Curso (Fase 3)
     Route::post('/courses/{course}/grades', [CourseGradesController::class, 'store'])->name('course.grades.store');

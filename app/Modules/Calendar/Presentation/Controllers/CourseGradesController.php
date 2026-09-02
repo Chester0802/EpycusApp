@@ -16,13 +16,22 @@ class CourseGradesController extends Controller
             abort(403);
         }
 
+        if ($request->input('obtained_score') === '' || $request->input('obtained_score') === null) {
+            $request->merge(['obtained_score' => null]);
+        }
+        if (!$request->filled('max_score')) {
+            $request->merge(['max_score' => 20]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:80',
             'weight' => 'required|numeric|min:0|max:100',
             'obtained_score' => 'nullable|numeric|min:0',
-            'max_score' => 'required|numeric|min:1',
+            'max_score' => 'nullable|numeric|min:1',
             'eval_date' => 'nullable|date',
         ]);
+
+        $validated['max_score'] = $validated['max_score'] ?? 20;
 
         $course->gradeEvaluations()->create($validated);
 
@@ -35,13 +44,22 @@ class CourseGradesController extends Controller
             abort(403);
         }
 
+        if ($request->input('obtained_score') === '' || $request->input('obtained_score') === null) {
+            $request->merge(['obtained_score' => null]);
+        }
+        if (!$request->filled('max_score')) {
+            $request->merge(['max_score' => 20]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:80',
             'weight' => 'required|numeric|min:0|max:100',
             'obtained_score' => 'nullable|numeric|min:0',
-            'max_score' => 'required|numeric|min:1',
+            'max_score' => 'nullable|numeric|min:1',
             'eval_date' => 'nullable|date',
         ]);
+
+        $validated['max_score'] = $validated['max_score'] ?? 20;
 
         $grade->update($validated);
 

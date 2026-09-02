@@ -358,17 +358,6 @@ onMounted(() => {
     if (viewParam === 'grid' || viewParam === 'timeblocking') {
         calendarViewMode.value = viewParam;
     }
-
-    // Auto-abrir apunte si viene en la URL (?note=ID o ?course_id=ID)
-    const noteParam = urlParams.get('note') || urlParams.get('course_id');
-    if (noteParam) {
-        const targetId = Number(noteParam);
-        const course = props.courses.find(c => c.id === targetId);
-        if (course) {
-            selectedCourse.value = course;
-            showNoteModal.value = true;
-        }
-    }
 });
 
 function selectDay(dateStr) {

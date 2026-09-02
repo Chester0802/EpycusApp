@@ -61,8 +61,22 @@ self.addEventListener('fetch', (event) => {
 
     // Estrategia Network-First para el resto de navegación
     event.respondWith(
-        fetch(event.request).catch(() => {
-            return caches.match(event.request);
+        fetch(event.request).catch(async () => {
+            const cached = await caches.match(event.request);
+            if (cached) {
+                return cached;
+            }
+            if (event.request.mode === 'navigate') {
+                const fallback = await caches.match('/');
+                if (fallback) {
+                    return fallback;
+                }
+            }
+            return new Response('Offline o error de red', {
+                status: 503,
+                statusText: 'Service Unavailable',
+                headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+            });
         })
     );
 });

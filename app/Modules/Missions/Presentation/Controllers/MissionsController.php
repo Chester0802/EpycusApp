@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Missions\Presentation\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Calendar\Infrastructure\Models\CourseModel;
 use App\Modules\Identity\Infrastructure\Models\UserModel;
 use App\Modules\Missions\Application\DTOs\CreateMissionDTO;
 use App\Modules\Missions\Application\DTOs\UpdateMissionDTO;
@@ -70,9 +71,8 @@ final class MissionsController extends Controller
         $missionsData = $this->mapMissions($missions, $today);
         $completedData = $this->mapMissions($completed, $today);
 
-        $courses = \Illuminate\Support\Facades\DB::table('courses')
-            ->where('user_id', $userId)
-            ->select('id', 'name', 'color')
+        $courses = CourseModel::where('user_id', $userId)
+            ->with(['projects.phases' => fn ($q) => $q->orderBy('order')])
             ->orderBy('name')
             ->get();
 
@@ -227,9 +227,8 @@ final class MissionsController extends Controller
             ];
         })->values()->toArray();
 
-        $courses = \Illuminate\Support\Facades\DB::table('courses')
-            ->where('user_id', $userId)
-            ->select('id', 'name', 'color')
+        $courses = CourseModel::where('user_id', $userId)
+            ->with(['projects.phases' => fn ($q) => $q->orderBy('order')])
             ->orderBy('name')
             ->get();
 

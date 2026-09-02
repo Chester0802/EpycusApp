@@ -89,4 +89,12 @@ final class CourseModel extends Model
     {
         return $this->hasMany(GradeEvaluationModel::class, 'course_id')->orderBy('eval_date');
     }
+
+    /**
+     * @return HasMany
+     */
+    public function missions(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Missions\Infrastructure\Models\MissionModel::class, 'course_id');
+    }
 }

@@ -49,14 +49,25 @@ final class MissionModel extends Model
         'due_date', 'planned_date', 'planned_start', 'planned_end', 'completed_at', 'days_early_or_late', 'is_overdue', 'xp_awarded',
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'due_date' => 'date:Y-m-d',
+        'planned_date' => 'date:Y-m-d',
+        'completed_at' => 'datetime',
+        'is_overdue' => 'boolean',
+    ];
+
+    protected $appends = ['subtask_count', 'subtask_done'];
+
+    public function getSubtaskCountAttribute(): int
     {
-        return [
-            'due_date' => 'date:Y-m-d',
-            'planned_date' => 'date:Y-m-d',
-            'completed_at' => 'datetime',
-            'is_overdue' => 'boolean',
-        ];
+        return $this->relationLoaded('subtasks') ? $this->subtasks->count() : (int) $this->subtasks()->count();
+    }
+
+    public function getSubtaskDoneAttribute(): int
+    {
+        return $this->relationLoaded('subtasks')
+            ? (int) $this->subtasks->where('is_completed', true)->count()
+            : (int) $this->subtasks()->where('is_completed', true)->count();
     }
 
     /**
