@@ -25,12 +25,14 @@ final class UserPreferencesModel extends Model
         'surface_mode',
         'wallpaper_key',
         'notifications_enabled',
+        'notification_settings',
     ];
 
     protected function casts(): array
     {
         return [
             'notifications_enabled' => 'boolean',
+            'notification_settings' => 'array',
         ];
     }
 

@@ -36,6 +36,10 @@ final readonly class UpdatePreferencesUseCase
                 : $preferences->disableNotifications();
         }
 
+        if ($dto->notificationSettings !== null) {
+            $preferences->changeNotificationSettings($dto->notificationSettings);
+        }
+
         $saved = $this->transaction->run(function () use ($preferences) {
             $this->preferences->save($preferences);
 

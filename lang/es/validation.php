@@ -170,15 +170,17 @@ return [
     'custom' => [
         'name' => [
             'required' => 'Por favor, ingresa tu nombre completo.',
+            'max' => 'El nombre no puede superar los 255 caracteres.',
         ],
         'email' => [
             'required' => 'El correo electrónico es obligatorio.',
-            'email' => 'Ingresa un correo electrónico con formato válido.',
+            'email' => 'Por favor, ingresa un correo electrónico con formato válido.',
             'unique' => 'Este correo electrónico ya está registrado en Epycus.',
+            'max' => 'El correo electrónico es demasiado largo.',
         ],
         'alias' => [
-            'required' => 'El alias público es obligatorio.',
-            'unique' => 'Este alias ya está en uso. Prueba generar uno nuevo con el botón de sugerencia.',
+            'required' => 'El alias público es obligatorio para el ranking y tu perfil.',
+            'unique' => 'Este alias ya está en uso. Prueba generar uno nuevo con el botón.',
             'max' => 'El alias no debe exceder los 40 caracteres.',
         ],
         'password' => [
@@ -186,9 +188,36 @@ return [
             'confirmed' => 'Las contraseñas no coinciden.',
             'min' => 'La contraseña debe tener al menos :min caracteres.',
         ],
+        'password_confirmation' => [
+            'required' => 'Por favor, confirma tu contraseña.',
+            'same' => 'Las contraseñas no coinciden.',
+        ],
         'terms_accepted' => [
             'accepted' => 'Debes aceptar los Términos y Condiciones para crear tu cuenta.',
             'required' => 'Debes aceptar los Términos y Condiciones para crear tu cuenta.',
+        ],
+        'career' => [
+            'required' => 'Por favor selecciona tu carrera profesional.',
+            'in' => 'La carrera seleccionada no es válida.',
+        ],
+        'cycle' => [
+            'required' => 'Selecciona tu ciclo académico actual.',
+            'between' => 'El ciclo académico debe estar entre :min y :max.',
+            'integer' => 'El ciclo académico debe ser un número válido.',
+            'min' => 'El ciclo debe estar entre :min y :max.',
+            'max' => 'El ciclo debe estar entre :min y :max.',
+        ],
+        'institution_type' => [
+            'required' => 'Indica si estudias en Universidad o Instituto.',
+            'in' => 'El tipo de institución debe ser Universidad o Instituto.',
+        ],
+        'avatar_gender' => [
+            'required' => 'Selecciona el género de tu personaje.',
+            'in' => 'El género seleccionado no es válido.',
+        ],
+        'avatar_style' => [
+            'required' => 'El estilo de avatar es obligatorio.',
+            'in' => 'El estilo de avatar seleccionado no es válido.',
         ],
     ],
 
@@ -209,6 +238,30 @@ return [
         'cycle' => 'ciclo académico',
         'institution_type' => 'tipo de institución',
         'avatar_gender' => 'género del avatar',
+        'avatar_style' => 'estilo de avatar',
+        'starts_at' => 'fecha de inicio',
+        'ends_at' => 'fecha de fin',
+        'start_time' => 'hora de inicio',
+        'end_time' => 'hora de fin',
+        'day_of_week' => 'día de la semana',
+        'classroom' => 'aula',
+        'sessions' => 'sesiones de clase',
+        'credits' => 'créditos académicos',
+        'target_grade' => 'meta de nota',
+        'min_pass_grade' => 'nota mínima aprobatoria',
+        'professor' => 'docente / profesor',
+        'title' => 'título',
+        'description' => 'descripción',
+        'difficulty' => 'dificultad',
+        'due_date' => 'fecha límite',
+        'priority' => 'prioridad',
+        'status' => 'estado',
+        'amount' => 'monto',
+        'category' => 'categoría',
+        'question' => 'pregunta',
+        'answer' => 'respuesta',
+        'syllabus' => 'archivo de sílabo',
+        'event_date' => 'fecha del evento',
     ],
 
 ];

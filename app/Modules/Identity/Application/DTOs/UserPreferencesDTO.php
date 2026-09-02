@@ -12,6 +12,7 @@ final readonly class UserPreferencesDTO
         public int $userId,
         public string $surfaceMode,
         public bool $notificationsEnabled,
+        public ?array $notificationSettings = null,
     ) {}
 
     public static function fromDomain(UserPreferences $preferences): self
@@ -20,6 +21,7 @@ final readonly class UserPreferencesDTO
             userId: $preferences->userId()->value(),
             surfaceMode: $preferences->surfaceMode()->value(),
             notificationsEnabled: $preferences->notificationsEnabled(),
+            notificationSettings: $preferences->notificationSettings(),
         );
     }
 }

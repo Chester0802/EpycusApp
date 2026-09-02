@@ -14,6 +14,7 @@ final class UserPreferences
         private SurfaceMode $surfaceMode,
         private bool $notificationsEnabled = false,
         private string $wallpaperKey = 'atardecer',
+        private ?array $notificationSettings = null,
     ) {}
 
     public function userId(): UserId
@@ -36,6 +37,11 @@ final class UserPreferences
         return $this->notificationsEnabled;
     }
 
+    public function notificationSettings(): ?array
+    {
+        return $this->notificationSettings;
+    }
+
     public function changeSurfaceMode(SurfaceMode $surfaceMode): void
     {
         $this->surfaceMode = $surfaceMode;
@@ -44,6 +50,11 @@ final class UserPreferences
     public function changeWallpaperKey(string $wallpaperKey): void
     {
         $this->wallpaperKey = $wallpaperKey;
+    }
+
+    public function changeNotificationSettings(?array $settings): void
+    {
+        $this->notificationSettings = $settings;
     }
 
     public function enableNotifications(): void

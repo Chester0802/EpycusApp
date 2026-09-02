@@ -10,6 +10,7 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import AvatarCustomizer from '@/Components/AvatarCustomizer.vue';
 import StudentIdCard from '@/Components/ui/StudentIdCard.vue';
 import HerosPathMap from '@/Components/ui/HerosPathMap.vue';
+import NotificationSettingsCard from '@/Components/NotificationSettingsCard.vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import { ShieldCheck, Trophy, Sparkles, CheckCircle2, Lock } from '@lucide/vue';
 
@@ -336,17 +337,18 @@ const filteredAchievements = computed(() => {
 
             <!-- Contenido Pestaña 4: Ajustes de Cuenta -->
             <div v-else-if="activeTab === 'settings'" class="space-y-6">
-                <!-- Información Académica (Siempre visible) -->
+                <!-- Información Académica y de Carrera -->
                 <BaseCard class="p-6">
                     <UpdateAcademicInformationForm
-                        :initial-career="profileData.career"
-                        :initial-cycle="profileData.cycle"
-                        :initial-institution-type="profileData.institutionType"
+                        :profile-data="profileData"
                         :careers="careers"
                         :cycles="cycles"
                         :institution-types="institutionTypes"
                     />
                 </BaseCard>
+
+                <!-- Configuración Granular de Notificaciones -->
+                <NotificationSettingsCard />
 
                 <!-- Información Personal y Alias (Siempre visible para todos los usuarios) -->
                 <BaseCard class="p-6">

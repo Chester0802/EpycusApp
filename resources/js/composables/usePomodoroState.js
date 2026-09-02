@@ -87,11 +87,15 @@ function sendNotification(title, body) {
     try {
         if (typeof window !== 'undefined' && 'Notification' in window) {
             if (Notification.permission === 'granted') {
-                new Notification(title, { body, icon: '/favicon.ico' });
+                const notif = new Notification(title, { body, icon: '/assets/images/favicon.ico', data: { url: '/pomodoro' } });
+                notif.onclick = () => {
+                    window.focus();
+                    notif.close();
+                };
             } else if (Notification.permission === 'default') {
                 Notification.requestPermission().then((perm) => {
                     if (perm === 'granted') {
-                        new Notification(title, { body, icon: '/favicon.ico' });
+                        new Notification(title, { body, icon: '/assets/images/favicon.ico', data: { url: '/pomodoro' } });
                     }
                 });
             }

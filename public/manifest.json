@@ -1,0 +1,48 @@
+{
+  "name": "Epycus",
+  "short_name": "Epycus",
+  "description": "Plataforma de productividad y autorregulación académica universitaria",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#1e1b4b",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/assets/images/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/assets/images/logo.webp",
+      "sizes": "192x192 512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Pomodoro",
+      "short_name": "Pomodoro",
+      "description": "Iniciar temporizador de enfoque",
+      "url": "/pomodoro",
+      "icons": [{ "src": "/assets/images/favicon.ico", "sizes": "64x64" }]
+    },
+    {
+      "name": "Calendario",
+      "short_name": "Calendario",
+      "description": "Ver horarios y clases de hoy",
+      "url": "/calendar",
+      "icons": [{ "src": "/assets/images/favicon.ico", "sizes": "64x64" }]
+    },
+    {
+      "name": "Hábitos",
+      "short_name": "Hábitos",
+      "description": "Monitorear hábitos y racha",
+      "url": "/habits",
+      "icons": [{ "src": "/assets/images/favicon.ico", "sizes": "64x64" }]
+    }
+  ]
+}

@@ -35,13 +35,18 @@ final class RegisteredUserController extends Controller
             'terms_accepted' => ['sometimes', 'accepted'],
         ], [
             'name.required' => 'Por favor, ingresa tu nombre completo.',
+            'name.string' => 'El nombre debe ser un texto válido.',
+            'name.max' => 'El nombre no debe superar los 255 caracteres.',
             'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'Ingresa un correo electrónico con formato válido.',
-            'email.unique' => 'Este correo electrónico ya está registrado.',
+            'email.email' => 'Ingresa un correo electrónico con formato válido (ej. usuario@universidad.edu.pe).',
+            'email.unique' => 'Este correo electrónico ya está registrado en Epycus.',
+            'email.max' => 'El correo electrónico es demasiado largo.',
             'alias.required' => 'El alias público es obligatorio para el ranking.',
-            'alias.unique' => 'Este alias ya está en uso. Prueba generar uno nuevo.',
+            'alias.unique' => 'Este alias ya está en uso. Prueba generar uno nuevo con el botón.',
+            'alias.max' => 'El alias no debe exceder los 40 caracteres.',
             'password.required' => 'Debes ingresar una contraseña.',
             'password.confirmed' => 'Las contraseñas no coinciden.',
+            'terms_accepted.required' => 'Debes aceptar los Términos y Condiciones para continuar.',
             'terms_accepted.accepted' => 'Debes aceptar los Términos y Condiciones para continuar.',
         ]);
 

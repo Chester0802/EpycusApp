@@ -86,6 +86,17 @@ final readonly class PreferencesController
             'unlockedWallpapers' => array_values(array_unique($unlockedKeys)),
             'activeWallpaperKey' => $activeKey,
             'userCoins' => $userCoins,
+            'preferences' => [
+                'notifications_enabled' => (bool) ($prefModel?->notifications_enabled ?? false),
+                'notification_settings' => $prefModel?->notification_settings ?? [
+                    'pomodoro' => true,
+                    'calendar' => true,
+                    'habits_streak' => true,
+                    'daily_plan' => true,
+                    'hydration' => false,
+                    'sound_enabled' => true,
+                ],
+            ],
         ]);
     }
 
@@ -96,6 +107,9 @@ final readonly class PreferencesController
             surfaceMode: $request->input('surface_mode'),
             notificationsEnabled: $request->has('notifications_enabled')
                 ? $request->boolean('notifications_enabled')
+                : null,
+            notificationSettings: $request->has('notification_settings')
+                ? (array) $request->input('notification_settings')
                 : null,
         ));
 

@@ -122,8 +122,8 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
             CourseSessionModel::query()->create([
                 'course_id'   => $course->id,
                 'day_of_week' => (int) $session['day_of_week'],
-                'start_time'  => $session['start_time'],
-                'end_time'    => $session['end_time'],
+                'start_time'  => substr((string) $session['start_time'], 0, 5),
+                'end_time'    => substr((string) $session['end_time'], 0, 5),
                 'classroom'   => $session['classroom'] ?? null,
             ]);
         }
@@ -155,8 +155,8 @@ final class EloquentCalendarRepository implements CalendarReaderInterface, Calen
             CourseSessionModel::query()->create([
                 'course_id'   => $course->id,
                 'day_of_week' => (int) $session['day_of_week'],
-                'start_time'  => $session['start_time'],
-                'end_time'    => $session['end_time'],
+                'start_time'  => substr((string) $session['start_time'], 0, 5),
+                'end_time'    => substr((string) $session['end_time'], 0, 5),
                 'classroom'   => $session['classroom'] ?? null,
             ]);
         }

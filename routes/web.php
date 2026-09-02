@@ -33,9 +33,30 @@ Route::matched(function (\Illuminate\Routing\Events\RouteMatched $event) {
     }
 });
 
+Route::get('/manifest.json', function () {
+    $path = public_path('manifest.json');
+    if (file_exists($path)) {
+        return response()->file($path, [
+            'Content-Type' => 'application/manifest+json; charset=utf-8',
+            'Cache-Control' => 'public, max-age=3600',
+        ]);
+    }
+    return response()->json(['name' => 'Epycus', 'short_name' => 'Epycus']);
+});
+
+Route::get('/sw.js', function () {
+    $path = public_path('sw.js');
+    if (file_exists($path)) {
+        return response()->file($path, [
+            'Content-Type' => 'application/javascript; charset=utf-8',
+            'Service-Worker-Allowed' => '/',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        ]);
+    }
+    return response('', 200, ['Content-Type' => 'application/javascript']);
+});
+
 Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
-
-
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth'])

@@ -18,6 +18,7 @@ final class UserPreferencesMapper
             surfaceMode: new SurfaceMode($model->surface_mode),
             notificationsEnabled: $model->notifications_enabled,
             wallpaperKey: $model->wallpaper_key ?? 'atardecer',
+            notificationSettings: $model->notification_settings,
         );
     }
 
@@ -29,6 +30,7 @@ final class UserPreferencesMapper
             'surface_mode' => $preferences->surfaceMode()->value(),
             'wallpaper_key' => $preferences->wallpaperKey(),
             'notifications_enabled' => $preferences->notificationsEnabled(),
+            'notification_settings' => $preferences->notificationSettings(),
         ];
     }
 }

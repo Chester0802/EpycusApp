@@ -1,8 +1,9 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import { usePage, router, Link } from '@inertiajs/vue3';
 import { useTheme } from '@/Composables/useTheme';
 import { useTelemetry } from '@/Composables/useTelemetry';
+import { useNotificationEngine } from '@/composables/useNotificationEngine';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import NavIcon from '@/Components/NavIcon.vue';
@@ -125,7 +126,41 @@ const flashXp = computed(() => page.props.flash?.xp_awarded ?? null);
 const toastMessage = ref(null);
 const toastType = ref('success');
 
-import { watch } from 'vue';
+const { isGranted, masterEnabled, settings, sendNotification } = useNotificationEngine();
+let notificationInterval = null;
+
+onMounted(() => {
+    if (typeof window === 'undefined') return;
+
+    notificationInterval = setInterval(() => {
+        if (!masterEnabled.value || !isGranted.value) return;
+
+        const now = new Date();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const todayDate = now.toISOString().slice(0, 10);
+
+        // Recordatorio de racha a las 20:00 (8:00 PM) una sola vez al día
+        if (hour === 20 && minute === 0 && settings.value.habits_streak) {
+            const streakKey = `epycus_alert_streak_${todayDate}`;
+            if (!sessionStorage.getItem(streakKey)) {
+                sendNotification('🔥 ¡Protege tu racha diaria!', {
+                    body: 'Aún tienes tiempo para completar tus hábitos de hoy en Epycus.',
+                    url: '/habits',
+                    channel: 'habits_streak',
+                });
+                sessionStorage.setItem(streakKey, '1');
+            }
+        }
+    }, 60000);
+});
+
+onUnmounted(() => {
+    if (notificationInterval) {
+        clearInterval(notificationInterval);
+    }
+});
+
 watch(
     [flashMessage, flashError, flashWarning, flashXp],
     ([newSuccess, newError, newWarning, newXp]) => {

@@ -5,6 +5,7 @@ import ThemeToggle from '@/Components/ThemeToggle.vue';
 import SurfaceModeToggle from '@/Components/SurfaceModeToggle.vue';
 import PaletteToggle from '@/Components/PaletteToggle.vue';
 import WallpaperSelector from '@/Components/WallpaperSelector.vue';
+import NotificationSettingsCard from '@/Components/NotificationSettingsCard.vue';
 import { useTheme } from '@/composables/useTheme';
 import { Head } from '@inertiajs/vue3';
 
@@ -25,6 +26,9 @@ const { theme } = useTheme();
         <h1 class="mb-6 font-display text-3xl text-content-primary">Ajustes</h1>
 
         <div class="space-y-6">
+            <!-- Configuración Granular de Notificaciones -->
+            <NotificationSettingsCard />
+
             <BaseCard>
                 <h2 class="mb-1 text-xl text-content-primary">Tema</h2>
                 <p class="mb-4 text-sm text-content-secondary">Claro u oscuro.</p>

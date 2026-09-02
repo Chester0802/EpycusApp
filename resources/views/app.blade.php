@@ -133,6 +133,13 @@
 
         <title inertia>{{ config('app.name', 'Epycus — Plataforma de Productividad Universitaria') }}</title>
         <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+        <link rel="manifest" href="/manifest.json">
+        <meta name="theme-color" content="#1e1b4b">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="Epycus">
+        <link rel="apple-touch-icon" href="/assets/images/logo.webp">
 
         <script nonce="{{ $cspNonce }}">
             (function () {

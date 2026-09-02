@@ -257,6 +257,17 @@ function submitEditCourse() {
             size="lg"
         >
             <form @submit.prevent="submitEditCourse" class="space-y-6 pb-6">
+                <!-- Resumen de errores si ocurren -->
+                <div v-if="editCourseForm.hasErrors" class="p-3.5 rounded-xl bg-danger/10 border border-danger/30 text-danger-text text-xs space-y-1.5">
+                    <p class="font-bold flex items-center gap-1.5">
+                        <span>⚠️</span>
+                        <span>Por favor corrige los siguientes detalles antes de guardar:</span>
+                    </p>
+                    <ul class="list-disc list-inside space-y-0.5 opacity-90 pl-1">
+                        <li v-for="(err, key) in editCourseForm.errors" :key="key">{{ err }}</li>
+                    </ul>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="space-y-1 md:col-span-2">
                         <BaseInput
@@ -273,6 +284,7 @@ function submitEditCourse() {
                             v-model="editCourseForm.professor"
                             label="Profesor / Docente"
                             placeholder="Ej. Juan Pérez"
+                            :error="editCourseForm.errors.professor"
                         />
                     </div>
                     <div class="space-y-1">
@@ -284,6 +296,7 @@ function submitEditCourse() {
                             min="0"
                             max="50"
                             placeholder="4"
+                            :error="editCourseForm.errors.credits"
                         />
                     </div>
                     <div class="space-y-1">
@@ -292,6 +305,7 @@ function submitEditCourse() {
                             v-model="editCourseForm.color"
                             label="Color Distintivo"
                             :options="colorOptions"
+                            :error="editCourseForm.errors.color"
                         />
                     </div>
                     <div class="space-y-1">
@@ -304,6 +318,7 @@ function submitEditCourse() {
                             min="0"
                             max="20"
                             placeholder="16"
+                            :error="editCourseForm.errors.target_grade"
                         />
                     </div>
                     
@@ -343,55 +358,81 @@ function submitEditCourse() {
                         <div
                             v-for="(session, index) in editCourseForm.sessions"
                             :key="index"
-                            class="grid grid-cols-1 sm:grid-cols-[1fr_100px_100px_1fr_auto] gap-2 items-center bg-surface p-3 rounded-xl border border-border"
+                            class="space-y-3 bg-surface p-3.5 rounded-2xl border border-border shadow-xs"
                         >
-                            <BaseSelect
-                                :id="'edit-session-day-' + index"
-                                :model-value="String(session.day_of_week)"
-                                @update:model-value="(val) => setSessionDay(index, val)"
-                                :options="[
-                                    { value: '1', label: 'Lunes' },
-                                    { value: '2', label: 'Martes' },
-                                    { value: '3', label: 'Miércoles' },
-                                    { value: '4', label: 'Jueves' },
-                                    { value: '5', label: 'Viernes' },
-                                    { value: '6', label: 'Sábado' },
-                                    { value: '7', label: 'Domingo' },
-                                ]"
-                                aria-label="Día"
-                            />
-                            <BaseInput
-                                :id="'edit-session-start-' + index"
-                                v-model="session.start_time"
-                                type="time"
-                                aria-label="Hora Inicio"
-                                required
-                            />
-                            <BaseInput
-                                :id="'edit-session-end-' + index"
-                                v-model="session.end_time"
-                                type="time"
-                                aria-label="Hora Fin"
-                                required
-                            />
-                            <BaseInput
-                                :id="'edit-session-classroom-' + index"
-                                v-model="session.classroom"
-                                placeholder="Aula (Opc.)"
-                                aria-label="Aula"
-                            />
-                            <button
-                                type="button"
-                                @click="removeSession(index)"
-                                class="p-2 text-content-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
-                                :disabled="editCourseForm.sessions.length <= 1"
-                                title="Eliminar sesión"
-                            >
-                                <Trash2 :size="16" />
-                            </button>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-content-primary">
+                                    Sesión {{ index + 1 }}
+                                </span>
+                                <button
+                                    type="button"
+                                    @click="removeSession(index)"
+                                    class="p-1.5 text-content-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-colors disabled:opacity-30 cursor-pointer"
+                                    :disabled="editCourseForm.sessions.length <= 1"
+                                    title="Eliminar sesión"
+                                >
+                                    <Trash2 :size="15" />
+                                </button>
+                            </div>
+
+                            <!-- Fila de Horarios y Día: Amplio y sin cortes -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                                <div>
+                                    <label class="block text-xs font-semibold text-content-secondary mb-1">Día de la semana</label>
+                                    <BaseSelect
+                                        :id="'edit-session-day-' + index"
+                                        :model-value="String(session.day_of_week)"
+                                        @update:model-value="(val) => setSessionDay(index, val)"
+                                        :options="[
+                                            { value: '1', label: 'Lunes' },
+                                            { value: '2', label: 'Martes' },
+                                            { value: '3', label: 'Miércoles' },
+                                            { value: '4', label: 'Jueves' },
+                                            { value: '5', label: 'Viernes' },
+                                            { value: '6', label: 'Sábado' },
+                                            { value: '7', label: 'Domingo' },
+                                        ]"
+                                        aria-label="Día"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-content-secondary mb-1">Hora Inicio</label>
+                                    <BaseInput
+                                        :id="'edit-session-start-' + index"
+                                        v-model="session.start_time"
+                                        type="time"
+                                        aria-label="Hora Inicio"
+                                        :error="editCourseForm.errors['sessions.' + index + '.start_time']"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-content-secondary mb-1">Hora Fin</label>
+                                    <BaseInput
+                                        :id="'edit-session-end-' + index"
+                                        v-model="session.end_time"
+                                        type="time"
+                                        aria-label="Hora Fin"
+                                        :error="editCourseForm.errors['sessions.' + index + '.end_time']"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Fila Inferior: Aula / Salón (Opcional) a todo lo ancho -->
+                            <div>
+                                <label class="block text-xs font-semibold text-content-secondary mb-1">Aula / Pabellón / Modalidad (Opcional)</label>
+                                <BaseInput
+                                    :id="'edit-session-classroom-' + index"
+                                    v-model="session.classroom"
+                                    placeholder="Ej. Pabellón B - Aula 302 o Virtual Zoom"
+                                    aria-label="Aula"
+                                    :error="editCourseForm.errors['sessions.' + index + '.classroom']"
+                                />
+                            </div>
                         </div>
                     </div>
-                    <div v-if="editCourseForm.errors.sessions" class="text-danger text-xs">
+                    <div v-if="editCourseForm.errors.sessions" class="text-danger text-xs font-semibold">
                         {{ editCourseForm.errors.sessions }}
                     </div>
                 </div>

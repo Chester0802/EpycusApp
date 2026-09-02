@@ -2010,24 +2010,51 @@ function goToPomodoro(item) {
 
             <!-- Formulario de Curso -->
             <form v-else class="space-y-4" @submit.prevent="submitCourse">
+                <!-- Resumen de errores si ocurren -->
+                <div v-if="courseForm.hasErrors" class="p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger-text text-xs space-y-1">
+                    <p class="font-bold flex items-center gap-1.5">
+                        <span>⚠️</span>
+                        <span>Revisa los siguientes campos:</span>
+                    </p>
+                    <ul class="list-disc list-inside space-y-0.5 opacity-90 pl-1">
+                        <li v-for="(err, key) in courseForm.errors" :key="key">{{ err }}</li>
+                    </ul>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-content-secondary mb-1">Nombre del Curso</label>
-                        <BaseInput v-model="courseForm.name" placeholder="Ej. Cálculo Multivariable" required />
+                    <div class="sm:col-span-2">
+                        <BaseInput
+                            id="cal-course-name"
+                            v-model="courseForm.name"
+                            label="Nombre del Curso *"
+                            placeholder="Ej. Cálculo Multivariable"
+                            :error="courseForm.errors.name"
+                            required
+                        />
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-content-secondary mb-1">Profesor / Docente (Opcional)</label>
-                        <BaseInput v-model="courseForm.professor" placeholder="Ej. Juan Pérez" />
+                        <BaseInput
+                            id="cal-course-professor"
+                            v-model="courseForm.professor"
+                            label="Profesor / Docente (Opcional)"
+                            placeholder="Ej. Juan Pérez"
+                            :error="courseForm.errors.professor"
+                        />
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-content-secondary mb-1">Color de identificación</label>
-                        <BaseSelect v-model="courseForm.color" :options="[
-                            { value: 'primary', label: 'Primario' },
-                            { value: 'accent', label: 'Acento' },
-                            { value: 'success', label: 'Éxito' },
-                            { value: 'warning', label: 'Alerta' },
-                            { value: 'secondary', label: 'Secundario' }
-                        ]" />
+                        <BaseSelect
+                            id="cal-course-color"
+                            v-model="courseForm.color"
+                            label="Color de identificación"
+                            :options="[
+                                { value: 'primary', label: 'Primario' },
+                                { value: 'accent', label: 'Acento' },
+                                { value: 'success', label: 'Éxito' },
+                                { value: 'warning', label: 'Alerta' },
+                                { value: 'secondary', label: 'Secundario' }
+                            ]"
+                            :error="courseForm.errors.color"
+                        />
                     </div>
                 </div>
 
@@ -2042,37 +2069,75 @@ function goToPomodoro(item) {
                     <div
                         v-for="(session, idx) in courseForm.sessions"
                         :key="idx"
-                        class="grid grid-cols-12 gap-2 p-2.5 rounded-xl bg-surface border border-border items-center"
+                        class="p-3.5 rounded-2xl bg-surface border border-border space-y-3"
                     >
-                        <div class="col-span-4">
-                            <BaseSelect
-                                :model-value="session.day_of_week"
-                                :options="dayNames.map((d, i) => ({ value: i + 1, label: d }))"
-                                @update:model-value="val => setSessionDay(idx, val)"
-                            />
-                        </div>
-                        <div class="col-span-3">
-                            <BaseInput v-model="session.start_time" placeholder="08:00" />
-                        </div>
-                        <div class="col-span-3">
-                            <BaseInput v-model="session.end_time" placeholder="10:00" />
-                        </div>
-                        <div class="col-span-2 text-right">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-content-primary">
+                                Sesión {{ idx + 1 }}
+                            </span>
                             <button
                                 v-if="courseForm.sessions.length > 1"
                                 type="button"
-                                class="text-xs text-danger-text hover:opacity-80 p-1"
+                                class="p-1.5 text-content-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-colors cursor-pointer"
                                 @click="removeSession(idx)"
+                                title="Eliminar sesión"
                             >
-                                ✕
+                                <Trash2 :size="15" />
                             </button>
+                        </div>
+
+                        <!-- Fila de Horarios y Día: 3 Columnas espaciosas -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                            <div>
+                                <label class="block text-xs font-semibold text-content-secondary mb-1">Día</label>
+                                <BaseSelect
+                                    :id="'cal-session-day-' + idx"
+                                    :model-value="String(session.day_of_week)"
+                                    :options="dayNames.map((d, i) => ({ value: String(i + 1), label: d }))"
+                                    @update:model-value="val => setSessionDay(idx, val)"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-content-secondary mb-1">Hora Inicio</label>
+                                <BaseInput
+                                    :id="'cal-session-start-' + idx"
+                                    v-model="session.start_time"
+                                    type="time"
+                                    aria-label="Hora Inicio"
+                                    :error="courseForm.errors['sessions.' + idx + '.start_time']"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-content-secondary mb-1">Hora Fin</label>
+                                <BaseInput
+                                    :id="'cal-session-end-' + idx"
+                                    v-model="session.end_time"
+                                    type="time"
+                                    aria-label="Hora Fin"
+                                    :error="courseForm.errors['sessions.' + idx + '.end_time']"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Fila de Aula / Salón abajo a todo lo ancho -->
+                        <div>
+                            <label class="block text-xs font-semibold text-content-secondary mb-1">Aula / Salón / Modalidad (Opcional)</label>
+                            <BaseInput
+                                :id="'cal-session-room-' + idx"
+                                v-model="session.classroom"
+                                placeholder="Ej. Pabellón B - Aula 302 o Virtual Zoom"
+                                aria-label="Aula"
+                                :error="courseForm.errors['sessions.' + idx + '.classroom']"
+                            />
                         </div>
                     </div>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2 border-t border-border">
                     <BaseButton variant="secondary" type="button" @click="showCourseForm = false">Volver</BaseButton>
-                    <BaseButton variant="primary" type="submit" :disabled="courseForm.processing">
+                    <BaseButton variant="primary" type="submit" :loading="courseForm.processing">
                         {{ editingCourseId ? 'Guardar Curso' : 'Registrar Curso' }}
                     </BaseButton>
                 </div>

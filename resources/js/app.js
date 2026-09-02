@@ -59,3 +59,14 @@ window.addEventListener('pageshow', (event) => {
         window.location.reload();
     }
 });
+
+/**
+ * Registro de Service Worker para capacidades PWA y Notificaciones
+ */
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !isFramed) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.warn('[Epycus PWA] No se pudo registrar el Service Worker:', err);
+        });
+    });
+}

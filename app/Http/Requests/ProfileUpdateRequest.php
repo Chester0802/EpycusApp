@@ -30,4 +30,18 @@ class ProfileUpdateRequest extends FormRequest
             'institution_type' => ['nullable', 'string', 'in:universidad,instituto'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre completo es obligatorio.',
+            'name.max' => 'El nombre no puede superar los 255 caracteres.',
+            'email.email' => 'Ingresa un correo electrónico con formato válido.',
+            'email.unique' => 'Este correo electrónico ya se encuentra registrado en otra cuenta.',
+            'alias.unique' => 'Este alias ya está en uso por otro estudiante.',
+            'alias.max' => 'El alias no debe superar los 40 caracteres.',
+            'cycle.between' => 'El ciclo académico debe estar entre 1 y 10.',
+            'institution_type.in' => 'El tipo de institución debe ser Universidad o Instituto.',
+        ];
+    }
 }

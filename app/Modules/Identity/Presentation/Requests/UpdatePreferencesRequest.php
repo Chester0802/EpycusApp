@@ -14,6 +14,7 @@ final class UpdatePreferencesRequest extends FormRequest
         return [
             'surface_mode' => ['sometimes', 'string', 'in:neumorphism,glass'],
             'notifications_enabled' => ['sometimes', 'boolean'],
+            'notification_settings' => ['sometimes', 'array'],
         ];
     }
 }

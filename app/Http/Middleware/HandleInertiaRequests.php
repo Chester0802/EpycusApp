@@ -97,6 +97,14 @@ class HandleInertiaRequests extends Middleware
                 'surfaceMode' => $preferences->surfaceMode()->value(),
                 'wallpaperKey' => $preferences->wallpaperKey(),
                 'notificationsEnabled' => $preferences->notificationsEnabled(),
+                'notificationSettings' => $preferences->notificationSettings() ?? [
+                    'pomodoro' => true,
+                    'calendar' => true,
+                    'habits_streak' => true,
+                    'daily_plan' => true,
+                    'hydration' => false,
+                    'sound_enabled' => true,
+                ],
             ] : null,
             'flash' => [
                 'success' => $request->session()->get('success'),

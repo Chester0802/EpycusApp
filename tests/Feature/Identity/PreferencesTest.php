@@ -62,6 +62,29 @@ class PreferencesTest extends TestCase
         );
     }
 
+    public function test_notification_settings_can_be_updated(): void
+    {
+        $user = UserModel::factory()->participant()->create();
+        UserPreferencesModel::factory()->create(['user_id' => $user->id, 'notifications_enabled' => true]);
+
+        $settings = [
+            'pomodoro' => true,
+            'calendar' => false,
+            'habits_streak' => true,
+            'daily_plan' => false,
+            'hydration' => true,
+            'sound_enabled' => false,
+        ];
+
+        $response = $this->actingAs($user)->patch('/preferences', [
+            'notification_settings' => $settings,
+        ]);
+
+        $response->assertRedirect();
+        $saved = UserPreferencesModel::where('user_id', $user->id)->first()->notification_settings;
+        $this->assertEquals($settings, $saved);
+    }
+
     public function test_invalid_surface_mode_is_rejected(): void
     {
         $user = UserModel::factory()->participant()->create();

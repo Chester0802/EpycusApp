@@ -10,5 +10,6 @@ final readonly class UpdatePreferencesDTO
         public int $userId,
         public ?string $surfaceMode = null,
         public ?bool $notificationsEnabled = null,
+        public ?array $notificationSettings = null,
     ) {}
 }

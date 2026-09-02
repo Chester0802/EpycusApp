@@ -185,7 +185,7 @@ const submit = () => {
         </div>
 
         <!-- SECCIÓN 1: REGISTRO CON GOOGLE (PRIMER PLANO) -->
-        <div class="space-y-3">
+        <div class="space-y-2">
             <a
                 :href="route('auth.google')"
                 class="flex min-h-[50px] w-full items-center justify-center gap-3 rounded-2xl border-2 border-primary-strong/30 bg-surface-raised px-4 py-3 text-sm font-bold text-content-primary shadow-md hover:bg-surface hover:border-primary-strong hover:shadow-lg transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong cursor-pointer"
@@ -211,33 +211,17 @@ const submit = () => {
                 <span>Regístrate con Google</span>
             </a>
 
-            <!-- ACEPTACIÓN DE TÉRMINOS Y CONDICIONES (DEBAJO DE GOOGLE) -->
-            <div class="pt-1">
-                <label
-                    class="flex min-h-[44px] cursor-pointer items-start gap-2.5 text-xs text-content-secondary"
+            <!-- Nota informativa para Google -->
+            <p class="text-[11px] text-center text-content-muted pt-1">
+                Al registrarte con Google, aceptas los
+                <Link
+                    :href="route('terms')"
+                    target="_blank"
+                    class="font-semibold text-primary-strong underline-offset-2 hover:underline"
                 >
-                    <input
-                        v-model="form.terms_accepted"
-                        type="checkbox"
-                        class="mt-0.5 h-4 w-4 rounded border-border-interactive text-primary focus-visible:ring-2 focus-visible:ring-primary-strong"
-                        required
-                    />
-                    <span>
-                        Al continuar, acepto los
-                        <Link
-                            :href="route('terms')"
-                            target="_blank"
-                            class="font-bold text-primary-strong underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong rounded"
-                        >
-                            Términos y Condiciones
-                        </Link>
-                        del Proyecto Epycus.
-                    </span>
-                </label>
-                <p v-if="form.errors.terms_accepted" class="mt-1 text-xs text-danger-text font-semibold">
-                    {{ form.errors.terms_accepted }}
-                </p>
-            </div>
+                    Términos y Condiciones
+                </Link>.
+            </p>
         </div>
 
         <!-- SEPARADOR CON BOTÓN PARA DESPLEGAR REGISTRO MANUAL -->
@@ -398,10 +382,40 @@ const submit = () => {
                     </p>
                 </div>
 
+                <!-- ACEPTACIÓN DE TÉRMINOS Y CONDICIONES (DENTRO DEL FORMULARIO) -->
+                <div class="pt-1">
+                    <label
+                        class="flex items-start gap-3 p-3 rounded-2xl border transition-all cursor-pointer select-none"
+                        :class="form.terms_accepted ? 'bg-primary/5 border-primary-strong/40' : 'bg-surface border-border hover:bg-surface-raised'"
+                    >
+                        <input
+                            v-model="form.terms_accepted"
+                            type="checkbox"
+                            class="mt-0.5 h-4 w-4 rounded border-border-interactive text-primary focus-visible:ring-2 focus-visible:ring-primary-strong cursor-pointer shrink-0"
+                            required
+                        />
+                        <span class="text-xs text-content-secondary leading-relaxed">
+                            Acepto los
+                            <Link
+                                :href="route('terms')"
+                                target="_blank"
+                                class="font-bold text-primary-strong underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong rounded"
+                                @click.stop
+                            >
+                                Términos y Condiciones
+                            </Link>
+                            del Proyecto Epycus y su Política de Privacidad.
+                        </span>
+                    </label>
+                    <p v-if="form.errors.terms_accepted" class="mt-1.5 text-xs text-danger-text font-semibold pl-1">
+                        {{ form.errors.terms_accepted }}
+                    </p>
+                </div>
+
                 <!-- Botón de Envío -->
                 <BaseButton
                     type="submit"
-                    class="w-full min-h-[48px] mt-3 font-bold text-sm shadow-md"
+                    class="w-full min-h-[48px] mt-2 font-bold text-sm shadow-md"
                     :disabled="form.processing || !form.terms_accepted"
                 >
                     {{ form.processing ? 'Creando cuenta…' : 'Crear cuenta con correo' }}
