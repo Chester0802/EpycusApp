@@ -96,10 +96,15 @@ const showEpaModal = computed(() => {
     if (page.props.auth?.hasCompletedEpaPretest === true) return false;
 
     if (typeof window !== 'undefined' && window.localStorage) {
-        if (
-            localStorage.getItem(`epycus_epa_completed_${user.id}`) === '1' ||
-            localStorage.getItem('epycus_epa_completed_latest') === '1'
-        ) {
+        try {
+            if (localStorage.getItem('epycus_epa_completed_latest')) {
+                localStorage.removeItem('epycus_epa_completed_latest');
+            }
+        } catch {
+            // Silencioso
+        }
+
+        if (localStorage.getItem(`epycus_epa_completed_${user.id}`) === '1') {
             return false;
         }
     }

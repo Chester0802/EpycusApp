@@ -203,7 +203,7 @@ function markAsCompleted() {
             if (userId) {
                 localStorage.setItem(`epycus_epa_completed_${userId}`, '1');
             }
-            localStorage.setItem('epycus_epa_completed_latest', '1');
+            localStorage.removeItem('epycus_epa_completed_latest');
         } catch {
             // Silencioso
         }

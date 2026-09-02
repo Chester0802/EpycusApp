@@ -25,7 +25,16 @@ const confirmUserDeletion = () => {
 const deleteUser = () => {
     form.delete(route('profile.destroy'), {
         preserveScroll: true,
-        onSuccess: () => closeModal(),
+        onSuccess: () => {
+            closeModal();
+            if (typeof window !== 'undefined' && window.localStorage) {
+                try {
+                    localStorage.clear();
+                } catch {
+                    // Silencioso
+                }
+            }
+        },
         onError: () => {
             if (!isGoogleUser.value) {
                 passwordInput.value?.focus();
