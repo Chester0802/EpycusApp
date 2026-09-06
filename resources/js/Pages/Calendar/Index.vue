@@ -42,12 +42,36 @@ const props = defineProps({
 const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const dayNames   = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 
+function parseHour(timeStr) {
+    if (!timeStr) return null;
+    const str = String(timeStr).trim().toLowerCase();
+    const parts = str.split(':');
+    let h = parseInt(parts[0], 10);
+    if (isNaN(h)) return null;
+
+    if ((str.includes('pm') || str.includes('p.m.')) && h < 12) {
+        h += 12;
+    } else if ((str.includes('am') || str.includes('a.m.')) && h === 12) {
+        h = 0;
+    }
+    return h;
+}
+
+function normalizeTimeTo24h(timeStr) {
+    if (!timeStr) return '';
+    const h = parseHour(timeStr);
+    if (h === null) return '';
+    const parts = String(timeStr).trim().toLowerCase().split(':');
+    const m = parts[1] ? parts[1].replace(/\D/g, '').slice(0, 2).padStart(2, '0') : '00';
+    return `${String(h).padStart(2, '0')}:${m}`;
+}
+
 function formatTime12h(timeStr) {
     if (!timeStr) return '';
-    const parts = timeStr.split(':');
-    const h = parseInt(parts[0], 10);
-    const m = parts[1] ? parts[1].slice(0, 2) : '00';
-    if (isNaN(h)) return timeStr;
+    const h = parseHour(timeStr);
+    if (h === null) return timeStr;
+    const parts = String(timeStr).trim().toLowerCase().split(':');
+    const m = parts[1] ? parts[1].replace(/\D/g, '').slice(0, 2).padStart(2, '0') : '00';
     const period = h >= 12 ? 'p.m.' : 'a.m.';
     const h12 = h % 12 || 12;
     return `${String(h12).padStart(2, '0')}:${m} ${period}`;
@@ -408,17 +432,54 @@ function changePlanDate(deltaDays) {
 }
 
 // ── Time-Blocking 24h Helpers ──────────────────────────────────────────────
-const timelineHours = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+const timelineHours = computed(() => {
+    let minHour = 5; // Comienza a las 5:00 a.m. por defecto (ej. despertar temprano 5:00 a.m.)
+    let maxHour = 23;
+
+    // Expandir si hay clases o sesiones más temprano
+    const sessions = selectedDayData.value?.sessions || [];
+    for (const s of sessions) {
+        if (s.start_time) {
+            const h = parseHour(s.start_time);
+            if (h !== null && h < minHour) minHour = Math.max(0, h);
+            if (h !== null && h > maxHour) maxHour = Math.min(23, h);
+        }
+    }
+
+    // Expandir si hay actividades del plan programadas a horas más tempranas (ej. 4:00 a.m.)
+    const allPlanItems = [
+        ...(props.plan?.blocks?.morning || []),
+        ...(props.plan?.blocks?.afternoon || []),
+        ...(props.plan?.blocks?.night || []),
+        ...(props.plan?.blocks?.anytime || []),
+    ];
+    for (const item of allPlanItems) {
+        if (item.scheduled_time) {
+            const h = parseHour(item.scheduled_time);
+            if (h !== null && h < minHour) minHour = Math.max(0, h);
+            if (h !== null && h > maxHour) maxHour = Math.min(23, h);
+        }
+    }
+
+    const hours = [];
+    for (let h = minHour; h <= maxHour; h++) {
+        hours.push(h);
+    }
+    return hours;
+});
 
 function getHourSlotData(hour) {
     const sessions = selectedDayData.value?.sessions || [];
-    const hourStr = String(hour).padStart(2, '0');
 
     // Clases en esta hora
     const sessionsInHour = sessions.filter(s => {
-        const startH = parseInt(s.start_time.split(':')[0], 10);
-        const endH = parseInt(s.end_time.split(':')[0], 10);
-        return hour >= startH && hour < endH;
+        const startH = parseHour(s.start_time);
+        const endH = parseHour(s.end_time);
+        if (startH === null) return false;
+        if (endH !== null) {
+            return hour >= startH && hour < endH;
+        }
+        return hour === startH;
     });
 
     // Actividades del plan diario programadas a esta hora
@@ -431,7 +492,7 @@ function getHourSlotData(hour) {
 
     const planItemsInHour = allPlanItems.filter(item => {
         if (!item.scheduled_time) return false;
-        const itemHour = parseInt(item.scheduled_time.split(':')[0], 10);
+        const itemHour = parseHour(item.scheduled_time);
         return itemHour === hour;
     });
 
@@ -565,13 +626,30 @@ function openAddPlanModal(block = 'morning') {
     showAddPlanModal.value = true;
 }
 
+function openAddPlanModalAtHour(hour) {
+    let block = 'morning';
+    if (hour >= 9 && hour < 19) block = 'afternoon';
+    else if (hour >= 19) block = 'night';
+
+    planItemForm.value = {
+        id: null,
+        title: '',
+        category: 'estudio',
+        time_block: block,
+        scheduled_time: `${String(hour).padStart(2, '0')}:00`,
+        estimated_minutes: 15,
+        notes: '',
+    };
+    showAddPlanModal.value = true;
+}
+
 function openEditPlanModal(item) {
     planItemForm.value = {
         id: item.id,
         title: item.title,
         category: item.category,
         time_block: item.time_block,
-        scheduled_time: item.scheduled_time || '',
+        scheduled_time: item.scheduled_time ? normalizeTimeTo24h(item.scheduled_time) : '',
         estimated_minutes: item.estimated_minutes || 15,
         notes: item.notes || '',
     };
@@ -580,11 +658,18 @@ function openEditPlanModal(item) {
 
 function submitPlanItem() {
     isProcessing.value = true;
+    const cleanScheduledTime = planItemForm.value.scheduled_time
+        ? normalizeTimeTo24h(planItemForm.value.scheduled_time)
+        : null;
+
     if (planItemForm.value.id) {
         // Actualizar actividad existente
         router.put(
             route('calendar.planner.items.update', { id: planItemForm.value.id }),
-            planItemForm.value,
+            {
+                ...planItemForm.value,
+                scheduled_time: cleanScheduledTime,
+            },
             {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -602,6 +687,7 @@ function submitPlanItem() {
             route('calendar.planner.items.store'),
             {
                 ...planItemForm.value,
+                scheduled_time: cleanScheduledTime,
                 plan_date: selectedDay.value,
             },
             {
@@ -631,7 +717,7 @@ function openEditRoutine(routine) {
         title: routine.title,
         category: routine.category,
         time_block: routine.time_block,
-        scheduled_time: routine.scheduled_time || '',
+        scheduled_time: routine.scheduled_time ? normalizeTimeTo24h(routine.scheduled_time) : '',
         estimated_minutes: routine.estimated_minutes || 15,
         days_of_week: routine.days_of_week || [1, 2, 3, 4, 5, 6, 7],
     };
@@ -651,10 +737,17 @@ function resetRoutineForm() {
 
 function submitRoutine() {
     isProcessing.value = true;
+    const cleanScheduledTime = routineForm.value.scheduled_time
+        ? normalizeTimeTo24h(routineForm.value.scheduled_time)
+        : null;
+
     if (routineForm.value.id) {
         router.put(
             route('calendar.planner.routines.update', { id: routineForm.value.id }),
-            routineForm.value,
+            {
+                ...routineForm.value,
+                scheduled_time: cleanScheduledTime,
+            },
             {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -669,7 +762,10 @@ function submitRoutine() {
     } else {
         router.post(
             route('calendar.planner.routines.store'),
-            routineForm.value,
+            {
+                ...routineForm.value,
+                scheduled_time: cleanScheduledTime,
+            },
             {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -932,7 +1028,7 @@ function goToPomodoro(item) {
                             </h2>
                             <div class="flex items-center gap-3 text-xs text-content-secondary">
                                 <span v-if="plan.next_action.scheduled_time" class="font-semibold text-primary-strong">
-                                    🕒 {{ plan.next_action.scheduled_time }}
+                                    🕒 {{ formatTime12h(plan.next_action.scheduled_time) }}
                                 </span>
                                 <span>⏱️ ~{{ plan.next_action.estimated_minutes }} min</span>
                                 <span class="capitalize">🏷️ {{ plan.next_action.category }}</span>
@@ -1023,13 +1119,17 @@ function goToPomodoro(item) {
                                         :key="item.id"
                                         class="flex items-center justify-between gap-1 text-xs"
                                     >
-                                        <div class="flex items-center gap-1.5 truncate">
-                                            <span class="text-xs">{{ item.status === 'done' ? '✅' : '⚪' }}</span>
+                                        <div
+                                            class="flex items-center gap-1.5 truncate cursor-pointer hover:opacity-80"
+                                            title="Editar actividad"
+                                            @click="openEditPlanModal(item)"
+                                        >
+                                            <span class="text-xs">{{ item.status === 'done' ? '✅' : item.status === 'skipped' ? '❌' : item.status === 'postponed' ? '⏳' : '⚪' }}</span>
                                             <span :class="['text-xs text-content-primary truncate', item.status === 'done' && 'line-through text-content-muted']">
                                                 {{ item.title }}
                                             </span>
                                         </div>
-                                        <span class="text-[10px] text-content-muted shrink-0">{{ item.scheduled_time }}</span>
+                                        <span class="text-[10px] text-content-muted shrink-0 font-medium">{{ formatTime12h(item.scheduled_time) }}</span>
                                     </div>
 
                                     <!-- Espacio libre -->
@@ -1038,12 +1138,22 @@ function goToPomodoro(item) {
                                         class="flex items-center justify-between text-[11px] text-content-muted"
                                     >
                                         <span class="opacity-60">Libre</span>
-                                        <a
-                                            :href="route('pomodoro.index')"
-                                            class="text-[10px] px-1.5 py-0.5 rounded bg-surface-raised border border-border text-primary-strong opacity-0 group-hover:opacity-100 transition-opacity font-bold"
-                                        >
-                                            🍅 Pomodoro
-                                        </a>
+                                        <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                type="button"
+                                                class="text-[10px] px-1.5 py-0.5 rounded bg-surface-raised border border-border text-primary-strong hover:bg-surface font-bold"
+                                                title="Añadir actividad a esta hora"
+                                                @click="openAddPlanModalAtHour(hour)"
+                                            >
+                                                ➕ Añadir
+                                            </button>
+                                            <a
+                                                :href="route('pomodoro.index')"
+                                                class="text-[10px] px-1.5 py-0.5 rounded bg-surface-raised border border-border text-primary-strong font-bold"
+                                            >
+                                                🍅 Pomodoro
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1059,7 +1169,7 @@ function goToPomodoro(item) {
                                     <span class="text-xl">🌅</span>
                                     <div>
                                         <h3 class="font-display font-bold text-base text-content-primary">Rutina Matutina</h3>
-                                        <p class="text-xs text-content-secondary">Despertar, aseo, desayuno y arranque del día (06:00 - 09:00)</p>
+                                        <p class="text-xs text-content-secondary">Despertar, aseo, desayuno y arranque del día (05:00 - 09:00)</p>
                                     </div>
                                 </div>
                                 <button
@@ -1097,7 +1207,7 @@ function goToPomodoro(item) {
                                                     {{ item.title }}
                                                 </span>
                                                 <span v-if="item.scheduled_time" class="text-[11px] px-2 py-0.5 rounded-md bg-surface-raised border border-border text-primary-strong font-bold">
-                                                    {{ item.scheduled_time }}
+                                                    {{ formatTime12h(item.scheduled_time) }}
                                                 </span>
                                                 <span v-if="item.postponed_count > 0" class="text-[10px] px-2 py-0.5 rounded-md bg-warning/20 text-warning font-bold">
                                                     Postergada {{ item.postponed_count }}x
@@ -1201,7 +1311,7 @@ function goToPomodoro(item) {
                                                     {{ item.title }}
                                                 </span>
                                                 <span v-if="item.scheduled_time" class="text-[11px] px-2 py-0.5 rounded-md bg-surface-raised border border-border text-primary-strong font-bold">
-                                                    {{ item.scheduled_time }}
+                                                    {{ formatTime12h(item.scheduled_time) }}
                                                 </span>
                                                 <span v-if="item.postponed_count > 0" class="text-[10px] px-2 py-0.5 rounded-md bg-warning/20 text-warning font-bold">
                                                     Postergada {{ item.postponed_count }}x
@@ -1313,7 +1423,7 @@ function goToPomodoro(item) {
                                                     {{ item.title }}
                                                 </span>
                                                 <span v-if="item.scheduled_time" class="text-[11px] px-2 py-0.5 rounded-md bg-surface-raised border border-border text-primary-strong font-bold">
-                                                    {{ item.scheduled_time }}
+                                                    {{ formatTime12h(item.scheduled_time) }}
                                                 </span>
                                                 <span v-if="item.postponed_count > 0" class="text-[10px] px-2 py-0.5 rounded-md bg-warning/20 text-warning font-bold">
                                                     Postergada {{ item.postponed_count }}x
@@ -1760,8 +1870,13 @@ function goToPomodoro(item) {
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-content-secondary mb-1">Hora estimada (ej. 07:30)</label>
-                        <BaseInput v-model="planItemForm.scheduled_time" placeholder="07:30" />
+                        <label for="plan-item-time" class="block text-xs font-bold text-content-secondary mb-1">Elegir hora (opcional)</label>
+                        <BaseInput
+                            id="plan-item-time"
+                            v-model="planItemForm.scheduled_time"
+                            type="time"
+                            aria-label="Elegir hora de la actividad"
+                        />
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-content-secondary mb-1">Duración (minutos)</label>
@@ -1818,8 +1933,13 @@ function goToPomodoro(item) {
                             <BaseSelect v-model="routineForm.category" :options="categories" />
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-content-secondary mb-0.5">Hora (ej. 07:00)</label>
-                            <BaseInput v-model="routineForm.scheduled_time" placeholder="07:00" />
+                            <label for="routine-time" class="block text-[11px] font-bold text-content-secondary mb-0.5">Elegir hora (opcional)</label>
+                            <BaseInput
+                                id="routine-time"
+                                v-model="routineForm.scheduled_time"
+                                type="time"
+                                aria-label="Elegir hora de la rutina"
+                            />
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-content-secondary mb-0.5">Minutos</label>
@@ -1846,7 +1966,7 @@ function goToPomodoro(item) {
                             <div>
                                 <span class="font-bold text-content-primary">{{ routine.title }}</span>
                                 <span class="text-xs text-content-secondary block">
-                                    {{ routine.scheduled_time ? '🕒 ' + routine.scheduled_time : 'Sin hora fija' }} • ~{{ routine.estimated_minutes }} min • {{ routine.category }}
+                                    {{ routine.scheduled_time ? '🕒 ' + formatTime12h(routine.scheduled_time) : 'Sin hora fija' }} • ~{{ routine.estimated_minutes }} min • {{ routine.category }}
                                 </span>
                             </div>
                         </div>

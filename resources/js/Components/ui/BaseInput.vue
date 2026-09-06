@@ -2,16 +2,29 @@
 import { computed, ref } from 'vue';
 
 const props = defineProps({
-    id: { type: String, required: true },
+    id: { type: String, default: '' },
     label: { type: String, default: '' },
     modelValue: { type: [String, Number], default: '' },
     type: { type: String, default: 'text' },
+    placeholder: { type: String, default: '' },
+    min: { type: [String, Number], default: null },
+    max: { type: [String, Number], default: null },
+    step: { type: [String, Number], default: null },
     error: { type: String, default: '' },
     required: { type: Boolean, default: false },
     autocomplete: { type: String, default: null },
 });
 
-defineEmits(['update:modelValue']);
+defineEmits(['update:modelValue', 'change']);
+
+let autoId = '';
+const inputId = computed(() => {
+    if (props.id) return props.id;
+    if (!autoId) {
+        autoId = 'input-' + Math.random().toString(36).substring(2, 9);
+    }
+    return autoId;
+});
 
 const isPassword = computed(() => props.type === 'password');
 const showPassword = ref(false);
@@ -20,22 +33,27 @@ const inputType = computed(() => (isPassword.value && showPassword.value ? 'text
 
 <template>
     <div>
-        <label v-if="label" :for="id" class="mb-1.5 block text-sm font-semibold text-content-secondary">
+        <label v-if="label" :for="inputId" class="mb-1.5 block text-sm font-semibold text-content-secondary">
             {{ label }}
             <span v-if="required" class="text-danger-text" aria-hidden="true">*</span>
         </label>
         <div class="relative">
             <input
-                :id="id"
+                :id="inputId"
                 class="panel-sunken min-h-[44px] w-full rounded px-4 py-2.5 text-base text-content-primary placeholder:text-content-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
                 :class="isPassword ? 'pr-12' : ''"
                 :type="inputType"
                 :value="modelValue"
+                :placeholder="placeholder"
+                :min="min"
+                :max="max"
+                :step="step"
                 :required="required"
                 :autocomplete="autocomplete"
                 :aria-invalid="!!error"
-                :aria-describedby="error ? `${id}-error` : undefined"
+                :aria-describedby="error ? `${inputId}-error` : undefined"
                 @input="$emit('update:modelValue', $event.target.value)"
+                @change="$emit('update:modelValue', $event.target.value)"
             />
             <button
                 v-if="isPassword"
@@ -81,7 +99,7 @@ const inputType = computed(() => (isPassword.value && showPassword.value ? 'text
                 </svg>
             </button>
         </div>
-        <p v-if="error" :id="`${id}-error`" class="mt-1.5 text-sm text-danger-text">
+        <p v-if="error" :id="`${inputId}-error`" class="mt-1.5 text-sm text-danger-text">
             {{ error }}
         </p>
     </div>
